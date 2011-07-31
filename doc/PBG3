@@ -1,0 +1,57 @@
+The PBG3 format is an archive format used by Touhou 6 (The Embodiment of Scarlet Devil).
+
+It is a bitstream composed of a header, a file table, and LZSS-compressed files.
+
+
+
+Reading integers
+----------------
+
+Integers in PBG3 files are never signed, they are not byte-aligned, and have a variable size.
+Their size is given by two bits: 00 means the number is stored in one byte, 10 means it is stored in three bytes.
+
+Ex:
+    0x0012 is stored as: 0000010010
+    0x0112 is stored as: 010000000100010010
+
+
+
+Reading strings
+---------------
+
+Strings are stored as standard NULL-terminated sequences of bytes.
+The only catch is they are not byte-aligned.
+
+
+
+Header
+------
+
+The header is composed of three fields:
+* magic (string): "PBG3"
+* number of entries (integer)
+* offset of the file table (integer)
+
+The size of the header is thus comprised between 52 bits and 100 bits.
+
+
+
+File table
+----------
+
+The file table starts at a byte boundary, but as the rest of the file, isn't byte-aligned.
+It consists of a sequence of entries.
+Each entry is composed of five fields:
+* unknown1 (int) #TODO
+* unknown2 (int) #TODO
+* checksum (int): simple checksum of compressed data
+* size (int): size of uncompressed data
+* name (string): name of the file
+
+The checksum is a mere sum of the compressed data.
+Files are compressed using the LZSS algorithm, with a dictionary size of 8192 bytes and a minimum matching length of 4 bytes.
+The size of the offset component of (offset, length) tuples is 13 bits, whereas the size of the length component is 4 bits.
+A file ends with a (0, 0) tuple, that is, 18 zero bits.
+
+Uncompressing a LZSS-compressed file is quite easy, see lzss.py.
+
