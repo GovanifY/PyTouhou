@@ -93,8 +93,8 @@ def build_objects_faces(stage, anim):
             width, height = 1., 1.
             if 2 in properties:
                 width, height = struct.unpack('<ff', properties[2])
-            width = width_override or width * 16. #TODO: something is wrong here
-            height = height_override or height * 16. #TODO: something is wrong here
+            width = width_override or width * tw
+            height = height_override or height * th
             transform = Matrix.get_scaling_matrix(width, height, 1.)
             if 7 in properties:
                 transform = Matrix.get_scaling_matrix(-1., 1., 1.).mult(transform)
