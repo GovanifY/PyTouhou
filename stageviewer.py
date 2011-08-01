@@ -93,8 +93,8 @@ def build_objects_faces(stage, anim):
             width, height = 1., 1.
             if 2 in properties:
                 width, height = struct.unpack('<ff', properties[2])
-            width = width_override or width * 16.
-            height = height_override or height * 16.
+            width = width_override or width * 16. #TODO: something is wrong here
+            height = height_override or height * 16. #TODO: something is wrong here
             transform = Matrix.get_scaling_matrix(width, height, 1.)
             if 7 in properties:
                 transform = Matrix.get_scaling_matrix(-1., 1., 1.).mult(transform)
@@ -136,6 +136,10 @@ def main(path, stage_num):
     window = pygame.display.set_mode((384, 448), pygame.OPENGL | pygame.DOUBLEBUF)
 
     # Initialize OpenGL
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+    gluPerspective(30, float(window.get_width())/window.get_height(), 20, 2000)
+
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
@@ -220,18 +224,17 @@ def main(path, stage_num):
 
         truc = (float(frame) - last_message[0]) / (next_message[0] - last_message[0])
 
-        #TODO: find proper coordinates (get rid of arbitrary values)
-        x = x1 + (x2 - x1) * truc + 170.
+        x = x1 + (x2 - x1) * truc
         y = y1 + (y2 - y1) * truc
-        z = z1 + (z2 - z1) * truc - 720.
+        z = z1 + (z2 - z1) * truc
 
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(degrees(fov), float(window.get_width())/window.get_height(), 20, 2000)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        gluLookAt(x, y, z, x, y - dy, 0., 0., -1., 0.)
+        gluLookAt(192., 224., - 835.979370 * fov,
+                  192., 224. - dy, 750 - 835.979370 * fov, 0., -1., 0.) #TODO: 750 might not be accurate
+        #print(glGetFloat(GL_MODELVIEW_MATRIX))
+        glTranslatef(-x, -y, -z)
 
         glDrawArrays(GL_QUADS, 0, nb_vertices)
 
