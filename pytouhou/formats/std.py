@@ -79,7 +79,8 @@ class Stage(object):
             if size != 0x0c:
                 raise Exception #TODO
             data = file.read(12)
-            #TODO: do something useful with this
+            #TODO: maybe add another class for instructions...
+            stage.script.append((frame, message_type, data))
 
         return stage
 
