@@ -138,7 +138,7 @@ def main(path, stage_num):
     # Initialize OpenGL
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(30, float(window.get_width())/window.get_height(), 20, 2000)
+    gluPerspective(30, float(window.get_width())/window.get_height(), 101010101./2010101., 101010101./10101.)
 
     glHint(GL_FOG_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
