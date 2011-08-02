@@ -109,10 +109,10 @@ def build_objects_faces(stage, anim):
             transform = Matrix.get_translation_matrix(x, y, z).mult(transform)
             vertmat = transform.mult(vertmat)
 
-            uvs = [(tx / 256.,         1. - (ty / 256.)),
-                   ((tx + tw) / 256.,  1. - (ty / 256.)),
-                   ((tx + tw) / 256.,  1. - ((ty + th) / 256.)),
-                   (tx / 256.,         1. - ((ty + th) / 256.))]
+            uvs = [(tx / anim.size[0],         1. - (ty / anim.size[1])),
+                   ((tx + tw) / anim.size[0],  1. - (ty / anim.size[1])),
+                   ((tx + tw) / anim.size[0],  1. - ((ty + th) / anim.size[1])),
+                   (tx / anim.size[0],         1. - ((ty + th) / anim.size[1]))]
 
             for i in xrange(4):
                 w = vertmat.data[3][i]
