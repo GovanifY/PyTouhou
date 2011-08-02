@@ -176,6 +176,10 @@ def main(path, stage_num):
                                 face_uvs))
         objects_instances_faces.append(obj_instance)
 
+    def keyfunc(obj):
+        return min(z for face in obj for x, y, z in face[0])
+    objects_instances_faces.sort(key=keyfunc, reverse=True)
+
     vertices, uvs = objects_faces_to_vertices_uvs(objects_instances_faces)
     nb_vertices = len(vertices)
     vertices_format = 'f' * (3 * nb_vertices)
