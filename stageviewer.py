@@ -140,11 +140,13 @@ def main(path, stage_num):
     glLoadIdentity()
     gluPerspective(30, float(window.get_width())/window.get_height(), 20, 2000)
 
+    glHint(GL_FOG_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_TEXTURE_2D)
+    glEnable(GL_FOG)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -185,6 +187,7 @@ def main(path, stage_num):
     x, y, z = 0, 0, 0
     frame = 0
     interpolation = 0, 0, 0
+    interpolation2 = 0, 0, 0
 
     # Main loop
     clock = pygame.time.Clock()
@@ -199,14 +202,21 @@ def main(path, stage_num):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         for frame_num, message_type, data in stage.script:
+            if frame_num == frame and message_type == 1:
+                #TODO: move interpolation elsewhere
+                next_fog_b, next_fog_g, next_fog_r, _, next_fog_start, next_fog_end = struct.unpack('<BBBBff', data)
             if frame_num == frame and message_type == 3:
                 duration, junk1, junk2 = struct.unpack('<III', data)
                 interpolation = frame_num, duration, frame_num + duration
-                old_unknownx, old_dy, old_fov = unknownx, dy, fov
+                old_unknownx, old_dy, old_dz = unknownx, dy, dz
+            if frame_num == frame and message_type == 4:
+                duration, junk1, junk2 = struct.unpack('<III', data)
+                interpolation2 = frame_num, duration, frame_num + duration
+                old_fog_b, old_fog_g, old_fog_r, old_fog_start, old_fog_end = fog_b, fog_g, fog_r, fog_start, fog_end
             if frame_num <= frame and message_type == 0:
                 last_message = frame_num, message_type, data
             if frame_num <= frame and message_type == 2:
-                next_unknownx, next_dy, next_fov = struct.unpack('<fff', data)
+                next_unknownx, next_dy, next_dz = struct.unpack('<fff', data)
             if frame_num > frame and message_type == 0:
                 next_message = frame_num, message_type, data
                 break
@@ -215,9 +225,26 @@ def main(path, stage_num):
             truc = float(frame - interpolation[0]) / interpolation[1]
             unknownx = old_unknownx + (next_unknownx - old_unknownx) * truc
             dy = old_dy + (next_dy - old_dy) * truc
-            fov = old_fov + (next_fov - old_fov) * truc
+            dz = old_dz + (next_dz - old_dz) * truc
         else:
-            unknownx, dy, fov = next_unknownx, next_dy, next_fov
+            unknownx, dy, dz = next_unknownx, next_dy, next_dz
+
+        if frame < interpolation2[2]:
+            truc = float(frame - interpolation2[0]) / interpolation2[1]
+            fog_b = old_fog_b + (next_fog_b - old_fog_b) * truc
+            fog_g = old_fog_g + (next_fog_g - old_fog_g) * truc
+            fog_r = old_fog_r + (next_fog_r - old_fog_r) * truc
+            fog_start = old_fog_start + (next_fog_start - old_fog_start) * truc
+            fog_end = old_fog_end + (next_fog_end - old_fog_end) * truc
+        else:
+            fog_r, fog_g, fog_b, fog_start, fog_end = next_fog_r, next_fog_g, next_fog_b, next_fog_start, next_fog_end
+
+
+        glFogi(GL_FOG_MODE, GL_LINEAR)
+        glFogf(GL_FOG_START, fog_start)
+        glFogf(GL_FOG_END, fog_end)
+        glFogfv(GL_FOG_COLOR, (fog_r / 255., fog_g / 255., fog_b / 255., 1.))
+
 
         x1, y1, z1 = struct.unpack('<fff', last_message[2])
         x2, y2, z2 = struct.unpack('<fff', next_message[2])
@@ -231,8 +258,8 @@ def main(path, stage_num):
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        gluLookAt(192., 224., - 835.979370 * fov,
-                  192., 224. - dy, 750 - 835.979370 * fov, 0., -1., 0.) #TODO: 750 might not be accurate
+        gluLookAt(192., 224., - 835.979370 * dz,
+                  192., 224. - dy, 750 - 835.979370 * dz, 0., -1., 0.) #TODO: 750 might not be accurate
         #print(glGetFloat(GL_MODELVIEW_MATRIX))
         glTranslatef(-x, -y, -z)
 
