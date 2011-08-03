@@ -262,12 +262,22 @@ def main(path, stage_num):
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
+        # Some explanations on the magic constants:
+        # 192. = 384. / 2. = width / 2.
+        # 224. = 448. / 2. = height / 2.
+        # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
+        # This is so that objects on the (O, x, y) plane use pixel coordinates
         gluLookAt(192., 224., - 835.979370 * dz,
                   192., 224. - dy, 750 - 835.979370 * dz, 0., -1., 0.) #TODO: 750 might not be accurate
         #print(glGetFloat(GL_MODELVIEW_MATRIX))
         glTranslatef(-x, -y, -z)
 
         glDrawArrays(GL_QUADS, 0, nb_vertices)
+
+        #TODO: show the game itself
+        # It is displayed on (0, 0, 0), (0, 448, 0), (388, 448, 0), (388, 0, 0)
+        # using a camera at (192, 224, -835.979370) looking right behind itself
+        # Depth test should be disabled when rendering the game
 
         pygame.display.flip()
         clock.tick(120)
