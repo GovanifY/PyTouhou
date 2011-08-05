@@ -79,8 +79,21 @@ class Stage(object):
             if size != 0x0c:
                 raise Exception #TODO
             data = file.read(12)
-            #TODO: maybe add another class for instructions...
-            stage.script.append((frame, message_type, data))
+            #TODO: maybe add a name somewhere
+            if message_type == 0: # ViewPos
+                args = unpack('<fff', data)
+            elif message_type == 1: # Color
+                args = unpack('<BBBBff', data)
+            elif message_type == 2: # ViewPos2
+                args = unpack('<Iff', data)
+            elif message_type == 3:  # StartInterpolatingViewPos2
+                args = tuple(unpack('<III', data)[:1])
+            elif message_type == 4: # StartInterpolatingFog
+                args = tuple(unpack('<III', data)[:1])
+            else:
+                args = (data,)
+                print('Warning: unknown opcode %d' % message_type) #TODO
+            stage.script.append((frame, message_type, args))
 
         return stage
 
