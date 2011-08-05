@@ -12,41 +12,12 @@ import pygame
 
 from pytouhou.formats.pbg3 import PBG3
 from pytouhou.game.background import Background
+from pytouhou.opengl.texture import load_texture
 
 import OpenGL
 OpenGL.FORWARD_COMPATIBLE_ONLY = True
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
-
-def load_texture(image, alpha_image=None):
-    #TODO: move elsewhere
-    textureSurface = pygame.image.load(image).convert_alpha()
-
-    if alpha_image:
-        alphaSurface = pygame.image.load(alpha_image)
-        assert textureSurface.get_size() == alphaSurface.get_size()
-        for x in range(alphaSurface.get_width()):
-            for y in range(alphaSurface.get_height()):
-                r, g, b, a = textureSurface.get_at((x, y))
-                color2 = alphaSurface.get_at((x, y))
-                textureSurface.set_at((x, y), (r, g, b, color2[0]))
-
-    textureData = pygame.image.tostring(textureSurface, 'RGBA', 1)
-
-    width = textureSurface.get_width()
-    height = textureSurface.get_height()
-
-    texture = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_2D, texture)
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-        GL_UNSIGNED_BYTE, textureData)
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-    return texture, width, height
 
 
 def main(path, stage_num):
@@ -59,13 +30,15 @@ def main(path, stage_num):
     glLoadIdentity()
     gluPerspective(30, float(window.get_width())/window.get_height(), 101010101./2010101., 101010101./10101.)
 
-    glHint(GL_FOG_HINT, GL_NICEST)
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_TEXTURE_2D)
     glEnable(GL_FOG)
+    glHint(GL_FOG_HINT, GL_NICEST)
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -73,8 +46,7 @@ def main(path, stage_num):
     with open(path, 'rb') as file:
         archive = PBG3.read(file)
         background = Background(archive, stage_num)
-
-    texture = load_texture(*background.texture_components)
+        texture = load_texture(archive, background.anim)
 
     print(background.stage.name)
 

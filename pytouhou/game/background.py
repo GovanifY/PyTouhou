@@ -10,16 +10,10 @@ from pytouhou.formats.std import Stage
 from pytouhou.formats.anm0 import Animations
 
 
-
 class Background(object):
     def __init__(self, archive, stage_num):
         self.stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)))
         self.anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
-        texture_components = [None, None]
-        for i, component_name in ((0, self.anim.first_name), (1, self.anim.secondary_name)):
-            if component_name:
-                texture_components[i] = BytesIO(archive.extract(os.path.basename(component_name)))
-        self.texture_components = texture_components
         self.objects = []
         self.object_instances = []
         self._uvs = b''
@@ -137,18 +131,18 @@ class Background(object):
 
         for frame_num, message_type, args in self.stage.script:
             if frame_num == frame:
-                if message_type == 1:
+                if message_type == 0:
+                    self.position_interpolator.set_interpolation_start(frame_num, args)
+                elif message_type == 1:
                     self.fog_interpolator.set_interpolation_end_values(args)
+                elif message_type == 2:
+                    self.position2_interpolator.set_interpolation_end_values(args)
                 elif message_type == 3:
                     duration, = args
                     self.position2_interpolator.set_interpolation_end_frame(frame_num + duration)
                 elif message_type == 4:
                     duration, = args
                     self.fog_interpolator.set_interpolation_end_frame(frame_num + duration)
-                elif message_type == 2:
-                    self.position2_interpolator.set_interpolation_end_values(args)
-            if frame_num <= frame and message_type == 0:
-                self.position_interpolator.set_interpolation_start(frame_num, args)
             if frame_num > frame and message_type == 0:
                 self.position_interpolator.set_interpolation_end(frame_num, args)
                 break
