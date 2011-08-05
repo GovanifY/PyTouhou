@@ -3,21 +3,20 @@ import os
 import struct
 from itertools import chain
 
-from pytouhou.utils.matrix import Matrix
 from pytouhou.utils.interpolator import Interpolator
-
-from pytouhou.formats.std import Stage
-from pytouhou.formats.anm0 import Animations
+from pytouhou.game.sprite import Sprite
 
 
 class Background(object):
-    def __init__(self, archive, stage_num):
-        self.stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)))
-        self.anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
+    def __init__(self, stage, anim):
+        self.stage = stage
+        self.anim = anim
         self.objects = []
         self.object_instances = []
         self._uvs = b''
         self._vertices = b''
+        self.nb_vertices = 0
+
         self.build_objects()
         self.build_object_instances()
 
@@ -51,67 +50,10 @@ class Background(object):
         self.objects = []
         for i, obj in enumerate(self.stage.objects):
             faces = []
-            for script_index, x, y, z, width_override, height_override in obj.quads:
-                #TODO: refactor
-                vertices = []
-                uvs = []
-                vertmat = Matrix()
-                vertmat.data[0][0] = -.5
-                vertmat.data[1][0] = -.5
-
-                vertmat.data[0][1] = .5
-                vertmat.data[1][1] = -.5
-
-                vertmat.data[0][2] = .5
-                vertmat.data[1][2] = .5
-
-                vertmat.data[0][3] = -.5
-                vertmat.data[1][3] = .5
-
-                for i in range(4):
-                    vertmat.data[2][i] = 0.
-                    vertmat.data[3][i] = 1.
-
-                properties = {}
-                for time, instr_type, data in self.anim.scripts[script_index]:
-                    if instr_type == 15:
-                        properties[15] = b''
-                        break
-                    elif time == 0: #TODO
-                        properties[instr_type] = data
-                #if 15 not in properties: #TODO: Skip properties
-                #    continue
-
-                #TODO: properties 3 and 4
-                if 1 in properties:
-                    tx, ty, tw, th = self.anim.sprites[struct.unpack('<I', properties[1])[0]]
-                width, height = 1., 1.
-                if 2 in properties:
-                    width, height = struct.unpack('<ff', properties[2])
-                width = width_override or width * tw
-                height = height_override or height * th
-                transform = Matrix.get_scaling_matrix(width, height, 1.)
-                if 7 in properties:
-                    transform = Matrix.get_scaling_matrix(-1., 1., 1.).mult(transform)
-                if 9 in properties:
-                    rx, ry, rz = struct.unpack('<fff', properties[9])
-                    transform = Matrix.get_rotation_matrix(-rx, 'x').mult(transform)
-                    transform = Matrix.get_rotation_matrix(ry, 'y').mult(transform)
-                    transform = Matrix.get_rotation_matrix(-rz, 'z').mult(transform) #TODO: minus, really?
-                if 23 in properties: # Reposition
-                    transform = Matrix.get_translation_matrix(width / 2., height / 2., 0.).mult(transform)
-                vertmat = transform.mult(vertmat)
-
-                uvs = [(tx / self.anim.size[0],         1. - (ty / self.anim.size[1])),
-                       ((tx + tw) / self.anim.size[0],  1. - (ty / self.anim.size[1])),
-                       ((tx + tw) / self.anim.size[0],  1. - ((ty + th) / self.anim.size[1])),
-                       (tx / self.anim.size[0],         1. - ((ty + th) / self.anim.size[1]))]
-
-                for i in xrange(4):
-                    w = vertmat.data[3][i]
-                    vertices.append((vertmat.data[0][i] / w + x,
-                                     vertmat.data[1][i] / w + y,
-                                     vertmat.data[2][i] / w + z))
+            for script_index, ox, oy, oz, width_override, height_override in obj.quads:
+                sprite = Sprite(self.anim, script_index)
+                sprite.update(0, width_override, height_override)
+                uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 faces.append((vertices, uvs))
             self.objects.append(faces)
 

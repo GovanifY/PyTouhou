@@ -11,6 +11,8 @@ from itertools import chain
 import pygame
 
 from pytouhou.formats.pbg3 import PBG3
+from pytouhou.formats.std import Stage
+from pytouhou.formats.anm0 import Animations
 from pytouhou.game.background import Background
 from pytouhou.opengl.texture import load_texture
 
@@ -36,8 +38,6 @@ def main(path, stage_num):
     glEnable(GL_FOG)
     glHint(GL_FOG_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
@@ -45,7 +45,9 @@ def main(path, stage_num):
     # Load data
     with open(path, 'rb') as file:
         archive = PBG3.read(file)
-        background = Background(archive, stage_num)
+        stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)), stage_num)
+        background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
+        background = Background(stage, background_anim)
         texture = load_texture(archive, background.anim)
 
     print(background.stage.name)
