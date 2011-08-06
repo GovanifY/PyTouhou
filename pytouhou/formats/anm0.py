@@ -62,5 +62,5 @@ class Animations(object):
                 anm.scripts[i].append((time, instr_type, data))
         #TODO
 
-
         return anm
+

@@ -13,9 +13,7 @@ class Background(object):
         self.anim = anim
         self.objects = []
         self.object_instances = []
-        self._uvs = b''
-        self._vertices = b''
-        self.nb_vertices = 0
+        self.objects_by_texture = {}
 
         self.build_objects()
         self.build_object_instances()
@@ -59,13 +57,14 @@ class Background(object):
 
 
     def update(self, frame):
-        if not self._uvs or not self._vertices:
+        if not self.objects_by_texture:
             vertices, uvs = self.object_instances_to_vertices_uvs()
-            self.nb_vertices = len(vertices)
-            vertices_format = 'f' * (3 * self.nb_vertices)
-            uvs_format = 'f' * (2 * self.nb_vertices)
-            self._vertices = struct.pack(vertices_format, *chain(*vertices))
-            self._uvs = struct.pack(uvs_format, *chain(*uvs))
+            nb_vertices = len(vertices)
+            vertices_format = 'f' * (3 * nb_vertices)
+            uvs_format = 'f' * (2 * nb_vertices)
+            vertices = struct.pack(vertices_format, *chain(*vertices))
+            uvs = struct.pack(uvs_format, *chain(*uvs))
+            self.objects_by_texture = {(self.anim.first_name, self.anim.secondary_name): (nb_vertices, vertices, uvs)}
 
             self.position_interpolator = Interpolator((0, 0, 0))
             self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))
