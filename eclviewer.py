@@ -58,7 +58,7 @@ def main(path, stage_num):
         except KeyError:
             pass
         else:
-            anims.append(enemies_anim)
+            anims.append(enemies2_anim)
         enemy_manager = EnemyManager(stage, anims, ecl)
 
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
