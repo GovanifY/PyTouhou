@@ -11,6 +11,7 @@ class Sprite(object):
         self.rescale = (1., 1.)
         self.rotations_3d = (0., 0., 0.)
         self.corner_relative_placement = False
+        self.frame = 0
         self._uvs = []
         self._vertices = []
 
@@ -66,14 +67,16 @@ class Sprite(object):
 
 
 
-    def update(self, frame, override_width=0, override_height=0):
+    def update(self, override_width=0, override_height=0):
         properties = {}
         for time, instr_type, data in self.anm.scripts[self.script_index]:
-            if time == frame:
+            if time == self.frame:
                 if instr_type == 15: #Return
                     break
                 else:
                     properties[instr_type] = data
+        self.frame += 1
+
         if properties:
             if 1 in properties:
                 self.texcoords = self.anm.sprites[unpack('<I', properties[1])[0]]

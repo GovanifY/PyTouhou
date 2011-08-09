@@ -50,7 +50,7 @@ class Background(object):
             faces = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 sprite = Sprite(self.anim, script_index)
-                sprite.update(0, width_override, height_override)
+                sprite.update(width_override, height_override)
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 faces.append((vertices, uvs))
             self.objects.append(faces)
