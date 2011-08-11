@@ -2,6 +2,18 @@ from struct import unpack
 
 from pytouhou.utils.matrix import Matrix
 
+
+class AnmWrapper(object):
+    def __init__(self, anm_files):
+        self.anm_files = list(anm_files)
+
+    def get_sprite(self, script_index):
+        for anm in self.anm_files:
+            if script_index in anm.scripts:
+                return anm, Sprite(anm, script_index)
+
+
+
 class Sprite(object):
     def __init__(self, anm, script_index):
         self.anm = anm

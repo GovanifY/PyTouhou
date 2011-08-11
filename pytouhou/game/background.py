@@ -8,9 +8,9 @@ from pytouhou.game.sprite import Sprite
 
 
 class Background(object):
-    def __init__(self, stage, anim):
+    def __init__(self, stage, anm_wrapper):
         self.stage = stage
-        self.anim = anim
+        self.anm_wrapper = anm_wrapper
         self.objects = []
         self.object_instances = []
         self.objects_by_texture = {}
@@ -49,7 +49,8 @@ class Background(object):
         for i, obj in enumerate(self.stage.objects):
             faces = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
-                sprite = Sprite(self.anim, script_index)
+                #TODO: per-texture rendering
+                anm, sprite = self.anm_wrapper.get_sprite(script_index)
                 sprite.update(width_override, height_override)
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 faces.append((vertices, uvs))
@@ -64,7 +65,9 @@ class Background(object):
             uvs_format = 'f' * (2 * nb_vertices)
             vertices = struct.pack(vertices_format, *chain(*vertices))
             uvs = struct.pack(uvs_format, *chain(*uvs))
-            self.objects_by_texture = {(self.anim.first_name, self.anim.secondary_name): (nb_vertices, vertices, uvs)}
+            assert len(self.anm_wrapper.anm_files) == 1 #TODO
+            anm = self.anm_wrapper.anm_files[0]
+            self.objects_by_texture = {(anm.first_name, anm.secondary_name): (nb_vertices, vertices, uvs)}
 
             self.position_interpolator = Interpolator((0, 0, 0))
             self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))

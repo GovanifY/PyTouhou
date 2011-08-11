@@ -13,6 +13,7 @@ import pygame
 from pytouhou.formats.pbg3 import PBG3
 from pytouhou.formats.std import Stage
 from pytouhou.formats.anm0 import Animations
+from pytouhou.game.sprite import AnmWrapper
 from pytouhou.game.background import Background
 from pytouhou.opengl.texture import TextureManager
 
@@ -49,7 +50,7 @@ def main(path, stage_num):
 
         stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)), stage_num)
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
-        background = Background(stage, background_anim)
+        background = Background(stage, AnmWrapper((background_anim,)))
 
         print(background.stage.name)
 

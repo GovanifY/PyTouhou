@@ -8,8 +8,8 @@ from math import cos, sin, atan2
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, script, anms):
-        self.anms = tuple(anms)
+    def __init__(self, pos, life, _type, script, anm_wrapper):
+        self.anm_wrapper = anm_wrapper
         self.anm = None
         self.script = list(script)
         self.x, self.y = pos
@@ -18,6 +18,7 @@ class Enemy(object):
         self.frame = 0
         self.sprite = None
 
+        self.movement_dependant_sprites = None
         self.interpolator = None #TODO
         self.angle = 0.
         self.speed = 0.
@@ -34,12 +35,9 @@ class Enemy(object):
                     return False
                 elif instr_type == 97: # set_enemy_sprite
                     script_index, = unpack('<I', args)
-                    if script_index in self.anms[0].scripts:
-                        self.sprite = Sprite(self.anms[0], script_index)
-                        self.anm = self.anms[0]
-                    else:
-                        self.sprite = Sprite(self.anms[1], script_index)
-                        self.anm = self.anms[1]
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(script_index)
+                elif instr_type == 98: #TODO
+                    self.movement_dependant_sprites = unpack('<HHHHI', args)
                 elif instr_type == 43: # set_pos
                     self.x, self.y, z = unpack('<fff', args)
                     self.interpolator = Interpolator((self.x, self.y)) #TODO: better interpolation
@@ -59,28 +57,41 @@ class Enemy(object):
                 elif instr_type == 57:
                     duration, x, y, z = unpack('<Ifff', args)
                     self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
-        if self.sprite:
-            self.sprite.update()
 
+        x, y = self.x, self.y
         if self.interpolator:
             self.interpolator.update(self.frame)
             x, y = self.interpolator.values
-            dx, dy = x - self.x, y - self.y
-            #TODO: animations
-            if abs(dx) > abs(dy):
-                pass #TODO
-            else:
-                pass #TODO
-            self.x, self.y = x, y
+
         self.speed += self.acceleration #TODO: units? Execution order?
         self.angle += self.rotation_speed #TODO: units? Execution order?
 
         dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
         if self.type & 2:
-            self.x -= dx
+            x -= dx
         else:
-            self.x += dx
-        self.y += dy
+            x += dx
+        y += dy
+
+        if self.movement_dependant_sprites:
+            #TODO: is that really how it works?
+            dx, dy = self.x - x, self.y - y
+            if (dx, dy) == (0, 0):
+                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[0])
+            elif abs(dx) > abs(dy):
+                if dx < 0:
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
+                else:
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[3])
+            else:
+                if dy < 0:
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[1])
+                else:
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
+
+        self.x, self.y = x, y
+        if self.sprite:
+            self.sprite.update()
 
         self.frame += 1
         return True
@@ -88,9 +99,9 @@ class Enemy(object):
 
 
 class EnemyManager(object):
-    def __init__(self, stage, anims, ecl):
+    def __init__(self, stage, anm_wrapper, ecl):
         self.stage = stage
-        self.anims = tuple(anims)
+        self.anm_wrapper = anm_wrapper
         self.main = []
         self.subs = {}
         self.objects_by_texture = {}
@@ -120,7 +131,7 @@ class EnemyManager(object):
             for sub, instr_type, args in self.main.pop(0)[1]:
                 if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
                     x, y, z, life, unknown1, unknown2, unknown3 = args
-                    self.enemies.append(Enemy((x, y), life, instr_type, self.subs[sub], self.anims))
+                    self.enemies.append(Enemy((x, y), life, instr_type, self.subs[sub], self.anm_wrapper))
 
         # Update enemies
         for enemy in tuple(self.enemies):

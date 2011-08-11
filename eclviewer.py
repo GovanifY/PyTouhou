@@ -14,6 +14,7 @@ from pytouhou.formats.pbg3 import PBG3
 from pytouhou.formats.std import Stage
 from pytouhou.formats.ecl import ECL
 from pytouhou.formats.anm0 import Animations
+from pytouhou.game.sprite import AnmWrapper
 from pytouhou.game.background import Background
 from pytouhou.game.enemymanager import EnemyManager
 from pytouhou.opengl.texture import TextureManager
@@ -59,10 +60,10 @@ def main(path, stage_num):
             pass
         else:
             anims.append(enemies2_anim)
-        enemy_manager = EnemyManager(stage, anims, ecl)
+        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl)
 
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
-        background = Background(stage, background_anim)
+        background = Background(stage, AnmWrapper((background_anim,)))
 
         print(enemy_manager.stage.name)
 
