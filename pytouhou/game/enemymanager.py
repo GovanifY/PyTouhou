@@ -2,8 +2,9 @@ from itertools import chain
 from io import BytesIO
 import os
 from struct import unpack, pack
+from pytouhou.utils.interpolator import Interpolator
 from pytouhou.game.sprite import Sprite
-from math import cos, sin
+from math import cos, sin, atan2
 
 
 class Enemy(object):
@@ -17,6 +18,7 @@ class Enemy(object):
         self.frame = 0
         self.sprite = None
 
+        self.interpolator = None #TODO
         self.angle = 0.
         self.speed = 0.
         self.rotation_speed = 0.
@@ -38,6 +40,10 @@ class Enemy(object):
                     else:
                         self.sprite = Sprite(self.anms[1], script_index)
                         self.anm = self.anms[1]
+                elif instr_type == 43: # set_pos
+                    self.x, self.y, z = unpack('<fff', args)
+                    self.interpolator = Interpolator((self.x, self.y)) #TODO: better interpolation
+                    self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
                 elif instr_type == 45: # set_angle_speed
                     self.angle, self.speed = unpack('<ff', args)
                 elif instr_type == 46: # set_angle
@@ -46,14 +52,31 @@ class Enemy(object):
                     self.speed, = unpack('<f', args)
                 elif instr_type == 48: # set_acceleration
                     self.acceleration, = unpack('<f', args)
+                elif instr_type == 51: # move_towards_player #TODO: main
+                    unknown, self.speed = unpack('<If', args) #TODO: unknown
+                    player_x, player_y = 192., 400.#TODO
+                    self.angle = atan2(player_y - self.y, player_x - self.x)
+                elif instr_type == 57:
+                    duration, x, y, z = unpack('<Ifff', args)
+                    self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
         if self.sprite:
             self.sprite.update()
 
+        if self.interpolator:
+            self.interpolator.update(self.frame)
+            x, y = self.interpolator.values
+            dx, dy = x - self.x, y - self.y
+            #TODO: animations
+            if abs(dx) > abs(dy):
+                pass #TODO
+            else:
+                pass #TODO
+            self.x, self.y = x, y
         self.speed += self.acceleration #TODO: units? Execution order?
         self.angle += self.rotation_speed #TODO: units? Execution order?
 
         dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-        if self.type == 2:
+        if self.type & 2:
             self.x -= dx
         else:
             self.x += dx
@@ -95,7 +118,7 @@ class EnemyManager(object):
     def update(self, frame):
         if self.main and self.main[0][0] == frame:
             for sub, instr_type, args in self.main.pop(0)[1]:
-                if instr_type in (0, 2): # Normal/mirrored enemy
+                if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
                     x, y, z, life, unknown1, unknown2, unknown3 = args
                     self.enemies.append(Enemy((x, y), life, instr_type, self.subs[sub], self.anims))
 

@@ -42,9 +42,7 @@ class ECL(object):
                 break
             sub, instr_type, size = unpack('<HHH', file.read(6))
             data = file.read(size - 8)
-            if instr_type == 0: # Normal enemy
-                args = unpack('<ffIhHHH', data)
-            elif instr_type == 2: # Mirrored enemy
+            if instr_type in (0, 2, 4, 6): # Enemy spawn
                 args = unpack('<ffIhHHH', data)
             else:
                 print('ECL: Warning: unknown opcode %d (%r)' % (instr_type, data)) #TODO

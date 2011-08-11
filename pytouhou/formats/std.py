@@ -86,7 +86,7 @@ class Stage(object):
             elif message_type == 1: # Color
                 args = unpack('<BBBBff', data)
             elif message_type == 2: # ViewPos2
-                args = unpack('<Iff', data)
+                args = unpack('<fff', data)
             elif message_type == 3:  # StartInterpolatingViewPos2
                 args = tuple(unpack('<III', data)[:1])
             elif message_type == 4: # StartInterpolatingFog

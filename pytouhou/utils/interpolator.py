@@ -34,3 +34,4 @@ class Interpolator(object):
             truc = float(frame - self.start_frame) / float(self.end_frame - self.start_frame)
             self.values = tuple(start_value + truc * (end_value - start_value)
                                 for (start_value, end_value) in zip(self.start_values, self.end_values))
+
