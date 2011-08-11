@@ -19,6 +19,7 @@ class Enemy(object):
         self.sprite = None
 
         self.movement_dependant_sprites = None
+        self.direction = None
         self.interpolator = None #TODO
         self.angle = 0.
         self.speed = 0.
@@ -37,7 +38,9 @@ class Enemy(object):
                     script_index, = unpack('<I', args)
                     self.anm, self.sprite = self.anm_wrapper.get_sprite(script_index)
                 elif instr_type == 98: #TODO
-                    self.movement_dependant_sprites = unpack('<HHHHI', args)
+                    default, end_left, end_right, left, right, unknown = unpack('<HHHHHH', args)
+                    self.movement_dependant_sprites = end_left, end_right, left, right, unknown
+                    self.anm, self.sprite = self.anm_wrapper.get_sprite(default)
                 elif instr_type == 43: # set_pos
                     self.x, self.y, z = unpack('<fff', args)
                     self.interpolator = Interpolator((self.x, self.y)) #TODO: better interpolation
@@ -75,19 +78,16 @@ class Enemy(object):
 
         if self.movement_dependant_sprites:
             #TODO: is that really how it works?
-            dx, dy = self.x - x, self.y - y
-            if (dx, dy) == (0, 0):
-                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[0])
-            elif abs(dx) > abs(dy):
-                if dx < 0:
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
-                else:
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[3])
-            else:
-                if dy < 0:
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[1])
-                else:
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
+            if x < self.x:
+                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
+                self.direction = -1
+            elif x > self.x:
+                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[3])
+                self.direction = +1
+            #TODO: end_animation
+            elif self.direction is not None:
+                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
+                self.direction = None
 
         self.x, self.y = x, y
         if self.sprite:
