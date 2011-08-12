@@ -61,9 +61,11 @@ def main(path, stage_num):
         else:
             anims.append(enemies2_anim)
         enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl)
+        texture_manager.preload(anims)
 
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
         background = Background(stage, AnmWrapper((background_anim,)))
+        texture_manager.preload((background_anim,))
 
         print(enemy_manager.stage.name)
 

@@ -19,6 +19,12 @@ class TextureManager(object):
         return self.textures[key]
 
 
+    def preload(self, anms):
+        for anm in anms:
+            key = anm.first_name, anm.secondary_name
+            texture = self[key]
+
+
     def set_archive(self, archive):
         self.archive = archive
 
