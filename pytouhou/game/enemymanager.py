@@ -175,6 +175,12 @@ class EnemyManager(object):
                 self.main[-1][1].append((sub, instr_type, args))
 
 
+    def make_enemy_deleter(self, enemy):
+        def _enemy_deleter(unknown): #TODO: unknown
+            self.enemies.remove(enemy)
+        return _enemy_deleter
+
+
     def update(self, frame):
         if self.main and self.main[0][0] == frame:
             for sub, instr_type, args in self.main.pop(0)[1]:
@@ -183,10 +189,7 @@ class EnemyManager(object):
                     ecl_runner = ECLRunner(self.ecl, sub)
                     enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
 
-                    def _enemy_deleter(unknown): #TOOD: unknown
-                        self.enemies.remove(enemy)
-
-                    ecl_runner.implementation[1] = ('I', _enemy_deleter)
+                    ecl_runner.implementation[1] = ('I', self.make_enemy_deleter(enemy))
 
                     self.enemies.append(enemy)
 
