@@ -51,6 +51,7 @@ class ECLRunner(object):
                     print('Warning: unhandled opcode %d!' % instr_type) #TODO
                 else:
                     callback(*unpack('<' + format, args))
+            if frame <= self.frame:
                 self.instruction_pointer += 1
 
         self.frame += 1
