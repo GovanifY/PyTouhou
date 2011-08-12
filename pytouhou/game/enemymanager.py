@@ -3,21 +3,23 @@ from io import BytesIO
 import os
 from struct import unpack, pack
 from pytouhou.utils.interpolator import Interpolator
+from pytouhou.game.eclrunner import ECLRunner
 from pytouhou.game.sprite import Sprite
 from math import cos, sin, atan2
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, script, anm_wrapper):
+    def __init__(self, pos, life, _type, ecl_runner, anm_wrapper):
         self.anm_wrapper = anm_wrapper
         self.anm = None
-        self.script = list(script)
+        self.ecl_runner = ecl_runner
         self.x, self.y = pos
         self.life = life
         self.type = _type
         self.frame = 0
         self.sprite = None
 
+        self.death_sprite = None
         self.movement_dependant_sprites = None
         self.direction = None
         self.interpolator = None #TODO
@@ -26,40 +28,93 @@ class Enemy(object):
         self.rotation_speed = 0.
         self.acceleration = 0.
 
+        self.hitbox = (0, 0)
+
+        self.ecl_runner.implementation.update({97: ('I', self.set_sprite),
+                                               98: ('HHHHHH', self.set_multiple_sprites),
+                                               45: ('ff', self.set_angle_speed),
+                                               43: ('fff', self.set_pos),
+                                               46: ('f', self.set_rotation_speed),
+                                               47: ('f', self.set_speed),
+                                               48: ('f', self.set_acceleration),
+                                               51: ('If', self.target_player),
+                                               57: ('Ifff', self.move_to),
+                                               100: ('I', self.set_death_sprite),
+                                               103: ('fff', self.set_hitbox)}) #TODO
+
+
+    def set_death_sprite(self, sprite_index):
+        self.death_sprite = sprite_index % 256 #TODO
+
+
+    def set_hitbox(self, width, height, depth):
+        self.hitbox = (width, height)
+
+
+    def set_sprite(self, sprite_index):
+        self.anm, self.sprite = self.anm_wrapper.get_sprite(sprite_index)
+
+
+    def set_multiple_sprites(self, default, end_left, end_right, left, right, unknown):
+        self.movement_dependant_sprites = end_left, end_right, left, right, unknown
+        self.anm, self.sprite = self.anm_wrapper.get_sprite(default)
+
+
+    def set_angle_speed(self, angle, speed):
+        self.angle, self.speed = angle, speed
+
+
+    def set_pos(self, x, y, z):
+        self.x, self.y = x, y
+        self.interpolator = Interpolator((x, y))
+        self.interpolator.set_interpolation_start(self.frame, (x, y))
+
+
+    def set_rotation_speed(self, speed):
+        self.rotation_speed = speed
+
+
+    def set_speed(self, speed):
+        self.speed = speed
+
+
+    def set_acceleration(self, acceleration):
+        self.acceleration = acceleration
+
+
+    def target_player(self, unknown, speed):
+        self.speed = speed #TODO: unknown
+        player_x, player_y = 192., 400.#TODO
+        self.angle = atan2(player_y - self.y, player_x - self.x)
+
+
+    def move_to(self, duration, x, y, z):
+        self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
+
+
+    def is_visible(self, screen_width, screen_height):
+        if not self.sprite:
+            return False
+        if min(x for x, y, z in self.sprite._vertices) >= screen_width - self.x:
+            return False
+        if max(x for x, y, z in self.sprite._vertices) <= -self.x:
+            return False
+        if min(y for x, y, z in self.sprite._vertices) >= screen_height - self.y:
+            return False
+        if max(y for x, y, z in self.sprite._vertices) <= -self.y:
+            return False
+        return True
+
 
     def update(self, frame):
-        if not self.script:
-            return True
-        if self.script[0][0] == self.frame:
-            for instr_type, rank_mask, param_mask, args  in self.script.pop(0)[1]:
-                if instr_type == 1: # delete
-                    return False
-                elif instr_type == 97: # set_enemy_sprite
-                    script_index, = unpack('<I', args)
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(script_index)
-                elif instr_type == 98: #TODO
-                    default, end_left, end_right, left, right, unknown = unpack('<HHHHHH', args)
-                    self.movement_dependant_sprites = end_left, end_right, left, right, unknown
-                    self.anm, self.sprite = self.anm_wrapper.get_sprite(default)
-                elif instr_type == 43: # set_pos
-                    self.x, self.y, z = unpack('<fff', args)
-                    self.interpolator = Interpolator((self.x, self.y)) #TODO: better interpolation
-                    self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
-                elif instr_type == 45: # set_angle_speed
-                    self.angle, self.speed = unpack('<ff', args)
-                elif instr_type == 46: # set_angle
-                    self.rotation_speed, = unpack('<f', args)
-                elif instr_type == 47: # set_speed
-                    self.speed, = unpack('<f', args)
-                elif instr_type == 48: # set_acceleration
-                    self.acceleration, = unpack('<f', args)
-                elif instr_type == 51: # move_towards_player #TODO: main
-                    unknown, self.speed = unpack('<If', args) #TODO: unknown
-                    player_x, player_y = 192., 400.#TODO
-                    self.angle = atan2(player_y - self.y, player_x - self.x)
-                elif instr_type == 57:
-                    duration, x, y, z = unpack('<Ifff', args)
-                    self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
+        #TODO
+        #if not self.script:
+        #    return True
+        #if self.script[0][0] == self.frame:
+        #    for instr_type, rank_mask, param_mask, args  in self.script.pop(0)[1]:
+        #        if instr_type == 1: # delete
+        #            return False
+        self.ecl_runner.update()
 
         x, y = self.x, self.y
         if self.interpolator:
@@ -103,7 +158,7 @@ class EnemyManager(object):
         self.stage = stage
         self.anm_wrapper = anm_wrapper
         self.main = []
-        self.subs = {}
+        self.ecl = ecl
         self.objects_by_texture = {}
         self.enemies = []
 
@@ -115,23 +170,21 @@ class EnemyManager(object):
                 self.main[-1][1].append((sub, instr_type, args))
 
 
-        # Populate subs
-        for i, sub in enumerate(ecl.subs):
-            for frame, instr_type, rank_mask, param_mask, args in sub:
-                if i not in self.subs:
-                    self.subs[i] = []
-                if not self.subs[i] or self.subs[i][-1][0] < frame:
-                    self.subs[i].append((frame, [(instr_type, rank_mask, param_mask, args)]))
-                elif self.subs[i][-1][0] == frame:
-                    self.subs[i][-1][1].append((instr_type, rank_mask, param_mask, args))
-
-
     def update(self, frame):
         if self.main and self.main[0][0] == frame:
             for sub, instr_type, args in self.main.pop(0)[1]:
                 if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
                     x, y, z, life, unknown1, unknown2, unknown3 = args
-                    self.enemies.append(Enemy((x, y), life, instr_type, self.subs[sub], self.anm_wrapper))
+                    ecl_runner = ECLRunner(self.ecl, sub)
+                    enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
+
+                    def _enemy_deleter(unknown): #TOOD: unknown
+                        print('youhou!')
+                        self.enemies.remove(enemy)
+
+                    ecl_runner.implementation[1] = ('I', _enemy_deleter)
+
+                    self.enemies.append(enemy)
 
         # Update enemies
         for enemy in tuple(self.enemies):
@@ -143,7 +196,7 @@ class EnemyManager(object):
         self.objects_by_texture = {}
         for enemy in self.enemies:
             ox, oy = enemy.x, enemy.y
-            if enemy.sprite:
+            if enemy.is_visible(384, 448): #TODO
                 key = enemy.anm.first_name, enemy.anm.secondary_name
                 if not key in self.objects_by_texture:
                     self.objects_by_texture[key] = (0, [], [])
