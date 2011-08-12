@@ -96,6 +96,9 @@ class Sprite(object):
             if 2 in properties:
                 self.rescale = unpack('<ff', properties[2])
                 del properties[2]
+            if 5 in properties:
+                self.frame, = unpack('<I', properties[5])
+                del properties[5]
             if 7 in properties:
                 self.mirrored = True #TODO
                 del properties[7]

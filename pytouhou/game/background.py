@@ -15,6 +15,10 @@ class Background(object):
         self.object_instances = []
         self.objects_by_texture = {}
 
+        self.position_interpolator = Interpolator((0, 0, 0))
+        self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))
+        self.position2_interpolator = Interpolator((0, 0, 0))
+
         self.build_objects()
         self.build_object_instances()
 
@@ -68,10 +72,6 @@ class Background(object):
             assert len(self.anm_wrapper.anm_files) == 1 #TODO
             anm = self.anm_wrapper.anm_files[0]
             self.objects_by_texture = {(anm.first_name, anm.secondary_name): (nb_vertices, vertices, uvs)}
-
-            self.position_interpolator = Interpolator((0, 0, 0))
-            self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))
-            self.position2_interpolator = Interpolator((0, 0, 0))
 
         for frame_num, message_type, args in self.stage.script:
             if frame_num == frame:
