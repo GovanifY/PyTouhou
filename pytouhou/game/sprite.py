@@ -30,39 +30,29 @@ class Sprite(object):
 
 
     def update_uvs_vertices(self, override_width=0, override_height=0):
-        vertmat = Matrix()
-        vertmat.data[0][0] = -.5
-        vertmat.data[1][0] = -.5
-
-        vertmat.data[0][1] = .5
-        vertmat.data[1][1] = -.5
-
-        vertmat.data[0][2] = .5
-        vertmat.data[1][2] = .5
-
-        vertmat.data[0][3] = -.5
-        vertmat.data[1][3] = .5
-
-        for i in range(4):
-            vertmat.data[2][i] = 0.
-            vertmat.data[3][i] = 1.
+        vertmat = Matrix([[-.5,     .5,     .5,    -.5],
+                          [-.5,    -.5,     .5,     .5],
+                          [ .0,     .0,     .0,     .0],
+                          [ 1.,     1.,     1.,     1.]])
 
         tx, ty, tw, th = self.texcoords
         sx, sy = self.rescale
         width = override_width or (tw * sx)
         height = override_height or (th * sy)
 
-        transform = Matrix.get_scaling_matrix(width, height, 1.)
+        vertmat.scale(width, height, 1.)
         if self.mirrored:
-            transform = Matrix.get_scaling_matrix(-1., 1., 1.).mult(transform)
+            vertmat.flip()
         if self.rotations_3d != (0., 0., 0.):
             rx, ry, rz = self.rotations_3d
-            transform = Matrix.get_rotation_matrix(-rx, 'x').mult(transform)
-            transform = Matrix.get_rotation_matrix(ry, 'y').mult(transform)
-            transform = Matrix.get_rotation_matrix(-rz, 'z').mult(transform) #TODO: minus, really?
+            if rx:
+                vertmat.rotate_x(-rx)
+            if ry:
+                vertmat.rotate_y(ry)
+            if rz:
+                vertmat.rotate_z(-rz) #TODO: minus, really?
         if self.corner_relative_placement: # Reposition
-            transform = Matrix.get_translation_matrix(width / 2., height / 2., 0.).mult(transform)
-        vertmat = transform.mult(vertmat)
+            vertmat.translate(width / 2., height / 2., 0.)
 
         uvs = [(tx / self.anm.size[0],         1. - (ty / self.anm.size[1])),
                ((tx + tw) / self.anm.size[0],  1. - (ty / self.anm.size[1])),
