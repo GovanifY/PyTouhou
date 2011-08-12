@@ -36,10 +36,8 @@ class Matrix(object):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        a = [cos_a * d1[1][i] - sin_a * d1[2][i] for i in range(4)]
-        b = [sin_a * d1[1][i] + cos_a * d1[2][i] for i in range(4)]
-        d1[1][:] = a
-        d1[2][:] = b
+        d1[1][:], d1[2][:] = ([cos_a * d1[1][i] - sin_a * d1[2][i] for i in range(4)],
+                              [sin_a * d1[1][i] + cos_a * d1[2][i] for i in range(4)])
 
 
     def rotate_y(self, angle):
@@ -47,20 +45,16 @@ class Matrix(object):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        a = [cos_a * d1[0][i] - sin_a * d1[2][i] for i in range(4)]
-        b = [sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)]
-        d1[0][:] = a
-        d1[2][:] = b
+        d1[0][:], d1[2][:] = ([cos_a * d1[0][i] - sin_a * d1[2][i] for i in range(4)],
+                              [sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)])
 
 
     def rotate_z(self, angle):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        a = [cos_a * d1[0][i] - sin_a * d1[1][i] for i in range(4)]
-        b = [sin_a * d1[0][i] + cos_a * d1[1][i] for i in range(4)]
-        d1[0][:] = a
-        d1[1][:] = b
+        d1[0][:], d1[1][:] = ([cos_a * d1[0][i] - sin_a * d1[1][i] for i in range(4)],
+                              [sin_a * d1[0][i] + cos_a * d1[1][i] for i in range(4)])
 
 
     @classmethod

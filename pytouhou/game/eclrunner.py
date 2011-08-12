@@ -38,21 +38,21 @@ class ECLRunner(object):
 
     def update(self):
         frame = self.frame
-        while frame <= self.frame:
-            try:
+        try:
+            while frame <= self.frame:
                 frame, instr_type, rank_mask, param_mask, args = self.ecl.subs[self.sub][self.instruction_pointer]
-            except IndexError:
-                break #TODO: script ended, destroy enemy
 
-            if frame == self.frame:
-                try:
-                    format, callback = self.implementation[instr_type]
-                except KeyError:
-                    print('Warning: unhandled opcode %d!' % instr_type) #TODO
-                else:
-                    callback(*unpack('<' + format, args))
-            if frame <= self.frame:
-                self.instruction_pointer += 1
+                if frame == self.frame:
+                    try:
+                        format, callback = self.implementation[instr_type]
+                    except KeyError:
+                        print('Warning: unhandled opcode %d!' % instr_type) #TODO
+                    else:
+                        callback(*unpack('<' + format, args))
+                if frame <= self.frame:
+                    self.instruction_pointer += 1
+        except IndexError:
+            pass #TODO: script ended, destroy enemy
 
         self.frame += 1
 

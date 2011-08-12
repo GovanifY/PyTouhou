@@ -24,6 +24,7 @@ class Sprite(object):
         self.rotations_3d = (0., 0., 0.)
         self.rotations_speed_3d = (0., 0., 0.)
         self.corner_relative_placement = False
+        self.instruction_pointer = 0
         self.frame = 0
         self._uvs = []
         self._vertices = []
@@ -54,60 +55,60 @@ class Sprite(object):
         if self.corner_relative_placement: # Reposition
             vertmat.translate(width / 2., height / 2., 0.)
 
-        uvs = [(tx / self.anm.size[0],         1. - (ty / self.anm.size[1])),
-               ((tx + tw) / self.anm.size[0],  1. - (ty / self.anm.size[1])),
-               ((tx + tw) / self.anm.size[0],  1. - ((ty + th) / self.anm.size[1])),
-               (tx / self.anm.size[0],         1. - ((ty + th) / self.anm.size[1]))]
+        x_1 = 1. / self.anm.size[0]
+        y_1 = 1. / self.anm.size[1]
+        uvs = [(tx * x_1,         1. - (ty * y_1)),
+               ((tx + tw) * x_1,  1. - (ty * y_1)),
+               ((tx + tw) * x_1,  1. - ((ty + th) * y_1)),
+               (tx * x_1,         1. - ((ty + th) * y_1))]
 
-        vertices = []
-        for i in xrange(4):
-            w = vertmat.data[3][i]
-            vertices.append((vertmat.data[0][i] / w,
-                             vertmat.data[1][i] / w,
-                             vertmat.data[2][i] / w))
-
-        self._uvs, self._vertices = uvs, vertices
+        d = vertmat.data
+        assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
+        self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
 
 
 
     def update(self):
-        properties = {}
-        for time, instr_type, data in self.anm.scripts[self.script_index]:
-            if time == self.frame:
-                if instr_type == 15: #Return
-                    break
-                else:
-                    properties[instr_type] = data
+        changed = False
+        frame = self.frame
+        script = self.anm.scripts[self.script_index]
+        try:
+            while frame <= self.frame:
+                frame, instr_type, data = script[self.instruction_pointer]
+                if frame == self.frame:
+                    changed = True
+                    if instr_type == 1:
+                        self.texcoords = self.anm.sprites[unpack('<I', data)[0]]
+                    elif instr_type == 2:
+                        self.rescale = unpack('<ff', data)
+                    elif instr_type == 5:
+                        self.frame, = unpack('<I', data)
+                        self.instruction_pointer = 0
+                    elif instr_type == 7:
+                        self.mirrored = True
+                    elif instr_type == 9:
+                        self.rotations_3d = unpack('<fff', data)
+                    elif instr_type == 10:
+                        self.rotations_speed_3d = unpack('<fff', data)
+                    elif instr_type == 23:
+                        self.corner_relative_placement = True #TODO
+                    elif instr_type == 15:
+                        self.instruction_pointer += 1
+                        break
+                    else:
+                        print('unhandled opcode: %d, %r' % (instr_type, data)) #TODO
+                if frame <= self.frame:
+                    self.instruction_pointer += 1
+        except IndexError:
+            pass
         self.frame += 1
 
-        self.rotations_3d = tuple(x + y for x, y in zip(self.rotations_3d, self.rotations_speed_3d))
+        ax, ay, az = self.rotations_3d
+        sax, say, saz = self.rotations_speed_3d
+        self.rotations_3d = ax + sax, ay + say, az + saz
 
-        if properties:
-            if 1 in properties:
-                self.texcoords = self.anm.sprites[unpack('<I', properties[1])[0]]
-                del properties[1]
-            if 2 in properties:
-                self.rescale = unpack('<ff', properties[2])
-                del properties[2]
-            if 5 in properties:
-                self.frame, = unpack('<I', properties[5])
-                del properties[5]
-            if 7 in properties:
-                self.mirrored = True #TODO
-                del properties[7]
-            if 9 in properties:
-                self.rotations_3d = unpack('<fff', properties[9])
-                del properties[9]
-            if 10 in properties:
-                self.rotations_speed_3d = unpack('<fff', properties[10])
-                del properties[10]
-            if 23 in properties:
-                self.corner_relative_placement = True #TODO
-                del properties[23]
-            if properties:
-                print('Leftover properties: %r' % properties) #TODO
-            return True
         if self.rotations_speed_3d != (0., 0., 0.):
             return True
-        return False
+
+        return changed
 
