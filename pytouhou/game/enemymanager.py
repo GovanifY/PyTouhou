@@ -114,13 +114,6 @@ class Enemy(object):
 
 
     def update(self, frame):
-        #TODO
-        #if not self.script:
-        #    return True
-        #if self.script[0][0] == self.frame:
-        #    for instr_type, rank_mask, param_mask, args  in self.script.pop(0)[1]:
-        #        if instr_type == 1: # delete
-        #            return False
         self.ecl_runner.update()
 
         x, y = self.x, self.y
@@ -153,11 +146,15 @@ class Enemy(object):
 
         self.x, self.y = x, y
         if self.sprite:
-            if self.sprite.update() and self.is_visible(384, 448): #TODO: screen size
+            changed = self.sprite.update()
+            visible = self.is_visible(384, 448)
+            if changed and visible:
                 self.sprite.update_uvs_vertices()
+        else:
+            visible = False
 
         self.frame += 1
-        return True
+        return visible
 
 
 
@@ -194,14 +191,11 @@ class EnemyManager(object):
                     self.enemies.append(enemy)
 
         # Update enemies
-        for enemy in tuple(self.enemies):
-            if not enemy.update(frame):
-                self.enemies.remove(enemy)
-                continue
+        visible_enemies = [enemy for enemy in self.enemies if enemy.update(frame)]
 
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}
-        for enemy in self.enemies:
+        for enemy in visible_enemies:
             ox, oy = enemy.x, enemy.y
             if enemy.is_visible(384, 448): #TODO
                 key = enemy.anm.first_name, enemy.anm.secondary_name
