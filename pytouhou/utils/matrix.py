@@ -24,6 +24,12 @@ class Matrix(object):
         d1[2][:] = (a * z for a in d1[2])
 
 
+    def scale2d(self, x, y):
+        d1 = self.data
+        d1[0][:] = (a * x for a in d1[0])
+        d1[1][:] = (a * y for a in d1[1])
+
+
     def translate(self, x, y, z):
         d1 = self.data
         a, b, c = (v * m for v, m in zip(d1[3][:3], (x, y, z)))

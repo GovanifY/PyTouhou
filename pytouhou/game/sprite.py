@@ -41,7 +41,7 @@ class Sprite(object):
         width = override_width or (tw * sx)
         height = override_height or (th * sy)
 
-        vertmat.scale(width, height, 1.)
+        vertmat.scale2d(width, height)
         if self.mirrored:
             vertmat.flip()
         if self.rotations_3d != (0., 0., 0.):
