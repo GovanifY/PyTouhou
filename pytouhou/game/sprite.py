@@ -22,6 +22,7 @@ class Sprite(object):
         self.mirrored = False
         self.rescale = (1., 1.)
         self.rotations_3d = (0., 0., 0.)
+        self.rotations_speed_3d = (0., 0., 0.)
         self.corner_relative_placement = False
         self.frame = 0
         self._uvs = []
@@ -89,6 +90,8 @@ class Sprite(object):
                     properties[instr_type] = data
         self.frame += 1
 
+        self.rotations_3d = tuple(x + y for x, y in zip(self.rotations_3d, self.rotations_speed_3d))
+
         if properties:
             if 1 in properties:
                 self.texcoords = self.anm.sprites[unpack('<I', properties[1])[0]]
@@ -105,11 +108,17 @@ class Sprite(object):
             if 9 in properties:
                 self.rotations_3d = unpack('<fff', properties[9])
                 del properties[9]
+            if 10 in properties:
+                self.rotations_speed_3d = unpack('<fff', properties[10])
+                del properties[10]
             if 23 in properties:
                 self.corner_relative_placement = True #TODO
                 del properties[23]
             if properties:
                 print('Leftover properties: %r' % properties) #TODO
+            self.update_uvs_vertices(override_width, override_height)
+            return True
+        if self.rotations_speed_3d != (0., 0., 0.):
             self.update_uvs_vertices(override_width, override_height)
             return True
         return False
