@@ -95,13 +95,20 @@ class Enemy(object):
     def is_visible(self, screen_width, screen_height):
         if not self.sprite:
             return False
-        if min(x for x, y, z in self.sprite._vertices) >= screen_width - self.x:
-            return False
-        if max(x for x, y, z in self.sprite._vertices) <= -self.x:
-            return False
-        if min(y for x, y, z in self.sprite._vertices) >= screen_height - self.y:
-            return False
-        if max(y for x, y, z in self.sprite._vertices) <= -self.y:
+
+        tx, ty, tw, th = self.sprite.texcoords
+        if self.sprite.corner_relative_placement:
+            raise Exception #TODO
+        else:
+            max_x = tw / 2.
+            max_y = th / 2.
+            min_x = -max_x
+            min_y = -max_y
+
+        if any((min_x >= screen_width - self.x,
+                max_x <= -self.x,
+                min_y >= screen_height - self.y,
+                max_y <= -self.y)):
             return False
         return True
 
@@ -146,7 +153,8 @@ class Enemy(object):
 
         self.x, self.y = x, y
         if self.sprite:
-            self.sprite.update()
+            if self.sprite.update() and self.is_visible(384, 448): #TODO: screen size
+                self.sprite.update_uvs_vertices()
 
         self.frame += 1
         return True
@@ -179,7 +187,6 @@ class EnemyManager(object):
                     enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
 
                     def _enemy_deleter(unknown): #TOOD: unknown
-                        print('youhou!')
                         self.enemies.remove(enemy)
 
                     ecl_runner.implementation[1] = ('I', _enemy_deleter)

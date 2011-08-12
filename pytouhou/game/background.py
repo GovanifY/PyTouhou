@@ -55,7 +55,8 @@ class Background(object):
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 #TODO: per-texture rendering
                 anm, sprite = self.anm_wrapper.get_sprite(script_index)
-                sprite.update(width_override, height_override)
+                if sprite.update():
+                    sprite.update_uvs_vertices(width_override, height_override)
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 faces.append((vertices, uvs))
             self.objects.append(faces)

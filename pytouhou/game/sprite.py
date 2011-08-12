@@ -70,7 +70,7 @@ class Sprite(object):
 
 
 
-    def update(self, override_width=0, override_height=0):
+    def update(self):
         properties = {}
         for time, instr_type, data in self.anm.scripts[self.script_index]:
             if time == self.frame:
@@ -106,10 +106,8 @@ class Sprite(object):
                 del properties[23]
             if properties:
                 print('Leftover properties: %r' % properties) #TODO
-            self.update_uvs_vertices(override_width, override_height)
             return True
         if self.rotations_speed_3d != (0., 0., 0.):
-            self.update_uvs_vertices(override_width, override_height)
             return True
         return False
 
