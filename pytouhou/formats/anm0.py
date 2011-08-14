@@ -56,10 +56,10 @@ class Animations(object):
             while True:
                 #TODO
                 time, instr_type, length = unpack('<HBB', file.read(4))
-                if instr_type == 0:
-                    break
                 data = file.read(length)
                 anm.scripts[i].append((time, instr_type, data))
+                if instr_type == 0:
+                    break
         #TODO
 
         return anm
