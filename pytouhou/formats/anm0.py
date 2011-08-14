@@ -72,6 +72,10 @@ class Animations(object):
                     args = unpack('<fff', data)
                 elif instr_type == 10: # set_3d_rotation_speed
                     args = unpack('<fff', data)
+                elif instr_type == 27: # shift_texture_x
+                    args = unpack('<f', data)
+                elif instr_type == 28: # shift_texture_y
+                    args = unpack('<f', data)
                 else:
                     args = (data,)
                 anm.scripts[i].append((time, instr_type, args))

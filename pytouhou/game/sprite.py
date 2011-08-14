@@ -19,6 +19,7 @@ class Sprite(object):
         self.anm = anm
         self.script_index = script_index
         self.texcoords = (0, 0, 0, 0) # x, y, width, height
+        self.texoffsets = (0., 0.)
         self.mirrored = False
         self.rescale = (1., 1.)
         self.rotations_3d = (0., 0., 0.)
@@ -61,10 +62,11 @@ class Sprite(object):
 
         x_1 = 1. / self.anm.size[0]
         y_1 = 1. / self.anm.size[1]
-        uvs = [(tx * x_1,         1. - (ty * y_1)),
-               ((tx + tw) * x_1,  1. - (ty * y_1)),
-               ((tx + tw) * x_1,  1. - ((ty + th) * y_1)),
-               (tx * x_1,         1. - ((ty + th) * y_1))]
+        tox, toy = self.texoffsets
+        uvs = [(tx * x_1 + tox,         1. - (ty * y_1) + toy),
+               ((tx + tw) * x_1 + tox,  1. - (ty * y_1) + toy),
+               ((tx + tw) * x_1 + tox,  1. - ((ty + th) * y_1 + toy)),
+               (tx * x_1 + tox,         1. - ((ty + th) * y_1 + toy))]
 
         d = vertmat.data
         assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
@@ -78,10 +80,10 @@ class Sprite(object):
             return False
 
         changed = False
-        frame = self.frame
         if not self.keep_still:
             script = self.anm.scripts[self.script_index]
             try:
+                frame = self.frame
                 while frame <= self.frame:
                     frame, instr_type, args = script[self.instruction_pointer]
                     if frame == self.frame:
@@ -107,6 +109,12 @@ class Sprite(object):
                             self.rotations_speed_3d = args
                         elif instr_type == 23:
                             self.corner_relative_placement = True #TODO
+                        elif instr_type == 27:
+                            tox, toy = self.texoffsets
+                            self.texoffsets = tox + args[0], toy
+                        elif instr_type == 28:
+                            tox, toy = self.texoffsets
+                            self.texoffsets = tox, toy + args[0]
                         elif instr_type == 15:
                             self.keep_still = True
                             break
