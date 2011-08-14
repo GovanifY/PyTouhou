@@ -41,6 +41,7 @@ def main(path, stage_num):
     glHint(GL_FOG_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glEnableClientState(GL_COLOR_ARRAY)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -87,7 +88,8 @@ def main(path, stage_num):
             background.update(frame)
 
             # Draw everything
-            glClear(GL_COLOR_BUFFER_BIT)
+#            glClearColor(0.0, 0.0, 1.0, 0)
+#            glClear(GL_COLOR_BUFFER_BIT)
 
             fog_b, fog_g, fog_r, _, fog_start, fog_end = background.fog_interpolator.values
             x, y, z = background.position_interpolator.values
@@ -111,10 +113,11 @@ def main(path, stage_num):
             #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 
-            for texture_key, (nb_vertices, vertices, uvs) in background.objects_by_texture.items():
+            for texture_key, (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
                 glDrawArrays(GL_QUADS, 0, nb_vertices)
 
             #TODO
@@ -129,10 +132,11 @@ def main(path, stage_num):
                       192., 224., 750 - 835.979370, 0., -1., 0.) #TODO: 750 might not be accurate
 
             glDisable(GL_FOG)
-            for texture_key, (nb_vertices, vertices, uvs) in enemy_manager.objects_by_texture.items():
+            for texture_key, (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
                 glDrawArrays(GL_QUADS, 0, nb_vertices)
             glEnable(GL_FOG)
 

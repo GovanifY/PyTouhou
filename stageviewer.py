@@ -40,6 +40,7 @@ def main(path, stage_num):
     glHint(GL_FOG_HINT, GL_NICEST)
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glEnableClientState(GL_COLOR_ARRAY)
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -95,10 +96,11 @@ def main(path, stage_num):
             #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 
-            for texture_key, (nb_vertices, vertices, uvs) in background.objects_by_texture.items():
+            for texture_key, (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
                 glDrawArrays(GL_QUADS, 0, nb_vertices)
 
             #TODO: show the game itself

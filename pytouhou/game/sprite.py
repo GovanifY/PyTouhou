@@ -28,11 +28,13 @@ class Sprite(object):
         self.keep_still = False
         self.playing = True
         self.frame = 0
+        self.alpha = 255
         self._uvs = []
         self._vertices = []
+        self._colors = []
 
 
-    def update_uvs_vertices(self, override_width=0, override_height=0):
+    def update_vertices_uvs_colors(self, override_width=0, override_height=0):
         vertmat = Matrix([[-.5,     .5,     .5,    -.5],
                           [-.5,    -.5,     .5,     .5],
                           [ .0,     .0,     .0,     .0],
@@ -66,6 +68,7 @@ class Sprite(object):
 
         d = vertmat.data
         assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
+        self._colors = [(255, 255, 255, self.alpha)] * 4
         self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
 
 
@@ -83,10 +86,15 @@ class Sprite(object):
                     frame, instr_type, data = script[self.instruction_pointer]
                     if frame == self.frame:
                         changed = True
+                        if instr_type == 0:
+                            self.playing = False
+                            return False
                         if instr_type == 1:
                             self.texcoords = self.anm.sprites[unpack('<I', data)[0]]
                         elif instr_type == 2:
                             self.rescale = unpack('<ff', data)
+                        elif instr_type == 3:
+                            self.alpha = unpack('<I', data)[0] % 256 #TODO
                         elif instr_type == 5:
                             self.frame, = unpack('<I', data)
                             self.instruction_pointer = 0

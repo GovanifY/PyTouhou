@@ -29,10 +29,11 @@ class Background(object):
             obj_id = self.stage.objects.index(obj)
 
             obj_instance = []
-            for face_vertices, face_uvs in self.objects[obj_id]:
+            for face_vertices, face_uvs, face_colors in self.objects[obj_id]:
                 obj_instance.append((tuple((x + ox, y + oy, z + oz)
                                         for x, y, z in face_vertices),
-                                    face_uvs))
+                                    face_uvs,
+                                    face_colors))
             self.object_instances.append(obj_instance)
         # Z-sorting
         def keyfunc(obj):
@@ -40,12 +41,14 @@ class Background(object):
         self.object_instances.sort(key=keyfunc, reverse=True)
 
 
-    def object_instances_to_vertices_uvs(self):
+    def object_instances_to_vertices_uvs_colors(self):
         vertices = tuple(vertex for obj in self.object_instances
                             for face in obj for vertex in face[0])
         uvs = tuple(uv for obj in self.object_instances
                             for face in obj for uv in face[1])
-        return vertices, uvs
+        colors = tuple(color for obj in self.object_instances
+                            for face in obj for color in face[2])
+        return vertices, uvs, colors
 
 
     def build_objects(self):
@@ -56,23 +59,26 @@ class Background(object):
                 #TODO: per-texture rendering
                 anm, sprite = self.anm_wrapper.get_sprite(script_index)
                 if sprite.update():
-                    sprite.update_uvs_vertices(width_override, height_override)
+                    sprite.update_vertices_uvs_colors(width_override, height_override)
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
-                faces.append((vertices, uvs))
+                colors = sprite._colors
+                faces.append((vertices, uvs, colors))
             self.objects.append(faces)
 
 
     def update(self, frame):
         if not self.objects_by_texture:
-            vertices, uvs = self.object_instances_to_vertices_uvs()
+            vertices, uvs, colors = self.object_instances_to_vertices_uvs_colors()
             nb_vertices = len(vertices)
             vertices_format = 'f' * (3 * nb_vertices)
             uvs_format = 'f' * (2 * nb_vertices)
+            colors_format = 'B' * (4 * nb_vertices)
             vertices = struct.pack(vertices_format, *chain(*vertices))
             uvs = struct.pack(uvs_format, *chain(*uvs))
+            colors = struct.pack(colors_format, *chain(*colors))
             assert len(self.anm_wrapper.anm_files) == 1 #TODO
             anm = self.anm_wrapper.anm_files[0]
-            self.objects_by_texture = {(anm.first_name, anm.secondary_name): (nb_vertices, vertices, uvs)}
+            self.objects_by_texture = {(anm.first_name, anm.secondary_name): (nb_vertices, vertices, uvs, colors)}
 
         for frame_num, message_type, args in self.stage.script:
             if frame_num == frame:

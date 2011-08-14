@@ -123,10 +123,11 @@ class Enemy(object):
         objects_by_texture = {}
         key = self.anm.first_name, self.anm.secondary_name
         if not key in objects_by_texture:
-            objects_by_texture[key] = (0, [], [])
+            objects_by_texture[key] = (0, [], [], [])
         vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self.sprite._vertices)
         objects_by_texture[key][1].extend(vertices)
         objects_by_texture[key][2].extend(self.sprite._uvs)
+        objects_by_texture[key][3].extend(self.sprite._colors)
         #TODO: effects/bullet launch
         return objects_by_texture
 
@@ -166,7 +167,7 @@ class Enemy(object):
             changed = self.sprite.update()
             visible = self.is_visible(384, 448)
             if changed and visible:
-                self.sprite.update_uvs_vertices()
+                self.sprite.update_vertices_uvs_colors()
             elif not self.sprite.playing:
                 visible = False
                 self.sprite = None
@@ -220,14 +221,16 @@ class EnemyManager(object):
         self.objects_by_texture = {}
         for enemy in visible_enemies:
             if enemy.is_visible(384, 448): #TODO
-                for key, (count, vertices, uvs) in enemy.get_objects_by_texture().items():
+                for key, (count, vertices, uvs, colors) in enemy.get_objects_by_texture().items():
                     if not key in self.objects_by_texture:
-                        self.objects_by_texture[key] = (0, [], [])
+                        self.objects_by_texture[key] = (0, [], [], [])
                     self.objects_by_texture[key][1].extend(vertices)
                     self.objects_by_texture[key][2].extend(uvs)
-        for key, (nb_vertices, vertices, uvs) in self.objects_by_texture.items():
+                    self.objects_by_texture[key][3].extend(colors)
+        for key, (nb_vertices, vertices, uvs, colors) in self.objects_by_texture.items():
             nb_vertices = len(vertices)
             vertices = pack('f' * (3 * nb_vertices), *chain(*vertices))
             uvs = pack('f' * (2 * nb_vertices), *chain(*uvs))
-            self.objects_by_texture[key] = (nb_vertices, vertices, uvs)
+            colors = pack('B' * (4 * nb_vertices), *chain(*colors))
+            self.objects_by_texture[key] = (nb_vertices, vertices, uvs, colors)
 
