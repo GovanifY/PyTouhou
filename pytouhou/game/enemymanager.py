@@ -150,6 +150,9 @@ class Enemy(object):
             visible = self.is_visible(384, 448)
             if changed and visible:
                 self.sprite.update_uvs_vertices()
+            elif not self.sprite.playing:
+                visible = False
+                self.sprite = None
         else:
             visible = False
 

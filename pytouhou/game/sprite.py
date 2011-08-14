@@ -25,6 +25,8 @@ class Sprite(object):
         self.rotations_speed_3d = (0., 0., 0.)
         self.corner_relative_placement = False
         self.instruction_pointer = 0
+        self.keep_still = False
+        self.playing = True
         self.frame = 0
         self._uvs = []
         self._vertices = []
@@ -69,38 +71,43 @@ class Sprite(object):
 
 
     def update(self):
+        if not self.playing:
+            return False
+
         changed = False
         frame = self.frame
-        script = self.anm.scripts[self.script_index]
-        try:
-            while frame <= self.frame:
-                frame, instr_type, data = script[self.instruction_pointer]
-                if frame == self.frame:
-                    changed = True
-                    if instr_type == 1:
-                        self.texcoords = self.anm.sprites[unpack('<I', data)[0]]
-                    elif instr_type == 2:
-                        self.rescale = unpack('<ff', data)
-                    elif instr_type == 5:
-                        self.frame, = unpack('<I', data)
-                        self.instruction_pointer = 0
-                    elif instr_type == 7:
-                        self.mirrored = True
-                    elif instr_type == 9:
-                        self.rotations_3d = unpack('<fff', data)
-                    elif instr_type == 10:
-                        self.rotations_speed_3d = unpack('<fff', data)
-                    elif instr_type == 23:
-                        self.corner_relative_placement = True #TODO
-                    elif instr_type == 15:
+        if not self.keep_still:
+            script = self.anm.scripts[self.script_index]
+            try:
+                while frame <= self.frame:
+                    frame, instr_type, data = script[self.instruction_pointer]
+                    if frame == self.frame:
+                        changed = True
+                        if instr_type == 1:
+                            self.texcoords = self.anm.sprites[unpack('<I', data)[0]]
+                        elif instr_type == 2:
+                            self.rescale = unpack('<ff', data)
+                        elif instr_type == 5:
+                            self.frame, = unpack('<I', data)
+                            self.instruction_pointer = 0
+                        elif instr_type == 7:
+                            self.mirrored = True
+                        elif instr_type == 9:
+                            self.rotations_3d = unpack('<fff', data)
+                        elif instr_type == 10:
+                            self.rotations_speed_3d = unpack('<fff', data)
+                        elif instr_type == 23:
+                            self.corner_relative_placement = True #TODO
+                        elif instr_type == 15:
+                            self.keep_still = True
+                            break
+                        else:
+                            print('unhandled opcode: %d, %r' % (instr_type, data)) #TODO
+                    if frame <= self.frame:
                         self.instruction_pointer += 1
-                        break
-                    else:
-                        print('unhandled opcode: %d, %r' % (instr_type, data)) #TODO
-                if frame <= self.frame:
-                    self.instruction_pointer += 1
-        except IndexError:
-            pass
+            except IndexError:
+                self.playing = False
+                pass
         self.frame += 1
 
         ax, ay, az = self.rotations_3d
