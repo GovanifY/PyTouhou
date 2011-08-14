@@ -49,15 +49,32 @@ class Animations(object):
 
 
         # Scripts
-        anm.scripts = {}#[None] * nb_scripts
+        anm.scripts = {}
         for i, offset in script_offsets:
             anm.scripts[i] = []
+            instruction_offsets = []
             file.seek(offset)
             while True:
                 #TODO
+                instruction_offsets.append(file.tell() - offset)
                 time, instr_type, length = unpack('<HBB', file.read(4))
                 data = file.read(length)
-                anm.scripts[i].append((time, instr_type, data))
+                if instr_type == 1: # set_sprite
+                    args = unpack('<I', data)
+                elif instr_type == 2: # set_scale
+                    args = unpack('<ff', data)
+                elif instr_type == 3: # set_alpha
+                    args = unpack('<I', data)
+                elif instr_type == 5: # jump
+                    # Translate offset to instruction index
+                    args = (instruction_offsets.index(unpack('<I', data)[0]),)
+                elif instr_type == 9: # set_3d_rotation
+                    args = unpack('<fff', data)
+                elif instr_type == 10: # set_3d_rotation_speed
+                    args = unpack('<fff', data)
+                else:
+                    args = (data,)
+                anm.scripts[i].append((time, instr_type, args))
                 if instr_type == 0:
                     break
         #TODO

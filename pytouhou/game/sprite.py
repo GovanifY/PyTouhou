@@ -83,34 +83,35 @@ class Sprite(object):
             script = self.anm.scripts[self.script_index]
             try:
                 while frame <= self.frame:
-                    frame, instr_type, data = script[self.instruction_pointer]
+                    frame, instr_type, args = script[self.instruction_pointer]
                     if frame == self.frame:
                         changed = True
                         if instr_type == 0:
                             self.playing = False
                             return False
                         if instr_type == 1:
-                            self.texcoords = self.anm.sprites[unpack('<I', data)[0]]
+                            self.texcoords = self.anm.sprites[args[0]]
                         elif instr_type == 2:
-                            self.rescale = unpack('<ff', data)
+                            self.rescale = args
                         elif instr_type == 3:
-                            self.alpha = unpack('<I', data)[0] % 256 #TODO
+                            self.alpha = args[0] % 256 #TODO
                         elif instr_type == 5:
-                            self.frame, = unpack('<I', data)
-                            self.instruction_pointer = 0
+                            self.instruction_pointer, = args
+                            self.frame = script[self.instruction_pointer][0]
+                            continue
                         elif instr_type == 7:
                             self.mirrored = True
                         elif instr_type == 9:
-                            self.rotations_3d = unpack('<fff', data)
+                            self.rotations_3d = args
                         elif instr_type == 10:
-                            self.rotations_speed_3d = unpack('<fff', data)
+                            self.rotations_speed_3d = args
                         elif instr_type == 23:
                             self.corner_relative_placement = True #TODO
                         elif instr_type == 15:
                             self.keep_still = True
                             break
                         else:
-                            print('unhandled opcode: %d, %r' % (instr_type, data)) #TODO
+                            print('unhandled opcode: %d, %r' % (instr_type, args)) #TODO
                     if frame <= self.frame:
                         self.instruction_pointer += 1
             except IndexError:
