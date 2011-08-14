@@ -16,7 +16,8 @@ from time import time
 class Random(object):
     def __init__(self, seed=None):
         if seed is None:
-            seed = int(time.time() % 65536)
+            seed = int(time() % 65536)
+        self.seed = seed
         self.counter = 0
 
 
@@ -25,12 +26,23 @@ class Random(object):
         self.counter = 0
 
 
-    def cycle(self):
-        # Named this way because the actual return value may be different.
+    def rand_uint16(self):
         # Further reverse engineering might be needed.
-        x = ((seed ^ 0x9630) - 0x6553) & 0xffff
+        x = ((self.seed ^ 0x9630) - 0x6553) & 0xffff
         self.seed = (((x & 0x0c000) >> 0xe) + x*4) & 0xffff
         self.counter += 1
         self.counter &= 0xffff
         return self.seed
+
+
+    def rand_uint32(self):
+        # 102h.exe@0x41e7f0
+        a = self.rand_uint16() << 16
+        a |= self.rand_uint16()
+        return a
+
+
+    def rand_double(self):
+        # 102h.exe@0x41e820
+        return float(self.rand_uint32()) / 0x100000000
 
