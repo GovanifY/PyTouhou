@@ -15,9 +15,13 @@ class Enemy(object):
         self.ecl_runner = ecl_runner
         self.x, self.y = pos
         self.life = life
+        self.max_life = life
         self.type = _type
         self.frame = 0
         self.sprite = None
+        self.pending_bullets = []
+        self.bullet_attributes = []
+        self.bullet_launch_offset = (0, 0)
 
         self.death_sprite = None
         self.movement_dependant_sprites = None
@@ -30,7 +34,8 @@ class Enemy(object):
 
         self.hitbox = (0, 0)
 
-        self.ecl_runner.implementation.update({97: ('I', self.set_sprite),
+        self.ecl_runner.implementation.update({#67: ('HHIIffffI', self.set_bullet_attributes),
+                                               97: ('I', self.set_sprite),
                                                98: ('HHHHHH', self.set_multiple_sprites),
                                                45: ('ff', self.set_angle_speed),
                                                43: ('fff', self.set_pos),
@@ -41,6 +46,7 @@ class Enemy(object):
                                                57: ('Ifff', self.move_to),
                                                100: ('I', self.set_death_sprite),
                                                103: ('fff', self.set_hitbox)}) #TODO
+
 
 
     def set_death_sprite(self, sprite_index):
@@ -113,6 +119,18 @@ class Enemy(object):
         return True
 
 
+    def get_objects_by_texture(self):
+        objects_by_texture = {}
+        key = self.anm.first_name, self.anm.secondary_name
+        if not key in objects_by_texture:
+            objects_by_texture[key] = (0, [], [])
+        vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self.sprite._vertices)
+        objects_by_texture[key][1].extend(vertices)
+        objects_by_texture[key][2].extend(self.sprite._uvs)
+        #TODO: effects/bullet launch
+        return objects_by_texture
+
+
     def update(self, frame):
         self.ecl_runner.update()
 
@@ -139,7 +157,6 @@ class Enemy(object):
             elif x > self.x:
                 self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[3])
                 self.direction = +1
-            #TODO: end_animation
             elif self.direction is not None:
                 self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
                 self.direction = None
@@ -155,6 +172,7 @@ class Enemy(object):
                 self.sprite = None
         else:
             visible = False
+
 
         self.frame += 1
         return visible
@@ -191,7 +209,6 @@ class EnemyManager(object):
                     x, y, z, life, unknown1, unknown2, unknown3 = args
                     ecl_runner = ECLRunner(self.ecl, sub)
                     enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
-
                     ecl_runner.implementation[1] = ('I', self.make_enemy_deleter(enemy))
 
                     self.enemies.append(enemy)
@@ -202,14 +219,12 @@ class EnemyManager(object):
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}
         for enemy in visible_enemies:
-            ox, oy = enemy.x, enemy.y
             if enemy.is_visible(384, 448): #TODO
-                key = enemy.anm.first_name, enemy.anm.secondary_name
-                if not key in self.objects_by_texture:
-                    self.objects_by_texture[key] = (0, [], [])
-                vertices = tuple((x + ox, y + oy, z) for x, y, z in enemy.sprite._vertices)
-                self.objects_by_texture[key][2].extend(enemy.sprite._uvs)
-                self.objects_by_texture[key][1].extend(vertices)
+                for key, (count, vertices, uvs) in enemy.get_objects_by_texture().items():
+                    if not key in self.objects_by_texture:
+                        self.objects_by_texture[key] = (0, [], [])
+                    self.objects_by_texture[key][1].extend(vertices)
+                    self.objects_by_texture[key][2].extend(uvs)
         for key, (nb_vertices, vertices, uvs) in self.objects_by_texture.items():
             nb_vertices = len(vertices)
             vertices = pack('f' * (3 * nb_vertices), *chain(*vertices))
