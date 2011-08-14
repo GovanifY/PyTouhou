@@ -8,6 +8,10 @@ from pytouhou.game.sprite import Sprite
 from math import cos, sin, atan2
 
 
+from pytouhou.utils.random import Random
+random = Random(0x39f4)
+
+
 class Enemy(object):
     def __init__(self, pos, life, _type, ecl_runner, anm_wrapper):
         self.anm_wrapper = anm_wrapper
@@ -208,6 +212,13 @@ class EnemyManager(object):
             for sub, instr_type, args in self.main.pop(0)[1]:
                 if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
                     x, y, z, life, unknown1, unknown2, unknown3 = args
+                    if instr_type & 4:
+                        if x < -990:
+                            x = random.rand_double() * 368 #102h.exe@0x411820
+                        if y < -990:
+                            y = random.rand_double() * 416 #102h.exe@0x41184b
+                        if z < -990:
+                            y = random.rand_double() * 800 #102h.exe@0x411881
                     ecl_runner = ECLRunner(self.ecl, sub)
                     enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
                     ecl_runner.implementation[1] = ('I', self.make_enemy_deleter(enemy))
