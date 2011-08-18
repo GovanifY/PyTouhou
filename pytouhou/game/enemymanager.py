@@ -39,17 +39,17 @@ class Enemy(object):
         self.hitbox = (0, 0)
 
         self.ecl_runner.implementation.update({#67: ('HHIIffffI', self.set_bullet_attributes),
-                                               97: ('I', self.set_sprite),
-                                               98: ('HHHHHH', self.set_multiple_sprites),
-                                               45: ('ff', self.set_angle_speed),
-                                               43: ('fff', self.set_pos),
-                                               46: ('f', self.set_rotation_speed),
-                                               47: ('f', self.set_speed),
-                                               48: ('f', self.set_acceleration),
-                                               51: ('If', self.target_player),
-                                               57: ('Ifff', self.move_to),
-                                               100: ('I', self.set_death_sprite),
-                                               103: ('fff', self.set_hitbox)}) #TODO
+                                               97: (self.set_sprite),
+                                               98: (self.set_multiple_sprites),
+                                               45: (self.set_angle_speed),
+                                               43: (self.set_pos),
+                                               46: (self.set_rotation_speed),
+                                               47: (self.set_speed),
+                                               48: (self.set_acceleration),
+                                               51: (self.target_player),
+                                               57: (self.move_to),
+                                               100: (self.set_death_sprite),
+                                               103: (self.set_hitbox)}) #TODO
 
 
 
@@ -221,7 +221,7 @@ class EnemyManager(object):
                             y = random.rand_double() * 800 #102h.exe@0x411881
                     ecl_runner = ECLRunner(self.ecl, sub)
                     enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
-                    ecl_runner.implementation[1] = ('I', self.make_enemy_deleter(enemy))
+                    ecl_runner.implementation[1] = self.make_enemy_deleter(enemy)
 
                     self.enemies.append(enemy)
 
