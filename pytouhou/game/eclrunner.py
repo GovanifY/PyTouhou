@@ -2,9 +2,10 @@ class ECLRunner(object):
     def __init__(self, ecl, sub, frame=0, instruction_pointer=0, implementation=None):
         self.ecl = ecl
 
-        self.labels = {}
-        self.implementation = {4: (self.set_label),
-                               3: (self.goto)}
+        self.counters = {}
+        self.implementation = {4: (self.set_counter),
+                               2: (self.relative_jump),
+                               3: (self.relative_jump_ex)}
         if implementation:
             self.implementation.update(implementation)
 
@@ -13,23 +14,18 @@ class ECLRunner(object):
         self.instruction_pointer = instruction_pointer
 
 
-    def set_label(self, label, count):
-        self.labels[label & 0xffff] = (self.sub, self.instruction_pointer, count)
+    def set_counter(self, counter_id, count):
+        self.counters[counter_id & 0xffff] = count
 
 
-    def goto(self, frame, instruction_pointer, label):
-        try:
-            sub, instruction_pointer, count = self.labels[label & 0xffff]
-        except KeyError:
-            pass
-        else:
-            count -= 1
-            if count:
-                self.labels[label & 0xffff] = sub, instruction_pointer, count
-            else:
-                del self.labels[label & 0xffff]
-            self.frame = frame
-            self.sub, self.instruction_pointer = sub, instruction_pointer
+    def relative_jump(self, frame, instruction_pointer):
+        self.frame, self.instruction_pointer = frame, instruction_pointer
+
+
+    def relative_jump_ex(self, frame, instruction_pointer, counter_id):
+        if self.counters[counter_id & 0xffff]:
+            self.counters[counter_id & 0xffff] -= 1
+            self.frame, self.instruction_pointer = frame, instruction_pointer
 
 
     def update(self):

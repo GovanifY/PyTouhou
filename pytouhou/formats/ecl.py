@@ -133,10 +133,15 @@ class ECL(object):
         ecl.main = []
 
         # Read subs
-        for offset in sub_offsets:
-            file.seek(offset)
+        for sub_offset in sub_offsets:
+            file.seek(sub_offset)
             ecl.subs.append([])
+
+            instruction_offsets = []
+
             while True:
+                instruction_offsets.append(file.tell() - sub_offset)
+
                 time, opcode = unpack('<IH', file.read(6))
                 if time == 0xffffffff or opcode == 0xffff:
                     break
@@ -147,7 +152,21 @@ class ECL(object):
                 else:
                     args = (data, )
                     print('Warning: unknown opcode %d' % opcode) #TODO
+
                 ecl.subs[-1].append((time, opcode, rank_mask, param_mask, args))
+
+
+            # Translate offsets to instruction pointers
+            for instr_offset, (i, instr) in zip(instruction_offsets, enumerate(ecl.subs[-1])):
+                time, opcode, rank_mask, param_mask, args = instr
+                if opcode == 2: # relative_jump
+                    frame, relative_offset = args
+                    args = frame, instruction_offsets.index(instr_offset + relative_offset)
+                elif opcode == 3: # relative_jump_ex
+                    frame, relative_offset, counter_id = args
+                    args = frame, instruction_offsets.index(instr_offset + relative_offset), counter_id
+                ecl.subs[-1][i] = time, opcode, rank_mask, param_mask, args
+
 
         # Read main
         file.seek(main_offset)
