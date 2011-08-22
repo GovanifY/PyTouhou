@@ -76,7 +76,7 @@ def main(path, stage_num):
 
             fog_b, fog_g, fog_r, _, fog_start, fog_end = background.fog_interpolator.values
             x, y, z = background.position_interpolator.values
-            unknownx, dy, dz = background.position2_interpolator.values
+            dx, dy, dz = background.position2_interpolator.values
 
             glFogi(GL_FOG_MODE, GL_LINEAR)
             glFogf(GL_FOG_START, fog_start)
@@ -92,7 +92,7 @@ def main(path, stage_num):
             # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
             # This is so that objects on the (O, x, y) plane use pixel coordinates
             gluLookAt(192., 224., - 835.979370 * dz,
-                      192., 224. - dy, 750 - 835.979370 * dz, 0., -1., 0.) #TODO: 750 might not be accurate
+                      192. + dx, 224. - dy, 0., 0., -1., 0.)
             #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 

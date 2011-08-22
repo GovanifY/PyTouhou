@@ -89,11 +89,11 @@ def main(path, stage_num):
 
             # Draw everything
 #            glClearColor(0.0, 0.0, 1.0, 0)
-#            glClear(GL_COLOR_BUFFER_BIT)
+            glClear(GL_DEPTH_BUFFER_BIT)
 
             fog_b, fog_g, fog_r, _, fog_start, fog_end = background.fog_interpolator.values
             x, y, z = background.position_interpolator.values
-            unknownx, dy, dz = background.position2_interpolator.values
+            dx, dy, dz = background.position2_interpolator.values
 
             glFogi(GL_FOG_MODE, GL_LINEAR)
             glFogf(GL_FOG_START, fog_start)
@@ -109,16 +109,18 @@ def main(path, stage_num):
             # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
             # This is so that objects on the (O, x, y) plane use pixel coordinates
             gluLookAt(192., 224., - 835.979370 * dz,
-                      192., 224. - dy, 750 - 835.979370 * dz, 0., -1., 0.) #TODO: 750 might not be accurate
+                      192. + dx, 224. - dy, 0., 0., -1., 0.)
             #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 
+            glEnable(GL_DEPTH_TEST)
             for texture_key, (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
                 glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
                 glDrawArrays(GL_QUADS, 0, nb_vertices)
+            glDisable(GL_DEPTH_TEST)
 
             #TODO
             glMatrixMode(GL_MODELVIEW)
@@ -129,7 +131,7 @@ def main(path, stage_num):
             # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
             # This is so that objects on the (O, x, y) plane use pixel coordinates
             gluLookAt(192., 224., - 835.979370,
-                      192., 224., 750 - 835.979370, 0., -1., 0.) #TODO: 750 might not be accurate
+                      192., 224., 0., 0., -1., 0.)
 
             glDisable(GL_FOG)
             for texture_key, (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
