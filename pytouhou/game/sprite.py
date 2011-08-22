@@ -97,49 +97,51 @@ class Sprite(object):
         changed = False
         if not self.keep_still:
             script = self.anm.scripts[self.script_index]
-            try:
-                frame = self.frame
-                while frame <= self.frame:
+            frame = self.frame
+            while True:
+                try:
                     frame, instr_type, args = script[self.instruction_pointer]
-                    if frame == self.frame:
-                        changed = True
-                        if instr_type == 0:
-                            self.playing = False
-                            return False
-                        if instr_type == 1:
-                            self.texcoords = self.anm.sprites[args[0]]
-                        elif instr_type == 2:
-                            self.rescale = args
-                        elif instr_type == 3:
-                            self.alpha = args[0] % 256 #TODO
-                        elif instr_type == 5:
-                            self.instruction_pointer, = args
-                            self.frame = script[self.instruction_pointer][0]
-                            continue
-                        elif instr_type == 7:
-                            self.mirrored = True
-                        elif instr_type == 9:
-                            self.rotations_3d = args
-                        elif instr_type == 10:
-                            self.rotations_speed_3d = args
-                        elif instr_type == 23:
-                            self.corner_relative_placement = True #TODO
-                        elif instr_type == 27:
-                            tox, toy = self.texoffsets
-                            self.texoffsets = tox + args[0], toy
-                        elif instr_type == 28:
-                            tox, toy = self.texoffsets
-                            self.texoffsets = tox, toy + args[0]
-                        elif instr_type == 15:
-                            self.keep_still = True
-                            break
-                        else:
-                            print('unhandled opcode: %d, %r' % (instr_type, args)) #TODO
-                    if frame <= self.frame:
-                        self.instruction_pointer += 1
-            except IndexError:
-                self.playing = False
-                pass
+                except IndexError:
+                    self.playing = False
+                    return False
+
+                if frame > self.frame:
+                    break
+                else:
+                    self.instruction_pointer += 1
+                if frame == self.frame:
+                    changed = True
+                    if instr_type == 0:
+                        self.playing = False
+                        return False
+                    if instr_type == 1:
+                        self.texcoords = self.anm.sprites[args[0]]
+                    elif instr_type == 2:
+                        self.rescale = args
+                    elif instr_type == 3:
+                        self.alpha = args[0] % 256 #TODO
+                    elif instr_type == 5:
+                        self.instruction_pointer, = args
+                        self.frame = script[self.instruction_pointer][0]
+                    elif instr_type == 7:
+                        self.mirrored = True
+                    elif instr_type == 9:
+                        self.rotations_3d = args
+                    elif instr_type == 10:
+                        self.rotations_speed_3d = args
+                    elif instr_type == 23:
+                        self.corner_relative_placement = True #TODO
+                    elif instr_type == 27:
+                        tox, toy = self.texoffsets
+                        self.texoffsets = tox + args[0], toy
+                    elif instr_type == 28:
+                        tox, toy = self.texoffsets
+                        self.texoffsets = tox, toy + args[0]
+                    elif instr_type == 15:
+                        self.keep_still = True
+                        break
+                    else:
+                        print('unhandled opcode: %d, %r' % (instr_type, args)) #TODO
         self.frame += 1
 
         ax, ay, az = self.rotations_3d
