@@ -135,17 +135,18 @@ class ECLRunner(object):
         if -10012 <= variable_id <= -10001:
             self.variables[int(-10001-variable_id)] = value
         elif -10025 <= variable_id <= -10013:
-            if value == -10015:
+            if variable_id == -10015:
                 self._enemy.x = value
-            elif value == -10016:
+            elif variable_id == -10016:
                 self._enemy.y = value
-            elif value == -10017:
+            elif variable_id == -10017:
                 self._enemy.z = value
-            elif value == -10022:
+            elif variable_id == -10022:
                 self._enemy.frame = value
-            elif value == -10024:
+            elif variable_id == -10024:
                 self._enemy.life = value
-            raise IndexError #TODO: proper exception
+            else:
+                raise IndexError #TODO: proper exception
         else:
             raise IndexError #TODO: proper exception
 
