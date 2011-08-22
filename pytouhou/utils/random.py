@@ -1,3 +1,18 @@
+# -*- encoding: utf-8 -*-
+##
+## Copyright (C) 2011 Thibaut Girka <thib@sitedethib.com>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+
+
 """
 This file provides a pseudo-random number generator identical to the one used in
 Touhou 6: The Embodiment of Scarlet Devil.
@@ -29,7 +44,7 @@ class Random(object):
     def rand_uint16(self):
         # Further reverse engineering might be needed.
         x = ((self.seed ^ 0x9630) - 0x6553) & 0xffff
-        self.seed = (((x & 0x0c000) >> 0xe) + x*4) & 0xffff
+        self.seed = (((x & 0x0c000) >> 0xe) | (x << 2)) & 0xffff
         self.counter += 1
         self.counter &= 0xffff
         return self.seed

@@ -1,0 +1,25 @@
+About this project:
+-------------------
+
+This project is an attempt to rewrite the engine behind The Embodiment of Scarlet Devil (EoSD),
+a popular danmaku (bullet hell) game published for Windows by Team Shanghai Alice in 2002.
+Although the main reason behind this project is sheer curiosity, other motivations are portability and extendability.
+Additionally, this project aims for a perfect compatibility with the official game, and thus become some sort of reference implementation.
+
+
+
+Dependencies:
+-------------
+
+    * Python2 (>= 2.6)
+    * Pygame
+    * PyOpenGL
+
+
+
+Documentation:
+--------------
+
+The code should be sufficiently documented for anyone interested to learn how the EoSD engine work,
+but additional documentation is available at:
+http://linkmauve.fr/doc/touhou/

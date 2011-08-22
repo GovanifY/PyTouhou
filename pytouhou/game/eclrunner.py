@@ -1,3 +1,18 @@
+# -*- encoding: utf-8 -*-
+##
+## Copyright (C) 2011 Thibaut Girka <thib@sitedethib.com>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+
+
 from math import atan2, cos, sin
 
 
@@ -148,11 +163,22 @@ class ECLRunner(object):
 
     @instruction(2)
     def relative_jump(self, frame, instruction_pointer):
+        """Jumps to a relative offset in the same subroutine.
+
+        Warning: the relative offset has been translated to an instruction pointer
+        by the ECL parsing code (see pytouhou.formats.ecl).
+        """
         self.frame, self.instruction_pointer = frame, instruction_pointer
 
 
     @instruction(3)
-    def relative_jump_ex(self, frame, instruction_pointer, variable_id):
+    def relative_jump_ex(self, frame, instruction_pointer, value_id):
+        """If the given variable is non-zero, decrease it by 1 and jump to a
+        relative offset in the same subroutine.
+
+        Warning: the relative offset has been translated to an instruction pointer
+        by the ECL parsing code (see pytouhou.formats.ecl).
+        """
         counter_value = self._getval(variable_id)
         if counter_value:
             self._setval(variable_id, counter_value - 1)
@@ -167,11 +193,15 @@ class ECLRunner(object):
 
     @instruction(6)
     def set_random_int(self, variable_id, maxval):
+        """Set the specified variable to a random int in the [[0, maxval)) range.
+        """
         self._setval(variable_id, int(self._getval(maxval) * self._game_state.prng.rand_double()))
 
 
     @instruction(8)
     def set_random_float(self, variable_id, maxval):
+        """Set the specified variable to a random float in [0, maxval) range.
+        """
         self._setval(variable_id, self._getval(maxval) * self._game_state.prng.rand_double())
 
 
