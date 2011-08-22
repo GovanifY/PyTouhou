@@ -160,7 +160,7 @@ class ECL(object):
             # Translate offsets to instruction pointers
             for instr_offset, (i, instr) in zip(instruction_offsets, enumerate(ecl.subs[-1])):
                 time, opcode, rank_mask, param_mask, args = instr
-                if opcode == 2: # relative_jump
+                if opcode in (2, 31): # relative_jump
                     frame, relative_offset = args
                     args = frame, instruction_offsets.index(instr_offset + relative_offset)
                 elif opcode == 3: # relative_jump_ex

@@ -1,3 +1,6 @@
+from math import atan2, cos, sin
+
+
 class MetaRegistry(type):
     def __new__(mcs, name, bases, classdict):
         instruction_handlers = {}
@@ -27,7 +30,7 @@ def instruction(instruction_id):
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_ecl', '_enemy', '_game_state', 'variables', 'sub', 'frame',
-                 'instruction_pointer', 'stack')
+                 'instruction_pointer', 'comparison_reg', 'stack')
 
     def __init__(self, ecl, sub, enemy, game_state):
         # Things not supposed to change
@@ -39,6 +42,7 @@ class ECLRunner(object):
         self.variables = [0,  0,  0,  0,
                           0., 0., 0., 0.,
                           0,  0,  0,  0]
+        self.comparison_reg = 0
         self.sub = sub
         self.frame = 0
         self.instruction_pointer = 0
@@ -131,6 +135,11 @@ class ECLRunner(object):
             raise IndexError #TODO: proper exception
 
 
+    @instruction(0)
+    def noop(self):
+        pass #TODO: Really?
+
+
     @instruction(1)
     def destroy(self, arg):
         #TODO: arg?
@@ -178,10 +187,27 @@ class ECLRunner(object):
         self._setval(variable_id, self._getval(a) - self._getval(b))
 
 
+    @instruction(27)
+    def compare_ints(self, a, b):
+        a, b = self._getval(a), self._getval(b)
+        if a < b:
+            self.comparison_reg = -1
+        elif a == b:
+            self.comparison_reg = 0
+        else:
+            self.comparison_reg = 1
+
+
+    @instruction(31)
+    def relative_jump_if_equal(self, frame, instruction_pointer):
+        if self.comparison_reg == 0:
+            self.relative_jump(frame, instruction_pointer)
+
+
     @instruction(35)
     def call(self, sub, param1, param2):
         self.stack.append((self.sub, self.frame, self.instruction_pointer,
-                           self.variables))
+                           self.variables, self.comparison_reg))
         self.sub = sub
         self.frame = 0
         self.instruction_pointer = 0
@@ -192,7 +218,7 @@ class ECLRunner(object):
 
     @instruction(36)
     def ret(self):
-        self.sub, self.frame, self.instruction_pointer, self.variables = self.stack.pop()
+        self.sub, self.frame, self.instruction_pointer, self.variables, self.comparison_reg = self.stack.pop()
 
 
     @instruction(39)
@@ -224,6 +250,13 @@ class ECLRunner(object):
     @instruction(48)
     def set_acceleration(self, acceleration):
         self._enemy.acceleration = acceleration
+
+
+    @instruction(50)
+    def set_random_angle(self, min_angle, max_angle):
+        #TODO: This thing is really odd, check, double check, triple check, disassemble...
+        angle = self._game_state.prng.rand_double() * (max_angle - min_angle) + min_angle
+        self._enemy.angle = atan2(-abs(sin(angle)), -abs(cos(angle)))
 
 
     @instruction(51)
@@ -307,6 +340,11 @@ class ECLRunner(object):
             self.sub = value
             self.frame = 0
             self.instruction_pointer = 0
+
+
+    @instruction(111)
+    def set_life(self, value):
+        self._enemy.life = value
 
 
     @instruction(113)
