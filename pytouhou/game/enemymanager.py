@@ -65,8 +65,8 @@ class Enemy(object):
         self.anm, self.sprite = self.anm_wrapper.get_sprite(sprite_index)
 
 
-    def set_multiple_sprites(self, default, end_left, end_right, left, right, unknown):
-        self.movement_dependant_sprites = end_left, end_right, left, right, unknown
+    def set_multiple_sprites(self, default, end_left, end_right, left, right):
+        self.movement_dependant_sprites = end_left, end_right, left, right
         self.anm, self.sprite = self.anm_wrapper.get_sprite(default)
 
 
