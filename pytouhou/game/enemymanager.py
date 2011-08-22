@@ -13,16 +13,18 @@ random = Random(0x39f4)
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, ecl_runner, anm_wrapper):
-        self.anm_wrapper = anm_wrapper
-        self.anm = None
-        self.ecl_runner = ecl_runner
+    def __init__(self, pos, life, _type, anm_wrapper):
+        self._anm_wrapper = anm_wrapper
+        self._anm = None
+        self._sprite = None
+        self._removed = False
+        self._type = _type
+
+        self.frame = 0
+
         self.x, self.y = pos
         self.life = life
         self.max_life = life
-        self.type = _type
-        self.frame = 0
-        self.sprite = None
         self.pending_bullets = []
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
@@ -36,7 +38,7 @@ class Enemy(object):
         self.bullet_launch_interval = 0
         self.delay_attack = False
 
-        self.death_sprite = None
+        self.death_anim = None
         self.movement_dependant_sprites = None
         self.direction = None
         self.interpolator = None #TODO
@@ -46,57 +48,6 @@ class Enemy(object):
         self.acceleration = 0.
 
         self.hitbox = (0, 0)
-
-        self.ecl_runner.implementation.update({67: self.set_bullet_attributes,
-                                               97: self.set_sprite,
-                                               98: self.set_multiple_sprites,
-                                               45: self.set_angle_speed,
-                                               43: self.set_pos,
-                                               46: self.set_rotation_speed,
-                                               47: self.set_speed,
-                                               48: self.set_acceleration,
-                                               51: self.target_player,
-                                               57: self.move_to,
-                                               77: self.set_bullet_interval,
-                                               78: self.set_delay_attack,
-                                               79: self.set_no_delay_attack,
-                                               81: self.set_bullet_launch_offset,
-                                               100: self.set_death_sprite,
-                                               103: self.set_hitbox,
-                                               105: self.set_vulnerable,
-                                               108: self.set_death_callback,
-                                               113: self.set_low_life_trigger,
-                                               114: self.set_low_life_callback,
-                                               115: self.set_timeout,
-                                               126: self.set_remaining_lives}) #TODO
-
-
-    def set_remaining_lives(self, lives):
-        self.remaining_lives = lives
-
-
-    def set_death_callback(self, sub):
-        self.death_callback = sub
-
-
-    def set_low_life_trigger(self, value):
-        self.low_life_trigger = value
-
-
-    def set_low_life_callback(self, sub):
-        self.low_life_callback = sub
-
-
-    def set_timeout(self, timeout):
-        self.timeout = timeout
-
-
-    def set_vulnerable(self, vulnerable):
-        self.vulnerable = bool(vulnerable & 1)
-
-
-    def set_bullet_launch_offset(self, x, y, z):
-        self.bullet_launch_offset = (x, y)
 
 
     def set_bullet_attributes(self, bullet_anim, launch_anim, bullets_per_shot,
@@ -110,37 +61,8 @@ class Enemy(object):
             #TODO: actually fire
 
 
-    def set_bullet_interval(self, value):
-        self.bullet_launch_interval = value
-
-
-    def set_delay_attack(self):
-        self.delay_attack = True
-
-
-    def set_no_delay_attack(self):
-        self.delay_attack = False
-
-
-    def set_death_sprite(self, sprite_index):
-        self.death_sprite = sprite_index % 256 #TODO
-
-
-    def set_hitbox(self, width, height, depth):
-        self.hitbox = (width, height)
-
-
-    def set_sprite(self, sprite_index):
-        self.anm, self.sprite = self.anm_wrapper.get_sprite(sprite_index)
-
-
-    def set_multiple_sprites(self, default, end_left, end_right, left, right):
-        self.movement_dependant_sprites = end_left, end_right, left, right
-        self.anm, self.sprite = self.anm_wrapper.get_sprite(default)
-
-
-    def set_angle_speed(self, angle, speed):
-        self.angle, self.speed = angle, speed
+    def set_anim(self, index):
+        self._anm, self._sprite = self._anm_wrapper.get_sprite(index)
 
 
     def set_pos(self, x, y, z):
@@ -149,34 +71,16 @@ class Enemy(object):
         self.interpolator.set_interpolation_start(self.frame, (x, y))
 
 
-    def set_rotation_speed(self, speed):
-        self.rotation_speed = speed
-
-
-    def set_speed(self, speed):
-        self.speed = speed
-
-
-    def set_acceleration(self, acceleration):
-        self.acceleration = acceleration
-
-
-    def target_player(self, unknown, speed):
-        self.speed = speed #TODO: unknown
-        player_x, player_y = 192., 384.#TODO
-        self.angle = atan2(player_y - self.y, player_x - self.x)
-
-
     def move_to(self, duration, x, y, z):
         self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
 
 
     def is_visible(self, screen_width, screen_height):
-        if not self.sprite:
+        if not self._sprite:
             return False
 
-        tx, ty, tw, th = self.sprite.texcoords
-        if self.sprite.corner_relative_placement:
+        tx, ty, tw, th = self._sprite.texcoords
+        if self._sprite.corner_relative_placement:
             raise Exception #TODO
         else:
             max_x = tw / 2.
@@ -194,20 +98,18 @@ class Enemy(object):
 
     def get_objects_by_texture(self):
         objects_by_texture = {}
-        key = self.anm.first_name, self.anm.secondary_name
+        key = self._anm.first_name, self._anm.secondary_name
         if not key in objects_by_texture:
             objects_by_texture[key] = (0, [], [], [])
-        vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self.sprite._vertices)
+        vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self._sprite._vertices)
         objects_by_texture[key][1].extend(vertices)
-        objects_by_texture[key][2].extend(self.sprite._uvs)
-        objects_by_texture[key][3].extend(self.sprite._colors)
+        objects_by_texture[key][2].extend(self._sprite._uvs)
+        objects_by_texture[key][3].extend(self._sprite._colors)
         #TODO: effects/bullet launch
         return objects_by_texture
 
 
     def update(self, frame):
-        self.ecl_runner.update()
-
         x, y = self.x, self.y
         if self.interpolator:
             self.interpolator.update(self.frame)
@@ -217,7 +119,7 @@ class Enemy(object):
         self.angle += self.rotation_speed #TODO: units? Execution order?
 
         dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-        if self.type & 2:
+        if self._type & 2:
             x -= dx
         else:
             x += dx
@@ -226,24 +128,24 @@ class Enemy(object):
         if self.movement_dependant_sprites:
             #TODO: is that really how it works?
             if x < self.x:
-                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[2])
+                self.set_anim(self.movement_dependant_sprites[2])
                 self.direction = -1
             elif x > self.x:
-                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[3])
+                self.set_anim(self.movement_dependant_sprites[3])
                 self.direction = +1
             elif self.direction is not None:
-                self.anm, self.sprite = self.anm_wrapper.get_sprite(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
+                self.set_anim(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
                 self.direction = None
 
         self.x, self.y = x, y
-        if self.sprite:
-            changed = self.sprite.update()
+        if self._sprite:
+            changed = self._sprite.update()
             visible = self.is_visible(384, 448)
             if changed and visible:
-                self.sprite.update_vertices_uvs_colors()
-            elif not self.sprite.playing:
+                self._sprite.update_vertices_uvs_colors()
+            elif not self._sprite.playing:
                 visible = False
-                self.sprite = None
+                self._sprite = None
         else:
             visible = False
 
@@ -254,13 +156,15 @@ class Enemy(object):
 
 
 class EnemyManager(object):
-    def __init__(self, stage, anm_wrapper, ecl):
+    def __init__(self, stage, anm_wrapper, ecl, game_state):
+        self._game_state = game_state
         self.stage = stage
         self.anm_wrapper = anm_wrapper
         self.main = []
         self.ecl = ecl
         self.objects_by_texture = {}
         self.enemies = []
+        self.processes = []
 
         # Populate main
         for frame, sub, instr_type, args in ecl.main:
@@ -268,12 +172,6 @@ class EnemyManager(object):
                 self.main.append((frame, [(sub, instr_type, args)]))
             elif self.main[-1][0] == frame:
                 self.main[-1][1].append((sub, instr_type, args))
-
-
-    def make_enemy_deleter(self, enemy):
-        def _enemy_deleter(unknown): #TODO: unknown
-            self.enemies.remove(enemy)
-        return _enemy_deleter
 
 
     def update(self, frame):
@@ -288,11 +186,16 @@ class EnemyManager(object):
                             y = random.rand_double() * 416 #102h.exe@0x41184b
                         if z < -990:
                             y = random.rand_double() * 800 #102h.exe@0x411881
-                    ecl_runner = ECLRunner(self.ecl, sub)
-                    enemy = Enemy((x, y), life, instr_type, ecl_runner, self.anm_wrapper)
-                    ecl_runner.implementation[1] = self.make_enemy_deleter(enemy)
-
+                    enemy = Enemy((x, y), life, instr_type, self.anm_wrapper)
                     self.enemies.append(enemy)
+                    self.processes.append(ECLRunner(self.ecl, sub, enemy, self._game_state))
+
+
+        # Run processes
+        self.processes[:] = (process for process in self.processes if process.run_iteration())
+
+        # Filter of destroyed enemies
+        self.enemies[:] = (enemy for enemy in self.enemies if not enemy._removed)
 
         # Update enemies
         visible_enemies = [enemy for enemy in self.enemies if enemy.update(frame)]

@@ -18,6 +18,7 @@ from pytouhou.game.sprite import AnmWrapper
 from pytouhou.game.background import Background
 from pytouhou.game.enemymanager import EnemyManager
 from pytouhou.opengl.texture import TextureManager
+from pytouhou.game.game import GameState
 
 import OpenGL
 OpenGL.FORWARD_COMPATIBLE_ONLY = True
@@ -61,7 +62,7 @@ def main(path, stage_num):
             pass
         else:
             anims.append(enemies2_anim)
-        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl)
+        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl, GameState([], stage_num, 0, 16))
         texture_manager.preload(anims)
 
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
