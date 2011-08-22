@@ -172,7 +172,7 @@ class ECLRunner(object):
 
 
     @instruction(3)
-    def relative_jump_ex(self, frame, instruction_pointer, value_id):
+    def relative_jump_ex(self, frame, instruction_pointer, variable_id):
         """If the given variable is non-zero, decrease it by 1 and jump to a
         relative offset in the same subroutine.
 
