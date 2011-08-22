@@ -24,8 +24,17 @@ class Enemy(object):
         self.frame = 0
         self.sprite = None
         self.pending_bullets = []
-        self.bullet_attributes = []
+        self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
+        self.vulnerable = True
+        self.death_callback = None
+        self.low_life_callback = None
+        self.low_life_trigger = None
+        self.timeout = None
+        self.remaining_lives = -1
+
+        self.bullet_launch_interval = 0
+        self.delay_attack = False
 
         self.death_sprite = None
         self.movement_dependant_sprites = None
@@ -38,19 +47,79 @@ class Enemy(object):
 
         self.hitbox = (0, 0)
 
-        self.ecl_runner.implementation.update({#67: ('HHIIffffI', self.set_bullet_attributes),
-                                               97: (self.set_sprite),
-                                               98: (self.set_multiple_sprites),
-                                               45: (self.set_angle_speed),
-                                               43: (self.set_pos),
-                                               46: (self.set_rotation_speed),
-                                               47: (self.set_speed),
-                                               48: (self.set_acceleration),
-                                               51: (self.target_player),
-                                               57: (self.move_to),
-                                               100: (self.set_death_sprite),
-                                               103: (self.set_hitbox)}) #TODO
+        self.ecl_runner.implementation.update({67: self.set_bullet_attributes,
+                                               97: self.set_sprite,
+                                               98: self.set_multiple_sprites,
+                                               45: self.set_angle_speed,
+                                               43: self.set_pos,
+                                               46: self.set_rotation_speed,
+                                               47: self.set_speed,
+                                               48: self.set_acceleration,
+                                               51: self.target_player,
+                                               57: self.move_to,
+                                               77: self.set_bullet_interval,
+                                               78: self.set_delay_attack,
+                                               79: self.set_no_delay_attack,
+                                               81: self.set_bullet_launch_offset,
+                                               100: self.set_death_sprite,
+                                               103: self.set_hitbox,
+                                               105: self.set_vulnerable,
+                                               108: self.set_death_callback,
+                                               113: self.set_low_life_trigger,
+                                               114: self.set_low_life_callback,
+                                               115: self.set_timeout,
+                                               126: self.set_remaining_lives}) #TODO
 
+
+    def set_remaining_lives(self, lives):
+        self.remaining_lives = lives
+
+
+    def set_death_callback(self, sub):
+        self.death_callback = sub
+
+
+    def set_low_life_trigger(self, value):
+        self.low_life_trigger = value
+
+
+    def set_low_life_callback(self, sub):
+        self.low_life_callback = sub
+
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
+
+    def set_vulnerable(self, vulnerable):
+        self.vulnerable = bool(vulnerable & 1)
+
+
+    def set_bullet_launch_offset(self, x, y, z):
+        self.bullet_launch_offset = (x, y)
+
+
+    def set_bullet_attributes(self, bullet_anim, launch_anim, bullets_per_shot,
+                              number_of_shots, speed, unknown, launch_angle,
+                              angle, flags):
+        self.bullet_attributes = (1, bullet_anim, launch_anim, bullets_per_shot,
+                                  number_of_shots, speed, unknown, launch_angle,
+                                  angle, flags)
+        if not self.delay_attack:
+            pass
+            #TODO: actually fire
+
+
+    def set_bullet_interval(self, value):
+        self.bullet_launch_interval = value
+
+
+    def set_delay_attack(self):
+        self.delay_attack = True
+
+
+    def set_no_delay_attack(self):
+        self.delay_attack = False
 
 
     def set_death_sprite(self, sprite_index):
@@ -94,7 +163,7 @@ class Enemy(object):
 
     def target_player(self, unknown, speed):
         self.speed = speed #TODO: unknown
-        player_x, player_y = 192., 400.#TODO
+        player_x, player_y = 192., 384.#TODO
         self.angle = atan2(player_y - self.y, player_x - self.x)
 
 

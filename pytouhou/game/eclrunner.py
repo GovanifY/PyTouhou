@@ -12,13 +12,37 @@ class ECLRunner(object):
         self.stack = []
 
         self.implementation = {4: self.set_variable,
+                               5: self.set_variable,
                                2: self.relative_jump,
                                3: self.relative_jump_ex,
+                               20: self.add,
+                               21: self.substract,
                                35: self.call,
                                36: self.ret,
                                109: self.memory_write}
         if implementation:
             self.implementation.update(implementation)
+
+
+    def _get_value(self, value): #TODO: -10013 and beyond!
+        assert not -10025 <= value <= -10013
+        if -10012 <= value <= -10001:
+            return self.variables[int(-10001-value)]
+        else:
+            return value
+
+
+    def add(self, variable_id, a, b):
+        #TODO: proper variable handling
+        #TODO: int vs float thing
+        self.variables[-10001-variable_id] = self._get_value(a) + self._get_value(b)
+
+
+    def substract(self, variable_id, a, b):
+        #TODO: proper variable handling
+        #TODO: int vs float thing
+        self.variables[-10001-variable_id] = self._get_value(a) - self._get_value(b)
+
 
 
     def memory_write(self, value, index):
@@ -45,10 +69,9 @@ class ECLRunner(object):
         self.sub, self.frame, self.instruction_pointer, self.variables = self.stack.pop()
 
 
-
     def set_variable(self, variable_id, value):
         #TODO: -10013 and beyond!
-        self.variables[-10000-variable_id] = value
+        self.variables[-10001-variable_id] = self._get_value(value)
 
 
     def relative_jump(self, frame, instruction_pointer):
@@ -56,8 +79,8 @@ class ECLRunner(object):
 
 
     def relative_jump_ex(self, frame, instruction_pointer, variable_id):
-        if self.variables[-10000-variable_id]:
-            self.variables[-10000-variable_id] -= 1
+        if self.variables[-10001-variable_id]:
+            self.variables[-10001-variable_id] -= 1
             self.frame, self.instruction_pointer = frame, instruction_pointer
 
 
