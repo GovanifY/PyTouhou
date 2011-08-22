@@ -8,10 +8,6 @@ from pytouhou.game.sprite import Sprite
 from math import cos, sin, atan2
 
 
-from pytouhou.utils.random import Random
-random = Random(0x39f4)
-
-
 class Enemy(object):
     def __init__(self, pos, life, _type, anm_wrapper):
         self._anm_wrapper = anm_wrapper
@@ -48,6 +44,7 @@ class Enemy(object):
         self.acceleration = 0.
 
         self.hitbox = (0, 0)
+        self.screen_box = None
 
 
     def set_bullet_attributes(self, bullet_anim, launch_anim, bullets_per_shot,
@@ -59,6 +56,14 @@ class Enemy(object):
         if not self.delay_attack:
             pass
             #TODO: actually fire
+
+
+    def select_player(self, players):
+        return players[0] #TODO
+
+
+    def get_player_angle(self, player):
+        return atan2(player.y - self.y, player.x - self.x)
 
 
     def set_anim(self, index):
@@ -111,8 +116,7 @@ class Enemy(object):
 
     def update(self, frame):
         x, y = self.x, self.y
-        if self.interpolator:
-            self.interpolator.update(self.frame)
+        if self.interpolator and self.interpolator.update(self.frame):
             x, y = self.interpolator.values
 
         self.speed += self.acceleration #TODO: units? Execution order?
@@ -136,6 +140,13 @@ class Enemy(object):
             elif self.direction is not None:
                 self.set_anim(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
                 self.direction = None
+
+
+        if self.screen_box:
+            xmin, ymin, xmax, ymax = self.screen_box
+            x = max(xmin, min(x, xmax))
+            y = max(ymin, min(y, ymax))
+
 
         self.x, self.y = x, y
         if self._sprite:
@@ -180,12 +191,12 @@ class EnemyManager(object):
                 if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
                     x, y, z, life, unknown1, unknown2, unknown3 = args
                     if instr_type & 4:
-                        if x < -990:
-                            x = random.rand_double() * 368 #102h.exe@0x411820
-                        if y < -990:
-                            y = random.rand_double() * 416 #102h.exe@0x41184b
-                        if z < -990:
-                            y = random.rand_double() * 800 #102h.exe@0x411881
+                        if x < -990: #102h.exe@0x411820
+                            x = self._game_state.prng.rand_double() * 368
+                        if y < -990: #102h.exe@0x41184b
+                            y = self._game_state.prng.rand_double() * 416
+                        if z < -990: #102h.exe@0x411881
+                            y = self._game_state.prng.rand_double() * 800
                     enemy = Enemy((x, y), life, instr_type, self.anm_wrapper)
                     self.enemies.append(enemy)
                     self.processes.append(ECLRunner(self.ecl, sub, enemy, self._game_state))

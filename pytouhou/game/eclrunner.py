@@ -56,24 +56,25 @@ class ECLRunner(object):
 
         # Now, process script
         frame = self.frame
-        try:
-            while frame <= self.frame:
+        while True:
+            try:
                 frame, instr_type, rank_mask, param_mask, args = self._ecl.subs[self.sub][self.instruction_pointer]
+            except IndexError:
+                return False
 
-                #TODO: skip bad ranks
+            #TODO: skip bad ranks
 
-                if frame == self.frame:
-                    try:
-                        callback = self._handlers[instr_type]
-                    except KeyError:
-                        print('Warning: unhandled opcode %d!' % instr_type) #TODO
-                    else:
-                        callback(self, *args)
-                        frame, instr_type, rank_mask, param_mask, args = self._ecl.subs[self.sub][self.instruction_pointer]
-                if frame <= self.frame:
-                    self.instruction_pointer += 1
-        except IndexError:
-            return False
+            if frame > self.frame:
+                break
+            else:
+                self.instruction_pointer += 1
+            if frame == self.frame:
+                try:
+                    callback = self._handlers[instr_type]
+                except KeyError:
+                    print('Warning: unhandled opcode %d!' % instr_type) #TODO
+                else:
+                    callback(self, *args)
 
         self.frame += 1
         return True
@@ -83,18 +84,51 @@ class ECLRunner(object):
         if -10012 <= value <= -10001:
             return self.variables[int(-10001-value)]
         elif -10025 <= value <= -10013:
+            if value == -10013:
+                return self._game_state.rank
+            elif value == -10014:
+                return self._game_state.difficulty
+            elif value == -10015:
+                return self._enemy.x
+            elif value == -10016:
+                return self._enemy.y
+            elif value == -10017:
+                return self._enemy.z
+            elif value == -10018:
+                player = self._enemy.select_player(self._game_state.players)
+                return player.x
+            elif value == -10019:
+                player = self._enemy.select_player(self._game_state.players)
+                return player.y
+            elif value == -10021:
+                player = self._enemy.select_player(self._game_state.players)
+                return self._enemy.get_player_angle(player)
+            elif value == -10022:
+                return self._enemy.frame
+            elif value == -10024:
+                return self._enemy.life
             raise NotImplementedError #TODO
         else:
             return value
 
 
     def _setval(self, variable_id, value):
-        if -10012 <= value <= -10001:
+        if -10012 <= variable_id <= -10001:
             self.variables[int(-10001-variable_id)] = value
-        elif -10025 <= value <= -10013:
-            raise NotImplementedError #TODO
+        elif -10025 <= variable_id <= -10013:
+            if value == -10015:
+                self._enemy.x = value
+            elif value == -10016:
+                self._enemy.y = value
+            elif value == -10017:
+                self._enemy.z = value
+            elif value == -10022:
+                self._enemy.frame = value
+            elif value == -10024:
+                self._enemy.life = value
+            raise IndexError #TODO: proper exception
         else:
-            raise IndexError #TODO
+            raise IndexError #TODO: proper exception
 
 
     @instruction(1)
@@ -110,16 +144,38 @@ class ECLRunner(object):
 
     @instruction(3)
     def relative_jump_ex(self, frame, instruction_pointer, variable_id):
-        if self.variables[-10001-variable_id]:
-            self.variables[-10001-variable_id] -= 1
+        counter_value = self._getval(variable_id)
+        if counter_value:
+            self._setval(variable_id, counter_value - 1)
             self.frame, self.instruction_pointer = frame, instruction_pointer
 
 
     @instruction(4)
     @instruction(5)
     def set_variable(self, variable_id, value):
-        #TODO: -10013 and beyond!
-        self.variables[-10001-variable_id] = self._getval(value)
+        self._setval(variable_id, self._getval(value))
+
+
+    @instruction(6)
+    def set_random_int(self, variable_id, maxval):
+        self._setval(variable_id, int(self._getval(maxval) * self._game_state.prng.rand_double()))
+
+
+    @instruction(8)
+    def set_random_float(self, variable_id, maxval):
+        self._setval(variable_id, self._getval(maxval) * self._game_state.prng.rand_double())
+
+
+    @instruction(20)
+    def add(self, variable_id, a, b):
+        #TODO: int vs float thing
+        self._setval(variable_id, self._getval(a) + self._getval(b))
+
+
+    @instruction(21)
+    def substract(self, variable_id, a, b):
+        #TODO: int vs float thing
+        self._setval(variable_id, self._getval(a) - self._getval(b))
 
 
     @instruction(35)
@@ -139,18 +195,10 @@ class ECLRunner(object):
         self.sub, self.frame, self.instruction_pointer, self.variables = self.stack.pop()
 
 
-    @instruction(20)
-    def add(self, variable_id, a, b):
-        #TODO: proper variable handling
-        #TODO: int vs float thing
-        self.variables[-10001-variable_id] = self._getval(a) + self._getval(b)
-
-
-    @instruction(21)
-    def substract(self, variable_id, a, b):
-        #TODO: proper variable handling
-        #TODO: int vs float thing
-        self.variables[-10001-variable_id] = self._getval(a) - self._getval(b)
+    @instruction(39)
+    def call_if_equal(self, sub, param1, param2, a, b):
+        if self._getval(a) == self._getval(b):
+            self.call(sub, param1, param2)
 
 
     @instruction(43)
@@ -180,14 +228,24 @@ class ECLRunner(object):
 
     @instruction(51)
     def target_player(self, unknown, speed):
-        self._enemy.speed = speed #TODO: unknown
-        player_x, player_y = 192., 384.#TODO
-        self._enemy.angle = atan2(player_y - self._enemy.y, player_x - self._enemy.x) #TODO
+        #TODO: unknown
+        self._enemy.speed = speed
+        self._enemy.angle = self._enemy.get_player_angle(self._enemy.select_player(self._game_state.players))
 
 
     @instruction(57)
     def move_to(self, duration, x, y, z):
         self._enemy.move_to(duration, x, y, z)
+
+
+    @instruction(65)
+    def set_screen_box(self, xmin, ymin, xmax, ymax):
+        self._enemy.screen_box = xmin, ymin, xmax, ymax
+
+
+    @instruction(66)
+    def clear_screen_box(self):
+        self._enemy.screen_box = None
 
 
     @instruction(77)
