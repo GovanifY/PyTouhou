@@ -30,6 +30,7 @@ class Enemy(object):
         self._sprite = None
         self._removed = False
         self._type = _type
+        self._was_visible = False
 
         self.frame = 0
 
@@ -108,10 +109,10 @@ class Enemy(object):
             min_x = -max_x
             min_y = -max_y
 
-        if any((min_x >= screen_width - self.x,
-                max_x <= -self.x,
-                min_y >= screen_height - self.y,
-                max_y <= -self.y)):
+        if any((min_x > screen_width - self.x,
+                max_x < -self.x,
+                min_y > screen_height - self.y,
+                max_y < -self.y)):
             return False
         return True
 
@@ -225,6 +226,14 @@ class EnemyManager(object):
 
         # Update enemies
         visible_enemies = [enemy for enemy in self.enemies if enemy.update(frame)]
+        for enemy in visible_enemies:
+            enemy._was_visible = True
+
+        # Filter out-of-screen enemies
+        for enemy in tuple(self.enemies):
+            if enemy._was_visible and not enemy in visible_enemies:
+                enemy._removed = True
+                self.enemies.remove(enemy)
 
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}
