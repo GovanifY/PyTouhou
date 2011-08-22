@@ -47,12 +47,11 @@ class Matrix(object):
 
 
     def rotate_y(self, angle):
-        #TODO: check
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        d1[0][:], d1[2][:] = ([cos_a * d1[0][i] - sin_a * d1[2][i] for i in range(4)],
-                              [sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)])
+        d1[0][:], d1[2][:] = ([cos_a * d1[0][i] + sin_a * d1[2][i] for i in range(4)],
+                              [- sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)])
 
 
     def rotate_z(self, angle):
