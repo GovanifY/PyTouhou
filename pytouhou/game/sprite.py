@@ -13,6 +13,7 @@
 ##
 
 
+from random import randrange
 from struct import unpack
 
 from pytouhou.utils.matrix import Matrix
@@ -37,6 +38,7 @@ class Sprite(object):
         self.texoffsets = (0., 0.)
         self.mirrored = False
         self.rescale = (1., 1.)
+        self.scale_speed = (0., 0.)
         self.rotations_3d = (0., 0., 0.)
         self.rotations_speed_3d = (0., 0., 0.)
         self.corner_relative_placement = False
@@ -44,6 +46,7 @@ class Sprite(object):
         self.keep_still = False
         self.playing = True
         self.frame = 0
+        self.color = (255, 255, 255)
         self.alpha = 255
         self._uvs = []
         self._vertices = []
@@ -85,7 +88,7 @@ class Sprite(object):
 
         d = vertmat.data
         assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
-        self._colors = [(255, 255, 255, self.alpha)] * 4
+        self._colors = [(self.color[0], self.color[1], self.color[2], self.alpha)] * 4
         self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
 
 
@@ -115,11 +118,15 @@ class Sprite(object):
                         self.playing = False
                         return False
                     if instr_type == 1:
+                        #TODO: handle out-of-anm sprites
                         self.texcoords = self.anm.sprites[args[0]]
                     elif instr_type == 2:
                         self.rescale = args
                     elif instr_type == 3:
                         self.alpha = args[0] % 256 #TODO
+                    elif instr_type == 4:
+                        b, g, r = args
+                        self.color = (r, g, b)
                     elif instr_type == 5:
                         self.instruction_pointer, = args
                         self.frame = script[self.instruction_pointer][0]
@@ -129,6 +136,12 @@ class Sprite(object):
                         self.rotations_3d = args
                     elif instr_type == 10:
                         self.rotations_speed_3d = args
+                    elif instr_type == 11:
+                        self.scale_speed = args
+                    elif instr_type == 16:
+                        #TODO: handle out-of-anm sprites
+                        #TODO: use the game's PRNG?
+                        self.texcoords = self.anm.sprites[args[0] + randrange(args[1])]
                     elif instr_type == 23:
                         self.corner_relative_placement = True #TODO
                     elif instr_type == 27:
@@ -137,7 +150,7 @@ class Sprite(object):
                     elif instr_type == 28:
                         tox, toy = self.texoffsets
                         self.texoffsets = tox, toy + args[0]
-                    elif instr_type == 15:
+                    elif instr_type in (15, 21):
                         self.keep_still = True
                         break
                     else:
@@ -147,8 +160,9 @@ class Sprite(object):
         ax, ay, az = self.rotations_3d
         sax, say, saz = self.rotations_speed_3d
         self.rotations_3d = ax + sax, ay + say, az + saz
+        self.rescale = self.rescale[0] + self.scale_speed[0], self.rescale[1] + self.scale_speed[1]
 
-        if self.rotations_speed_3d != (0., 0., 0.):
+        if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):
             return True
 
         return changed

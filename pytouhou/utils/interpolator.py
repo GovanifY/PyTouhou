@@ -23,6 +23,10 @@ class Interpolator(object):
         self._frame = 0
 
 
+    def __nonzero__(self):
+        return self._frame <= self.end_frame
+
+
     def set_interpolation_start(self, frame, values):
         self.start_values = tuple(values)
         self.start_frame = frame
@@ -47,10 +51,8 @@ class Interpolator(object):
             self.values = tuple(self.end_values)
             self.start_values = tuple(self.end_values)
             self.start_frame = frame
-            return frame == self.end_frame
         else:
             truc = float(frame - self.start_frame) / float(self.end_frame - self.start_frame)
             self.values = tuple(start_value + truc * (end_value - start_value)
                                 for (start_value, end_value) in zip(self.start_values, self.end_values))
-            return True
 

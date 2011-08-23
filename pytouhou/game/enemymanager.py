@@ -54,6 +54,7 @@ class Enemy(object):
         self.movement_dependant_sprites = None
         self.direction = None
         self.interpolator = None #TODO
+        self.speed_interpolator = None
         self.angle = 0.
         self.speed = 0.
         self.rotation_speed = 0.
@@ -63,15 +64,19 @@ class Enemy(object):
         self.screen_box = None
 
 
-    def set_bullet_attributes(self, bullet_anim, launch_anim, bullets_per_shot,
-                              number_of_shots, speed, unknown, launch_angle,
-                              angle, flags):
-        self.bullet_attributes = (1, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes(self, type_, bullet_anim, launch_anim,
+                              bullets_per_shot, number_of_shots, speed, unknown,
+                              launch_angle, angle, flags):
+        self.bullet_attributes = (type_, bullet_anim, launch_anim, bullets_per_shot,
                                   number_of_shots, speed, unknown, launch_angle,
                                   angle, flags)
         if not self.delay_attack:
-            pass
-            #TODO: actually fire
+            self.fire()
+
+
+    def fire(self):
+        #TODO
+        pass
 
 
     def select_player(self, players):
@@ -93,7 +98,17 @@ class Enemy(object):
 
 
     def move_to(self, duration, x, y, z):
+        if not self.interpolator:
+            self.interpolator = Interpolator((self.x, self.y))
+            self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
         self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
+
+
+    def stop_in(self, duration):
+        if not self.speed_interpolator:
+            self.speed_interpolator = Interpolator((self.speed,))
+            self.speed_interpolator.set_interpolation_start(self.frame, (self.speed,))
+            self.speed_interpolator.set_interpolation_end(self.frame + duration, (0.,))
 
 
     def is_visible(self, screen_width, screen_height):
@@ -132,11 +147,18 @@ class Enemy(object):
 
     def update(self, frame):
         x, y = self.x, self.y
-        if self.interpolator and self.interpolator.update(self.frame):
+        if self.interpolator:
+            self.interpolator.update(self.frame)
             x, y = self.interpolator.values
 
         self.speed += self.acceleration #TODO: units? Execution order?
         self.angle += self.rotation_speed #TODO: units? Execution order?
+
+
+        if self.speed_interpolator:
+            self.speed_interpolator.update(self.frame)
+            self.speed, = self.speed_interpolator.values
+
 
         dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
         if self._type & 2:
@@ -146,7 +168,9 @@ class Enemy(object):
         y += dy
 
         if self.movement_dependant_sprites:
-            #TODO: is that really how it works?
+            #TODO: is that really how it works? Almost.
+            # Sprite determination is done only once per changement, and is
+            # superseeded by ins_97.
             if x < self.x:
                 self.set_anim(self.movement_dependant_sprites[2])
                 self.direction = -1
@@ -234,6 +258,12 @@ class EnemyManager(object):
             if enemy._was_visible and not enemy in visible_enemies:
                 enemy._removed = True
                 self.enemies.remove(enemy)
+
+
+        #TODO: disable boss mode if it is dead/it has timeout
+        if self._game_state.boss and self._game_state.boss._removed:
+            self._game_state.boss = None
+
 
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}

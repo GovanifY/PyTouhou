@@ -81,12 +81,17 @@ class ECLRunner(object):
             except IndexError:
                 return False
 
-            #TODO: skip bad ranks
-
             if frame > self.frame:
                 break
             else:
                 self.instruction_pointer += 1
+
+
+            #TODO: skip bad ranks
+            if not rank_mask & (0x100 << self._game_state.rank):
+                continue
+
+
             if frame == self.frame:
                 try:
                     callback = self._handlers[instr_type]
@@ -126,7 +131,9 @@ class ECLRunner(object):
                 return self._enemy.frame
             elif value == -10024:
                 return self._enemy.life
-            raise NotImplementedError #TODO
+            elif value == -10025:
+                return self._enemy.select_player(self._game_state.players).character
+            raise NotImplementedError(value) #TODO
         else:
             return value
 
@@ -302,6 +309,11 @@ class ECLRunner(object):
         self._enemy.move_to(duration, x, y, z)
 
 
+    @instruction(61)
+    def stop_in(self, duration):
+        self._enemy.stop_in(duration)
+
+
     @instruction(65)
     def set_screen_box(self, xmin, ymin, xmax, ymax):
         self._enemy.screen_box = xmin, ymin, xmax, ymax
@@ -310,6 +322,16 @@ class ECLRunner(object):
     @instruction(66)
     def clear_screen_box(self):
         self._enemy.screen_box = None
+
+
+    @instruction(67)
+    def set_bullet_attributes1(self, bullet_anim, launch_anim, bullets_per_shot,
+                              number_of_shots, speed, unknown, launch_angle,
+                              angle, flags):
+        self._enemy.set_bullet_attributes(1, bullet_anim, launch_anim,
+                                           bullets_per_shot, number_of_shots,
+                                           speed, unknown, launch_angle, angle,
+                                           flags)
 
 
     @instruction(77)
@@ -346,6 +368,12 @@ class ECLRunner(object):
     @instruction(100)
     def set_death_anim(self, sprite_index):
         self._enemy.death_anim = sprite_index % 256 #TODO
+
+
+    @instruction(101)
+    def set_boss_mode(self, unknown):
+        #TODO: unknown
+        self._game_state.boss = self._enemy
 
 
     @instruction(103)

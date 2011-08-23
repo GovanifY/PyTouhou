@@ -79,6 +79,8 @@ class Animations(object):
                     args = unpack('<ff', data)
                 elif instr_type == 3: # set_alpha
                     args = unpack('<I', data)
+                elif instr_type == 4: # set_color
+                    args = unpack('<BBBx', data)
                 elif instr_type == 5: # jump
                     # Translate offset to instruction index
                     args = (instruction_offsets.index(unpack('<I', data)[0]),)
@@ -86,10 +88,18 @@ class Animations(object):
                     args = unpack('<fff', data)
                 elif instr_type == 10: # set_3d_rotation_speed
                     args = unpack('<fff', data)
+                elif instr_type == 11: # set_scale_speed
+                    args = unpack('<ff', data)
+                elif instr_type == 12: # fade
+                    args = unpack('<ii', data)
+                elif instr_type == 16: # set_random_sprite
+                    args = unpack('<ii', data)
                 elif instr_type == 27: # shift_texture_x
                     args = unpack('<f', data)
                 elif instr_type == 28: # shift_texture_y
                     args = unpack('<f', data)
+                elif instr_type == 30: # scale_in
+                    args = unpack('<ffi', data)
                 else:
                     args = (data,)
                 anm.scripts[i].append((time, instr_type, args))
