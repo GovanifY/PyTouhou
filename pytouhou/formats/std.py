@@ -14,8 +14,9 @@
 
 
 from struct import pack, unpack
-from pytouhou.utils.helpers import read_string
+from pytouhou.utils.helpers import read_string, get_logger
 
+logger = get_logger(__name__)
 
 
 class Object(object):
@@ -108,7 +109,7 @@ class Stage(object):
                 args = tuple(unpack('<III', data)[:1])
             else:
                 args = (data,)
-                print('Warning: unknown opcode %d' % message_type) #TODO
+                logger.warn('unknown opcode %d (data: %r)', message_type, data)
             stage.script.append((frame, message_type, args))
 
         return stage

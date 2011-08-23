@@ -125,7 +125,6 @@ def main(path, stage_num):
             # This is so that objects on the (O, x, y) plane use pixel coordinates
             gluLookAt(192., 224., - 835.979370 * dz,
                       192. + dx, 224. - dy, 0., 0., -1., 0.)
-            #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 
             glEnable(GL_DEPTH_TEST)

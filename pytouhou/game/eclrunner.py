@@ -15,6 +15,11 @@
 
 from math import atan2, cos, sin
 
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
+
+
 
 class MetaRegistry(type):
     def __new__(mcs, name, bases, classdict):
@@ -96,7 +101,7 @@ class ECLRunner(object):
                 try:
                     callback = self._handlers[instr_type]
                 except KeyError:
-                    print('Warning: unhandled opcode %d!' % instr_type) #TODO
+                    logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
                 else:
                     callback(self, *args)
 

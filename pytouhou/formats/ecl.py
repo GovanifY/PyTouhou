@@ -16,8 +16,9 @@
 from struct import pack, unpack
 from pytouhou.utils.helpers import read_string
 
-from collections import namedtuple
+from pytouhou.utils.helpers import get_logger
 
+logger = get_logger(__name__)
 
 class ECL(object):
     _instructions = {0: ('', 'noop?'),
@@ -167,7 +168,7 @@ class ECL(object):
                     args = unpack('<%s' % cls._instructions[opcode][0], data)
                 else:
                     args = (data, )
-                    print('Warning: unknown opcode %d' % opcode) #TODO
+                    logger.warn('unknown opcode %d', opcode)
 
                 ecl.subs[-1].append((time, opcode, rank_mask, param_mask, args))
 
@@ -195,7 +196,7 @@ class ECL(object):
             if instr_type in (0, 2, 4, 6): # Enemy spawn
                 args = unpack('<ffIhHHH', data)
             else:
-                print('ECL: Warning: unknown opcode %d (%r)' % (instr_type, data)) #TODO
+                logger.warn('unknown main opcode %d (data: %r)', instr_type, data)
                 args = (data,)
             ecl.main.append((time, sub, instr_type, args))
 

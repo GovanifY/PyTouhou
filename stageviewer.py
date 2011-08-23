@@ -36,6 +36,11 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 
+from reflexions.helpers import get_logger
+
+logger = get_logger(__name__)
+
+
 def main(path, stage_num):
     # Initialize pygame
     pygame.init()
@@ -106,7 +111,6 @@ def main(path, stage_num):
             # This is so that objects on the (O, x, y) plane use pixel coordinates
             gluLookAt(192., 224., - 835.979370 * dz,
                       192. + dx, 224. - dy, 0., 0., -1., 0.)
-            #print(glGetFloat(GL_MODELVIEW_MATRIX))
             glTranslatef(-x, -y, -z)
 
             for texture_key, (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():

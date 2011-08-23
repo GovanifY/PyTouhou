@@ -1,7 +1,3 @@
-from pytouhou.utils.bitstream import BitStream
-import pytouhou.utils.lzss as lzss
-
-
 # -*- encoding: utf-8 -*-
 ##
 ## Copyright (C) 2011 Thibaut Girka <thib@sitedethib.com>
@@ -15,6 +11,14 @@ import pytouhou.utils.lzss as lzss
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
 ##
+
+from pytouhou.utils.bitstream import BitStream
+import pytouhou.utils.lzss as lzss
+
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
+
 
 class PBG3BitStream(BitStream):
     def read_int(self):
@@ -80,6 +84,6 @@ class PBG3(object):
                 value += ord(c)
                 value &= 0xFFFFFFFF
             if value != checksum:
-                print('Warning: corrupted data') #TODO
+                logger.warn('corrupted data!')
         return data
 

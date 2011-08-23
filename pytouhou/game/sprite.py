@@ -17,6 +17,9 @@ from random import randrange
 from struct import unpack
 
 from pytouhou.utils.matrix import Matrix
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
 
 
 class AnmWrapper(object):
@@ -154,7 +157,7 @@ class Sprite(object):
                         self.keep_still = True
                         break
                     else:
-                        print('unhandled opcode: %d, %r' % (instr_type, args)) #TODO
+                        logger.warn('unhandled instruction %d (args: %r)', instr_type, args)
         self.frame += 1
 
         ax, ay, az = self.rotations_3d

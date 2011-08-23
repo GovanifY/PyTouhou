@@ -12,6 +12,20 @@
 ## GNU General Public License for more details.
 ##
 
+
+from logging import StreamHandler, Formatter, getLogger
+
+
+def get_logger(name):
+    handler = StreamHandler()
+    formatter = Formatter(fmt='[%(name)s] [%(levelname)s]: %(message)s')
+    handler.setFormatter(formatter)
+    logger = getLogger(name)
+    logger.addHandler(handler)
+    logger.propagate = False
+    return logger
+
+
 def read_string(file, size, encoding=None):
     data = file.read(size)
 
@@ -24,3 +38,4 @@ def read_string(file, size, encoding=None):
         return data.decode(encoding)
     else:
         return data
+
