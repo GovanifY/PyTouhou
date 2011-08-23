@@ -102,6 +102,8 @@ def main(path, stage_num):
             enemy_manager.update(frame)
             background.update(frame)
 
+            frame += 1
+
             # Draw everything
 #            glClearColor(0.0, 0.0, 1.0, 0)
             glClear(GL_DEPTH_BUFFER_BIT)
@@ -158,7 +160,6 @@ def main(path, stage_num):
 
             pygame.display.flip()
             clock.tick(120)
-            frame += 1
 
 
 

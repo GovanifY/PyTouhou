@@ -218,6 +218,11 @@ class ECLRunner(object):
         self._setval(variable_id, self._getval(maxval) * self._game_state.prng.rand_double())
 
 
+    @instruction(9)
+    def set_random_float2(self, variable_id, minval, amp):
+        self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game_state.prng.rand_double())
+
+
     @instruction(20)
     def add(self, variable_id, a, b):
         #TODO: int vs float thing
@@ -297,9 +302,27 @@ class ECLRunner(object):
 
     @instruction(50)
     def set_random_angle(self, min_angle, max_angle):
-        #TODO: This thing is really odd, check, double check, triple check, disassemble...
+        if self._enemy.screen_box:
+            minx, miny, maxx, maxy = self._enemy.screen_box
+        else:
+            minx, miny, maxx, maxy = (0., 0., 0., 0.)
+
         angle = self._game_state.prng.rand_double() * (max_angle - min_angle) + min_angle
-        self._enemy.angle = atan2(-abs(sin(angle)), -abs(cos(angle)))
+        sa, ca = sin(angle), cos(angle)
+
+        distx = min(96.0, (maxx - minx) / 2.)
+        disty = min(96.0, (maxy - miny) / 2.)
+
+        if self._enemy.x > maxx - 96.0:
+            ca = -abs(ca)
+        elif self._enemy.x < minx + 96.0:
+            ca = abs(ca)
+
+        if self._enemy.y > maxy - 48.0:
+            sa = -abs(sa)
+        elif self._enemy.y < miny + 48.0:
+            sa = abs(sa)
+        self._enemy.angle = atan2(sa, ca)
 
 
     @instruction(51)
