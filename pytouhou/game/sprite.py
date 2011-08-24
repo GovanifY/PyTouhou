@@ -134,7 +134,7 @@ class Sprite(object):
                         self.instruction_pointer, = args
                         self.frame = script[self.instruction_pointer][0]
                     elif instr_type == 7:
-                        self.mirrored = True
+                        self.mirrored = not self.mirrored
                     elif instr_type == 9:
                         self.rotations_3d = args
                     elif instr_type == 10:
