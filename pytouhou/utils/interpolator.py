@@ -48,7 +48,8 @@ class Interpolator(object):
 
     def update(self, frame):
         self._frame = frame
-        if frame >= self.end_frame - 1:
+        if frame >= self.end_frame - 1: #XXX: skip the last interpolation step
+            # This bug is replicated from the original game
             self.values = tuple(self.end_values)
             self.start_values = tuple(self.end_values)
             self.start_frame = frame

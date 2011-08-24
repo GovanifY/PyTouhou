@@ -334,7 +334,13 @@ class ECLRunner(object):
 
     @instruction(57)
     def move_to(self, duration, x, y, z):
-        self._enemy.move_to(duration, x, y, z)
+        self._enemy.move_to(duration, x, y, z, lambda x: 2. * x - x ** 2)
+
+
+    @instruction(59)
+    def move_to2(self, duration, x, y, z):
+        #TODO: not accurate
+        self._enemy.move_to(duration, x, y, z, lambda x: 1.0014 * x ** 2 - 0.0012 * x)
 
 
     @instruction(61)

@@ -97,14 +97,16 @@ class Enemy(object):
         self.interpolator.set_interpolation_start(self.frame, (x, y))
 
 
-    def move_to(self, duration, x, y, z):
+    def move_to(self, duration, x, y, z, formula):
         if not self.interpolator:
-            self.interpolator = Interpolator((self.x, self.y))
+            self.interpolator = Interpolator((self.x, self.y), formula)
             self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
-        self.interpolator.set_interpolation_end(self.frame + duration, (x, y))
+            self.interpolator.set_interpolation_end(self.frame + duration - 1, (x, y))
 
 
     def stop_in(self, duration):
+        #TODO: interpolation method and start/stop frame
+        # See 97 vs 98 anim conflict
         if not self.speed_interpolator:
             self.speed_interpolator = Interpolator((self.speed,))
             self.speed_interpolator.set_interpolation_start(self.frame, (self.speed,))
@@ -171,14 +173,18 @@ class Enemy(object):
             #TODO: is that really how it works? Almost.
             # Sprite determination is done only once per changement, and is
             # superseeded by ins_97.
-            if x < self.x:
-                self.set_anim(self.movement_dependant_sprites[2])
+            end_left, end_right, left, right = self.movement_dependant_sprites
+            if x < self.x and self.direction != -1:
+                self.set_anim(left)
                 self.direction = -1
-            elif x > self.x:
-                self.set_anim(self.movement_dependant_sprites[3])
+                print('left')
+            elif x > self.x and self.direction != +1:
+                self.set_anim(right)
                 self.direction = +1
-            elif self.direction is not None:
-                self.set_anim(self.movement_dependant_sprites[{-1: 0, +1:1}[self.direction]])
+                print(left, right)
+                print('right')
+            elif x == self.x and self.direction is not None:
+                self.set_anim({-1: end_left, +1: end_right}[self.direction])
                 self.direction = None
 
 
