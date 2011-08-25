@@ -206,7 +206,7 @@ class ECLRunner(object):
 
     @instruction(6)
     def set_random_int(self, variable_id, maxval):
-        """Set the specified variable to a random int in the [[0, maxval)) range.
+        """Set the specified variable to a random int in the [0, maxval) range.
         """
         self._setval(variable_id, int(self._getval(maxval) * self._game_state.prng.rand_double()))
 
@@ -223,20 +223,62 @@ class ECLRunner(object):
         self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game_state.prng.rand_double())
 
 
+    @instruction(13)
+    def set_random_int2(self, variable_id, minval, amp):
+        self._setval(variable_id, int(self._getval(minval)) + int(self._getval(amp)) * self._game_state.prng.rand_double())
+
+
+    @instruction(14)
+    def substract_int(self, variable_id, a, b):
+        self._setval(variable_id, int(self._getval(a)) - int(self._getval(b)))
+
+
+    @instruction(15)
+    def multiply_int(self, variable_id, a, b):
+        self._setval(variable_id, int(self._getval(a)) * int(self._getval(b)))
+
+
+    @instruction(16)
+    def divide_int(self, variable_id, a, b):
+        self._setval(variable_id, int(self._getval(a)) / int(self._getval(b)))
+
+
+    @instruction(17)
+    def modulo(self, variable_id, a, b):
+        self._setval(variable_id, int(self._getval(a)) % int(self._getval(b)))
+
+
     @instruction(20)
-    def add(self, variable_id, a, b):
+    def add_float(self, variable_id, a, b):
         #TODO: int vs float thing
         self._setval(variable_id, self._getval(a) + self._getval(b))
 
 
     @instruction(21)
-    def substract(self, variable_id, a, b):
+    def substract_float(self, variable_id, a, b):
         #TODO: int vs float thing
         self._setval(variable_id, self._getval(a) - self._getval(b))
 
 
+    @instruction(23)
+    def divide_float(self, variable_id, a, b):
+        #TODO: int vs float thing
+        self._setval(variable_id, self._getval(a) / self._getval(b))
+
+
     @instruction(27)
     def compare_ints(self, a, b):
+        a, b = int(self._getval(a)), int(self._getval(b))
+        if a < b:
+            self.comparison_reg = -1
+        elif a == b:
+            self.comparison_reg = 0
+        else:
+            self.comparison_reg = 1
+
+
+    @instruction(28)
+    def compare_floats(self, a, b):
         a, b = self._getval(a), self._getval(b)
         if a < b:
             self.comparison_reg = -1
