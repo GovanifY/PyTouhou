@@ -288,9 +288,39 @@ class ECLRunner(object):
             self.comparison_reg = 1
 
 
+    @instruction(29)
+    def relative_jump_if_lower_than(self, frame, instruction_pointer):
+        if self.comparison_reg == -1:
+            self.relative_jump(frame, instruction_pointer)
+
+
+    @instruction(30)
+    def relative_jump_if_lower_or_equal(self, frame, instruction_pointer):
+        if self.comparison_reg != 1:
+            self.relative_jump(frame, instruction_pointer)
+
+
     @instruction(31)
     def relative_jump_if_equal(self, frame, instruction_pointer):
         if self.comparison_reg == 0:
+            self.relative_jump(frame, instruction_pointer)
+
+
+    @instruction(32)
+    def relative_jump_if_greater_than(self, frame, instruction_pointer):
+        if self.comparison_reg == 1:
+            self.relative_jump(frame, instruction_pointer)
+
+
+    @instruction(33)
+    def relative_jump_if_greater_or_equal(self, frame, instruction_pointer):
+        if self.comparison_reg != -1:
+            self.relative_jump(frame, instruction_pointer)
+
+
+    @instruction(34)
+    def relative_jump_if_not_equal(self, frame, instruction_pointer):
+        if self.comparison_reg != 0:
             self.relative_jump(frame, instruction_pointer)
 
 
