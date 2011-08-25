@@ -229,56 +229,46 @@ class ECLRunner(object):
 
 
     @instruction(14)
-    def substract_int(self, variable_id, a, b):
-        self._setval(variable_id, int(self._getval(a)) - int(self._getval(b)))
+    @instruction(21)
+    def substract(self, variable_id, a, b):
+        #TODO: 14 takes only ints and 21 only floats.
+        # The original engine dereferences the variables in the type it waits for, so this isn't exactly the correct implementation, but the data don't contain such case.
+        self._setval(variable_id, self._getval(a) - self._getval(b))
 
 
     @instruction(15)
     def multiply_int(self, variable_id, a, b):
-        self._setval(variable_id, int(self._getval(a)) * int(self._getval(b)))
+        #TODO: takes only ints.
+        self._setval(variable_id, self._getval(a) * self._getval(b))
 
 
     @instruction(16)
     def divide_int(self, variable_id, a, b):
-        self._setval(variable_id, int(self._getval(a)) / int(self._getval(b)))
+        #TODO: takes only ints.
+        self._setval(variable_id, self._getval(a) // self._getval(b))
 
 
     @instruction(17)
     def modulo(self, variable_id, a, b):
-        self._setval(variable_id, int(self._getval(a)) % int(self._getval(b)))
+        self._setval(variable_id, self._getval(a) % self._getval(b))
 
 
     @instruction(20)
     def add_float(self, variable_id, a, b):
-        #TODO: int vs float thing
+        #TODO: takes only floats.
         self._setval(variable_id, self._getval(a) + self._getval(b))
-
-
-    @instruction(21)
-    def substract_float(self, variable_id, a, b):
-        #TODO: int vs float thing
-        self._setval(variable_id, self._getval(a) - self._getval(b))
 
 
     @instruction(23)
     def divide_float(self, variable_id, a, b):
-        #TODO: int vs float thing
+        #TODO: takes only floats.
         self._setval(variable_id, self._getval(a) / self._getval(b))
 
 
     @instruction(27)
-    def compare_ints(self, a, b):
-        a, b = int(self._getval(a)), int(self._getval(b))
-        if a < b:
-            self.comparison_reg = -1
-        elif a == b:
-            self.comparison_reg = 0
-        else:
-            self.comparison_reg = 1
-
-
     @instruction(28)
-    def compare_floats(self, a, b):
+    def compare(self, a, b):
+        #TODO: 27 takes only ints and 28 only floats.
         a, b = self._getval(a), self._getval(b)
         if a < b:
             self.comparison_reg = -1
