@@ -180,12 +180,9 @@ class Enemy(object):
             if x < self.x and self.direction != -1:
                 self.set_anim(left)
                 self.direction = -1
-                print('left')
             elif x > self.x and self.direction != +1:
                 self.set_anim(right)
                 self.direction = +1
-                print(left, right)
-                print('right')
             elif x == self.x and self.direction is not None:
                 self.set_anim({-1: end_left, +1: end_right}[self.direction])
                 self.direction = None
