@@ -37,14 +37,17 @@ class Enemy(object):
         self.x, self.y = pos
         self.life = life
         self.max_life = life
+        self.touchable = True
+        self.damageable = True
+        self.death_flags = 0
         self.pending_bullets = []
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
-        self.vulnerable = True
         self.death_callback = None
         self.low_life_callback = None
         self.low_life_trigger = None
         self.timeout = None
+        self.timeout_callback = None
         self.remaining_lives = -1
 
         self.bullet_launch_interval = 0

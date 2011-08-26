@@ -478,8 +478,8 @@ class ECLRunner(object):
 
 
     @instruction(105)
-    def set_vulnerable(self, vulnerable):
-        self._enemy.vulnerable = bool(vulnerable & 1)
+    def set_damageable(self, vulnerable):
+        self._enemy.damageable = bool(vulnerable & 1)
 
 
     @instruction(108)
@@ -502,6 +502,15 @@ class ECLRunner(object):
         self._enemy.life = value
 
 
+    @instruction(112)
+    def set_ellapsed_time(self, value):
+        """Sets the enemy's frame counter.
+        This is used for timeouts, where the framecounter is compared to the
+        timeout value (what's displayed is (enemy.timeout - enemy.frame) // 60).
+        """
+        self._enemy.frame = value
+
+
     @instruction(113)
     def set_low_life_trigger(self, value):
         self._enemy.low_life_trigger = value
@@ -515,6 +524,20 @@ class ECLRunner(object):
     @instruction(115)
     def set_timeout(self, timeout):
         self._enemy.timeout = timeout
+
+
+    @instruction(116)
+    def set_timeout_callback(self, sub):
+        self._enemy.timeout_callback = sub
+
+
+    @instruction(117)
+    def set_touchable(self, value):
+        """Defines whether the enemy is “touchable”.
+        Bullets only collide with an enemy if it is “touchable”.
+        Likewise, ReimuA's homing attacks only target “touchable” enemies.
+        """
+        self._enemy.touchable = bool(value)
 
 
     @instruction(126)
