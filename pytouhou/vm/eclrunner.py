@@ -337,8 +337,14 @@ class ECLRunner(object):
         self._enemy.acceleration = acceleration
 
 
-    @instruction(50)
+    @instruction(49)
     def set_random_angle(self, min_angle, max_angle):
+        angle = self._game_state.prng.rand_double() * (max_angle - min_angle) + min_angle
+        self._enemy.angle = angle
+
+
+    @instruction(50)
+    def set_random_angle_ex(self, min_angle, max_angle):
         if self._enemy.screen_box:
             minx, miny, maxx, maxy = self._enemy.screen_box
         else:
