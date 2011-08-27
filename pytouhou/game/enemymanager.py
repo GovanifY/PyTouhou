@@ -18,7 +18,8 @@ from io import BytesIO
 import os
 from struct import unpack, pack
 from pytouhou.utils.interpolator import Interpolator
-from pytouhou.game.eclrunner import ECLRunner
+from pytouhou.vm.eclrunner import ECLRunner
+from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from math import cos, sin, atan2
 
@@ -26,8 +27,8 @@ from math import cos, sin, atan2
 class Enemy(object):
     def __init__(self, pos, life, _type, anm_wrapper):
         self._anm_wrapper = anm_wrapper
-        self._anm = None
         self._sprite = None
+        self._anmrunner = None
         self._removed = False
         self._type = _type
         self._was_visible = False
@@ -91,7 +92,8 @@ class Enemy(object):
 
 
     def set_anim(self, index):
-        self._anm, self._sprite = self._anm_wrapper.get_sprite(index)
+        self._sprite = Sprite()
+        self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
 
 
     def set_pos(self, x, y, z):
@@ -139,7 +141,7 @@ class Enemy(object):
 
     def get_objects_by_texture(self):
         objects_by_texture = {}
-        key = self._anm.first_name, self._anm.secondary_name
+        key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
         if not key in objects_by_texture:
             objects_by_texture[key] = (0, [], [], [])
         vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self._sprite._vertices)
@@ -150,7 +152,7 @@ class Enemy(object):
         return objects_by_texture
 
 
-    def update(self, frame):
+    def update(self):
         x, y = self.x, self.y
         if self.interpolator:
             self.interpolator.update(self.frame)
@@ -195,20 +197,20 @@ class Enemy(object):
 
 
         self.x, self.y = x, y
-        if self._sprite:
-            changed = self._sprite.update()
-            visible = self.is_visible(384, 448)
-            if changed and visible:
-                self._sprite.update_vertices_uvs_colors()
-            elif not self._sprite.playing:
-                visible = False
-                self._sprite = None
-        else:
-            visible = False
 
+        #TODO
+        if self._anmrunner and not self._anmrunner.run_frame():
+            self._anmrunner = None
+
+        if self._sprite:
+            if self._sprite._removed:
+                self._sprite = None
+            else:
+                self._sprite.update()
+                if self._sprite._changed:
+                    self._sprite.update_vertices_uvs_colors()
 
         self.frame += 1
-        return visible
 
 
 
@@ -255,7 +257,11 @@ class EnemyManager(object):
         self.enemies[:] = (enemy for enemy in self.enemies if not enemy._removed)
 
         # Update enemies
-        visible_enemies = [enemy for enemy in self.enemies if enemy.update(frame)]
+        for enemy in self.enemies:
+            enemy.update()
+
+        # Filter out non-visible enemies
+        visible_enemies = [enemy for enemy in self.enemies if enemy.is_visible(384, 448)] #TODO
         for enemy in visible_enemies:
             enemy._was_visible = True
 
@@ -265,11 +271,9 @@ class EnemyManager(object):
                 enemy._removed = True
                 self.enemies.remove(enemy)
 
-
         #TODO: disable boss mode if it is dead/it has timeout
         if self._game_state.boss and self._game_state.boss._removed:
             self._game_state.boss = None
-
 
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}

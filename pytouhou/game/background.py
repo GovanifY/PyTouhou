@@ -19,6 +19,7 @@ import struct
 from itertools import chain
 
 from pytouhou.utils.interpolator import Interpolator
+from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 
@@ -72,8 +73,11 @@ class Background(object):
             faces = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 #TODO: per-texture rendering
-                anm, sprite = self.anm_wrapper.get_sprite(script_index)
-                if sprite.update():
+                sprite = Sprite()
+                anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
+                anm_runner.run_frame()
+                sprite.update()
+                if sprite._changed:
                     sprite.update_vertices_uvs_colors(width_override, height_override)
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 colors = sprite._colors

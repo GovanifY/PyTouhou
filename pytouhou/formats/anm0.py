@@ -13,12 +13,34 @@
 ##
 
 from struct import pack, unpack
-from pytouhou.utils.helpers import read_string
+from pytouhou.utils.helpers import read_string, get_logger
+
+
+logger = get_logger(__name__)
 
 #TODO: refactor/clean up
 
 
 class Animations(object):
+    _instructions = {0: ('', 'delete'),
+                     1: ('I', 'set_sprite'),
+                     2: ('ff', 'set_scale'),
+                     3: ('I', 'set_alpha'),
+                     4: ('BBBx', 'set_color'),
+                     5: ('I', 'jump'),
+                     7: ('', 'toggle_mirrored'),
+                     9: ('fff', 'set_3d_rotations'),
+                     10: ('fff', 'set_3d_rotations_speed'),
+                     11: ('ff', 'set_scale_speed'),
+                     12: ('ii', 'fade'),
+                     15: ('', 'keep_still'),
+                     16: ('i', 'set_random_sprite'),
+                     23: ('', 'set_corner_relative_placement'),
+                     27: ('f', 'shift_texture_x'),
+                     28: ('f', 'shift_texture_y'),
+                     30: ('ffi', 'scale_in')}
+
+
     def __init__(self):
         self.size = (0, 0)
         self.first_name = None
@@ -71,40 +93,24 @@ class Animations(object):
             while True:
                 #TODO
                 instruction_offsets.append(file.tell() - offset)
-                time, instr_type, length = unpack('<HBB', file.read(4))
+                time, opcode, length = unpack('<HBB', file.read(4))
                 data = file.read(length)
-                if instr_type == 1: # set_sprite
-                    args = unpack('<I', data)
-                elif instr_type == 2: # set_scale
-                    args = unpack('<ff', data)
-                elif instr_type == 3: # set_alpha
-                    args = unpack('<I', data)
-                elif instr_type == 4: # set_color
-                    args = unpack('<BBBx', data)
-                elif instr_type == 5: # jump
-                    # Translate offset to instruction index
-                    args = (instruction_offsets.index(unpack('<I', data)[0]),)
-                elif instr_type == 9: # set_3d_rotation
-                    args = unpack('<fff', data)
-                elif instr_type == 10: # set_3d_rotation_speed
-                    args = unpack('<fff', data)
-                elif instr_type == 11: # set_scale_speed
-                    args = unpack('<ff', data)
-                elif instr_type == 12: # fade
-                    args = unpack('<ii', data)
-                elif instr_type == 16: # set_random_sprite
-                    args = unpack('<ii', data)
-                elif instr_type == 27: # shift_texture_x
-                    args = unpack('<f', data)
-                elif instr_type == 28: # shift_texture_y
-                    args = unpack('<f', data)
-                elif instr_type == 30: # scale_in
-                    args = unpack('<ffi', data)
+                if opcode in cls._instructions:
+                    args = unpack('<%s' % cls._instructions[opcode][0], data)
                 else:
                     args = (data,)
-                anm.scripts[i].append((time, instr_type, args))
-                if instr_type == 0:
+                    logger.warn('unknown opcode %d', opcode)
+
+                anm.scripts[i].append((time, opcode, args))
+                if opcode == 0:
                     break
+
+            # Translate offsets to instruction pointers
+            for instr_offset, (j, instr) in zip(instruction_offsets, enumerate(anm.scripts[i])):
+                time, opcode, args = instr
+                if opcode == 5:
+                    args = (instruction_offsets.index(args[0]),)
+                anm.scripts[i][j] = time, opcode, args
         #TODO
 
         return anm

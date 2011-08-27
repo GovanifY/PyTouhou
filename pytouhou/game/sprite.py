@@ -13,30 +13,35 @@
 ##
 
 
-from random import randrange
-from struct import unpack
-
 from pytouhou.utils.matrix import Matrix
-from pytouhou.utils.helpers import get_logger
-
-logger = get_logger(__name__)
 
 
 class AnmWrapper(object):
     def __init__(self, anm_files):
         self.anm_files = list(anm_files)
 
-    def get_sprite(self, script_index):
+
+    def get_sprite(self, sprite_index):
+        for anm in self.anm_files:
+            if sprite_index in anm.sprites:
+                return anm, anm.sprites[sprite_index]
+        raise IndexError
+
+
+    def get_script(self, script_index):
         for anm in self.anm_files:
             if script_index in anm.scripts:
-                return anm, Sprite(anm, script_index)
+                return anm, anm.scripts[script_index]
+        raise IndexError
 
 
 
 class Sprite(object):
-    def __init__(self, anm, script_index):
-        self.anm = anm
-        self.script_index = script_index
+    def __init__(self):
+        self.anm = None
+        self._removed = False
+        self._changed = False
+
         self.texcoords = (0, 0, 0, 0) # x, y, width, height
         self.texoffsets = (0., 0.)
         self.mirrored = False
@@ -45,9 +50,6 @@ class Sprite(object):
         self.rotations_3d = (0., 0., 0.)
         self.rotations_speed_3d = (0., 0., 0.)
         self.corner_relative_placement = False
-        self.instruction_pointer = 0
-        self.keep_still = False
-        self.playing = True
         self.frame = 0
         self.color = (255, 255, 255)
         self.alpha = 255
@@ -95,78 +97,11 @@ class Sprite(object):
         self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
 
 
-
     def update(self):
-        if not self.playing:
-            return False
-
-        changed = False
-        if not self.keep_still:
-            script = self.anm.scripts[self.script_index]
-            frame = self.frame
-            while True:
-                try:
-                    frame, instr_type, args = script[self.instruction_pointer]
-                except IndexError:
-                    self.playing = False
-                    return False
-
-                if frame > self.frame:
-                    break
-                else:
-                    self.instruction_pointer += 1
-                if frame == self.frame:
-                    changed = True
-                    if instr_type == 0:
-                        self.playing = False
-                        return False
-                    if instr_type == 1:
-                        #TODO: handle out-of-anm sprites
-                        self.texcoords = self.anm.sprites[args[0]]
-                    elif instr_type == 2:
-                        self.rescale = args
-                    elif instr_type == 3:
-                        self.alpha = args[0] % 256 #TODO
-                    elif instr_type == 4:
-                        b, g, r = args
-                        self.color = (r, g, b)
-                    elif instr_type == 5:
-                        self.instruction_pointer, = args
-                        self.frame = script[self.instruction_pointer][0]
-                    elif instr_type == 7:
-                        self.mirrored = not self.mirrored
-                    elif instr_type == 9:
-                        self.rotations_3d = args
-                    elif instr_type == 10:
-                        self.rotations_speed_3d = args
-                    elif instr_type == 11:
-                        self.scale_speed = args
-                    elif instr_type == 16:
-                        #TODO: handle out-of-anm sprites
-                        #TODO: use the game's PRNG?
-                        self.texcoords = self.anm.sprites[args[0] + randrange(args[1])]
-                    elif instr_type == 23:
-                        self.corner_relative_placement = True #TODO
-                    elif instr_type == 27:
-                        tox, toy = self.texoffsets
-                        self.texoffsets = tox + args[0], toy
-                    elif instr_type == 28:
-                        tox, toy = self.texoffsets
-                        self.texoffsets = tox, toy + args[0]
-                    elif instr_type in (15, 21):
-                        self.keep_still = True
-                        break
-                    else:
-                        logger.warn('unhandled instruction %d (args: %r)', instr_type, args)
-        self.frame += 1
-
-        ax, ay, az = self.rotations_3d
-        sax, say, saz = self.rotations_speed_3d
-        self.rotations_3d = ax + sax, ay + say, az + saz
-        self.rescale = self.rescale[0] + self.scale_speed[0], self.rescale[1] + self.scale_speed[1]
-
         if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):
-            return True
-
-        return changed
+            ax, ay, az = self.rotations_3d
+            sax, say, saz = self.rotations_speed_3d
+            self.rotations_3d = ax + sax, ay + say, az + saz
+            self.rescale = self.rescale[0] + self.scale_speed[0], self.rescale[1] + self.scale_speed[1]
+            self._changed = True
 

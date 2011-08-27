@@ -17,33 +17,9 @@ from math import atan2, cos, sin
 
 from pytouhou.utils.helpers import get_logger
 
+from pytouhou.vm.common import MetaRegistry, instruction
+
 logger = get_logger(__name__)
-
-
-
-class MetaRegistry(type):
-    def __new__(mcs, name, bases, classdict):
-        instruction_handlers = {}
-        for item in classdict.itervalues():
-            try:
-                instruction_ids = item._instruction_ids
-            except AttributeError:
-                pass
-            else:
-                for id_ in instruction_ids:
-                    instruction_handlers[id_] = item
-        classdict['_handlers'] = instruction_handlers
-        return type.__new__(mcs, name, bases, classdict)
-
-
-
-def instruction(instruction_id):
-    def _decorator(func):
-        if not hasattr(func, '_instruction_ids'):
-            func._instruction_ids = set()
-        func._instruction_ids.add(instruction_id)
-        return func
-    return _decorator
 
 
 
@@ -79,7 +55,6 @@ class ECLRunner(object):
         #TODO
 
         # Now, process script
-        frame = self.frame
         while True:
             try:
                 frame, instr_type, rank_mask, param_mask, args = self._ecl.subs[self.sub][self.instruction_pointer]
