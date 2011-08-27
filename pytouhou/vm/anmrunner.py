@@ -118,15 +118,34 @@ class ANMRunner(object):
         self._sprite.scale_speed = ssx, ssy
 
 
+    @instruction(12)
+    def fade(self, new_alpha, duration):
+        self._sprite.fade(duration, new_alpha, lambda x: x) #TODO: formula
+
+    @instruction(15)
+    @instruction(21) #TODO
+    def keep_still(self):
+        self._running = False
+
     @instruction(16)
     def load_random_sprite(self, min_idx, amp):
         #TODO: use the game's PRNG?
         self.load_sprite(min_idx + randrange(amp))
 
 
+    @instruction(19)
+    def move_in(self, x, y, z, duration):
+        self._sprite.move_in(duration, x, y, z, lambda x: x) #TODO: formula
+
+
     @instruction(23)
     def set_corner_relative_placement(self):
         self._sprite.corner_relative_placement = True #TODO
+
+
+    @instruction(25)
+    def set_allow_dest_offset(self, value):
+        self._sprite.allow_dest_offset = bool(value)
 
 
     @instruction(27)
@@ -141,8 +160,7 @@ class ANMRunner(object):
         self._sprite.texoffsets = tox, toy + dy
 
 
-    @instruction(15)
-    @instruction(21) #TODO
-    def keep_still(self):
-        self._running = False
+    @instruction(30)
+    def scale_in(self, sx, sy, duration):
+        self._sprite.scale_in(duration, sx, sy, lambda x: x) #TODO: formula
 

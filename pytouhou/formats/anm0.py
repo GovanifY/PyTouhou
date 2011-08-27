@@ -33,12 +33,24 @@ class Animations(object):
                      10: ('fff', 'set_3d_rotations_speed'),
                      11: ('ff', 'set_scale_speed'),
                      12: ('ii', 'fade'),
+                     13: ('', None),
+                     14: ('', None),
                      15: ('', 'keep_still'),
                      16: ('i', 'set_random_sprite'),
+                     17: ('fff', None),
+                     18: ('ffii', None),
+                     19: ('ffii', None),
+                     20: ('fffi', None),
+                     21: ('', None),
+                     22: ('i', None),
                      23: ('', 'set_corner_relative_placement'),
+                     24: ('', None),
+                     25: ('i', 'set_allow_offset'), #TODO: better name
+                     26: ('i', None),
                      27: ('f', 'shift_texture_x'),
                      28: ('f', 'shift_texture_y'),
-                     30: ('ffi', 'scale_in')}
+                     30: ('ffi', 'scale_in'),
+                     31: ('i', None)}
 
 
     def __init__(self):

@@ -14,6 +14,7 @@
 
 
 from pytouhou.utils.matrix import Matrix
+from pytouhou.utils.interpolator import Interpolator
 
 
 class AnmWrapper(object):
@@ -42,7 +43,13 @@ class Sprite(object):
         self._removed = False
         self._changed = False
 
+        self.scale_interpolator = None
+        self.fade_interpolator = None
+        self.offset_interpolator = None
+
         self.texcoords = (0, 0, 0, 0) # x, y, width, height
+        self.dest_offset = (0., 0., 0.)
+        self.allow_dest_offset = False
         self.texoffsets = (0., 0.)
         self.mirrored = False
         self.rescale = (1., 1.)
@@ -58,7 +65,41 @@ class Sprite(object):
         self._colors = []
 
 
+    def fade(self, duration, alpha, formula):
+        if not self.fade_interpolator:
+            self.fade_interpolator = Interpolator((self.alpha,), formula)
+            self.fade_interpolator.set_interpolation_start(self.frame, (self.alpha,))
+            self.fade_interpolator.set_interpolation_end(self.frame + duration - 1, (alpha,))
+
+
+    def scale_in(self, duration, sx, sy, formula):
+        if not self.scale_interpolator:
+            self.scale_interpolator = Interpolator(self.rescale, formula)
+            self.scale_interpolator.set_interpolation_start(self.frame, self.rescale)
+            self.scale_interpolator.set_interpolation_end(self.frame + duration - 1, (sx, sy))
+
+
+    def move_in(self, duration, x, y, z, formula):
+        if not self.offset_interpolator:
+            self.offset_interpolator = Interpolator(self.dest_offset, formula)
+            self.offset_interpolator.set_interpolation_start(self.frame, self.dest_offset)
+            self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
+
+
     def update_vertices_uvs_colors(self, override_width=0, override_height=0):
+        if self.fade_interpolator:
+            self.fade_interpolator.update(self.frame)
+            self.alpha = int(self.fade_interpolator.values[0])
+
+        if self.scale_interpolator:
+            self.scale_interpolator.update(self.frame)
+            self.rescale = self.scale_interpolator.values
+
+        if self.offset_interpolator:
+            self.offset_interpolator.update(self.frame)
+            self.dest_offset = self.offset_interpolator.values
+
+
         vertmat = Matrix([[-.5,     .5,     .5,    -.5],
                           [-.5,    -.5,     .5,     .5],
                           [ .0,     .0,     .0,     .0],
@@ -82,6 +123,8 @@ class Sprite(object):
                 vertmat.rotate_z(-rz) #TODO: minus, really?
         if self.corner_relative_placement: # Reposition
             vertmat.translate(width / 2., height / 2., 0.)
+        if self.allow_dest_offset:
+            vertmat.translate(*self.dest_offset)
 
         x_1 = 1. / self.anm.size[0]
         y_1 = 1. / self.anm.size[1]
@@ -104,4 +147,5 @@ class Sprite(object):
             self.rotations_3d = ax + sax, ay + say, az + saz
             self.rescale = self.rescale[0] + self.scale_speed[0], self.rescale[1] + self.scale_speed[1]
             self._changed = True
+        self.frame += 1
 
