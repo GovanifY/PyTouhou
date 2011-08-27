@@ -97,7 +97,7 @@ class Background(object):
             colors = struct.pack(colors_format, *chain(*colors))
             assert len(self.anm_wrapper.anm_files) == 1 #TODO
             anm = self.anm_wrapper.anm_files[0]
-            self.objects_by_texture = {(anm.first_name, anm.secondary_name): (nb_vertices, vertices, uvs, colors)}
+            self.objects_by_texture = {((anm.first_name, anm.secondary_name), 0): (nb_vertices, vertices, uvs, colors)} #TODO: blendfunc
 
         for frame_num, message_type, args in self.stage.script:
             if frame_num == frame:

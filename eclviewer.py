@@ -130,7 +130,8 @@ def main(path, stage_num):
             glTranslatef(-x, -y, -z)
 
             glEnable(GL_DEPTH_TEST)
-            for texture_key, (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
+            for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
+                glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
@@ -150,7 +151,8 @@ def main(path, stage_num):
                       192., 224., 0., 0., -1., 0.)
 
             glDisable(GL_FOG)
-            for texture_key, (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
+            for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
+                glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)

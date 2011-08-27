@@ -122,6 +122,17 @@ class ANMRunner(object):
     def fade(self, new_alpha, duration):
         self._sprite.fade(duration, new_alpha, lambda x: x) #TODO: formula
 
+
+    @instruction(13)
+    def set_blendfunc_alphablend(self):
+        self._sprite.blendfunc = 1
+
+
+    @instruction(14)
+    def set_blendfunc_add(self):
+        self._sprite.blendfunc = 0 #TODO
+
+
     @instruction(15)
     @instruction(21) #TODO
     def keep_still(self):

@@ -142,6 +142,7 @@ class Enemy(object):
     def get_objects_by_texture(self):
         objects_by_texture = {}
         key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
+        key = (key, self._sprite.blendfunc)
         if not key in objects_by_texture:
             objects_by_texture[key] = (0, [], [], [])
         vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self._sprite._vertices)
