@@ -314,7 +314,7 @@ class ECLRunner(object):
 
     @instruction(43)
     def set_pos(self, x, y, z):
-        self._enemy.set_pos(x, y, z)
+        self._enemy.set_pos(self._getval(x), self._getval(y), self._getval(z))
 
 
     @instruction(45)
