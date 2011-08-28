@@ -119,17 +119,17 @@ class Enemy(object):
 
 
     def is_visible(self, screen_width, screen_height):
-        if not self._sprite:
-            return False
-
-        tx, ty, tw, th = self._sprite.texcoords
-        if self._sprite.corner_relative_placement:
-            raise Exception #TODO
+        if self._sprite:
+            tx, ty, tw, th = self._sprite.texcoords
+            if self._sprite.corner_relative_placement:
+                raise Exception #TODO
         else:
-            max_x = tw / 2.
-            max_y = th / 2.
-            min_x = -max_x
-            min_y = -max_y
+            tx, ty, tw, th = 0., 0., 0., 0.
+
+        max_x = tw / 2.
+        max_y = th / 2.
+        min_x = -max_x
+        min_y = -max_y
 
         if any((min_x > screen_width - self.x,
                 max_x < -self.x,
@@ -140,6 +140,9 @@ class Enemy(object):
 
 
     def get_objects_by_texture(self):
+        if not self._sprite:
+            return {}
+
         objects_by_texture = {}
         key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
         key = (key, self._sprite.blendfunc)
