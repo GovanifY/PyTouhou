@@ -198,6 +198,11 @@ class ECLRunner(object):
         self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game_state.prng.rand_double())
 
 
+    @instruction(10)
+    def store_x(self, variable_id):
+        self._setval(variable_id, self._enemy.x)
+
+
     @instruction(13)
     def set_random_int2(self, variable_id, minval, amp):
         self._setval(variable_id, int(self._getval(minval)) + int(self._getval(amp)) * self._game_state.prng.rand_double())
@@ -382,13 +387,17 @@ class ECLRunner(object):
 
     @instruction(59)
     def move_to2(self, duration, x, y, z):
-        #TODO: not accurate
-        self._enemy.move_to(duration, x, y, z, lambda x: 1.0014 * x ** 2 - 0.0012 * x)
+        self._enemy.move_to(duration, x, y, z, lambda x: x ** 2)
 
 
     @instruction(61)
     def stop_in(self, duration):
-        self._enemy.stop_in(duration)
+        self._enemy.stop_in(duration, lambda x: x)
+
+
+    @instruction(63)
+    def stop_in_accel(self, duration):
+        self._enemy.stop_in(duration, lambda x: 1. - x)
 
 
     @instruction(65)
@@ -459,8 +468,13 @@ class ECLRunner(object):
 
 
     @instruction(105)
-    def set_damageable(self, vulnerable):
-        self._enemy.damageable = bool(vulnerable & 1)
+    def set_damageable(self, damageable):
+        self._enemy.damageable = bool(damageable & 1)
+
+
+    @instruction(107)
+    def set_death_flags(self, death_flags):
+        self._enemy.death_flags = death_flags
 
 
     @instruction(108)
@@ -519,6 +533,18 @@ class ECLRunner(object):
         Likewise, ReimuA's homing attacks only target “touchable” enemies.
         """
         self._enemy.touchable = bool(value)
+
+
+    @instruction(120)
+    def set_automatic_orientation(self, flags):
+        #TODO: does it change anything else than the sprite's rotation?
+        self._enemy.automatic_orientation = bool(flags & 1) #TODO: name
+
+
+    @instruction(123)
+    def skip_frames(self, frames):
+        #TODO: is that all?
+        self.frame += self._getval(frames)
 
 
     @instruction(126)

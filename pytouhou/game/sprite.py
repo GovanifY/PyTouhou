@@ -88,7 +88,7 @@ class Sprite(object):
             self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
 
 
-    def update_vertices_uvs_colors(self, override_width=0, override_height=0):
+    def update_vertices_uvs_colors(self, override_width=0, override_height=0, angle_base=0.):
         if self.fade_interpolator:
             self.fade_interpolator.update(self.frame)
             self.alpha = int(self.fade_interpolator.values[0])
@@ -115,8 +115,11 @@ class Sprite(object):
         vertmat.scale2d(width, height)
         if self.mirrored:
             vertmat.flip()
-        if self.rotations_3d != (0., 0., 0.):
-            rx, ry, rz = self.rotations_3d
+
+        rx, ry, rz = self.rotations_3d
+        rz += angle_base
+
+        if (rx, ry, rz) != (0., 0., 0.):
             if rx:
                 vertmat.rotate_x(-rx)
             if ry:

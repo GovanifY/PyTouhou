@@ -51,6 +51,8 @@ class Enemy(object):
         self.timeout_callback = None
         self.remaining_lives = -1
 
+        self.automatic_orientation = False
+
         self.bullet_launch_interval = 0
         self.delay_attack = False
 
@@ -108,14 +110,17 @@ class Enemy(object):
             self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
             self.interpolator.set_interpolation_end(self.frame + duration - 1, (x, y))
 
+            self.speed = 0.
+            self.angle = atan2(y - self.y, x - self.x)
 
-    def stop_in(self, duration):
-        #TODO: interpolation method and start/stop frame
-        # See 97 vs 98 anim conflict
+
+    def stop_in(self, duration, formula):
         if not self.speed_interpolator:
-            self.speed_interpolator = Interpolator((self.speed,))
+            self.speed_interpolator = Interpolator((self.speed,), formula)
             self.speed_interpolator.set_interpolation_start(self.frame, (self.speed,))
             self.speed_interpolator.set_interpolation_end(self.frame + duration, (0.,))
+
+            self.speed = 0.
 
 
     def is_visible(self, screen_width, screen_height):
@@ -211,8 +216,9 @@ class Enemy(object):
                 self._sprite = None
             else:
                 self._sprite.update()
-                if self._sprite._changed:
-                    self._sprite.update_vertices_uvs_colors()
+                if self._sprite._changed or self.automatic_orientation:
+                    angle_base = self.angle if self.automatic_orientation else 0.
+                    self._sprite.update_vertices_uvs_colors(angle_base=angle_base)
 
         self.frame += 1
 
