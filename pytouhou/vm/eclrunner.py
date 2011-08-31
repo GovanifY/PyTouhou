@@ -431,9 +431,15 @@ class ECLRunner(object):
                                            flags)
 
 
-    @instruction(77)
+    @instruction(76)
     def set_bullet_interval(self, value):
         self._enemy.bullet_launch_interval = value
+
+
+    @instruction(77)
+    def set_bullet_interval_ex(self, value):
+        self.set_bullet_interval(value)
+        #TODO: set counter to random() * bullet_launch_interval
 
 
     @instruction(78)
