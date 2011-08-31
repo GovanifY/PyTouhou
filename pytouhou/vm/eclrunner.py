@@ -380,13 +380,18 @@ class ECLRunner(object):
         self._enemy.angle = self._enemy.get_player_angle(self._enemy.select_player(self._game_state.players))
 
 
+    @instruction(56)
+    def move_to_linear(self, duration, x, y, z):
+        self._enemy.move_to(duration, x, y, z, lambda x: x)
+
+
     @instruction(57)
-    def move_to(self, duration, x, y, z):
+    def move_to_decel(self, duration, x, y, z):
         self._enemy.move_to(duration, x, y, z, lambda x: 2. * x - x ** 2)
 
 
     @instruction(59)
-    def move_to2(self, duration, x, y, z):
+    def move_to_accel(self, duration, x, y, z):
         self._enemy.move_to(duration, x, y, z, lambda x: x ** 2)
 
 
