@@ -421,10 +421,11 @@ class ECLRunner(object):
 
 
     @instruction(67)
-    def set_bullet_attributes1(self, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes1(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
-        self._enemy.set_bullet_attributes(67, bullet_anim, launch_anim,
+        self._enemy.set_bullet_attributes(67, anim,
+                                          self._getval(sprite_idx_offset),
                                           self._getval(bullets_per_shot),
                                           self._getval(number_of_shots),
                                           self._getval(speed),
@@ -435,10 +436,11 @@ class ECLRunner(object):
 
 
     @instruction(68)
-    def set_bullet_attributes2(self, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes2(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
-        self._enemy.set_bullet_attributes(68, bullet_anim, launch_anim,
+        self._enemy.set_bullet_attributes(68, anim,
+                                          self._getval(sprite_idx_offset),
                                           self._getval(bullets_per_shot),
                                           self._getval(number_of_shots),
                                           self._getval(speed),
@@ -449,10 +451,11 @@ class ECLRunner(object):
 
 
     @instruction(69)
-    def set_bullet_attributes3(self, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes3(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
-        self._enemy.set_bullet_attributes(69, bullet_anim, launch_anim,
+        self._enemy.set_bullet_attributes(69, anim,
+                                          self._getval(sprite_idx_offset),
                                           self._getval(bullets_per_shot),
                                           self._getval(number_of_shots),
                                           self._getval(speed),
@@ -463,10 +466,11 @@ class ECLRunner(object):
 
 
     @instruction(70)
-    def set_bullet_attributes4(self, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes4(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
-        self._enemy.set_bullet_attributes(67, bullet_anim, launch_anim,
+        self._enemy.set_bullet_attributes(70, anim,
+                                          self._getval(sprite_idx_offset),
                                           self._getval(bullets_per_shot),
                                           self._getval(number_of_shots),
                                           self._getval(speed),
@@ -477,10 +481,11 @@ class ECLRunner(object):
 
 
     @instruction(71)
-    def set_bullet_attributes5(self, bullet_anim, launch_anim, bullets_per_shot,
+    def set_bullet_attributes5(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
-        self._enemy.set_bullet_attributes(71, bullet_anim, launch_anim,
+        self._enemy.set_bullet_attributes(71, anim,
+                                          self._getval(sprite_idx_offset),
                                           self._getval(bullets_per_shot),
                                           self._getval(number_of_shots),
                                           self._getval(speed),
@@ -490,7 +495,6 @@ class ECLRunner(object):
                                           flags)
 
 
-
     @instruction(76)
     def set_bullet_interval(self, value):
         self._enemy.bullet_launch_interval = value
@@ -498,8 +502,8 @@ class ECLRunner(object):
 
     @instruction(77)
     def set_bullet_interval_ex(self, value):
-        self.set_bullet_interval(value)
-        #TODO: set counter to random() * bullet_launch_interval
+        self._enemy.bullet_launch_interval = value
+        self._enemy.bullet_launch_timer = int(self._game_state.prng.rand_double() * value) #TODO: check
 
 
     @instruction(78)
@@ -628,7 +632,7 @@ class ECLRunner(object):
     @instruction(120)
     def set_automatic_orientation(self, flags):
         #TODO: does it change anything else than the sprite's rotation?
-        self._enemy.automatic_orientation = bool(flags & 1) #TODO: name
+        self._enemy.automatic_orientation = bool(flags & 1)
 
 
     @instruction(123)
