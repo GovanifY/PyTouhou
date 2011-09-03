@@ -14,13 +14,15 @@
 
 from math import cos, sin, atan2, pi
 
+from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 
 class Bullet(object):
-    __slots__ = ('x', 'y', 'angle', 'speed',
+    __slots__ = ('x', 'y', 'angle', 'speed', 'frame', 'grazed',
                  'flags', 'attributes', 'anim_idx', 'sprite_idx_offset', 'player',
+                 'speed_interpolator',
                  '_game_state', '_sprite', '_anmrunner',
                  '_removed', '_launched')
 
@@ -31,6 +33,10 @@ class Bullet(object):
         self._anmrunner = None
         self._removed = False
         self._launched = False
+
+        self.speed_interpolator = None
+        self.frame = 0
+        self.grazed = False
 
         self.player = player
 
@@ -50,6 +56,11 @@ class Bullet(object):
         self.x, self.y = pos
         self.angle = angle
         self.speed = speed
+
+        if flags & 1:
+            self.speed_interpolator = Interpolator((speed + 5.,))
+            self.speed_interpolator.set_interpolation_start(0, (speed + 5.,))
+            self.speed_interpolator.set_interpolation_end(16, (speed,))
 
 
     def is_visible(self, screen_width, screen_height):
@@ -91,7 +102,6 @@ class Bullet(object):
             self._sprite = Sprite()
             self._anmrunner = ANMRunner(self._game_state.resources.etama_anm_wrappers[0], #TODO
                                         self.anim_idx, self._sprite, self.sprite_idx_offset)
-            #TODO: self._anmrunner.sprite_idx_offset = self.sprite_idx_offset
 
         if self._anmrunner and not self._anmrunner.run_frame():
             self._anmrunner = None
@@ -104,6 +114,28 @@ class Bullet(object):
         #TODO: flags
         x, y = self.x, self.y
 
+        if self.flags & 16:
+            #TODO: duration, count
+            length, angle = self.attributes[4:6]
+            angle = self.angle if angle < -900.0 else angle #TODO: is that right?
+            dx = cos(self.angle) * self.speed + cos(angle) * length
+            dy = sin(self.angle) * self.speed + sin(angle) * length
+            self.speed = (dx ** 2 + dy ** 2) ** 0.5
+            self.angle = atan2(dy, dx)
+        elif self.flags & 32:
+            #TODO: duration, count
+            #TODO: check
+            acceleration, angular_speed = self.attributes[4:6]
+            self.speed += acceleration
+            self.angle += angular_speed
+        #TODO: other flags
+
+        if self.speed_interpolator:
+            self.speed_interpolator.update(self.frame)
+            self.speed, = self.speed_interpolator.values
+
         dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
         self.x, self.y = x + dx, y + dy
+
+        self.frame += 1
 
