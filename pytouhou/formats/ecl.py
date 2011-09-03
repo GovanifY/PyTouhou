@@ -31,7 +31,7 @@ class ECL(object):
                      8: ('if', 'set_random_float'),
                      9: ('iff', 'set_random_float2'),
                      10: ('i', 'store_x'),
-                     13: ('iii', 'set_random_int2'),
+                     13: ('iii', 'add_int'),
                      14: ('iii', 'substract_int'),
                      15: ('iii', 'multiply_int'),
                      16: ('iii', 'divide_int'),

@@ -202,17 +202,20 @@ class ECLRunner(object):
         self._setval(variable_id, self._enemy.x)
 
 
-    @instruction(13)
-    def set_random_int2(self, variable_id, minval, amp):
-        self._setval(variable_id, int(self._getval(minval)) + int(self._getval(amp)) * self._game_state.prng.rand_double())
-
-
     @instruction(14)
     @instruction(21)
     def substract(self, variable_id, a, b):
         #TODO: 14 takes only ints and 21 only floats.
         # The original engine dereferences the variables in the type it waits for, so this isn't exactly the correct implementation, but the data don't contain such case.
         self._setval(variable_id, self._getval(a) - self._getval(b))
+
+
+    @instruction(13)
+    @instruction(20)
+    def add(self, variable_id, a, b):
+        #TODO: 13 takes only ints and 20 only floats.
+        # The original engine dereferences the variables in the type it waits for, so this isn't exactly the correct implementation, but the data don't contain such case.
+        self._setval(variable_id, self._getval(a) + self._getval(b))
 
 
     @instruction(15)
@@ -230,12 +233,6 @@ class ECLRunner(object):
     @instruction(17)
     def modulo(self, variable_id, a, b):
         self._setval(variable_id, self._getval(a) % self._getval(b))
-
-
-    @instruction(20)
-    def add_float(self, variable_id, a, b):
-        #TODO: takes only floats.
-        self._setval(variable_id, self._getval(a) + self._getval(b))
 
 
     @instruction(23)
