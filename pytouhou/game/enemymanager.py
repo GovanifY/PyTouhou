@@ -21,6 +21,7 @@ from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.eclrunner import ECLRunner
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
+from pytouhou.game.bullet import Bullet
 from math import cos, sin, atan2, pi
 
 
@@ -42,7 +43,7 @@ class Enemy(object):
         self.touchable = True
         self.damageable = True
         self.death_flags = 0
-        self.pending_bullets = []
+        self.bullets = []
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
@@ -56,6 +57,7 @@ class Enemy(object):
         self.automatic_orientation = False
 
         self.bullet_launch_interval = 0
+        self.bullet_launch_timer = 0
         self.delay_attack = False
 
         self.death_anim = None
@@ -72,10 +74,10 @@ class Enemy(object):
         self.screen_box = None
 
 
-    def set_bullet_attributes(self, type_, bullet_anim, launch_anim,
+    def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
                               bullets_per_shot, number_of_shots, speed, speed2,
                               launch_angle, angle, flags):
-        self.bullet_attributes = (type_, bullet_anim, launch_anim, bullets_per_shot,
+        self.bullet_attributes = (type_, anim, sprite_idx_offset, bullets_per_shot,
                                   number_of_shots, speed, speed2, launch_angle,
                                   angle, flags)
         if not self.delay_attack:
@@ -83,16 +85,32 @@ class Enemy(object):
 
 
     def fire(self):
-        (type_, bullet_anim, launch_anim, bullets_per_shot, number_of_shots,
+        (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
+
+        self.bullet_launch_timer = 0
+
+        player = self.select_player()
+
         if type_ in (67, 69, 71):
-            launch_angle += self.get_player_angle()
+            launch_angle += self.get_player_angle(player)
         if type_ in (69, 70, 71):
             angle = 2. * pi / bullets_per_shot
         if type_ == 71:
             launch_angle += pi / bullets_per_shot
-        #TODO
-        pass
+
+        launch_angle -= angle * (bullets_per_shot - 1) / 2.
+
+        for shot_nb in range(number_of_shots):
+            shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
+            bullet_angle = launch_angle
+            for bullet_nb in range(bullets_per_shot):
+                self.bullets.append(Bullet((self.x, self.y),
+                                           anim, sprite_idx_offset,
+                                           bullet_angle, shot_speed,
+                                           self.extended_bullet_attributes,
+                                           flags, player, self._game_state))
+                bullet_angle += angle
 
 
     def select_player(self, players=None):
@@ -156,10 +174,14 @@ class Enemy(object):
 
 
     def get_objects_by_texture(self):
-        if not self._sprite:
-            return {}
-
         objects_by_texture = {}
+
+        for bullet in self.bullets:
+            objects_by_texture.update(bullet.get_objects_by_texture())
+
+        if not self._sprite:
+            return objects_by_texture
+
         key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
         key = (key, self._sprite.blendfunc)
         if not key in objects_by_texture:
@@ -231,6 +253,17 @@ class Enemy(object):
                     angle_base = self.angle if self.automatic_orientation else 0.
                     self._sprite.update_vertices_uvs_colors(angle_base=angle_base)
 
+
+        if self.bullet_launch_interval != 0:
+            self.bullet_launch_timer += 1
+            if self.bullet_launch_timer == self.bullet_launch_interval:
+                self.fire()
+
+
+        for bullet in self.bullets:
+            bullet.update()
+
+
         self.frame += 1
 
 
@@ -245,6 +278,7 @@ class EnemyManager(object):
         self.objects_by_texture = {}
         self.enemies = []
         self.processes = []
+        self.bullets = []
 
         # Populate main
         for frame, sub, instr_type, args in ecl.main:
@@ -280,6 +314,14 @@ class EnemyManager(object):
         # Update enemies
         for enemy in self.enemies:
             enemy.update()
+            for bullet in enemy.bullets:
+                if bullet._launched:
+                    enemy.bullets.remove(bullet)
+                self.bullets.append(bullet)
+
+        # Update bullets
+        for bullet in self.bullets:
+            bullet.update()
 
         # Filter out non-visible enemies
         visible_enemies = [enemy for enemy in self.enemies if enemy.is_visible(384, 448)] #TODO
@@ -292,6 +334,12 @@ class EnemyManager(object):
                 enemy._removed = True
                 self.enemies.remove(enemy)
 
+        # Filter out-of-scren bullets
+        for bullet in self.bullets:
+            if not bullet.is_visible(384, 448):
+                self.bullets.remove(bullet)
+
+
         #TODO: disable boss mode if it is dead/it has timeout
         if self._game_state.boss and self._game_state.boss._removed:
             self._game_state.boss = None
@@ -299,13 +347,22 @@ class EnemyManager(object):
         # Add enemies to vertices/uvs
         self.objects_by_texture = {}
         for enemy in visible_enemies:
-            if enemy.is_visible(384, 448): #TODO
-                for key, (count, vertices, uvs, colors) in enemy.get_objects_by_texture().items():
-                    if not key in self.objects_by_texture:
-                        self.objects_by_texture[key] = (0, [], [], [])
-                    self.objects_by_texture[key][1].extend(vertices)
-                    self.objects_by_texture[key][2].extend(uvs)
-                    self.objects_by_texture[key][3].extend(colors)
+            for key, (count, vertices, uvs, colors) in enemy.get_objects_by_texture().items():
+                if not key in self.objects_by_texture:
+                    self.objects_by_texture[key] = (0, [], [], [])
+                self.objects_by_texture[key][1].extend(vertices)
+                self.objects_by_texture[key][2].extend(uvs)
+                self.objects_by_texture[key][3].extend(colors)
+
+        # Add bullets to vertices/uvs
+        for bullet in self.bullets:
+            for key, (count, vertices, uvs, colors) in bullet.get_objects_by_texture().items():
+                if not key in self.objects_by_texture:
+                    self.objects_by_texture[key] = (0, [], [], [])
+                self.objects_by_texture[key][1].extend(vertices)
+                self.objects_by_texture[key][2].extend(uvs)
+                self.objects_by_texture[key][3].extend(colors)
+
         for key, (nb_vertices, vertices, uvs, colors) in self.objects_by_texture.items():
             nb_vertices = len(vertices)
             vertices = pack('f' * (3 * nb_vertices), *chain(*vertices))

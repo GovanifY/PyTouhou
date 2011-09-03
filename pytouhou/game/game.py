@@ -16,8 +16,10 @@
 from pytouhou.utils.random import Random
 
 class GameState(object):
-    __slots__ = ('players', 'rank', 'difficulty', 'frame', 'stage', 'boss', 'prng')
-    def __init__(self, players, stage, rank, difficulty):
+    __slots__ = ('resources', 'players', 'rank', 'difficulty', 'frame', 'stage', 'boss', 'prng')
+    def __init__(self, resources, players, stage, rank, difficulty):
+        self.resources = resources
+
         self.stage = stage
         self.players = players
         self.rank = rank
@@ -25,3 +27,11 @@ class GameState(object):
         self.boss = None
         self.prng = Random()
         self.frame = 0
+
+
+class Resources(object):
+    def __init__(self, etama_anm_wrappers, players_anm_wrappers, effects_anm_wrapper):
+        self.etama_anm_wrappers = etama_anm_wrappers
+        self.players_anm_wrappers = players_anm_wrappers
+        self.effects_anm_wrapper = effects_anm_wrapper
+

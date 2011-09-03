@@ -31,7 +31,7 @@ from pytouhou.game.sprite import AnmWrapper
 from pytouhou.game.background import Background
 from pytouhou.game.enemymanager import EnemyManager
 from pytouhou.opengl.texture import TextureManager
-from pytouhou.game.game import GameState
+from pytouhou.game.game import GameState, Resources
 from pytouhou.game.player import Player
 
 import OpenGL
@@ -60,10 +60,34 @@ def main(path, stage_num):
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
-    # Load data
-    with open(path, 'rb') as file:
+    texture_manager = TextureManager()
+
+    # Load common data
+    with open(os.path.join(path, 'CM.DAT'), 'rb') as file:
         archive = PBG3.read(file)
-        texture_manager = TextureManager(archive)
+        texture_manager.set_archive(archive)
+        etama_anm_wrappers = (AnmWrapper([Animations.read(BytesIO(archive.extract('etama3.anm')))]),
+                              AnmWrapper([Animations.read(BytesIO(archive.extract('etama4.anm')))]))
+        players_anm_wrappers = (AnmWrapper([Animations.read(BytesIO(archive.extract('player00.anm')))]),
+                                AnmWrapper([Animations.read(BytesIO(archive.extract('player01.anm')))]))
+        effects_anm_wrapper = AnmWrapper([Animations.read(BytesIO(archive.extract('eff00.anm')))])
+
+        for anm_wrapper in etama_anm_wrappers:
+            texture_manager.preload(anm_wrapper)
+
+        for anm_wrapper in players_anm_wrappers:
+            texture_manager.preload(anm_wrapper)
+
+        texture_manager.preload(effects_anm_wrapper)
+
+        resources = Resources(etama_anm_wrappers, players_anm_wrappers, effects_anm_wrapper)
+
+    game_state = GameState(resources, [Player()], stage_num, 3, 16)
+
+    # Load stage data
+    with open(os.path.join(path, 'ST.DAT'), 'rb') as file:
+        archive = PBG3.read(file)
+        texture_manager.set_archive(archive)
 
         stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)), stage_num)
 
@@ -76,92 +100,92 @@ def main(path, stage_num):
             pass
         else:
             anims.append(enemies2_anim)
-        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl, GameState([Player()], stage_num, 0, 16))
+        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl, game_state)
         texture_manager.preload(anims)
 
         background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
         background = Background(stage, AnmWrapper((background_anim,)))
         texture_manager.preload((background_anim,))
 
-        print(enemy_manager.stage.name)
+    print(enemy_manager.stage.name)
 
-        frame = 0
+    frame = 0
 
-        # Main loop
-        clock = pygame.time.Clock()
-        while True:
-            # Check events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_q)):
-                    sys.exit(0)
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN and event.mod & pygame.KMOD_ALT:
-                        pygame.display.toggle_fullscreen()
+    # Main loop
+    clock = pygame.time.Clock()
+    while True:
+        # Check events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_q)):
+                sys.exit(0)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN and event.mod & pygame.KMOD_ALT:
+                    pygame.display.toggle_fullscreen()
 
-            # Update game
-            enemy_manager.update(frame)
-            background.update(frame)
+        # Update game
+        enemy_manager.update(frame)
+        background.update(frame)
 
-            frame += 1
+        frame += 1
 
-            # Draw everything
+        # Draw everything
 #            glClearColor(0.0, 0.0, 1.0, 0)
-            glClear(GL_DEPTH_BUFFER_BIT)
+        glClear(GL_DEPTH_BUFFER_BIT)
 
-            fog_b, fog_g, fog_r, _, fog_start, fog_end = background.fog_interpolator.values
-            x, y, z = background.position_interpolator.values
-            dx, dy, dz = background.position2_interpolator.values
+        fog_b, fog_g, fog_r, _, fog_start, fog_end = background.fog_interpolator.values
+        x, y, z = background.position_interpolator.values
+        dx, dy, dz = background.position2_interpolator.values
 
-            glFogi(GL_FOG_MODE, GL_LINEAR)
-            glFogf(GL_FOG_START, fog_start)
-            glFogf(GL_FOG_END,  fog_end)
-            glFogfv(GL_FOG_COLOR, (fog_r / 255., fog_g / 255., fog_b / 255., 1.))
+        glFogi(GL_FOG_MODE, GL_LINEAR)
+        glFogf(GL_FOG_START, fog_start)
+        glFogf(GL_FOG_END,  fog_end)
+        glFogfv(GL_FOG_COLOR, (fog_r / 255., fog_g / 255., fog_b / 255., 1.))
 
-            #TODO
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
-            # Some explanations on the magic constants:
-            # 192. = 384. / 2. = width / 2.
-            # 224. = 448. / 2. = height / 2.
-            # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
-            # This is so that objects on the (O, x, y) plane use pixel coordinates
-            gluLookAt(192., 224., - 835.979370 * dz,
-                      192. + dx, 224. - dy, 0., 0., -1., 0.)
-            glTranslatef(-x, -y, -z)
+        #TODO
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        # Some explanations on the magic constants:
+        # 192. = 384. / 2. = width / 2.
+        # 224. = 448. / 2. = height / 2.
+        # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
+        # This is so that objects on the (O, x, y) plane use pixel coordinates
+        gluLookAt(192., 224., - 835.979370 * dz,
+                  192. + dx, 224. - dy, 0., 0., -1., 0.)
+        glTranslatef(-x, -y, -z)
 
-            glEnable(GL_DEPTH_TEST)
-            for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
-                glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
-                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
-                glVertexPointer(3, GL_FLOAT, 0, vertices)
-                glTexCoordPointer(2, GL_FLOAT, 0, uvs)
-                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-                glDrawArrays(GL_QUADS, 0, nb_vertices)
-            glDisable(GL_DEPTH_TEST)
+        glEnable(GL_DEPTH_TEST)
+        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
+            glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
+            glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
+            glVertexPointer(3, GL_FLOAT, 0, vertices)
+            glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+            glDrawArrays(GL_QUADS, 0, nb_vertices)
+        glDisable(GL_DEPTH_TEST)
 
-            #TODO
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
-            # Some explanations on the magic constants:
-            # 192. = 384. / 2. = width / 2.
-            # 224. = 448. / 2. = height / 2.
-            # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
-            # This is so that objects on the (O, x, y) plane use pixel coordinates
-            gluLookAt(192., 224., - 835.979370,
-                      192., 224., 0., 0., -1., 0.)
+        #TODO
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        # Some explanations on the magic constants:
+        # 192. = 384. / 2. = width / 2.
+        # 224. = 448. / 2. = height / 2.
+        # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
+        # This is so that objects on the (O, x, y) plane use pixel coordinates
+        gluLookAt(192., 224., - 835.979370,
+                  192., 224., 0., 0., -1., 0.)
 
-            glDisable(GL_FOG)
-            for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
-                glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
-                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
-                glVertexPointer(3, GL_FLOAT, 0, vertices)
-                glTexCoordPointer(2, GL_FLOAT, 0, uvs)
-                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-                glDrawArrays(GL_QUADS, 0, nb_vertices)
-            glEnable(GL_FOG)
+        glDisable(GL_FOG)
+        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
+            glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
+            glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
+            glVertexPointer(3, GL_FLOAT, 0, vertices)
+            glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+            glDrawArrays(GL_QUADS, 0, nb_vertices)
+        glEnable(GL_FOG)
 
-            pygame.display.flip()
-            clock.tick(120)
+        pygame.display.flip()
+        clock.tick(120)
 
 
 
@@ -169,7 +193,7 @@ try:
     file_path, stage_num = sys.argv[1:]
     stage_num = int(stage_num)
 except ValueError:
-    print('Usage: %s std_dat_path stage_num' % sys.argv[0])
+    print('Usage: %s game_dir_path stage_num' % sys.argv[0])
 else:
     main(file_path, stage_num)
 

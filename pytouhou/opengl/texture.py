@@ -23,7 +23,7 @@ from OpenGL.GLU import *
 
 
 class TextureManager(object):
-    def __init__(self, archive):
+    def __init__(self, archive=None):
         self.archive = archive
         self.textures = {}
 
@@ -33,7 +33,12 @@ class TextureManager(object):
         return self.textures[key]
 
 
-    def preload(self, anms):
+    def preload(self, anm_wrapper):
+        try:
+            anms = anm_wrapper.anm_files
+        except AttributeError:
+            anms = anm_wrapper
+
         for anm in anms:
             key = anm.first_name, anm.secondary_name
             texture = self[key]
