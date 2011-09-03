@@ -36,7 +36,7 @@ class Animations(object):
                      13: ('', 'set_blendmode_add'),
                      14: ('', 'set_blendmode_alphablend'),
                      15: ('', 'keep_still'),
-                     16: ('i', 'set_random_sprite'),
+                     16: ('ii', 'set_random_sprite'),
                      17: ('fff', None),
                      18: ('ffii', None),
                      19: ('ffii', None),
