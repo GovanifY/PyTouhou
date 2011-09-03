@@ -73,17 +73,16 @@ class Bullet(object):
         return True
 
 
-    def get_objects_by_texture(self):
-        objects_by_texture = {}
-        key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
-        key = (key, self._sprite.blendfunc)
+    def get_objects_by_texture(self, objects_by_texture):
+        sprite = self._sprite
+        key = sprite.anm.first_name, sprite.anm.secondary_name
+        key = (key, sprite.blendfunc)
         if not key in objects_by_texture:
             objects_by_texture[key] = (0, [], [], [])
-        vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self._sprite._vertices)
+        vertices = ((x + self.x, y + self.y, z) for x, y, z in sprite._vertices)
         objects_by_texture[key][1].extend(vertices)
-        objects_by_texture[key][2].extend(self._sprite._uvs)
-        objects_by_texture[key][3].extend(self._sprite._colors)
-        return objects_by_texture
+        objects_by_texture[key][2].extend(sprite._uvs)
+        objects_by_texture[key][3].extend(sprite._colors)
 
 
     def update(self):
@@ -97,11 +96,10 @@ class Bullet(object):
         if self._anmrunner and not self._anmrunner.run_frame():
             self._anmrunner = None
 
-        if self._sprite:
-            self._sprite.update()
-            if self._sprite._changed: #TODO
-                angle = pi/2.-self.angle if self._sprite.automatic_orientation else 0.
-                self._sprite.update_vertices_uvs_colors(angle_base=angle)
+        self._sprite.update()
+        if self._sprite._changed: #TODO
+            angle = pi/2.-self.angle if self._sprite.automatic_orientation else 0.
+            self._sprite.update_vertices_uvs_colors(angle_base=angle)
 
         #TODO: flags
         x, y = self.x, self.y

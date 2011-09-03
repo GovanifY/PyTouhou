@@ -146,6 +146,8 @@ class Sprite(object):
         self._colors = [(self.color[0], self.color[1], self.color[2], self.alpha)] * 4
         self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
 
+        self._changed = any((self.scale_interpolator, self.fade_interpolator, self.offset_interpolator))
+
 
     def update(self):
         if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):

@@ -147,7 +147,7 @@ class Enemy(object):
         if not self.speed_interpolator:
             self.speed_interpolator = Interpolator((self.speed,), formula)
             self.speed_interpolator.set_interpolation_start(self.frame, (self.speed,))
-            self.speed_interpolator.set_interpolation_end(self.frame + duration, (0.,))
+            self.speed_interpolator.set_interpolation_end(self.frame + duration - 1, (0.,))
 
             self.speed = 0.
 
@@ -173,14 +173,12 @@ class Enemy(object):
         return True
 
 
-    def get_objects_by_texture(self):
-        objects_by_texture = {}
-
+    def get_objects_by_texture(self, objects_by_texture):
         for bullet in self.bullets:
-            objects_by_texture.update(bullet.get_objects_by_texture())
+            bullet.get_objects_by_texture(objects_by_texture)
 
         if not self._sprite:
-            return objects_by_texture
+            return
 
         key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
         key = (key, self._sprite.blendfunc)
@@ -190,8 +188,6 @@ class Enemy(object):
         objects_by_texture[key][1].extend(vertices)
         objects_by_texture[key][2].extend(self._sprite._uvs)
         objects_by_texture[key][3].extend(self._sprite._colors)
-        #TODO: effects/bullet launch
-        return objects_by_texture
 
 
     def update(self):
@@ -288,6 +284,16 @@ class EnemyManager(object):
                 self.main[-1][1].append((sub, instr_type, args))
 
 
+    def get_objects_by_texture(self, objects_by_texture):
+        # Add enemies to vertices/uvs
+        for enemy in self.enemies:
+            enemy.get_objects_by_texture(objects_by_texture)
+
+        # Add bullets to vertices/uvs
+        for bullet in self.bullets:
+            bullet.get_objects_by_texture(objects_by_texture)
+
+
     def update(self, frame):
         if self.main and self.main[0][0] == frame:
             for sub, instr_type, args in self.main.pop(0)[1]:
@@ -344,25 +350,9 @@ class EnemyManager(object):
         if self._game_state.boss and self._game_state.boss._removed:
             self._game_state.boss = None
 
-        # Add enemies to vertices/uvs
+        #TODO
         self.objects_by_texture = {}
-        for enemy in visible_enemies:
-            for key, (count, vertices, uvs, colors) in enemy.get_objects_by_texture().items():
-                if not key in self.objects_by_texture:
-                    self.objects_by_texture[key] = (0, [], [], [])
-                self.objects_by_texture[key][1].extend(vertices)
-                self.objects_by_texture[key][2].extend(uvs)
-                self.objects_by_texture[key][3].extend(colors)
-
-        # Add bullets to vertices/uvs
-        for bullet in self.bullets:
-            for key, (count, vertices, uvs, colors) in bullet.get_objects_by_texture().items():
-                if not key in self.objects_by_texture:
-                    self.objects_by_texture[key] = (0, [], [], [])
-                self.objects_by_texture[key][1].extend(vertices)
-                self.objects_by_texture[key][2].extend(uvs)
-                self.objects_by_texture[key][3].extend(colors)
-
+        self.get_objects_by_texture(self.objects_by_texture)
         for key, (nb_vertices, vertices, uvs, colors) in self.objects_by_texture.items():
             nb_vertices = len(vertices)
             vertices = pack('f' * (3 * nb_vertices), *chain(*vertices))
