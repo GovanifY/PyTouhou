@@ -24,10 +24,11 @@ logger = get_logger(__name__)
 class ANMRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_anm_wrapper', '_sprite', '_running',
+                 'sprite_index_offset',
                  'script', 'instruction_pointer', 'frame')
 
 
-    def __init__(self, anm_wrapper, script_id, sprite):
+    def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
         self._anm_wrapper = anm_wrapper
         self._sprite = sprite
         self._running = True
@@ -35,7 +36,8 @@ class ANMRunner(object):
         anm, self.script = anm_wrapper.get_script(script_id)
         self.frame = 0
         self.instruction_pointer = 0
-        pass
+
+        self.sprite_index_offset = sprite_index_offset
 
 
     def run_frame(self):
@@ -73,7 +75,7 @@ class ANMRunner(object):
 
     @instruction(1)
     def load_sprite(self, sprite_index):
-        self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(sprite_index)
+        self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(sprite_index + self.sprite_index_offset)
 
 
     @instruction(2)
@@ -157,6 +159,13 @@ class ANMRunner(object):
     @instruction(25)
     def set_allow_dest_offset(self, value):
         self._sprite.allow_dest_offset = bool(value)
+
+
+    @instruction(26)
+    def set_automatic_orientation(self, value):
+        """If true, rotate by pi-angle around the z axis.
+        """
+        self._sprite.automatic_orientation = bool(value)
 
 
     @instruction(27)

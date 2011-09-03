@@ -47,6 +47,8 @@ class Sprite(object):
         self.fade_interpolator = None
         self.offset_interpolator = None
 
+        self.automatic_orientation = False
+
         self.blendfunc = 0 # 0 = Normal, 1 = saturate #TODO: proper constants
 
         self.texcoords = (0, 0, 0, 0) # x, y, width, height

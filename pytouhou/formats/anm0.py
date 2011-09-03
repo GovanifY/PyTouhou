@@ -46,7 +46,7 @@ class Animations(object):
                      23: ('', 'set_corner_relative_placement'),
                      24: ('', None),
                      25: ('i', 'set_allow_offset'), #TODO: better name
-                     26: ('i', None),
+                     26: ('i', 'set_automatic_orientation'),
                      27: ('f', 'shift_texture_x'),
                      28: ('f', 'shift_texture_y'),
                      30: ('ffi', 'scale_in'),
