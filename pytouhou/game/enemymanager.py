@@ -21,11 +21,12 @@ from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.eclrunner import ECLRunner
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
-from math import cos, sin, atan2
+from math import cos, sin, atan2, pi
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, anm_wrapper):
+    def __init__(self, pos, life, _type, anm_wrapper, game_state):
+        self._game_state = game_state
         self._anm_wrapper = anm_wrapper
         self._sprite = None
         self._anmrunner = None
@@ -42,6 +43,7 @@ class Enemy(object):
         self.damageable = True
         self.death_flags = 0
         self.pending_bullets = []
+        self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
         self.death_callback = None
@@ -71,25 +73,34 @@ class Enemy(object):
 
 
     def set_bullet_attributes(self, type_, bullet_anim, launch_anim,
-                              bullets_per_shot, number_of_shots, speed, unknown,
+                              bullets_per_shot, number_of_shots, speed, speed2,
                               launch_angle, angle, flags):
         self.bullet_attributes = (type_, bullet_anim, launch_anim, bullets_per_shot,
-                                  number_of_shots, speed, unknown, launch_angle,
+                                  number_of_shots, speed, speed2, launch_angle,
                                   angle, flags)
         if not self.delay_attack:
             self.fire()
 
 
     def fire(self):
+        (type_, bullet_anim, launch_anim, bullets_per_shot, number_of_shots,
+         speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
+        if type_ in (67, 69, 71):
+            launch_angle += self.get_player_angle()
+        if type_ in (69, 70, 71):
+            angle = 2. * pi / bullets_per_shot
+        if type_ == 71:
+            launch_angle += pi / bullets_per_shot
         #TODO
         pass
 
 
-    def select_player(self, players):
-        return players[0] #TODO
+    def select_player(self, players=None):
+        return (players or self._game_state.players)[0] #TODO
 
 
-    def get_player_angle(self, player):
+    def get_player_angle(self, player=None):
+        player = player or self.select_player()
         return atan2(player.y - self.y, player.x - self.x)
 
 
@@ -255,7 +266,7 @@ class EnemyManager(object):
                             y = self._game_state.prng.rand_double() * 416
                         if z < -990: #102h.exe@0x411881
                             y = self._game_state.prng.rand_double() * 800
-                    enemy = Enemy((x, y), life, instr_type, self.anm_wrapper)
+                    enemy = Enemy((x, y), life, instr_type, self.anm_wrapper, self._game_state)
                     self.enemies.append(enemy)
                     self.processes.append(ECLRunner(self.ecl, sub, enemy, self._game_state))
 

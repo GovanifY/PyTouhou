@@ -99,20 +99,19 @@ class ECLRunner(object):
             elif value == -10017:
                 return self._enemy.z
             elif value == -10018:
-                player = self._enemy.select_player(self._game_state.players)
+                player = self._enemy.select_player()
                 return player.x
             elif value == -10019:
-                player = self._enemy.select_player(self._game_state.players)
+                player = self._enemy.select_player()
                 return player.y
             elif value == -10021:
-                player = self._enemy.select_player(self._game_state.players)
-                return self._enemy.get_player_angle(player)
+                return self._enemy.get_player_angle()
             elif value == -10022:
                 return self._enemy.frame
             elif value == -10024:
                 return self._enemy.life
             elif value == -10025:
-                return self._enemy.select_player(self._game_state.players).character
+                return self._enemy.select_player().character
             raise NotImplementedError(value) #TODO
         else:
             return value
@@ -383,7 +382,7 @@ class ECLRunner(object):
     def target_player(self, unknown, speed):
         #TODO: unknown
         self._enemy.speed = speed
-        self._enemy.angle = self._enemy.get_player_angle(self._enemy.select_player(self._game_state.players))
+        self._enemy.angle = self._enemy.get_player_angle()
 
 
     @instruction(56)
@@ -423,12 +422,73 @@ class ECLRunner(object):
 
     @instruction(67)
     def set_bullet_attributes1(self, bullet_anim, launch_anim, bullets_per_shot,
-                              number_of_shots, speed, unknown, launch_angle,
-                              angle, flags):
-        self._enemy.set_bullet_attributes(1, bullet_anim, launch_anim,
-                                           bullets_per_shot, number_of_shots,
-                                           speed, unknown, launch_angle, angle,
-                                           flags)
+                               number_of_shots, speed, speed2, launch_angle,
+                               angle, flags):
+        self._enemy.set_bullet_attributes(67, bullet_anim, launch_anim,
+                                          self._getval(bullets_per_shot),
+                                          self._getval(number_of_shots),
+                                          self._getval(speed),
+                                          self._getval(speed2),
+                                          self._getval(launch_angle),
+                                          self._getval(angle),
+                                          flags)
+
+
+    @instruction(68)
+    def set_bullet_attributes2(self, bullet_anim, launch_anim, bullets_per_shot,
+                               number_of_shots, speed, speed2, launch_angle,
+                               angle, flags):
+        self._enemy.set_bullet_attributes(68, bullet_anim, launch_anim,
+                                          self._getval(bullets_per_shot),
+                                          self._getval(number_of_shots),
+                                          self._getval(speed),
+                                          self._getval(speed2),
+                                          self._getval(launch_angle),
+                                          self._getval(angle),
+                                          flags)
+
+
+    @instruction(69)
+    def set_bullet_attributes3(self, bullet_anim, launch_anim, bullets_per_shot,
+                               number_of_shots, speed, speed2, launch_angle,
+                               angle, flags):
+        self._enemy.set_bullet_attributes(69, bullet_anim, launch_anim,
+                                          self._getval(bullets_per_shot),
+                                          self._getval(number_of_shots),
+                                          self._getval(speed),
+                                          self._getval(speed2),
+                                          self._getval(launch_angle),
+                                          self._getval(angle),
+                                          flags)
+
+
+    @instruction(70)
+    def set_bullet_attributes4(self, bullet_anim, launch_anim, bullets_per_shot,
+                               number_of_shots, speed, speed2, launch_angle,
+                               angle, flags):
+        self._enemy.set_bullet_attributes(67, bullet_anim, launch_anim,
+                                          self._getval(bullets_per_shot),
+                                          self._getval(number_of_shots),
+                                          self._getval(speed),
+                                          self._getval(speed2),
+                                          self._getval(launch_angle),
+                                          self._getval(angle),
+                                          flags)
+
+
+    @instruction(71)
+    def set_bullet_attributes5(self, bullet_anim, launch_anim, bullets_per_shot,
+                               number_of_shots, speed, speed2, launch_angle,
+                               angle, flags):
+        self._enemy.set_bullet_attributes(71, bullet_anim, launch_anim,
+                                          self._getval(bullets_per_shot),
+                                          self._getval(number_of_shots),
+                                          self._getval(speed),
+                                          self._getval(speed2),
+                                          self._getval(launch_angle),
+                                          self._getval(angle),
+                                          flags)
+
 
 
     @instruction(76)
@@ -457,6 +517,11 @@ class ECLRunner(object):
         self._enemy.bullet_launch_offset = (x, y)
 
 
+    @instruction(82)
+    def set_extended_bullet_attributes(self, *attributes):
+        self._enemy.extended_bullet_attributes = attributes
+
+
     @instruction(97)
     def set_anim(self, sprite_index):
         self._enemy.set_anim(sprite_index)
@@ -482,6 +547,14 @@ class ECLRunner(object):
     @instruction(103)
     def set_hitbox(self, width, height, depth):
         self._enemy.hitbox = (width, height)
+
+
+    @instruction(104)
+    def set_collidable(self, collidable):
+        """Defines whether the enemy is “collidable”.
+        A collision between a collidable enemy and the player will kill the player.
+        """
+        self._enemy.collidable = bool(collidable & 1)
 
 
     @instruction(105)

@@ -101,7 +101,7 @@ class ECL(object):
                      101: ('i', 'set_boss_mode?'),
                      102: ('iffff', 'create_squares'),
                      103: ('fff', 'set_enemy_hitbox'),
-                     104: ('i', None),
+                     104: ('i', 'set_collidable'),
                      105: ('i', 'set_damageable'),
                      106: ('i', 'play_sound'),
                      107: ('i', 'set_death_flags'),
