@@ -271,7 +271,6 @@ class EnemyManager(object):
         self.anm_wrapper = anm_wrapper
         self.main = []
         self.ecl = ecl
-        self.objects_by_texture = {}
         self.enemies = []
         self.processes = []
         self.bullets = []
@@ -297,7 +296,7 @@ class EnemyManager(object):
     def update(self, frame):
         if self.main and self.main[0][0] == frame:
             for sub, instr_type, args in self.main.pop(0)[1]:
-                if instr_type in (0, 2, 4, 6): # Normal/mirrored enemy
+                if instr_type in (0, 2, 4, 6) and not self._game_state.boss:
                     x, y, z, life, unknown1, unknown2, unknown3 = args
                     if instr_type & 4:
                         if x < -990: #102h.exe@0x411820
@@ -349,14 +348,4 @@ class EnemyManager(object):
         #TODO: disable boss mode if it is dead/it has timeout
         if self._game_state.boss and self._game_state.boss._removed:
             self._game_state.boss = None
-
-        #TODO
-        self.objects_by_texture = {}
-        self.get_objects_by_texture(self.objects_by_texture)
-        for key, (nb_vertices, vertices, uvs, colors) in self.objects_by_texture.items():
-            nb_vertices = len(vertices)
-            vertices = pack('f' * (3 * nb_vertices), *chain(*vertices))
-            uvs = pack('f' * (2 * nb_vertices), *chain(*uvs))
-            colors = pack('B' * (4 * nb_vertices), *chain(*colors))
-            self.objects_by_texture[key] = (nb_vertices, vertices, uvs, colors)
 

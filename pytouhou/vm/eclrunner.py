@@ -46,13 +46,27 @@ class ECLRunner(object):
         self.stack = []
 
 
+    def handle_callbacks(self):
+        #TODO
+        enm = self._enemy
+        if enm.timeout and enm.frame == enm.timeout:
+            enm.frame = 0
+            if enm.timeout_callback:
+                self.frame = 0
+                self.sub = enm.timeout_callback
+                self.instruction_pointer = 0
+            else:
+                pass #TODO
+        #TODO: other callbacks (low life, etc.)
+
+
     def run_iteration(self):
         # First, if enemy is dead, return
         if self._enemy._removed:
             return False
 
         # Then, check for callbacks
-        #TODO
+        self.handle_callbacks()
 
         # Now, process script
         while True:
