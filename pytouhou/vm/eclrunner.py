@@ -54,7 +54,7 @@ class ECLMainRunner(object):
                 try:
                     callback = self._handlers[instr_type]
                 except KeyError:
-                    logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
+                    logger.warn('unhandled main opcode %d (args: %r)', instr_type, args)
                 else:
                     callback(self, sub, instr_type, *args)
 
