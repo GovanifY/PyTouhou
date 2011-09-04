@@ -12,6 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
+from math import pi
 
 from pytouhou.utils.matrix import Matrix
 from pytouhou.utils.interpolator import Interpolator
@@ -42,6 +43,11 @@ class Sprite(object):
         self.anm = None
         self._removed = False
         self._changed = False
+
+        self.width_override = 0
+        self.height_override = 0
+        self.angle = 0
+        self.force_rotation = False
 
         self.scale_interpolator = None
         self.fade_interpolator = None
@@ -90,7 +96,10 @@ class Sprite(object):
             self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
 
 
-    def update_vertices_uvs_colors(self, override_width=0, override_height=0, angle_base=0.):
+    def update_vertices_uvs_colors(self):
+        if not self._changed:
+            return
+
         if self.fade_interpolator:
             self.fade_interpolator.update(self.frame)
             self.alpha = int(self.fade_interpolator.values[0])
@@ -103,7 +112,6 @@ class Sprite(object):
             self.offset_interpolator.update(self.frame)
             self.dest_offset = self.offset_interpolator.values
 
-
         vertmat = Matrix([[-.5,     .5,     .5,    -.5],
                           [-.5,    -.5,     .5,     .5],
                           [ .0,     .0,     .0,     .0],
@@ -111,15 +119,18 @@ class Sprite(object):
 
         tx, ty, tw, th = self.texcoords
         sx, sy = self.rescale
-        width = override_width or (tw * sx)
-        height = override_height or (th * sy)
+        width = self.width_override or (tw * sx)
+        height = self.height_override or (th * sy)
 
         vertmat.scale2d(width, height)
         if self.mirrored:
             vertmat.flip()
 
         rx, ry, rz = self.rotations_3d
-        rz += angle_base
+        if self.automatic_orientation:
+            rz += pi/2. - self.angle
+        elif self.force_rotation:
+            rz += self.angle
 
         if (rx, ry, rz) != (0., 0., 0.):
             if rx:
@@ -145,11 +156,24 @@ class Sprite(object):
         assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
         self._colors = [(self.color[0], self.color[1], self.color[2], self.alpha)] * 4
         self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
+        self._changed = False
 
-        self._changed = any((self.scale_interpolator, self.fade_interpolator, self.offset_interpolator))
 
+    def update(self, override_width=0, override_height=0, angle_base=0., force_rotation=False):
+        self._changed = (self._changed
+                         or override_width != self.width_override
+                         or override_height != self.height_override
+                         or self.angle != angle_base
+                         or self.force_rotation != force_rotation
+                         or self.scale_interpolator
+                         or self.fade_interpolator
+                         or self.offset_interpolator)
 
-    def update(self):
+        self.width_override = override_width
+        self.height_override = override_height
+        self.angle = angle_base
+        self.force_rotation = force_rotation
+
         if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):
             ax, ay, az = self.rotations_3d
             sax, say, saz = self.rotations_speed_3d

@@ -94,6 +94,7 @@ class Bullet(object):
 
     def get_objects_by_texture(self, objects_by_texture):
         sprite = self._sprite
+        sprite.update_vertices_uvs_colors()
         key = sprite.anm.first_name, sprite.anm.secondary_name
         key = (key, sprite.blendfunc)
         if not key in objects_by_texture:
@@ -114,10 +115,7 @@ class Bullet(object):
         if self._anmrunner and not self._anmrunner.run_frame():
             self._anmrunner = None
 
-        self._sprite.update()
-        if self._sprite._changed: #TODO
-            angle = pi/2.-self.angle if self._sprite.automatic_orientation else 0.
-            self._sprite.update_vertices_uvs_colors(angle_base=angle)
+        self._sprite.update(angle_base=self.angle)
 
         #TODO: flags
         x, y = self.x, self.y

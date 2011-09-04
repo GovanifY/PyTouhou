@@ -180,6 +180,8 @@ class Enemy(object):
         if not self._sprite:
             return
 
+        self._sprite.update_vertices_uvs_colors()
+
         key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
         key = (key, self._sprite.blendfunc)
         if not key in objects_by_texture:
@@ -244,10 +246,8 @@ class Enemy(object):
             if self._sprite._removed:
                 self._sprite = None
             else:
-                self._sprite.update()
-                if self._sprite._changed or self.automatic_orientation:
-                    angle_base = self.angle if self.automatic_orientation else 0.
-                    self._sprite.update_vertices_uvs_colors(angle_base=angle_base)
+                self._sprite.update(angle_base=self.angle,
+                                    force_rotation=self.automatic_orientation)
 
 
         if self.bullet_launch_interval != 0:

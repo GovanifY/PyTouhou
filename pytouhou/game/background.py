@@ -76,9 +76,9 @@ class Background(object):
                 sprite = Sprite()
                 anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
                 anm_runner.run_frame()
-                sprite.update()
+                sprite.update(width_override, height_override)
                 if sprite._changed:
-                    sprite.update_vertices_uvs_colors(width_override, height_override)
+                    sprite.update_vertices_uvs_colors()
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 colors = sprite._colors
                 faces.append((vertices, uvs, colors))
