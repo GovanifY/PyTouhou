@@ -123,45 +123,52 @@ class Bullet(object):
         x, y = self.x, self.y
 
         if self.flags & 16:
-            duration = self.attributes[0]
+            frame, count = self.attributes[0:2]
             length, angle = self.attributes[4:6]
-            if self.frame < duration:
-                angle = self.angle if angle < -900.0 else angle #TODO: is that right?
-                dx = cos(self.angle) * self.speed + cos(angle) * length
-                dy = sin(self.angle) * self.speed + sin(angle) * length
-                self.speed = (dx ** 2 + dy ** 2) ** 0.5
-                self.angle = atan2(dy, dx)
+            angle = self.angle if angle < -900.0 else angle #TODO: is that right?
+            dx = cos(self.angle) * self.speed + cos(angle) * length
+            dy = sin(self.angle) * self.speed + sin(angle) * length
+            self.speed = (dx ** 2 + dy ** 2) ** 0.5
+            self.angle = atan2(dy, dx)
+            if self.frame == frame: #TODO: include last frame, or not?
+                if count > 0:
+                    self.attributes[1] -= 1
+                    self.frame = 0
+                else:
+                    self.flags ^= 16
         elif self.flags & 32:
-            #TODO: count
             #TODO: check
-            duration, count = self.attributes[0:2]
+            frame, count = self.attributes[0:2]
             acceleration, angular_speed = self.attributes[4:6]
-            if self.frame < duration:
-                self.speed += acceleration
-                self.angle += angular_speed
+            self.speed += acceleration
+            self.angle += angular_speed
+            if self.frame == frame:
+                if count > 0:
+                    self.attributes[1] -= 1
+                else:
+                    self.flags ^= 32
         elif self.flags & 448:
             #TODO: check
             frame, count = self.attributes[0:2]
-            if count > 0:
-                angle, speed = self.attributes[4:6]
-                if frame == self.frame:
-                    self._sprite._removed = True
-                    count = count - 1
+            angle, speed = self.attributes[4:6]
+            if frame == self.frame:
+                count = count - 1
 
-                    if self.flags & 64:
-                        self.angle = self.angle + angle
-                    elif self.flags & 128:
-                        self.angle = self.get_player_angle() + angle
-                    elif self.flags & 256:
-                        self.angle = angle
+                if self.flags & 64:
+                    self.angle = self.angle + angle
+                elif self.flags & 128:
+                    self.angle = self.get_player_angle() + angle
+                elif self.flags & 256:
+                    self.angle = angle
 
-                    if count:
-                        self.speed_interpolator.set_interpolation_start(self.frame, (speed,))
-                        self.speed_interpolator.set_interpolation_end(self.frame + frame - 1, (0,)) # TODO: really -1? Without, the new speed isn’t set.
-                    else:
-                        self.speed = speed
+                if count:
+                    self.speed_interpolator.set_interpolation_start(self.frame, (speed,))
+                    self.speed_interpolator.set_interpolation_end(self.frame + frame - 1, (0,)) # TODO: really -1? Without, the new speed isn’t set.
+                else:
+                    self.flags &= ~448
+                    self.speed = speed
 
-                    self.attributes[1] = count
+                self.attributes[1] = count
         #TODO: other flags
 
         if self.speed_interpolator:
