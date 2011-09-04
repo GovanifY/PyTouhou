@@ -17,7 +17,7 @@ from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner
 
-from pytouhou.game.enemymanager import Enemy #TODO: enemymanager -> enemy
+from pytouhou.game.enemy import Enemy
 
 
 class GameState(object):
