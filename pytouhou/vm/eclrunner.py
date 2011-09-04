@@ -106,16 +106,28 @@ class ECLRunner(object):
 
 
     def handle_callbacks(self):
-        #TODO
+        #TODO: implement missing callbacks and clean up!
         enm = self._enemy
-        if enm.timeout and enm.frame == enm.timeout:
+        if enm.boss_callback is not None: #XXX: MSG's job!
+            self.frame = 0
+            self.sub = enm.boss_callback
+            self.instruction_pointer = 0
+            enm.boss_callback = None
+        if enm.life == 0 and enm.death_callback is not None:
+            self.frame = 0
+            self.sub = enm.death_callback
+            self.instruction_pointer = 0
+            #TODO: various things, like deleting the character
+            enm.death_callback = None #XXX
+        elif enm.timeout and enm.frame == enm.timeout:
             enm.frame = 0
-            if enm.timeout_callback:
+            if enm.timeout_callback is not None:
                 self.frame = 0
                 self.sub = enm.timeout_callback
                 self.instruction_pointer = 0
+                enm.timeout_callback = None
             else:
-                pass #TODO
+                enm.life = 0
         #TODO: other callbacks (low life, etc.)
 
 
@@ -695,9 +707,9 @@ class ECLRunner(object):
         #TODO
         #XXX: this is a hack to display bosses although we don't handle MSG :)
         if index == 0:
-            self.sub = value
-            self.frame = 0
-            self.instruction_pointer = 0
+            self._enemy.boss_callback = value
+        else:
+            raise Exception #TODO
 
 
     @instruction(111)
