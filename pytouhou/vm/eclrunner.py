@@ -166,9 +166,9 @@ class ECLRunner(object):
         Warning: the relative offset has been translated to an instruction pointer
         by the ECL parsing code (see pytouhou.formats.ecl).
         """
-        counter_value = self._getval(variable_id)
-        if counter_value:
-            self._setval(variable_id, counter_value - 1)
+        counter_value = self._getval(variable_id) - 1
+        if counter_value > 0:
+            self._setval(variable_id, counter_value)
             self.frame, self.instruction_pointer = frame, instruction_pointer
 
 
