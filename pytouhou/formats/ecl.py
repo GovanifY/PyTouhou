@@ -13,7 +13,7 @@
 ##
 
 
-from struct import pack, unpack
+from struct import pack, unpack, calcsize
 from pytouhou.utils.helpers import read_string
 
 from pytouhou.utils.helpers import get_logger
@@ -90,7 +90,7 @@ class ECL(object):
                      88: ('if','alter_laser_angle'),
                      90: ('iiii', None),
                      92: ('i', None),
-                     #93: set_spellcard, a string is there
+                     93: ('hhs', 'set_spellcard'),
                      94: ('', 'end_spellcard'),
                      95: ('ifffhhi', None),
                      96: ('', None),
@@ -165,7 +165,13 @@ class ECL(object):
                 size, rank_mask, param_mask = unpack('<HHH', file.read(6))
                 data = file.read(size - 12)
                 if opcode in cls._instructions:
-                    args = unpack('<%s' % cls._instructions[opcode][0], data)
+                    fmt = '<%s' % cls._instructions[opcode][0]
+                    if fmt.endswith('s'):
+                        fmt = fmt[:-1]
+                        fmt = '%s%ds' % (fmt, size - 12 - calcsize(fmt))
+                    args = unpack(fmt, data)
+                    if fmt.endswith('s'):
+                        args = args[:-1] + (args[-1].decode('shift_jis'),)
                 else:
                     args = (data, )
                     logger.warn('unknown opcode %d', opcode)

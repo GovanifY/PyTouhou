@@ -569,6 +569,12 @@ class ECLRunner(object):
         self._enemy.extended_bullet_attributes = attributes
 
 
+    @instruction(93)
+    def set_spellcard(self, unknown, number, name):
+        #TODO: display it on the game.
+        print("%d - %s" % (number, name))
+
+
     @instruction(97)
     def set_anim(self, sprite_index):
         self._enemy.set_anim(sprite_index)
