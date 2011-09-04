@@ -631,7 +631,7 @@ class ECLRunner(object):
 
     @instruction(82)
     def set_extended_bullet_attributes(self, *attributes):
-        self._enemy.extended_bullet_attributes = attributes
+        self._enemy.extended_bullet_attributes = tuple(self._getval(attr) for attr in attributes)
 
 
     @instruction(93)
