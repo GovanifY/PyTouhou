@@ -97,12 +97,11 @@ class Bullet(object):
         sprite.update_vertices_uvs_colors()
         key = sprite.anm.first_name, sprite.anm.secondary_name
         key = (key, sprite.blendfunc)
-        if not key in objects_by_texture:
-            objects_by_texture[key] = (0, [], [], [])
+        rec = objects_by_texture.setdefault(key, ([], [], []))
         vertices = ((x + self.x, y + self.y, z) for x, y, z in sprite._vertices)
-        objects_by_texture[key][1].extend(vertices)
-        objects_by_texture[key][2].extend(sprite._uvs)
-        objects_by_texture[key][3].extend(sprite._colors)
+        rec[0].extend(vertices)
+        rec[1].extend(sprite._uvs)
+        rec[2].extend(sprite._colors)
 
 
     def update(self):
@@ -112,9 +111,7 @@ class Bullet(object):
             self._anmrunner = ANMRunner(self._game_state.resources.etama_anm_wrappers[0], #TODO
                                         self.anim_idx, self._sprite, self.sprite_idx_offset)
 
-        if self._anmrunner and not self._anmrunner.run_frame():
-            self._anmrunner = None
-
+        self._anmrunner.run_frame()
         self._sprite.update(angle_base=self.angle)
 
         #TODO: flags

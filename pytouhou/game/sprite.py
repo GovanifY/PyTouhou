@@ -174,11 +174,17 @@ class Sprite(object):
             self.angle = angle_base
             self.force_rotation = force_rotation
 
-        if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):
+        if self.rotations_speed_3d != (0., 0., 0.):
             ax, ay, az = self.rotations_3d
             sax, say, saz = self.rotations_speed_3d
             self.rotations_3d = ax + sax, ay + say, az + saz
-            self.rescale = self.rescale[0] + self.scale_speed[0], self.rescale[1] + self.scale_speed[1]
             self._changed = True
+
+        if self.scale_speed != (0., 0.):
+            rx, ry = self.rescale
+            rsx, rsy = self.scale_speed
+            self.rescale = rx + rsx, ry + rsy
+            self._changed = True
+
         self.frame += 1
 

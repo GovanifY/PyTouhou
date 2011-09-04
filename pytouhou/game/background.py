@@ -27,7 +27,7 @@ class Background(object):
     def __init__(self, stage, anm_wrapper):
         self.stage = stage
         self.anm_wrapper = anm_wrapper
-        self.objects = []
+        self.models = []
         self.object_instances = []
         self.objects_by_texture = {}
 
@@ -35,17 +35,16 @@ class Background(object):
         self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))
         self.position2_interpolator = Interpolator((0, 0, 0))
 
-        self.build_objects()
+        self.build_models()
         self.build_object_instances()
 
 
     def build_object_instances(self):
         self.object_instances = []
         for obj, ox, oy, oz in self.stage.object_instances:
-            obj_id = self.stage.objects.index(obj)
 
             obj_instance = []
-            for face_vertices, face_uvs, face_colors in self.objects[obj_id]:
+            for face_vertices, face_uvs, face_colors in self.models[obj]:
                 obj_instance.append((tuple((x + ox, y + oy, z + oz)
                                         for x, y, z in face_vertices),
                                     face_uvs,
@@ -67,9 +66,9 @@ class Background(object):
         return vertices, uvs, colors
 
 
-    def build_objects(self):
-        self.objects = []
-        for i, obj in enumerate(self.stage.objects):
+    def build_models(self):
+        self.models = []
+        for i, obj in enumerate(self.stage.models):
             faces = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 #TODO: per-texture rendering
@@ -82,11 +81,7 @@ class Background(object):
                 uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
                 colors = sprite._colors
                 faces.append((vertices, uvs, colors))
-            self.objects.append(faces)
-
-
-    def get_objects_by_texture(self, objects_by_texture):
-        objects_by_texture.update(self.objects_by_texture)
+            self.models.append(faces)
 
 
     def update(self, frame):

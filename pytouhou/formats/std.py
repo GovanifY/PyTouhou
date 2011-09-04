@@ -19,9 +19,11 @@ from pytouhou.utils.helpers import read_string, get_logger
 logger = get_logger(__name__)
 
 
-class Object(object):
+class Model(object):
     def __init__(self):
-        self.header = (b'\x00') * 28 #TODO
+        self.unknown = 0
+        self.bounding_box = (0., 0., 0.,
+                             0., 0., 0.)
         self.quads = []
 
 
@@ -31,7 +33,7 @@ class Stage(object):
         self.num = num
         self.name = ''
         self.bgms = (('', ''), ('', ''), ('', ''))
-        self.objects = []
+        self.models = []
         self.object_instances = []
         self.script = []
 
@@ -40,7 +42,7 @@ class Stage(object):
     def read(cls, file, num):
         stage = Stage(num)
 
-        nb_objects, nb_faces = unpack('<HH', file.read(4))
+        nb_models, nb_faces = unpack('<HH', file.read(4))
         object_instances_offset, script_offset = unpack('<II', file.read(8))
         if file.read(4) != b'\x00\x00\x00\x00':
             raise Exception #TODO
@@ -59,11 +61,13 @@ class Stage(object):
 
         stage.bgms = [(bgm_a, bgm_a_path), (bgm_b, bgm_b_path), (bgm_c, bgm_c_path), (bgm_d, bgm_d_path)] #TODO: handle ' '
 
-        # Read object definitions
-        offsets = unpack('<%s' % ('I' * nb_objects), file.read(4 * nb_objects))
+        # Read model definitions
+        offsets = unpack('<%s' % ('I' * nb_models), file.read(4 * nb_models))
         for offset in offsets:
-            obj = Object()
-            obj.header = file.read(28) #TODO: this has to be reversed!
+            model = Model()
+            id_, unknown, x, y, z, width, height, depth = unpack('<HHffffff', file.read(28))
+            model.unknown = unknown
+            model.bounding_box = x, y, z, width, height, depth #TODO: check
             while True:
                 unknown, size = unpack('<HH', file.read(4))
                 if unknown == 0xffff:
@@ -72,8 +76,8 @@ class Stage(object):
                     raise Exception #TODO
                 script_index, _padding, x, y, z, width, height = unpack('<HHfffff', file.read(24))
                 #TODO: store script_index, x, y, z, width and height
-                obj.quads.append((script_index, x, y, z, width, height))
-            stage.objects.append(obj)
+                model.quads.append((script_index, x, y, z, width, height))
+            stage.models.append(model)
 
 
         # Read object usages
@@ -84,7 +88,7 @@ class Stage(object):
                 break
             if unknown != 256:
                 raise Exception #TODO
-            stage.object_instances.append((stage.objects[obj_id], x, y, z))
+            stage.object_instances.append((obj_id, x, y, z))
 
 
         # Read other funny things (script)

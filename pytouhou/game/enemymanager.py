@@ -180,16 +180,16 @@ class Enemy(object):
         if not self._sprite:
             return
 
-        self._sprite.update_vertices_uvs_colors()
+        sprite = self._sprite
+        sprite.update_vertices_uvs_colors()
 
-        key = self._sprite.anm.first_name, self._sprite.anm.secondary_name
-        key = (key, self._sprite.blendfunc)
-        if not key in objects_by_texture:
-            objects_by_texture[key] = (0, [], [], [])
-        vertices = tuple((x + self.x, y + self.y, z) for x, y, z in self._sprite._vertices)
-        objects_by_texture[key][1].extend(vertices)
-        objects_by_texture[key][2].extend(self._sprite._uvs)
-        objects_by_texture[key][3].extend(self._sprite._colors)
+        key = sprite.anm.first_name, sprite.anm.secondary_name
+        key = (key, sprite.blendfunc)
+        rec = objects_by_texture.setdefault(key, ([], [], []))
+        vertices = ((x + self.x, y + self.y, z) for x, y, z in sprite._vertices)
+        rec[0].extend(vertices)
+        rec[1].extend(sprite._uvs)
+        rec[2].extend(sprite._colors)
 
 
     def update(self):
@@ -319,7 +319,7 @@ class EnemyManager(object):
         # Update enemies
         for enemy in self.enemies:
             enemy.update()
-            for bullet in enemy.bullets:
+            for bullet in tuple(enemy.bullets):
                 if bullet._launched:
                     enemy.bullets.remove(bullet)
                 self.bullets.append(bullet)
@@ -340,7 +340,7 @@ class EnemyManager(object):
                 self.enemies.remove(enemy)
 
         # Filter out-of-scren bullets
-        for bullet in self.bullets:
+        for bullet in tuple(self.bullets):
             if not bullet.is_visible(384, 448):
                 self.bullets.remove(bullet)
 
