@@ -35,6 +35,8 @@ from OpenGL.GLU import *
 
 
 def main(path, stage_num):
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     # Initialize pygame
     pygame.init()
     window = pygame.display.set_mode((384, 448), pygame.OPENGL | pygame.DOUBLEBUF)

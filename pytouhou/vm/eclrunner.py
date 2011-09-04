@@ -152,6 +152,7 @@ class ECLRunner(object):
                     logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
                 else:
                     callback(self, *args)
+                    logger.debug('executed opcode %d (args: %r)', instr_type, args)
 
         self.frame += 1
         return True

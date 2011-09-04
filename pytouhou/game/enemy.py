@@ -130,14 +130,15 @@ class Enemy(object):
     def set_pos(self, x, y, z):
         self.x, self.y = x, y
         self.interpolator = Interpolator((x, y))
-        self.interpolator.set_interpolation_start(self.frame, (x, y))
+        self.interpolator.set_interpolation_start(self._game_state.frame, (x, y))
 
 
     def move_to(self, duration, x, y, z, formula):
         if not self.interpolator:
+            frame = self._game_state.frame
             self.interpolator = Interpolator((self.x, self.y), formula)
-            self.interpolator.set_interpolation_start(self.frame, (self.x, self.y))
-            self.interpolator.set_interpolation_end(self.frame + duration - 1, (x, y))
+            self.interpolator.set_interpolation_start(frame, (self.x, self.y))
+            self.interpolator.set_interpolation_end(frame + duration - 1, (x, y))
 
             self.speed = 0.
             self.angle = atan2(y - self.y, x - self.x)
@@ -145,9 +146,10 @@ class Enemy(object):
 
     def stop_in(self, duration, formula):
         if not self.speed_interpolator:
+            frame = self._game_state.frame
             self.speed_interpolator = Interpolator((self.speed,), formula)
-            self.speed_interpolator.set_interpolation_start(self.frame, (self.speed,))
-            self.speed_interpolator.set_interpolation_end(self.frame + duration - 1, (0.,))
+            self.speed_interpolator.set_interpolation_start(frame, (self.speed,))
+            self.speed_interpolator.set_interpolation_end(frame + duration - 1, (0.,))
 
             self.speed = 0.
 
@@ -195,7 +197,7 @@ class Enemy(object):
     def update(self):
         x, y = self.x, self.y
         if self.interpolator:
-            self.interpolator.update(self.frame)
+            self.interpolator.update(self._game_state.frame)
             x, y = self.interpolator.values
 
         self.speed += self.acceleration #TODO: units? Execution order?
@@ -203,7 +205,7 @@ class Enemy(object):
 
 
         if self.speed_interpolator:
-            self.speed_interpolator.update(self.frame)
+            self.speed_interpolator.update(self._game_state.frame)
             self.speed, = self.speed_interpolator.values
 
 
