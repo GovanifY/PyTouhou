@@ -249,6 +249,11 @@ class ECLRunner(object):
         self._setval(variable_id, self._getval(a) % self._getval(b))
 
 
+    @instruction(18)
+    def increment(self, variable_id):
+        self._setval(variable_id, self._getval(variable_id) + 1)
+
+
     @instruction(23)
     def divide_float(self, variable_id, a, b):
         #TODO: takes only floats.

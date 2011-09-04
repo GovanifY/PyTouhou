@@ -36,7 +36,7 @@ class ECL(object):
                      15: ('iii', 'multiply_int'),
                      16: ('iii', 'divide_int'),
                      17: ('iii', 'modulo'),
-                     18: ('i', None),
+                     18: ('i', 'increment'),
                      20: ('iff', 'add_float'),
                      21: ('iff', 'substract_float'),
                      23: ('iff', 'divide_float'),
