@@ -160,19 +160,19 @@ class Sprite(object):
 
 
     def update(self, override_width=0, override_height=0, angle_base=0., force_rotation=False):
-        self._changed = (self._changed
-                         or override_width != self.width_override
-                         or override_height != self.height_override
-                         or self.angle != angle_base
-                         or self.force_rotation != force_rotation
-                         or self.scale_interpolator
-                         or self.fade_interpolator
-                         or self.offset_interpolator)
+        if (override_width != self.width_override
+            or override_height != self.height_override
+            or self.angle != angle_base
+            or self.force_rotation != force_rotation
+            or self.scale_interpolator
+            or self.fade_interpolator
+            or self.offset_interpolator):
 
-        self.width_override = override_width
-        self.height_override = override_height
-        self.angle = angle_base
-        self.force_rotation = force_rotation
+            self._changed = True
+            self.width_override = override_width
+            self.height_override = override_height
+            self.angle = angle_base
+            self.force_rotation = force_rotation
 
         if self.rotations_speed_3d != (0., 0., 0.) or self.scale_speed != (0., 0.):
             ax, ay, az = self.rotations_3d

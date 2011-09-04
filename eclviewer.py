@@ -154,8 +154,10 @@ def main(path, stage_num):
         glTranslatef(-x, -y, -z)
 
         glEnable(GL_DEPTH_TEST)
-        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in background.objects_by_texture.items():
-            glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
+        objects_by_texture = {}
+        background.get_objects_by_texture(objects_by_texture)
+        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in objects_by_texture.items():
+            glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
             glVertexPointer(3, GL_FLOAT, 0, vertices)
             glTexCoordPointer(2, GL_FLOAT, 0, uvs)
@@ -175,12 +177,15 @@ def main(path, stage_num):
                   192., 224., 0., 0., -1., 0.)
 
         glDisable(GL_FOG)
-        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in enemy_manager.objects_by_texture.items():
-            glBlendFunc(GL_SRC_ALPHA, {0: GL_ONE_MINUS_SRC_ALPHA, 1: GL_ONE}[blendfunc])
+        objects_by_texture = {}
+        enemy_manager.get_objects_by_texture(objects_by_texture)
+        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in objects_by_texture.items():
+            nb_vertices = len(vertices)
+            glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
-            glVertexPointer(3, GL_FLOAT, 0, vertices)
-            glTexCoordPointer(2, GL_FLOAT, 0, uvs)
-            glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+            glVertexPointer(3, GL_FLOAT, 0, struct.pack(str(3 * nb_vertices) + 'f', *chain(*vertices)))
+            glTexCoordPointer(2, GL_FLOAT, 0, struct.pack(str(2 * nb_vertices) + 'f', *chain(*uvs)))
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, struct.pack(str(4 * nb_vertices) + 'B', *chain(*colors)))
             glDrawArrays(GL_QUADS, 0, nb_vertices)
         glEnable(GL_FOG)
 

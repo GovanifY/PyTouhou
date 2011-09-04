@@ -85,6 +85,10 @@ class Background(object):
             self.objects.append(faces)
 
 
+    def get_objects_by_texture(self, objects_by_texture):
+        objects_by_texture.update(self.objects_by_texture)
+
+
     def update(self, frame):
         if not self.objects_by_texture:
             vertices, uvs, colors = self.object_instances_to_vertices_uvs_colors()
