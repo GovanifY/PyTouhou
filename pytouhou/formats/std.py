@@ -29,8 +29,7 @@ class Model(object):
 
 
 class Stage(object):
-    def __init__(self, num):
-        self.num = num
+    def __init__(self):
         self.name = ''
         self.bgms = (('', ''), ('', ''), ('', ''))
         self.models = []
@@ -39,8 +38,8 @@ class Stage(object):
 
 
     @classmethod
-    def read(cls, file, num):
-        stage = Stage(num)
+    def read(cls, file):
+        stage = Stage()
 
         nb_models, nb_faces = unpack('<HH', file.read(4))
         object_instances_offset, script_offset = unpack('<II', file.read(8))

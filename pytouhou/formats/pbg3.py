@@ -43,6 +43,14 @@ class PBG3(object):
         self.bitstream = bitstream #TODO
 
 
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, type, value, traceback):
+        return self.bitstream.__exit__(type, value, traceback)
+
+
     @classmethod
     def read(cls, file):
         magic = file.read(4)

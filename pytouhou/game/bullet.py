@@ -108,8 +108,9 @@ class Bullet(object):
         if not self._sprite or self._sprite._removed:
             self._launched = True
             self._sprite = Sprite()
-            self._anmrunner = ANMRunner(self._game_state.resources.etama_anm_wrappers[0], #TODO
-                                        self.anim_idx, self._sprite, self.sprite_idx_offset)
+            anm_wrapper = self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)) #TODO
+            self._anmrunner = ANMRunner(anm_wrapper, self.anim_idx,
+                                        self._sprite, self.sprite_idx_offset)
 
         self._anmrunner.run_frame()
         self._sprite.update(angle_base=self.angle)

@@ -23,8 +23,8 @@ from OpenGL.GLU import *
 
 
 class TextureManager(object):
-    def __init__(self, archive=None):
-        self.archive = archive
+    def __init__(self, loader=None):
+        self.loader = loader
         self.textures = {}
 
     def __getitem__(self, key):
@@ -44,18 +44,14 @@ class TextureManager(object):
             texture = self[key]
 
 
-    def set_archive(self, archive):
-        self.archive = archive
-
-
     def load_texture(self, key):
         first_name, secondary_name = key
 
-        image_file = BytesIO(self.archive.extract(os.path.basename(first_name)))
+        image_file = self.loader.get_file(os.path.basename(first_name))
         textureSurface = pygame.image.load(image_file).convert_alpha()
 
         if secondary_name:
-            alpha_image_file = BytesIO(self.archive.extract(os.path.basename(secondary_name)))
+            alpha_image_file = self.loader.get_file(os.path.basename(secondary_name))
             alphaSurface = pygame.image.load(alpha_image_file)
             assert textureSurface.get_size() == alphaSurface.get_size()
             for x in range(alphaSurface.get_width()):

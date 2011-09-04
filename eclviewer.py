@@ -18,20 +18,14 @@ import os
 
 import struct
 from math import degrees, radians
-from io import BytesIO
 from itertools import chain
 
 import pygame
 
-from pytouhou.formats.pbg3 import PBG3
-from pytouhou.formats.std import Stage
-from pytouhou.formats.ecl import ECL
-from pytouhou.formats.anm0 import Animations
-from pytouhou.game.sprite import AnmWrapper
+from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
-from pytouhou.game.enemymanager import EnemyManager
 from pytouhou.opengl.texture import TextureManager
-from pytouhou.game.game import GameState, Resources
+from pytouhou.game.game import Game
 from pytouhou.game.player import Player
 
 import OpenGL
@@ -60,56 +54,33 @@ def main(path, stage_num):
     glEnableClientState(GL_VERTEX_ARRAY)
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
-    texture_manager = TextureManager()
+    resource_loader = Loader()
+    texture_manager = TextureManager(resource_loader)
+    resource_loader.scan_archives(os.path.join(path, name)
+                                    for name in ('CM.DAT', 'ST.DAT'))
+    game = Game(resource_loader, [Player()], stage_num, 3, 16)
 
     # Load common data
-    with open(os.path.join(path, 'CM.DAT'), 'rb') as file:
-        archive = PBG3.read(file)
-        texture_manager.set_archive(archive)
-        etama_anm_wrappers = (AnmWrapper([Animations.read(BytesIO(archive.extract('etama3.anm')))]),
-                              AnmWrapper([Animations.read(BytesIO(archive.extract('etama4.anm')))]))
-        players_anm_wrappers = (AnmWrapper([Animations.read(BytesIO(archive.extract('player00.anm')))]),
-                                AnmWrapper([Animations.read(BytesIO(archive.extract('player01.anm')))]))
-        effects_anm_wrapper = AnmWrapper([Animations.read(BytesIO(archive.extract('eff00.anm')))])
-
-        for anm_wrapper in etama_anm_wrappers:
-            texture_manager.preload(anm_wrapper)
-
-        for anm_wrapper in players_anm_wrappers:
-            texture_manager.preload(anm_wrapper)
-
-        texture_manager.preload(effects_anm_wrapper)
-
-        resources = Resources(etama_anm_wrappers, players_anm_wrappers, effects_anm_wrapper)
-
-    game_state = GameState(resources, [Player()], stage_num, 3, 16)
+    etama_anm_wrappers = (resource_loader.get_anm_wrapper(('etama3.anm',)),
+                          resource_loader.get_anm_wrapper(('etama4.anm',)))
+    effects_anm_wrapper = resource_loader.get_anm_wrapper(('eff00.anm',))
 
     # Load stage data
-    with open(os.path.join(path, 'ST.DAT'), 'rb') as file:
-        archive = PBG3.read(file)
-        texture_manager.set_archive(archive)
+    stage = resource_loader.get_stage('stage%d.std' % stage_num)
+    enemies_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage_num,
+                                                            'stg%denm2.anm' % stage_num))
 
-        stage = Stage.read(BytesIO(archive.extract('stage%d.std' % stage_num)), stage_num)
+    background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
+    background = Background(stage, background_anm_wrapper)
 
-        ecl = ECL.read(BytesIO(archive.extract('ecldata%d.ecl' % stage_num)))
-        enemies_anim = Animations.read(BytesIO(archive.extract('stg%denm.anm' % stage_num)))
-        anims = [enemies_anim]
-        try:
-            enemies2_anim = Animations.read(BytesIO(archive.extract('stg%denm2.anm' % stage_num)))
-        except KeyError:
-            pass
-        else:
-            anims.append(enemies2_anim)
-        enemy_manager = EnemyManager(stage, AnmWrapper(anims), ecl, game_state)
-        texture_manager.preload(anims)
+    # Preload textures
+    for anm_wrapper in chain(etama_anm_wrappers,
+                             (background_anm_wrapper, enemies_anm_wrapper,
+                              effects_anm_wrapper)):
+        texture_manager.preload(anm_wrapper)
 
-        background_anim = Animations.read(BytesIO(archive.extract('stg%dbg.anm' % stage_num)))
-        background = Background(stage, AnmWrapper((background_anim,)))
-        texture_manager.preload((background_anim,))
-
-    print(enemy_manager.stage.name)
-
-    frame = 0
+    # Let's go!
+    print(stage.name)
 
     # Main loop
     clock = pygame.time.Clock()
@@ -121,12 +92,11 @@ def main(path, stage_num):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN and event.mod & pygame.KMOD_ALT:
                     pygame.display.toggle_fullscreen()
+        keystate = 0 #TODO
 
         # Update game
-        enemy_manager.update(frame)
-        background.update(frame)
-
-        frame += 1
+        background.update(game.game_state.frame) #TODO
+        game.run_iter(keystate)
 
         # Draw everything
 #            glClearColor(0.0, 0.0, 1.0, 0)
@@ -176,7 +146,7 @@ def main(path, stage_num):
 
         glDisable(GL_FOG)
         objects_by_texture = {}
-        enemy_manager.get_objects_by_texture(objects_by_texture)
+        game.get_objects_by_texture(objects_by_texture)
         for (texture_key, blendfunc), (vertices, uvs, colors) in objects_by_texture.items():
             nb_vertices = len(vertices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])

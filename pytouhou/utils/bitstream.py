@@ -19,6 +19,14 @@ class BitStream(object):
         self.byte = 0
 
 
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, type, value, traceback):
+        return self.io.__exit__(type, value, traceback)
+
+
     def seek(self, offset, whence=0):
         self.io.seek(offset, whence)
         self.byte = 0

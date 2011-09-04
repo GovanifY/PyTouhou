@@ -23,6 +23,65 @@ logger = get_logger(__name__)
 
 
 
+class ECLMainRunner(object):
+    __metaclass__ = MetaRegistry
+    __slots__ = ('_ecl', '_new_enemy_func', '_game_state', 'processes',
+                 'instruction_pointer')
+
+    def __init__(self, ecl, new_enemy_func, game_state):
+        self._ecl = ecl
+        self._new_enemy_func = new_enemy_func
+        self._game_state = game_state
+
+        self.processes = []
+
+        self.instruction_pointer = 0
+
+
+    def run_iter(self):
+        while True:
+            try:
+                frame, sub, instr_type, args = self._ecl.main[self.instruction_pointer]
+            except IndexError:
+                break
+
+            if frame > self._game_state.frame:
+                break
+            else:
+                self.instruction_pointer += 1
+
+            if frame == self._game_state.frame:
+                try:
+                    callback = self._handlers[instr_type]
+                except KeyError:
+                    logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
+                else:
+                    callback(self, sub, instr_type, *args)
+
+        self.processes[:] = (process for process in self.processes
+                                                if process.run_iteration())
+
+
+    @instruction(0)
+    @instruction(2)
+    @instruction(4)
+    @instruction(6)
+    def pop_enemy(self, sub, instr_type, x, y, z, life, unknown1, unknown2, unknown3):
+        if self._game_state.boss:
+            return
+        if instr_type & 4:
+            if x < -990: #102h.exe@0x411820
+                x = self._game_state.prng.rand_double() * 368
+            if y < -990: #102h.exe@0x41184b
+                y = self._game_state.prng.rand_double() * 416
+            if z < -990: #102h.exe@0x411881
+                y = self._game_state.prng.rand_double() * 800
+        enemy = self._new_enemy_func((x, y), life, instr_type)
+        self.processes.append(ECLRunner(self._ecl, sub, enemy, self._game_state))
+
+
+
+
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_ecl', '_enemy', '_game_state', 'variables', 'sub', 'frame',
