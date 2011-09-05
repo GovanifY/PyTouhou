@@ -12,9 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from math import pi
 
-from pytouhou.utils.matrix import Matrix
 from pytouhou.utils.interpolator import Interpolator
 
 
@@ -50,9 +48,8 @@ class Sprite(object):
         self.frame = 0
         self.color = (255, 255, 255)
         self.alpha = 255
-        self._uvs = []
-        self._vertices = []
-        self._colors = []
+
+        self._rendering_data = None
 
 
     def fade(self, duration, alpha, formula):
@@ -74,69 +71,6 @@ class Sprite(object):
             self.offset_interpolator = Interpolator(self.dest_offset, formula)
             self.offset_interpolator.set_interpolation_start(self.frame, self.dest_offset)
             self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
-
-
-    def update_vertices_uvs_colors(self):
-        if not self._changed:
-            return
-
-        if self.fade_interpolator:
-            self.fade_interpolator.update(self.frame)
-            self.alpha = int(self.fade_interpolator.values[0])
-
-        if self.scale_interpolator:
-            self.scale_interpolator.update(self.frame)
-            self.rescale = self.scale_interpolator.values
-
-        if self.offset_interpolator:
-            self.offset_interpolator.update(self.frame)
-            self.dest_offset = self.offset_interpolator.values
-
-        vertmat = Matrix([[-.5,     .5,     .5,    -.5],
-                          [-.5,    -.5,     .5,     .5],
-                          [ .0,     .0,     .0,     .0],
-                          [ 1.,     1.,     1.,     1.]])
-
-        tx, ty, tw, th = self.texcoords
-        sx, sy = self.rescale
-        width = self.width_override or (tw * sx)
-        height = self.height_override or (th * sy)
-
-        vertmat.scale2d(width, height)
-        if self.mirrored:
-            vertmat.flip()
-
-        rx, ry, rz = self.rotations_3d
-        if self.automatic_orientation:
-            rz += pi/2. - self.angle
-        elif self.force_rotation:
-            rz += self.angle
-
-        if (rx, ry, rz) != (0., 0., 0.):
-            if rx:
-                vertmat.rotate_x(-rx)
-            if ry:
-                vertmat.rotate_y(ry)
-            if rz:
-                vertmat.rotate_z(-rz) #TODO: minus, really?
-        if self.corner_relative_placement: # Reposition
-            vertmat.translate(width / 2., height / 2., 0.)
-        if self.allow_dest_offset:
-            vertmat.translate(*self.dest_offset)
-
-        x_1 = 1. / self.anm.size[0]
-        y_1 = 1. / self.anm.size[1]
-        tox, toy = self.texoffsets
-        uvs = [(tx * x_1 + tox,         1. - (ty * y_1) + toy),
-               ((tx + tw) * x_1 + tox,  1. - (ty * y_1) + toy),
-               ((tx + tw) * x_1 + tox,  1. - ((ty + th) * y_1 + toy)),
-               (tx * x_1 + tox,         1. - ((ty + th) * y_1 + toy))]
-
-        d = vertmat.data
-        assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
-        self._colors = [(self.color[0], self.color[1], self.color[2], self.alpha)] * 4
-        self._uvs, self._vertices = uvs, zip(d[0], d[1], d[2])
-        self._changed = False
 
 
     def update(self, override_width=0, override_height=0, angle_base=0., force_rotation=False):

@@ -98,18 +98,6 @@ class Bullet(object):
         return True
 
 
-    def get_objects_by_texture(self, objects_by_texture):
-        sprite = self._sprite
-        sprite.update_vertices_uvs_colors()
-        key = sprite.anm.first_name, sprite.anm.secondary_name
-        key = (key, sprite.blendfunc)
-        rec = objects_by_texture.setdefault(key, ([], [], []))
-        vertices = ((x + self.x, y + self.y, z) for x, y, z in sprite._vertices)
-        rec[0].extend(vertices)
-        rec[1].extend(sprite._uvs)
-        rec[2].extend(sprite._colors)
-
-
     def set_anim(self, anim_idx=None, sprite_idx_offset=None):
         if anim_idx is not None:
             self.anim_idx = anim_idx

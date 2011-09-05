@@ -13,11 +13,6 @@
 ##
 
 
-from io import BytesIO
-import os
-import struct
-from itertools import chain
-
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
@@ -27,9 +22,10 @@ class Background(object):
     def __init__(self, stage, anm_wrapper):
         self.stage = stage
         self.anm_wrapper = anm_wrapper
+
         self.models = []
         self.object_instances = []
-        self.objects_by_texture = {}
+        self.anm_runners = []
 
         self.position_interpolator = Interpolator((0, 0, 0))
         self.fog_interpolator = Interpolator((0, 0, 0, 0, 0))
@@ -41,63 +37,31 @@ class Background(object):
 
     def build_object_instances(self):
         self.object_instances = []
-        for obj, ox, oy, oz in self.stage.object_instances:
-
-            obj_instance = []
-            for face_vertices, face_uvs, face_colors in self.models[obj]:
-                obj_instance.append((tuple((x + ox, y + oy, z + oz)
-                                        for x, y, z in face_vertices),
-                                    face_uvs,
-                                    face_colors))
-            self.object_instances.append(obj_instance)
+        for model_id, ox, oy, oz in self.stage.object_instances:
+            self.object_instances.append((ox, oy, oz, model_id, self.models[model_id]))
         # Z-sorting
         def keyfunc(obj):
-            return min(z for face in obj for x, y, z in face[0])
+            bounding_box = self.stage.models[obj[3]].bounding_box
+            return obj[2] + min(bounding_box[2], bounding_box[5])
         self.object_instances.sort(key=keyfunc, reverse=True)
-
-
-    def object_instances_to_vertices_uvs_colors(self):
-        vertices = tuple(vertex for obj in self.object_instances
-                            for face in obj for vertex in face[0])
-        uvs = tuple(uv for obj in self.object_instances
-                            for face in obj for uv in face[1])
-        colors = tuple(color for obj in self.object_instances
-                            for face in obj for color in face[2])
-        return vertices, uvs, colors
 
 
     def build_models(self):
         self.models = []
-        for i, obj in enumerate(self.stage.models):
-            faces = []
+        for obj in self.stage.models:
+            quads = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 #TODO: per-texture rendering
                 sprite = Sprite()
                 anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
                 anm_runner.run_frame()
                 sprite.update(width_override, height_override)
-                if sprite._changed:
-                    sprite.update_vertices_uvs_colors()
-                uvs, vertices = sprite._uvs, tuple((x + ox, y + oy, z + oz) for x, y, z in sprite._vertices)
-                colors = sprite._colors
-                faces.append((vertices, uvs, colors))
-            self.models.append(faces)
+                quads.append((ox, oy, oz, width_override, height_override, sprite))
+                self.anm_runners.append(anm_runner)
+            self.models.append(quads)
 
 
     def update(self, frame):
-        if not self.objects_by_texture:
-            vertices, uvs, colors = self.object_instances_to_vertices_uvs_colors()
-            nb_vertices = len(vertices)
-            vertices_format = 'f' * (3 * nb_vertices)
-            uvs_format = 'f' * (2 * nb_vertices)
-            colors_format = 'B' * (4 * nb_vertices)
-            vertices = struct.pack(vertices_format, *chain(*vertices))
-            uvs = struct.pack(uvs_format, *chain(*uvs))
-            colors = struct.pack(colors_format, *chain(*colors))
-            assert len(self.anm_wrapper.anm_files) == 1 #TODO
-            anm = self.anm_wrapper.anm_files[0]
-            self.objects_by_texture = {((anm.first_name, anm.secondary_name), 0): (nb_vertices, vertices, uvs, colors)} #TODO: blendfunc
-
         for frame_num, message_type, args in self.stage.script:
             if frame_num == frame:
                 if message_type == 0:
@@ -115,6 +79,14 @@ class Background(object):
             if frame_num > frame and message_type == 0:
                 self.position_interpolator.set_interpolation_end(frame_num, args)
                 break
+
+        for anm_runner in tuple(self.anm_runners):
+            if not anm_runner.run_frame():
+                self.anm_runners.remove(anm_runner)
+
+        for model in self.models:
+            for ox, oy, oz, width_override, height_override, sprite in model:
+                sprite.update(width_override, height_override)
 
         self.position2_interpolator.update(frame)
         self.fog_interpolator.update(frame)
