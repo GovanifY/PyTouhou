@@ -132,6 +132,7 @@ class Enemy(object):
     def set_anim(self, index):
         self._sprite = Sprite()
         self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
+        self._anmrunner.run_frame()
 
 
     def set_pos(self, x, y, z):

@@ -77,7 +77,9 @@ class ECLMainRunner(object):
             if z < -990: #102h.exe@0x411881
                 y = self._game_state.prng.rand_double() * 800
         enemy = self._new_enemy_func((x, y), life, instr_type)
-        self.processes.append(ECLRunner(self._ecl, sub, enemy, self._game_state))
+        process = ECLRunner(self._ecl, sub, enemy, self._game_state)
+        self.processes.append(process)
+        process.run_iteration()
 
 
 
