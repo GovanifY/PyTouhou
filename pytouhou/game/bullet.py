@@ -45,10 +45,16 @@ class Bullet(object):
 
         #TODO
         #if flags & (2|4|8):
-        #    index = {2: 11, 4: 12, 8: 13}[flags & (2|4|8)]
+        #    if flags & 2: #TODO: Huh?!
+        #        index = 14
+        #    elif flags & 4:
+        #        index = 15
+        #    else:
+        #        index = 19
         #    self._sprite = Sprite()
-        #    self._anmrunner = ANMRunner(self._game_state.resources.etama_anm_wrappers[0],
-        #                                index, self._sprite, sprite_idx_offset)
+        #    self._anmrunner = ANMRunner(self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)), #TODO
+        #                                index, self._sprite, 0) #TODO: offset
+        #    self._anmrunner.run_frame()
 
         self.flags = flags
         self.attributes = list(attributes)

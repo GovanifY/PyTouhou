@@ -602,7 +602,7 @@ class ECLRunner(object):
 
 
     @instruction(75)
-    def set_bullet_attributes6(self, anim, sprite_idx_offset, bullets_per_shot,
+    def set_bullet_attributes7(self, anim, sprite_idx_offset, bullets_per_shot,
                                number_of_shots, speed, speed2, launch_angle,
                                angle, flags):
         #TODO

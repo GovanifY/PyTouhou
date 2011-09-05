@@ -146,7 +146,20 @@ def main(path, stage_num):
 
         glDisable(GL_FOG)
         objects_by_texture = {}
-        game.get_objects_by_texture(objects_by_texture)
+        for enemy in game.enemies:
+            enemy.get_objects_by_texture(objects_by_texture)
+        for (texture_key, blendfunc), (vertices, uvs, colors) in objects_by_texture.items():
+            nb_vertices = len(vertices)
+            glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
+            glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
+            glVertexPointer(3, GL_FLOAT, 0, struct.pack(str(3 * nb_vertices) + 'f', *chain(*vertices)))
+            glTexCoordPointer(2, GL_FLOAT, 0, struct.pack(str(2 * nb_vertices) + 'f', *chain(*uvs)))
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, struct.pack(str(4 * nb_vertices) + 'B', *chain(*colors)))
+            glDrawArrays(GL_QUADS, 0, nb_vertices)
+
+        objects_by_texture = {}
+        for bullet in game.game_state.bullets:
+            bullet.get_objects_by_texture(objects_by_texture)
         for (texture_key, blendfunc), (vertices, uvs, colors) in objects_by_texture.items():
             nb_vertices = len(vertices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])

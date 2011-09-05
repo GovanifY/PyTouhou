@@ -21,10 +21,12 @@ from pytouhou.game.enemy import Enemy
 
 
 class GameState(object):
-    __slots__ = ('resource_loader', 'players', 'rank', 'difficulty', 'frame',
+    __slots__ = ('resource_loader', 'bullets', 'players', 'rank', 'difficulty', 'frame',
                  'stage', 'boss', 'prng')
     def __init__(self, resource_loader, players, stage, rank, difficulty):
         self.resource_loader = resource_loader
+
+        self.bullets = []
 
         self.stage = stage
         self.players = players
@@ -42,22 +44,12 @@ class Game(object):
 
         self.enemies = []
 
-        self.bullets = []
         self.bonuses = []
 
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
                                                                  'stg%denm2.anm' % stage))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self.game_state)
-
-
-    def get_objects_by_texture(self, objects_by_texture):
-        #TODO: move elsewhere
-        for enemy in self.enemies:
-            enemy.get_objects_by_texture(objects_by_texture)
-
-        for bullet in self.bullets:
-            bullet.get_objects_by_texture(objects_by_texture)
 
 
     def new_enemy(self, pos, life, instr_type):
@@ -76,13 +68,9 @@ class Game(object):
         # 3. Let's play!
         for enemy in self.enemies:
             enemy.update()
-            for bullet in tuple(enemy.bullets):
-                if bullet._launched:
-                    enemy.bullets.remove(bullet)
-                self.bullets.append(bullet)
-        for bullet in self.bullets:
-            bullet.update()
 
+        for bullet in self.game_state.bullets:
+            bullet.update()
 
         # 4. Cleaning
         self.cleanup()
@@ -102,9 +90,10 @@ class Game(object):
 
         # Filter out-of-scren bullets
         # TODO: was_visible thing
-        for bullet in tuple(self.bullets):
+        bullets = self.game_state.bullets
+        for bullet in tuple(bullets):
             if not bullet.is_visible(384, 448):
-                self.bullets.remove(bullet)
+                bullets.remove(bullet)
 
         # Disable boss mode if it is dead/it has timeout
         if self.game_state.boss and self.game_state.boss._removed:

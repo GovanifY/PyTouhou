@@ -43,7 +43,6 @@ class Enemy(object):
         self.touchable = True
         self.damageable = True
         self.death_flags = 0
-        self.bullets = []
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
@@ -105,6 +104,8 @@ class Enemy(object):
         if type_ != 75:
             launch_angle -= angle * (bullets_per_shot - 1) / 2.
 
+        bullets = self._game_state.bullets
+
         for shot_nb in range(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
             bullet_angle = launch_angle
@@ -112,11 +113,11 @@ class Enemy(object):
                 if type_ == 75: # 102.h@0x4138cf
                     bullet_angle = self._game_state.prng.rand_double() * (launch_angle - angle) + angle
                     shot_speed = self._game_state.prng.rand_double() * (speed - speed2) + speed2
-                self.bullets.append(Bullet((self.x, self.y),
-                                           anim, sprite_idx_offset,
-                                           bullet_angle, shot_speed,
-                                           self.extended_bullet_attributes,
-                                           flags, player, self._game_state))
+                bullets.append(Bullet((self.x, self.y),
+                                      anim, sprite_idx_offset,
+                                      bullet_angle, shot_speed,
+                                      self.extended_bullet_attributes,
+                                      flags, player, self._game_state))
                 bullet_angle += angle
 
 
@@ -184,9 +185,6 @@ class Enemy(object):
 
 
     def get_objects_by_texture(self, objects_by_texture):
-        for bullet in self.bullets:
-            bullet.get_objects_by_texture(objects_by_texture)
-
         if not self._sprite:
             return
 
@@ -264,11 +262,6 @@ class Enemy(object):
             self.bullet_launch_timer += 1
             if self.bullet_launch_timer == self.bullet_launch_interval:
                 self.fire()
-
-
-        for bullet in self.bullets:
-            bullet.update()
-
 
         self.frame += 1
 
