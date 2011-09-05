@@ -110,13 +110,23 @@ class Bullet(object):
         rec[2].extend(sprite._colors)
 
 
+    def set_anim(self, anim_idx=None, sprite_idx_offset=None):
+        if anim_idx is not None:
+            self.anim_idx = anim_idx
+
+        if sprite_idx_offset is not None:
+            self.sprite_idx_offset = sprite_idx_offset
+
+        self._sprite = Sprite()
+        anm_wrapper = self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)) #TODO
+        self._anmrunner = ANMRunner(anm_wrapper, self.anim_idx,
+                                    self._sprite, self.sprite_idx_offset)
+
+
     def update(self):
         if not self._sprite or self._sprite._removed:
             self._launched = True
-            self._sprite = Sprite()
-            anm_wrapper = self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)) #TODO
-            self._anmrunner = ANMRunner(anm_wrapper, self.anim_idx,
-                                        self._sprite, self.sprite_idx_offset)
+            self.set_anim()
 
         self._anmrunner.run_frame()
         self._sprite.update(angle_base=self.angle)

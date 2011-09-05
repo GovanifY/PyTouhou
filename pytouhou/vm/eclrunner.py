@@ -13,7 +13,7 @@
 ##
 
 
-from math import atan2, cos, sin
+from math import atan2, cos, sin, pi
 
 from pytouhou.utils.helpers import get_logger
 
@@ -761,6 +761,21 @@ class ECLRunner(object):
     def set_automatic_orientation(self, flags):
         #TODO: does it change anything else than the sprite's rotation?
         self._enemy.automatic_orientation = bool(flags & 1)
+
+
+    @instruction(121)
+    def call_special_function(self, function, arg):
+        if function == 0: # Cirno
+            if arg == 0:
+                for bullet in self._game_state.bullets:
+                    bullet.speed = bullet.angle = 0.
+                    bullet.set_anim(sprite_idx_offset=0) #TODO: check
+            else:
+                for bullet in self._game_state.bullets:
+                    bullet.speed = 2.0 #TODO
+                    bullet.angle = self._game_state.prng.rand_double() * pi #TODO
+        else:
+            logger.warn("Unimplemented special function %d!", function)
 
 
     @instruction(123)

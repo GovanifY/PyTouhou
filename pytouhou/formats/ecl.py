@@ -117,7 +117,7 @@ class ECL(object):
                      118: ('iihh', None),
                      119: ('i', 'drop_bonus'),
                      120: ('i', 'set_automatic_orientation'),
-                     121: ('ii', None),
+                     121: ('ii', 'call_special_function'),
                      122: ('i', None),
                      123: ('i', 'skip_frames'),
                      124: ('i', 'drop_specific_bonus'),
