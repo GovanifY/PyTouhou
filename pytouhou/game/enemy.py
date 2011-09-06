@@ -88,6 +88,9 @@ class Enemy(object):
         (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
 
+        ox, oy = self.bullet_launch_offset
+        launch_pos = self.x + ox, self.y + oy
+
         if speed2 < 0.3:
             speed2 = 0.3
 
@@ -113,8 +116,7 @@ class Enemy(object):
                 if type_ == 75: # 102.h@0x4138cf
                     bullet_angle = self._game_state.prng.rand_double() * (launch_angle - angle) + angle
                     shot_speed = self._game_state.prng.rand_double() * (speed - speed2) + speed2
-                bullets.append(Bullet((self.x, self.y),
-                                      anim, sprite_idx_offset,
+                bullets.append(Bullet(launch_pos, anim, sprite_idx_offset,
                                       bullet_angle, shot_speed,
                                       self.extended_bullet_attributes,
                                       flags, player, self._game_state))
