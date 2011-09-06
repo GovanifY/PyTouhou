@@ -13,7 +13,7 @@
 ##
 
 
-from struct import pack, unpack
+from struct import pack, unpack, calcsize
 from pytouhou.utils.helpers import read_string, get_logger
 
 logger = get_logger(__name__)
@@ -29,6 +29,12 @@ class Model(object):
 
 
 class Stage(object):
+    _instructions = {0: ('fff', 'set_viewpos'),
+                     1: ('BBBBff', 'set_fog'),
+                     2: ('fff', 'set_viewpos2'),
+                     3: ('III', 'start_interpolating_viewpos2'),
+                     4: ('III', 'start_interpolating_fog')}
+
     def __init__(self):
         self.name = ''
         self.bgms = (('', ''), ('', ''), ('', ''))
@@ -46,12 +52,12 @@ class Stage(object):
         if file.read(4) != b'\x00\x00\x00\x00':
             raise Exception #TODO
 
-        stage.name = read_string(file, 128, 'shift-jis')
+        stage.name = read_string(file, 128, 'shift_jis')
 
-        bgm_a = read_string(file, 128, 'shift-jis')
-        bgm_b = read_string(file, 128, 'shift-jis')
-        bgm_c = read_string(file, 128, 'shift-jis')
-        bgm_d = read_string(file, 128, 'shift-jis')
+        bgm_a = read_string(file, 128, 'shift_jis')
+        bgm_b = read_string(file, 128, 'shift_jis')
+        bgm_c = read_string(file, 128, 'shift_jis')
+        bgm_d = read_string(file, 128, 'shift_jis')
 
         bgm_a_path = read_string(file, 128, 'ascii')
         bgm_b_path = read_string(file, 128, 'ascii')
@@ -73,8 +79,7 @@ class Stage(object):
                     break
                 if size != 0x1c:
                     raise Exception #TODO
-                script_index, _padding, x, y, z, width, height = unpack('<HHfffff', file.read(24))
-                #TODO: store script_index, x, y, z, width and height
+                script_index, x, y, z, width, height = unpack('<Hxxfffff', file.read(24))
                 model.quads.append((script_index, x, y, z, width, height))
             stage.models.append(model)
 
@@ -93,27 +98,65 @@ class Stage(object):
         # Read other funny things (script)
         file.seek(script_offset)
         while True:
-            frame, message_type, size = unpack('<IHH', file.read(8))
-            if (frame, message_type, size) == (0xffffffff, 0xffff, 0xffff):
+            frame, opcode, size = unpack('<IHH', file.read(8))
+            if (frame, opcode, size) == (0xffffffff, 0xffff, 0xffff):
                 break
             if size != 0x0c:
                 raise Exception #TODO
-            data = file.read(12)
-            #TODO: maybe add a name somewhere
-            if message_type == 0: # ViewPos
-                args = unpack('<fff', data)
-            elif message_type == 1: # Color
-                args = unpack('<BBBBff', data)
-            elif message_type == 2: # ViewPos2
-                args = unpack('<fff', data)
-            elif message_type == 3:  # StartInterpolatingViewPos2
-                args = tuple(unpack('<III', data)[:1])
-            elif message_type == 4: # StartInterpolatingFog
-                args = tuple(unpack('<III', data)[:1])
+            data = file.read(size)
+            if opcode in cls._instructions:
+                args = unpack('<%s' % cls._instructions[opcode][0], data)
             else:
                 args = (data,)
-                logger.warn('unknown opcode %d (data: %r)', message_type, data)
-            stage.script.append((frame, message_type, args))
+                logger.warn('unknown opcode %d', opcode)
+            stage.script.append((frame, opcode, args))
 
         return stage
+
+
+    def write(self, file):
+        model_offsets = []
+        second_section_offset = 0
+        third_section_offset = 0
+
+        nb_faces = sum(len(model.quads) for model in self.models)
+
+        # Write header
+        file.write(pack('<HH', len(self.models), nb_faces)) #TODO: nb_faces
+        file.write(pack('<II', 0, 0))
+        file.write(pack('<I', 0))
+        file.write(pack('<128s', self.name.encode('shift_jis')))
+        for bgm_name, bgm_path in self.bgms:
+            file.write(pack('<128s', bgm_name.encode('shift_jis')))
+        for bgm_name, bgm_path in self.bgms:
+            file.write(pack('<128s', bgm_path.encode('ascii')))
+        file.write(b'\x00\x00\x00\x00' * len(self.models))
+
+        # Write first section
+        for i, model in enumerate(self.models):
+            model_offsets.append(file.tell())
+            file.write(pack('<HHffffff', i, model.unknown, *model.bounding_box))
+            for quad in model.quads:
+                file.write(pack('<HH', 0x00, 0x1c))
+                file.write(pack('<Hxxfffff', *quad))
+            file.write(pack('<HH', 0xffff, 4))
+
+        # Write second section
+        second_section_offset = file.tell()
+        for obj_id, x, y, z in self.object_instances:
+            file.write(pack('<HHfff', obj_id, 256, x, y, z))
+        file.write(b'\xff' * 16)
+
+        # Write third section
+        third_section_offset = file.tell()
+        for frame, opcode, args in self.script:
+            size = calcsize(self._instructions[opcode][0])
+            file.write(pack('<IHH%s' % self._instructions[opcode][0], frame, opcode, size, *args))
+        file.write(b'\xff' * 20)
+
+        # Fix offsets
+        file.seek(4)
+        file.write(pack('<II', second_section_offset, third_section_offset))
+        file.seek(16+128+128*2*4)
+        file.write(pack('<%sI' % len(self.models), *model_offsets))
 
