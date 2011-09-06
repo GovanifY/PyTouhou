@@ -142,7 +142,7 @@ class Bullet(object):
             acceleration, angular_speed = self.attributes[4:6]
             self.speed += acceleration
             self.angle += angular_speed
-            if self.frame == frame:
+            if self.frame != 0 and self.frame % frame == 0:
                 if count > 0:
                     self.attributes[1] -= 1
                 else:
@@ -151,7 +151,7 @@ class Bullet(object):
             #TODO: check
             frame, count = self.attributes[0:2]
             angle, speed = self.attributes[4:6]
-            if frame == self.frame:
+            if self.frame != 0 and self.frame % frame == 0:
                 count = count - 1
 
                 if self.flags & 64:
