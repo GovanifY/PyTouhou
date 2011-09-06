@@ -105,8 +105,8 @@ class Animations(object):
             while True:
                 #TODO
                 instruction_offsets.append(file.tell() - offset)
-                time, opcode, length = unpack('<HBB', file.read(4))
-                data = file.read(length)
+                time, opcode, size = unpack('<HBB', file.read(4))
+                data = file.read(size)
                 if opcode in cls._instructions:
                     args = unpack('<%s' % cls._instructions[opcode][0], data)
                 else:

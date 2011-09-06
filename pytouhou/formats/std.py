@@ -20,24 +20,24 @@ logger = get_logger(__name__)
 
 
 class Model(object):
-    def __init__(self):
+    def __init__(self, unknown=0, bounding_box=None, quads=None):
         self.unknown = 0
-        self.bounding_box = (0., 0., 0.,
-                             0., 0., 0.)
-        self.quads = []
+        self.bounding_box = bounding_box or (0., 0., 0.,
+                                             0., 0., 0.)
+        self.quads = quads or []
 
 
 
 class Stage(object):
     _instructions = {0: ('fff', 'set_viewpos'),
-                     1: ('BBBBff', 'set_fog'),
+                     1: ('BBBxff', 'set_fog'),
                      2: ('fff', 'set_viewpos2'),
                      3: ('III', 'start_interpolating_viewpos2'),
                      4: ('III', 'start_interpolating_fog')}
 
     def __init__(self):
         self.name = ''
-        self.bgms = (('', ''), ('', ''), ('', ''))
+        self.bgms = (('', ''), ('', ''), ('', ''), ('', ''))
         self.models = []
         self.object_instances = []
         self.script = []
@@ -70,6 +70,7 @@ class Stage(object):
         offsets = unpack('<%s' % ('I' * nb_models), file.read(4 * nb_models))
         for offset in offsets:
             model = Model()
+            file.seek(offset)
             id_, unknown, x, y, z, width, height, depth = unpack('<HHffffff', file.read(28))
             model.unknown = unknown
             model.bounding_box = x, y, z, width, height, depth #TODO: check

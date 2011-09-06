@@ -39,10 +39,10 @@ class Background(object):
         self.object_instances = []
         for model_id, ox, oy, oz in self.stage.object_instances:
             self.object_instances.append((ox, oy, oz, model_id, self.models[model_id]))
-        # Z-sorting
+        # Z-sorting:
+        # TODO z-sorting may be needed at each iteration
         def keyfunc(obj):
-            bounding_box = self.stage.models[obj[3]].bounding_box
-            return obj[2] + min(bounding_box[2], bounding_box[5])
+            return obj[2] + self.stage.models[obj[3]].bounding_box[2]
         self.object_instances.sort(key=keyfunc, reverse=True)
 
 
@@ -51,7 +51,6 @@ class Background(object):
         for obj in self.stage.models:
             quads = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
-                #TODO: per-texture rendering
                 sprite = Sprite()
                 anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
                 anm_runner.run_frame()

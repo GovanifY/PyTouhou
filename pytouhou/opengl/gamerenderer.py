@@ -92,7 +92,7 @@ class GameRenderer(object):
         texture_manager = self.texture_manager
 
         if back is not None:
-            fog_b, fog_g, fog_r, _, fog_start, fog_end = back.fog_interpolator.values
+            fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values
 
