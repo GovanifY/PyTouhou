@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-
+import struct
 from struct import pack, unpack, calcsize
 from pytouhou.utils.helpers import read_string
 
@@ -133,10 +133,10 @@ class ECL(object):
                      134: ('', None),
                      135: ('i', None)} #TODO
 
-    _main_instructions = {0: ('ffIhHHH', 'spawn_enemy'),
-                          2: ('ffIhHHH', 'spawn_enemy_mirrored'),
-                          4: ('ffIhHHH', 'spawn_enemy_random'),
-                          6: ('ffIhHHH', 'spawn_enemy_mirrored_random'),
+    _main_instructions = {0: ('fffhHHH', 'spawn_enemy'),
+                          2: ('fffhHHH', 'spawn_enemy_mirrored'),
+                          4: ('fffhHHH', 'spawn_enemy_random'),
+                          6: ('fffhHHH', 'spawn_enemy_mirrored_random'),
                           8: ('', None),
                           9: ('', None),
                           10: ('II', None),
@@ -245,7 +245,11 @@ class ECL(object):
                 format = '<IHHHH%s' % format
                 size = calcsize(format)
                 instruction_offsets.append((instruction_offsets[-1] + len(instruction_datas[-1])) if instruction_offsets else 0)
-                instruction_datas.append(pack(format, time, opcode, size, rank_mask, param_mask, *args))
+                try:
+                    instruction_datas.append(pack(format, time, opcode, size, rank_mask, param_mask, *args))
+                except struct.error:
+                    logger.error('Failed to assemble opcode %d' % opcode)
+                    raise
 
             #TODO: clean up this mess
             for instruction, data, offset in zip(sub, instruction_datas, instruction_offsets):
