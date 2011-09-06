@@ -133,6 +133,16 @@ class ECL(object):
                      134: ('', None),
                      135: ('i', None)} #TODO
 
+    _main_instructions = {0: ('ffIhHHH', 'spawn_enemy'),
+                          2: ('ffIhHHH', 'spawn_enemy_mirrored'),
+                          4: ('ffIhHHH', 'spawn_enemy_random'),
+                          6: ('ffIhHHH', 'spawn_enemy_mirrored_random'),
+                          8: ('', None),
+                          9: ('', None),
+                          10: ('II', None),
+                          12: ('', None)}
+
+
     def __init__(self):
         self.main = []
         self.subs = [[]]
@@ -143,7 +153,7 @@ class ECL(object):
         sub_count, main_offset = unpack('<II', file.read(8))
         if file.read(8) != b'\x00\x00\x00\x00\x00\x00\x00\x00':
             raise Exception #TODO
-        sub_offsets = unpack('<%s' % ('I' * sub_count), file.read(4 * sub_count))
+        sub_offsets = unpack('<%dI' % sub_count, file.read(4 * sub_count))
 
         ecl = cls()
         ecl.subs = []
@@ -197,14 +207,74 @@ class ECL(object):
             time, = unpack('<H', file.read(2))
             if time == 0xffff:
                 break
-            sub, instr_type, size = unpack('<HHH', file.read(6))
+
+            sub, opcode, size = unpack('<HHH', file.read(6))
             data = file.read(size - 8)
-            if instr_type in (0, 2, 4, 6): # Enemy spawn
-                args = unpack('<ffIhHHH', data)
+
+            if opcode in cls._main_instructions:
+                args = unpack('<%s' % cls._main_instructions[opcode][0], data)
             else:
-                logger.warn('unknown main opcode %d (data: %r)', instr_type, data)
                 args = (data,)
-            ecl.main.append((time, sub, instr_type, args))
+                logger.warn('unknown main opcode %d', opcode)
+
+            ecl.main.append((time, sub, opcode, args))
 
         return ecl
+
+
+    def write(self, file):
+        sub_count = len(self.subs)
+        sub_offsets = []
+        main_offset = 0
+
+        # Skip header, it will be written later
+        file.seek(8+8+4*sub_count)
+
+        # Write subs
+        for sub in self.subs:
+            sub_offsets.append(file.tell())
+
+            instruction_offsets = []
+            instruction_datas = []
+            for time, opcode, rank_mask, param_mask, args in sub:
+                format = self._instructions[opcode][0]
+                if format.endswith('s'):
+                    args = list(args)
+                    args[-1] = args[-1].encode('shift_jis')
+                    format = '%s%ds' % (format[:-1], len(args[-1]))
+                format = '<IHHHH%s' % format
+                size = calcsize(format)
+                instruction_offsets.append((instruction_offsets[-1] + len(instruction_datas[-1])) if instruction_offsets else 0)
+                instruction_datas.append(pack(format, time, opcode, size, rank_mask, param_mask, *args))
+
+            #TODO: clean up this mess
+            for instruction, data, offset in zip(sub, instruction_datas, instruction_offsets):
+                time, opcode, rank_mask, param_mask, args = instruction
+                if opcode in (2, 29, 30, 31, 32, 33, 34): # relative_jump
+                    frame, index = args
+                    args = frame, instruction_offsets[index] - offset
+                    format = '<IHHHH%s' % self._instructions[opcode][0]
+                    size = calcsize(format)
+                    data = pack(format, time, opcode, size, rank_mask, param_mask, *args)
+                elif opcode == 3: # relative_jump_ex
+                    frame, index, counter_id = args
+                    args = frame, instruction_offsets[index] - offset, counter_id
+                    format = '<IHHHH%s' % self._instructions[opcode][0]
+                    size = calcsize(format)
+                    data = pack(format, time, opcode, size, rank_mask, param_mask, *args)
+                file.write(data)
+            file.write(b'\xff' * 6 + b'\x0c\x00\x00\xff\xff\x00')
+
+        # Write main
+        main_offset = file.tell()
+        for time, sub, opcode, args in self.main:
+            format = '<HHHH%s' % self._main_instructions[opcode][0]
+            size = calcsize(format)
+
+            file.write(pack(format, time, sub, opcode, size, *args))
+        file.write(b'\xff\xff\x04\x00')
+
+        # Patch header
+        file.seek(0)
+        file.write(pack('<IIII%dI' % sub_count, sub_count, main_offset, 0, 0, *sub_offsets))
 
