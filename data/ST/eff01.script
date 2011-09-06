@@ -1,0 +1,12 @@
+ENTRY 0
+Name: data/eff00/eff01.png
+Format: 1
+Width: 256
+Height: 256
+
+Sprite: 0 384*448+0+0
+
+Script: 0
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+

@@ -1,0 +1,147 @@
+ENTRY 0
+Name: data/stg1bg/stg1bg.png
+#Name2: data/stg1bg/stg1bg_a.png
+Format: 1
+Width: 256
+Height: 256
+
+Sprite: 0 81*46+33+52
+Sprite: 1 38*24+57+25
+Sprite: 2 22*20+33+25
+Sprite: 3 22*20+97+25
+Sprite: 4 38*22+57+1
+Sprite: 5 54*97+201+158
+Sprite: 6 14*50+33+158
+Sprite: 7 14*50+47+158
+Sprite: 8 30*30+33+100
+Sprite: 9 30*24+33+132
+Sprite: 10 30*254+1+1
+Sprite: 11 10*58+65+101
+
+# Road
+Script: 0
+Instruction: 0 0 1 0
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Blue car part 1
+Script: 1
+Instruction: 0 0 1 1
+Instruction: 0 0 9 0.0f 1.570796f 0.0f
+Instruction: 0 0 15
+
+# Blue car part 2
+Script: 2
+Instruction: 0 0 1 2
+Instruction: 0 0 9 1.570796f 0.0f 0.0f
+Instruction: 0 0 15
+
+# Blue car part 3
+Script: 3
+Instruction: 0 0 1 3
+Instruction: 0 0 9 1.570796f 0.0f 0.0f
+Instruction: 0 0 15
+
+# Blue car part 4
+Script: 4
+Instruction: 0 0 1 4
+Instruction: 0 0 9 0.0f 0.0f 1.570796f
+Instruction: 0 0 15
+
+
+# Red car part 1
+Script: 5
+Instruction: 0 0 1 1
+Instruction: 0 0 23
+Instruction: 0 0 9 1.570796f 0.0f 0.0f
+Instruction: 0 0 4 0xff000000
+Instruction: 0 0 15
+
+# Red car part 2
+Script: 6
+Instruction: 0 0 1 2
+Instruction: 0 0 23
+Instruction: 0 0 9 0.0f 1.570796f 0.0f
+Instruction: 0 0 4 0xff000000
+Instruction: 0 0 15
+
+# Red car part 3
+Script: 7
+Instruction: 0 0 1 3
+Instruction: 0 0 23
+Instruction: 0 0 9 0.0f 1.570796f 0.0f
+Instruction: 0 0 4 0xff000000
+Instruction: 0 0 15
+
+# Red car part 4
+Script: 8
+Instruction: 0 0 1 4
+Instruction: 0 0 23
+Instruction: 0 0 4 0xff000000
+Instruction: 0 0 15
+
+# Tree
+Script: 9
+Instruction: 0 0 1 5
+Instruction: 0 0 23
+Instruction: 0 0 9 -1.570796f 0.0f -0.2f
+Instruction: 0 0 15
+
+# Tree 2
+Script: 10
+Instruction: 0 0 1 5
+Instruction: 0 0 23
+Instruction: 0 0 9 -1.570796f 0.0f 0.2f
+Instruction: 0 0 15
+
+# Grass
+Script: 11
+Instruction: 0 0 1 6
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Grass boundary
+Script: 12
+Instruction: 0 0 1 7
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Grass boundary 2
+Script: 13
+Instruction: 0 0 1 7
+Instruction: 0 0 7
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Dirt
+Script: 14
+Instruction: 0 0 1 8
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Water 1
+Script: 15
+Instruction: 0 0 1 9
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Flowing water
+Script: 16
+Instruction: 0 0 1 10
+Instruction: 0 0 23
+Instruction: 0 0 28 0.1f
+Instruction: 1 0 5 12
+
+# Border 1
+Script: 17
+Instruction: 0 0 1 11
+Instruction: 0 0 23
+Instruction: 0 0 15
+
+# Border 2
+Script: 18
+Instruction: 0 0 1 11
+Instruction: 0 0 23
+Instruction: 0 0 7
+Instruction: 0 0 15
+

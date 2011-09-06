@@ -1,0 +1,11 @@
+ENTRY 0
+Name: data/face/face42.png
+#Name2: data/face/face03b_a.png
+Format: 1
+Width: 256
+Height: 256
+
+Sprite: 0 128*256+0+0
+Sprite: 1 128*256+128+0
+
+
