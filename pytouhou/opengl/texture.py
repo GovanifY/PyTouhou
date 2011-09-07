@@ -12,14 +12,9 @@
 ## GNU General Public License for more details.
 ##
 
-import pygame
+import pyglet
+from pyglet.gl import *
 import os
-from io import BytesIO
-
-import OpenGL
-OpenGL.FORWARD_COMPATIBLE_ONLY = True
-from OpenGL.GL import *
-from OpenGL.GLU import *
 
 
 class TextureManager(object):
@@ -47,32 +42,22 @@ class TextureManager(object):
     def load_texture(self, key):
         first_name, secondary_name = key
 
-        image_file = self.loader.get_file(os.path.basename(first_name))
-        textureSurface = pygame.image.load(image_file).convert_alpha()
+        image_file = pyglet.image.load(first_name, file=self.loader.get_file(os.path.basename(first_name)))
 
         if secondary_name:
-            alpha_image_file = self.loader.get_file(os.path.basename(secondary_name))
-            alphaSurface = pygame.image.load(alpha_image_file)
-            assert textureSurface.get_size() == alphaSurface.get_size()
-            for x in range(alphaSurface.get_width()):
-                for y in range(alphaSurface.get_height()):
-                    r, g, b, a = textureSurface.get_at((x, y))
-                    color2 = alphaSurface.get_at((x, y))
-                    textureSurface.set_at((x, y), (r, g, b, color2[0]))
+            alpha_file = pyglet.image.load(secondary_name, file=self.loader.get_file(os.path.basename(secondary_name)))
+            assert (image_file.width, image_file.height) == (alpha_file.width, image_file.height)
 
-        textureData = pygame.image.tostring(textureSurface, 'RGBA', 1)
+            data = image_file.get_data('RGB', image_file.width * 3)
+            alpha_data = alpha_file.get_data('RGB', image_file.width * 3)
+            image_file = pyglet.image.ImageData(image_file.width, image_file.height, 'RGBA', b''.join(data[i*3:i*3+3] + alpha_data[i*3] for i in range(image_file.width * image_file.height)))
 
-        width = textureSurface.get_width()
-        height = textureSurface.get_height()
+            #TODO
 
-        texture = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, texture)
+        texture = image_file.get_texture()
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-            GL_UNSIGNED_BYTE, textureData)
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 
         return texture
 

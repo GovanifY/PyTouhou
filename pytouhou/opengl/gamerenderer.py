@@ -15,34 +15,30 @@
 import struct
 from itertools import chain
 
-import pygame
-
-import OpenGL
-OpenGL.FORWARD_COMPATIBLE_ONLY = True
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
+import pyglet
+from pyglet.gl import *
 
 from pytouhou.opengl.texture import TextureManager
 from pytouhou.opengl.sprite import get_sprite_rendering_data
 from pytouhou.opengl.background import get_background_rendering_data
 
 
-class GameRenderer(object):
+class GameRenderer(pyglet.window.Window):
     def __init__(self, resource_loader, game=None, background=None):
+        pyglet.window.Window.__init__(self, caption='PyTouhou', resizable=False)
+        self.keys = pyglet.window.key.KeyStateHandler()
+        self.push_handlers(self.keys)
+
         self.texture_manager = TextureManager(resource_loader)
+
+        self.fps_display =         pyglet.clock.ClockDisplay()
 
         self.game = game
         self.background = background
 
-        self.window = None
-
 
     def start(self, width=384, height=448):
-        # Initialize pygame
-        pygame.init()
-        self.window = pygame.display.set_mode((width, height),
-                                              pygame.OPENGL | pygame.DOUBLEBUF)
+        self.set_size(width, height)
 
         # Initialize OpenGL
         glMatrixMode(GL_PROJECTION)
@@ -58,6 +54,29 @@ class GameRenderer(object):
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+        pyglet.clock.schedule_interval(self.update, 1./120)
+        pyglet.app.run()
+
+
+    def on_resize(self, width, height):
+        glViewport(0, 0, width, height)
+
+
+
+    def update(self, dt):
+        if self.background:
+            self.background.update(self.game.game_state.frame)
+        if self.game:
+            self.game.run_iter(0) #TODO: self.keys...
+
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == pyglet.window.key.ESCAPE:
+            pyglet.app.exit()
+        # XXX: Fullscreen will be enabled the day pyglet stops sucking
+        elif symbol == pyglet.window.key.F11:
+            self.set_fullscreen(not self.fullscreen)
 
 
     def render_elements(self, elements):
@@ -76,15 +95,18 @@ class GameRenderer(object):
 
         for (texture_key, blendfunc), (vertices, uvs, colors) in objects_by_texture.items():
             nb_vertices = len(vertices)
+            vertices = struct.pack(str(3 * nb_vertices) + 'f', *chain(*vertices))
+            uvs = struct.pack(str(2 * nb_vertices) + 'f', *chain(*uvs))
+            colors = struct.pack(str(4 * nb_vertices) + 'B', *chain(*colors))
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-            glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
-            glVertexPointer(3, GL_FLOAT, 0, struct.pack(str(3 * nb_vertices) + 'f', *chain(*vertices)))
-            glTexCoordPointer(2, GL_FLOAT, 0, struct.pack(str(2 * nb_vertices) + 'f', *chain(*uvs)))
-            glColorPointer(4, GL_UNSIGNED_BYTE, 0, struct.pack(str(4 * nb_vertices) + 'B', *chain(*colors)))
+            glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key].id)
+            glVertexPointer(3, GL_FLOAT, 0, vertices)
+            glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
             glDrawArrays(GL_QUADS, 0, nb_vertices)
 
 
-    def render(self):
+    def on_draw(self):
         glClear(GL_DEPTH_BUFFER_BIT)
 
         back = self.background
@@ -99,7 +121,7 @@ class GameRenderer(object):
             glFogi(GL_FOG_MODE, GL_LINEAR)
             glFogf(GL_FOG_START, fog_start)
             glFogf(GL_FOG_END,  fog_end)
-            glFogfv(GL_FOG_COLOR, (fog_r / 255., fog_g / 255., fog_b / 255., 1.))
+            glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
 
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
@@ -115,7 +137,7 @@ class GameRenderer(object):
             glEnable(GL_DEPTH_TEST)
             for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in get_background_rendering_data(back):
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
+                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key].id)
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
                 glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
@@ -123,7 +145,6 @@ class GameRenderer(object):
             glDisable(GL_DEPTH_TEST)
         else:
             glClear(GL_COLOR_BUFFER_BIT)
-
 
         if game is not None:
             glMatrixMode(GL_MODELVIEW)
@@ -140,4 +161,11 @@ class GameRenderer(object):
             self.render_elements(game.enemies)
             self.render_elements(game.game_state.bullets)
             glEnable(GL_FOG)
+
+        #TODO
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        gluLookAt(192., 224., 835.979370,
+                  192, 224., 0., 0., 1., 0.)
+        self.fps_display.draw()
 

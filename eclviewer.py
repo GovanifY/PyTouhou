@@ -16,8 +16,6 @@
 import sys
 import os
 
-import pygame
-
 from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
 from pytouhou.opengl.gamerenderer import GameRenderer
@@ -37,36 +35,12 @@ def main(path, stage_num):
     background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
     background = Background(stage, background_anm_wrapper)
 
-    # Renderer
-    renderer = GameRenderer(resource_loader, game, background)
-    renderer.start()
-
     # Let's go!
     print(stage.name)
 
     # Main loop
-    clock = pygame.time.Clock()
-    while True:
-        # Check events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_q)):
-                sys.exit(0)
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN and event.mod & pygame.KMOD_ALT:
-                    pygame.display.toggle_fullscreen()
-        keystate = 0 #TODO
-
-        # Update game
-        background.update(game.game_state.frame) #TODO
-        game.run_iter(keystate)
-
-        # Draw everything
-        renderer.render()
-
-        pygame.display.flip()
-
-        clock.tick(120)
-
+    renderer = GameRenderer(resource_loader, game, background)
+    renderer.start()
 
 
 try:
