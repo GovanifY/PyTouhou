@@ -32,8 +32,8 @@ class Stage(object):
     _instructions = {0: ('fff', 'set_viewpos'),
                      1: ('BBBxff', 'set_fog'),
                      2: ('fff', 'set_viewpos2'),
-                     3: ('III', 'start_interpolating_viewpos2'),
-                     4: ('III', 'start_interpolating_fog')}
+                     3: ('Ixxxxxxxx', 'start_interpolating_viewpos2'),
+                     4: ('Ixxxxxxxx', 'start_interpolating_fog')}
 
     def __init__(self):
         self.name = ''
