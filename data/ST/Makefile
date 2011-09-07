@@ -1,4 +1,4 @@
-all: stg1bg.png stg1bg.anm stage1.std face03a.anm face03b.anm face42.png eff01.png eff01.anm stg1enm2.anm ecldata1.ecl stg1enm.png stg1enm.anm stg1enm2.anm msg1.dat
+all: stg1bg.png stg1bg.anm stage1.std face03a.anm face03b.anm face42.png eff01.png eff01.anm stg1enm2.anm ecldata1.ecl stg1enm.png stg1enm.anm stg1enm2.anm msg1.dat etama3.anm etama3.png
 
 face42.png: face.svg
 	inkscape -e face42.png face.svg
@@ -36,6 +36,14 @@ eff01.anm: eff01.script
 	thanm c eff01.anm eff01.script
 
 
+etama3.anm: etama3.script
+	thanm c etama3.anm etama3.script
+
+
+etama3.png: etama3.svg
+	inkscape -e etama3.png etama3.svg
+
+
 stg1enm2.anm: stg1enm2.script
 	thanm c stg1enm2.anm stg1enm2.script
 
@@ -53,6 +61,6 @@ msg1.dat: msg1.script
 
 
 clean:
-	rm -f stg1bg.png stg1bg.anm stage1.std face03a.anm face03b.anm face42.png eff01.png eff01.anm stg1enm2.anm ecldata1.ecl stg1enm.png stg1enm.anm stg1enm2.anm msg1.dat
+	rm -f stg1bg.png stg1bg.anm stage1.std face03a.anm face03b.anm face42.png eff01.png eff01.anm stg1enm2.anm ecldata1.ecl stg1enm.png stg1enm.anm stg1enm2.anm msg1.dat etama3.anm etama3.png
 
 .PHONY: all clean
