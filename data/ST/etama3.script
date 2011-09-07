@@ -13,13 +13,13 @@ Sprite: 4 16*16+64+32 # Full power item
 Sprite: 5 16*16+80+32 # Life item
 Sprite: 6 16*16+96+32 # Star item
 
-Sprite: 7 16*16+112+32 # HARDOCDED: Power item indicator
-Sprite: 8 16*16+128+32 # HARDOCDED: Point item indicator
-Sprite: 9 16*16+144+32 # HARDOCDED: Big power item indicator
-Sprite: 10 16*16+160+32 # HARDOCDED: Bomb item indicator
-Sprite: 11 16*16+176+32 # HARDOCDED: Full power indicator
-Sprite: 12 16*16+192+32 # HARDOCDED: Life item indicator
-Sprite: 13 16*16+208+32 # HARDOCDED: Star item indicator
+Sprite: 7 8*16+112+32 # HARDOCDED: Power item indicator
+Sprite: 8 8*16+128+32 # HARDOCDED: Point item indicator
+Sprite: 9 8*16+144+32 # HARDOCDED: Big power item indicator
+Sprite: 10 8*16+160+32 # HARDOCDED: Bomb item indicator
+Sprite: 11 8*16+176+32 # HARDOCDED: Full power indicator
+Sprite: 12 8*16+192+32 # HARDOCDED: Life item indicator
+Sprite: 13 8*16+208+32 # HARDOCDED: Star item indicator
 
 # Bullets
 Sprite: 14 16*16+0+0

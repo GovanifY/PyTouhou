@@ -78,6 +78,7 @@ for model in models:
 
 stage = Stage()
 stage.name = 'Test by ThibG'
+stage.bgms = ('', 'bgm/th06_15.mid'), ('', ''), ('', ''), ('', '')
 stage.models = models
 stage.object_instances = instances
 stage.script = [(0, 1, (50, 0, 50, 300.0, 800.0)),
