@@ -64,6 +64,38 @@ class ANMRunner(object):
                     callback(self, *args)
                     self._sprite._changed = True
         self.frame += 1
+
+        # Update sprite
+        sprite = self._sprite
+        sprite.frame += 1
+
+        if sprite.rotations_speed_3d != (0., 0., 0.):
+            ax, ay, az = sprite.rotations_3d
+            sax, say, saz = sprite.rotations_speed_3d
+            sprite.rotations_3d = ax + sax, ay + say, az + saz
+            sprite._changed = True
+
+        if sprite.scale_speed != (0., 0.):
+            rx, ry = sprite.rescale
+            rsx, rsy = sprite.scale_speed
+            sprite.rescale = rx + rsx, ry + rsy
+            sprite._changed = True
+
+        if sprite.fade_interpolator:
+            sprite.fade_interpolator.update(sprite.frame)
+            sprite.alpha = int(sprite.fade_interpolator.values[0])
+            sprite._changed = True
+
+        if sprite.scale_interpolator:
+            sprite.scale_interpolator.update(sprite.frame)
+            sprite.rescale = sprite.scale_interpolator.values
+            sprite._changed = True
+
+        if sprite.offset_interpolator:
+            sprite.offset_interpolator.update(sprite.frame)
+            sprite.dest_offset = sprite.offset_interpolator.values
+            sprite._changed = True
+
         return self._running
 
 

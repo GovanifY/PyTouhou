@@ -116,8 +116,13 @@ class Bullet(object):
             self._launched = True
             self.set_anim()
 
-        self._anmrunner.run_frame()
-        self._sprite.update(angle_base=self.angle)
+        sprite = self._sprite
+
+        if self._anmrunner is not None and not self._anmrunner.run_frame():
+            self._anmrunner = None
+        if sprite.automatic_orientation and sprite.angle != self.angle:
+            sprite.angle = self.angle
+            sprite._changed = True
 
         #TODO: flags
         x, y = self.x, self.y

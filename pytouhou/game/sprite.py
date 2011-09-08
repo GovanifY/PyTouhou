@@ -17,13 +17,20 @@ from pytouhou.utils.interpolator import Interpolator
 
 
 class Sprite(object):
-    def __init__(self):
+    __slots__ = ('anm', '_removed', '_changed', 'width_override', 'height_override',
+                 'angle', 'force_rotation', 'scale_interpolator', 'fade_interpolator',
+                 'offset_interpolator', 'automatic_orientation', 'blendfunc',
+                 'texcoords', 'dest_offset', 'allow_dest_offset', 'texoffsets',
+                 'mirrored', 'rescale', 'scale_speed', 'rotations_3d',
+                 'rotations_speed_3d', 'corner_relative_placement', 'frame',
+                 'color', 'alpha', '_rendering_data')
+    def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self._removed = False
         self._changed = False
 
-        self.width_override = 0
-        self.height_override = 0
+        self.width_override = width_override
+        self.height_override = height_override
         self.angle = 0
         self.force_rotation = False
 
@@ -73,32 +80,9 @@ class Sprite(object):
             self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
 
 
-    def update(self, override_width=0, override_height=0, angle_base=0., force_rotation=False):
-        if (override_width != self.width_override
-            or override_height != self.height_override
-            or self.angle != angle_base
-            or self.force_rotation != force_rotation
-            or self.scale_interpolator
-            or self.fade_interpolator
-            or self.offset_interpolator):
-
-            self._changed = True
-            self.width_override = override_width
-            self.height_override = override_height
+    def update_orientation(self, angle_base=0., force_rotation=False):
+        if (self.angle != angle_base or self.force_rotation != force_rotation):
             self.angle = angle_base
             self.force_rotation = force_rotation
-
-        if self.rotations_speed_3d != (0., 0., 0.):
-            ax, ay, az = self.rotations_3d
-            sax, say, saz = self.rotations_speed_3d
-            self.rotations_3d = ax + sax, ay + say, az + saz
             self._changed = True
-
-        if self.scale_speed != (0., 0.):
-            rx, ry = self.rescale
-            rsx, rsy = self.scale_speed
-            self.rescale = rx + rsx, ry + rsy
-            self._changed = True
-
-        self.frame += 1
 

@@ -240,8 +240,8 @@ class Enemy(object):
             if self._sprite._removed:
                 self._sprite = None
             else:
-                self._sprite.update(angle_base=self.angle,
-                                    force_rotation=self.automatic_orientation)
+                self._sprite.update_orientation(self.angle,
+                                                self.automatic_orientation)
 
 
         if self.bullet_launch_interval != 0:

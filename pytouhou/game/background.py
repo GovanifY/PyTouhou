@@ -51,10 +51,9 @@ class Background(object):
         for obj in self.stage.models:
             quads = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
-                sprite = Sprite()
+                sprite = Sprite(width_override, height_override)
                 anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
                 anm_runner.run_frame()
-                sprite.update(width_override, height_override)
                 quads.append((ox, oy, oz, width_override, height_override, sprite))
                 self.anm_runners.append(anm_runner)
             self.models.append(quads)
@@ -82,10 +81,6 @@ class Background(object):
         for anm_runner in tuple(self.anm_runners):
             if not anm_runner.run_frame():
                 self.anm_runners.remove(anm_runner)
-
-        for model in self.models:
-            for ox, oy, oz, width_override, height_override, sprite in model:
-                sprite.update(width_override, height_override)
 
         self.position2_interpolator.update(frame)
         self.fog_interpolator.update(frame)

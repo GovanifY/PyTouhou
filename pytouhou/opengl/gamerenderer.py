@@ -63,7 +63,6 @@ class GameRenderer(pyglet.window.Window):
         glViewport(0, 0, width, height)
 
 
-
     def update(self, dt):
         if self.background:
             self.background.update(self.game.game_state.frame)

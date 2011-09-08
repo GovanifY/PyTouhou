@@ -22,18 +22,6 @@ def get_sprite_rendering_data(sprite):
     if not sprite._changed:
         return sprite._rendering_data
 
-    if sprite.fade_interpolator:
-        sprite.fade_interpolator.update(sprite.frame)
-        sprite.alpha = int(sprite.fade_interpolator.values[0])
-
-    if sprite.scale_interpolator:
-        sprite.scale_interpolator.update(sprite.frame)
-        sprite.rescale = sprite.scale_interpolator.values
-
-    if sprite.offset_interpolator:
-        sprite.offset_interpolator.update(sprite.frame)
-        sprite.dest_offset = sprite.offset_interpolator.values
-
     vertmat = Matrix([[-.5,     .5,     .5,    -.5],
                       [-.5,    -.5,     .5,     .5],
                       [ .0,     .0,     .0,     .0],
