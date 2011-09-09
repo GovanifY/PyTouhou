@@ -180,7 +180,7 @@ Instruction: 0 0 1 88
 Instruction: 0 0 13
 Instruction: 0 0 15
 
-# ARDCODED: cancel anim for bullet type 0
+# HARDCODED: cancel anim for bullet type 0
 Script: 11
 Instruction: 0 0 1 56
 Instruction: 0 0 0

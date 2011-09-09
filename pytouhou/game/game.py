@@ -22,9 +22,11 @@ from pytouhou.game.enemy import Enemy
 
 class GameState(object):
     __slots__ = ('resource_loader', 'bullets', 'players', 'rank', 'difficulty', 'frame',
-                 'stage', 'boss', 'prng')
-    def __init__(self, resource_loader, players, stage, rank, difficulty):
+                 'stage', 'boss', 'prng', 'bullet_types')
+    def __init__(self, resource_loader, players, stage, rank, difficulty, bullet_types):
         self.resource_loader = resource_loader
+
+        self.bullet_types = bullet_types
 
         self.bullets = []
 
@@ -39,8 +41,8 @@ class GameState(object):
 
 
 class Game(object):
-    def __init__(self, resource_loader, players, stage, rank, difficulty):
-        self.game_state = GameState(resource_loader, players, stage, rank, difficulty)
+    def __init__(self, resource_loader, players, stage, rank, difficulty, bullet_types):
+        self.game_state = GameState(resource_loader, players, stage, rank, difficulty, bullet_types)
 
         self.enemies = []
 

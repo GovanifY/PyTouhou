@@ -55,7 +55,7 @@ class GameRenderer(pyglet.window.Window):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
-        pyglet.clock.schedule_interval(self.update, 1./120)
+        pyglet.clock.schedule_interval(self.update, 1./60)
         pyglet.app.run()
 
 

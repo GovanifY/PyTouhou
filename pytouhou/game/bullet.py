@@ -20,19 +20,14 @@ from pytouhou.game.sprite import Sprite
 
 
 class Bullet(object):
-    __slots__ = ('x', 'y', 'angle', 'speed', 'frame', 'grazed',
-                 'flags', 'attributes', 'anim_idx', 'sprite_idx_offset', 'player',
-                 'speed_interpolator',
-                 '_game_state', '_sprite', '_anmrunner',
-                 '_removed', '_launched')
-
-    def __init__(self, pos, anim_idx, sprite_idx_offset,
+    def __init__(self, pos, type_idx, sprite_idx_offset,
                        angle, speed, attributes, flags, player, game_state):
         self._game_state = game_state
         self._sprite = None
         self._anmrunner = None
         self._removed = False
         self._launched = False
+        self._bullet_type = game_state.bullet_types[type_idx]
 
         self.speed_interpolator = None
         self.frame = 0
@@ -40,21 +35,7 @@ class Bullet(object):
 
         self.player = player
 
-        self.anim_idx = anim_idx
         self.sprite_idx_offset = sprite_idx_offset
-
-        #TODO
-        #if flags & (2|4|8):
-        #    if flags & 2: #TODO: Huh?!
-        #        index = 14
-        #    elif flags & 4:
-        #        index = 15
-        #    else:
-        #        index = 19
-        #    self._sprite = Sprite()
-        #    self._anmrunner = ANMRunner(self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)), #TODO
-        #                                index, self._sprite, 0) #TODO: offset
-        #    self._anmrunner.run_frame()
 
         self.flags = flags
         self.attributes = list(attributes)
@@ -62,79 +43,103 @@ class Bullet(object):
         self.x, self.y = pos
         self.angle = angle
         self.speed = speed
+        dx, dy = cos(angle) * speed, sin(angle) * speed
+        self.delta = dx, dy
 
-        if flags & 1:
-            self.speed_interpolator = Interpolator((speed + 5.,))
-            self.speed_interpolator.set_interpolation_start(0, (speed + 5.,))
-            self.speed_interpolator.set_interpolation_end(16, (speed,))
-        if flags & 448:
-            self.speed_interpolator = Interpolator((speed,))
-            self.speed_interpolator.set_interpolation_start(0, (speed,))
-            self.speed_interpolator.set_interpolation_end(attributes[0] - 1, (0,)) # TODO: really -1? Without, the new speed isn’t set.
+        #TODO
+        if flags & 14:
+            bt = self._bullet_type
+            if flags & 2:
+                index = bt.launch_anim2_index
+                launch_mult = bt.launch_anim_penalties[0]
+            elif flags & 4:
+                index = bt.launch_anim4_index
+                launch_mult = bt.launch_anim_penalties[1]
+            else:
+                index = bt.launch_anim8_index
+                launch_mult = bt.launch_anim_penalties[2]
+            self.launch_delta = dx * launch_mult, dy * launch_mult
+            self._sprite = Sprite()
+            self._anmrunner = ANMRunner(bt.anm_wrapper,
+                                        index, self._sprite,
+                                        bt.launch_anim_offsets[sprite_idx_offset])
+            self._anmrunner.run_frame()
+        else:
+            self.launch()
 
-
-    def get_player_angle(self):
-        return atan2(self.player.y - self.y, self.player.x - self.x)
+        self._sprite.angle = angle
 
 
     def is_visible(self, screen_width, screen_height):
-        if self._sprite:
-            tx, ty, tw, th = self._sprite.texcoords
-            if self._sprite.corner_relative_placement:
-                raise Exception #TODO
-        else:
-            tx, ty, tw, th = 0., 0., 0., 0.
+        tx, ty, tw, th = self._sprite.texcoords
+        if self._sprite.corner_relative_placement:
+            raise Exception #TODO
 
         max_x = tw / 2.
         max_y = th / 2.
-        min_x = -max_x
-        min_y = -max_y
 
-        if any((min_x > screen_width - self.x,
+        if any((max_x < self.x - screen_width,
                 max_x < -self.x,
-                min_y > screen_height - self.y,
+                max_y < self.y - screen_height,
                 max_y < -self.y)):
             return False
         return True
 
 
-    def set_anim(self, anim_idx=None, sprite_idx_offset=None):
-        if anim_idx is not None:
-            self.anim_idx = anim_idx
-
+    def set_anim(self, sprite_idx_offset=None):
         if sprite_idx_offset is not None:
             self.sprite_idx_offset = sprite_idx_offset
 
+        bt = self._bullet_type
         self._sprite = Sprite()
-        anm_wrapper = self._game_state.resource_loader.get_anm_wrapper(('etama3.anm',)) #TODO
-        self._anmrunner = ANMRunner(anm_wrapper, self.anim_idx,
+        self._sprite.angle = self.angle
+        self._anmrunner = ANMRunner(bt.anm_wrapper, bt.anim_index,
                                     self._sprite, self.sprite_idx_offset)
+        self._anmrunner.run_frame()
+
+
+    def launch(self):
+        self._launched = True
+        self.update = self.update_full
+        self.set_anim()
+        if self.flags & 1:
+            self.speed_interpolator = Interpolator((self.speed + 5.,), 0,
+                                                   (self.speed,), 16)
 
 
     def update(self):
-        if not self._sprite or self._sprite._removed:
-            self._launched = True
-            self.set_anim()
+        dx, dy = self.launch_delta
+        self.x += dx
+        self.y += dy
 
+        self.frame += 1
+
+        if not self._anmrunner.run_frame():
+            self.launch()
+
+
+    def update_simple(self):
+        dx, dy = self.delta
+        self.x += dx
+        self.y += dy
+
+
+    def update_full(self):
         sprite = self._sprite
 
         if self._anmrunner is not None and not self._anmrunner.run_frame():
             self._anmrunner = None
-        if sprite.automatic_orientation and sprite.angle != self.angle:
-            sprite.angle = self.angle
-            sprite._changed = True
 
         #TODO: flags
         x, y = self.x, self.y
+        dx, dy = self.delta
 
         if self.flags & 16:
             frame, count = self.attributes[0:2]
             length, angle = self.attributes[4:6]
             angle = self.angle if angle < -900.0 else angle #TODO: is that right?
-            dx = cos(self.angle) * self.speed + cos(angle) * length
-            dy = sin(self.angle) * self.speed + sin(angle) * length
-            self.speed = (dx ** 2 + dy ** 2) ** 0.5
-            self.angle = atan2(dy, dx)
+            dx, dy = dx + cos(angle) * length, dy + sin(angle) * length
+            self.delta = dx, dy
             if self.frame == frame: #TODO: include last frame, or not?
                 if count > 0:
                     self.attributes[1] -= 1
@@ -147,7 +152,12 @@ class Bullet(object):
             acceleration, angular_speed = self.attributes[4:6]
             self.speed += acceleration
             self.angle += angular_speed
-            if self.frame != 0 and self.frame % frame == 0:
+            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
+            self.delta = dx, dy
+            sprite.angle = self.angle
+            if sprite.automatic_orientation:
+                sprite._changed = True
+            if self.frame % frame == 0:
                 if count > 0:
                     self.attributes[1] -= 1
                 else:
@@ -156,31 +166,38 @@ class Bullet(object):
             #TODO: check
             frame, count = self.attributes[0:2]
             angle, speed = self.attributes[4:6]
-            if self.frame != 0 and self.frame % frame == 0:
+            if self.frame % frame == 0:
                 count = count - 1
 
                 if self.flags & 64:
-                    self.angle = self.angle + angle
+                    self.angle += angle
                 elif self.flags & 128:
-                    self.angle = self.get_player_angle() + angle
+                    self.angle = atan2(self.player.y - y, self.player.x - x) + angle
                 elif self.flags & 256:
                     self.angle = angle
 
-                if count:
-                    self.speed_interpolator.set_interpolation_start(self.frame, (speed,))
-                    self.speed_interpolator.set_interpolation_end(self.frame + frame - 1, (0,)) # TODO: really -1? Without, the new speed isn’t set.
+                dx, dy = cos(self.angle) * speed, sin(self.angle) * speed
+                self.delta = dx, dy
+                sprite.angle = self.angle
+                if sprite.automatic_orientation:
+                    sprite._changed = True
+
+                if count > 0:
+                    self.speed_interpolator = Interpolator((speed,), self.frame,
+                                                           (0.,), self.frame + frame - 1)
                 else:
                     self.flags &= ~448
                     self.speed = speed
 
                 self.attributes[1] = count
         #TODO: other flags
+        elif not self.speed_interpolator and self._anmrunner is None:
+            self.update = self.update_simple
 
         if self.speed_interpolator:
             self.speed_interpolator.update(self.frame)
             self.speed, = self.speed_interpolator.values
 
-        dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
         self.x, self.y = x + dx, y + dy
 
         self.frame += 1

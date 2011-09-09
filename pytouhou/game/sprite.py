@@ -61,23 +61,23 @@ class Sprite(object):
 
     def fade(self, duration, alpha, formula):
         if not self.fade_interpolator:
-            self.fade_interpolator = Interpolator((self.alpha,), formula)
-            self.fade_interpolator.set_interpolation_start(self.frame, (self.alpha,))
-            self.fade_interpolator.set_interpolation_end(self.frame + duration - 1, (alpha,))
+            self.fade_interpolator = Interpolator((self.alpha,), self.frame,
+                                                  (alpha,), self.frame + duration,
+                                                  formula)
 
 
     def scale_in(self, duration, sx, sy, formula):
         if not self.scale_interpolator:
-            self.scale_interpolator = Interpolator(self.rescale, formula)
-            self.scale_interpolator.set_interpolation_start(self.frame, self.rescale)
-            self.scale_interpolator.set_interpolation_end(self.frame + duration - 1, (sx, sy))
+            self.scale_interpolator = Interpolator(self.rescale, self.frame,
+                                                   (sx, sy), self.frame + duration,
+                                                   formula)
 
 
     def move_in(self, duration, x, y, z, formula):
         if not self.offset_interpolator:
-            self.offset_interpolator = Interpolator(self.dest_offset, formula)
-            self.offset_interpolator.set_interpolation_start(self.frame, self.dest_offset)
-            self.offset_interpolator.set_interpolation_end(self.frame + duration - 1, (x, y, z))
+            self.offset_interpolator = Interpolator(self.dest_offset, self.frame,
+                                                    (x, y, z), self.frame + duration,
+                                                    formula)
 
 
     def update_orientation(self, angle_base=0., force_rotation=False):

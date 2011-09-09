@@ -41,14 +41,13 @@ class ANMRunner(object):
 
 
     def run_frame(self):
-        if self._sprite._removed:
+        if not self._running:
             return False
 
+        sprite = self._sprite
+
         while self._running:
-            try:
-                frame, instr_type, args = self.script[self.instruction_pointer]
-            except IndexError:
-                return False
+            frame, opcode, args = self.script[self.instruction_pointer]
 
             if frame > self.frame:
                 break
@@ -57,16 +56,15 @@ class ANMRunner(object):
 
             if frame == self.frame:
                 try:
-                    callback = self._handlers[instr_type]
+                    callback = self._handlers[opcode]
                 except KeyError:
                     logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
                 else:
                     callback(self, *args)
-                    self._sprite._changed = True
+                    sprite._changed = True
         self.frame += 1
 
         # Update sprite
-        sprite = self._sprite
         sprite.frame += 1
 
         if sprite.rotations_speed_3d != (0., 0., 0.):
@@ -102,7 +100,7 @@ class ANMRunner(object):
     @instruction(0)
     def remove(self):
         self._sprite._removed = True
-        self._running = True
+        self._running = False
 
 
     @instruction(1)

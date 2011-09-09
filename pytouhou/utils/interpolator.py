@@ -14,12 +14,13 @@
 
 
 class Interpolator(object):
-    def __init__(self, values=(), formula=None):
+    __slots__ = ('values', 'start_values', 'end_values', 'start_frame', 'end_frame', '_frame', '_formula')
+    def __init__(self, values=(), start_frame=0, end_values=(), end_frame=0, formula=None):
         self.values = tuple(values)
         self.start_values = tuple(values)
-        self.end_values = tuple(values)
-        self.start_frame = 0
-        self.end_frame = 0
+        self.end_values = tuple(end_values)
+        self.start_frame = start_frame
+        self.end_frame = end_frame
         self._frame = 0
         self._formula = formula or (lambda x: x)
 
@@ -50,8 +51,8 @@ class Interpolator(object):
         self._frame = frame
         if frame >= self.end_frame - 1: #XXX: skip the last interpolation step
             # This bug is replicated from the original game
-            self.values = tuple(self.end_values)
-            self.start_values = tuple(self.end_values)
+            self.values = self.end_values
+            self.start_values = self.end_values
             self.start_frame = frame
         else:
             coeff = self._formula(float(frame - self.start_frame) / float(self.end_frame - self.start_frame))
