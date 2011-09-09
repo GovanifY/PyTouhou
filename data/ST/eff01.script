@@ -8,5 +8,7 @@ Sprite: 0 384*448+0+0
 
 Script: 0
 Instruction: 0 0 1 0
+Instruction: 0 0 17 32.0f 16.0f 0.0f # Translation. Why is it needed?
+Instruction: 0 0 23
 Instruction: 0 0 15
 

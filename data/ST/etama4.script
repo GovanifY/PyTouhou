@@ -1,0 +1,165 @@
+ENTRY 0
+Name: data/etama/etama4.png
+Format: 1
+Width: 256
+Height: 256
+
+# Large bullets
+Sprite: 0 64*64+0+0
+Sprite: 1 64*64+64+0
+Sprite: 2 64*64+128+0
+Sprite: 3 64*64+192+0
+
+# Large numbers
+Sprite: 4 64*64+0+64
+Sprite: 5 64*64+64+64
+Sprite: 6 64*64+128+64
+Sprite: 7 64*64+192+64
+
+# Effects
+Sprite: 8 64*64+0+128 # Large effect
+Sprite: 9 32*32+64+160 # Small effect
+Sprite: 10 32*32+96+160 # Small warp-shaped effect
+Sprite: 11 32*32+128+160 # Small effect
+Sprite: 12 32*32+160+160 # Small square
+
+# Small numbers
+Sprite: 13 16*16+0+240
+Sprite: 14 16*16+16+240
+Sprite: 15 16*16+32+240
+Sprite: 16 16*16+48+240
+Sprite: 17 16*16+64+240
+Sprite: 18 16*16+80+240
+Sprite: 19 16*16+96+240
+Sprite: 20 16*16+112+240
+Sprite: 21 16*16+128+240
+Sprite: 22 16*16+144+240
+Sprite: 23 16*16+160+240
+Sprite: 24 16*16+176+240
+Sprite: 25 16*16+192+240
+Sprite: 26 16*16+208+240
+Sprite: 27 16*16+224+240
+Sprite: 28 16*16+240+240
+
+
+# HARDCODED: Bullet type 9
+Script: 0
+Instruction: 0 0 1 0
+Instruction: 0 0 13
+Instruction: 0 0 15
+
+# HARDCODED: cancel anim for bullet type 9
+Script: 1
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+# HARDCODED: launch anim for bullet type 9, flag 2, 4, 8
+Script: 2
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+# HARDCODED: explosion (ECL instruction 118) effect type 0, also used as default death anim
+Script: 3
+Instruction: 0 0 1 10
+Instruction: 0 0 13
+Instruction: 0 0 11 0.1f 0.1f
+Instruction: 0 0 12 0 30
+Instruction: 0 0 10 0.0f 0.0f 0.15f
+Instruction: 30 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 1 
+Script: 4
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 2
+Script: 5
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 3, also used as death (bomb) particles
+Script: 6
+Instruction: 0 0 1 13
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 17
+Script: 7
+Instruction: 0 0 1 0
+Instruction: 420 0 0
+
+# TODO: ??? Used in stage 6
+Script: 8
+Instruction: 0 0 1 0
+Instruction: 420 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 4, also used as death particles
+Script: 9
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 5, also used as hit particles
+Script: 10
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 6, also used as bomb effects
+Script: 11
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 7
+#TODO: check that it doesn't change anything with vanilla data
+Script: 12
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 8, also used as grazing effect
+Script: 13
+Instruction: 0 0 1 13
+Instruction: 0 0 13
+Instruction: 40 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 9
+#TODO: check that it doesn't change anything with vanilla data
+Script: 14
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 10
+#TODO: check that it doesn't change anything with vanilla data
+Script: 15
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 11
+#TODO: check that it doesn't change anything with vanilla data
+Script: 16
+Instruction: 0 0 1 0
+Instruction: 0 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type 12, also used as hit/player death anim, also used with (some?) ECL 121 functions 
+Script: 17
+Instruction: 0 0 1 8
+Instruction: 0 0 13
+Instruction: 0 0 12 0 40
+Instruction: 0 0 11 0.2f 0.2f
+Instruction: 200 0 0
+
+# HARDCODED: explosion (ECL instruction 118) effect type (13, 14, 15), also used as "square effect" (ECL instruction 102)
+Script: 18
+Instruction: 0 0 1 12
+Instruction: 0 0 2 0.5f 0.5f
+Instruction: 0 0 10 0.0f 0.0f 0.1f
+Instruction: 0 0 13
+Instruction: 4000 0 0
+
+# TODO
+Script: 19
+Instruction: 0 0 1 0
+Instruction: 420 0 0
+
+# TODO
+Script: 20
+Instruction: 0 0 1 0
+Instruction: 420 0 0
+

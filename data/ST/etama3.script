@@ -13,122 +13,222 @@ Sprite: 4 16*16+64+32 # Full power item
 Sprite: 5 16*16+80+32 # Life item
 Sprite: 6 16*16+96+32 # Star item
 
-Sprite: 7 8*16+112+32 # HARDOCDED: Power item indicator
-Sprite: 8 8*16+128+32 # HARDOCDED: Point item indicator
-Sprite: 9 8*16+144+32 # HARDOCDED: Big power item indicator
-Sprite: 10 8*16+160+32 # HARDOCDED: Bomb item indicator
-Sprite: 11 8*16+176+32 # HARDOCDED: Full power indicator
-Sprite: 12 8*16+192+32 # HARDOCDED: Life item indicator
-Sprite: 13 8*16+208+32 # HARDOCDED: Star item indicator
+Sprite: 7 16*16+112+32 # HARDCODED: Power item indicator
+Sprite: 8 16*16+128+32 # HARDCODED: Point item indicator
+Sprite: 9 16*16+144+32 # HARDCODED: Big power item indicator
+Sprite: 10 16*16+160+32 # HARDCODED: Bomb item indicator
+Sprite: 11 16*16+176+32 # HARDCODED: Full power indicator
+Sprite: 12 16*16+192+32 # HARDCODED: Life item indicator
+Sprite: 13 16*16+208+32 # HARDCODED: Star item indicator
 
-# Bullets
+# Energy bullets
 Sprite: 14 16*16+0+0
 Sprite: 15 16*16+16+0
 Sprite: 16 16*16+32+0
 Sprite: 17 16*16+48+0
 Sprite: 18 16*16+64+0
 Sprite: 29 16*16+80+0
-Sprite: 20 16*16+96+0
+Sprite: 30 16*16+96+0
+Sprite: 31 16*16+112+0
+Sprite: 32 16*16+128+0
+Sprite: 33 16*16+144+0
+Sprite: 34 16*16+160+0
+Sprite: 35 16*16+176+0
+Sprite: 36 16*16+192+0
+Sprite: 37 16*16+208+0
+Sprite: 38 16*16+224+0
+Sprite: 39 16*16+240+0
 
-Sprite: 21 16*16+4+16
-Sprite: 22 16*16+20+16
-Sprite: 23 16*16+36+16
-Sprite: 24 16*16+52+16
-Sprite: 25 16*16+68+16
-Sprite: 26 16*16+84+16
-Sprite: 27 16*16+100+16
+# "focused" things
+Sprite: 40 8*16+4+16
+Sprite: 41 8*16+20+16
+Sprite: 42 8*16+36+16
+Sprite: 43 8*16+52+16
+Sprite: 44 8*16+68+16
+Sprite: 45 8*16+84+16
+Sprite: 46 8*16+100+16
+Sprite: 47 8*16+116+16
+Sprite: 48 8*16+132+16
+Sprite: 49 8*16+148+16
+Sprite: 50 8*16+164+16
+Sprite: 51 8*16+180+16
+Sprite: 52 8*16+196+16
+Sprite: 53 8*16+212+16
+Sprite: 54 8*16+228+16
+Sprite: 55 8*16+244+16
+
+# Numbered bullets
+Sprite: 56 16*16+0+48   # 0
+Sprite: 57 16*16+16+48  # 1
+Sprite: 58 16*16+32+48  # 2
+Sprite: 59 16*16+48+48  # 3
+Sprite: 60 16*16+64+48  # 4
+Sprite: 61 16*16+80+48  # 5
+Sprite: 62 16*16+96+48  # 6
+Sprite: 63 16*16+112+48 # 7
+Sprite: 64 16*16+128+48 # 8
+Sprite: 65 16*16+144+48 # ⑨
+Sprite: 66 16*16+160+48 # 10 (A)
+Sprite: 67 16*16+176+48 # 11 (B)
+Sprite: 68 16*16+192+48 # 12 (C)
+Sprite: 69 16*16+208+48 # 13 (D)
+Sprite: 70 16*16+224+48 # 14 (E)
+Sprite: 71 16*16+240+48 # 15 (F)
+
+# Lasers
+Sprite: 72 16*16+0+64
+Sprite: 73 16*16+16+64
+Sprite: 74 16*16+32+64
+Sprite: 75 16*16+48+64
+Sprite: 76 16*16+64+64
+Sprite: 77 16*16+80+64
+Sprite: 78 16*16+96+64
+Sprite: 79 16*16+112+64
+Sprite: 80 16*16+128+64
+Sprite: 81 16*16+144+64
+Sprite: 82 16*16+160+64
+Sprite: 83 16*16+176+64
+Sprite: 84 16*16+192+64
+Sprite: 85 16*16+208+64
+Sprite: 86 16*16+224+64
+Sprite: 87 16*16+240+64
+
+# Lasers type 2
+Sprite: 88 16*16+0+80
+Sprite: 89 16*16+16+80
+Sprite: 90 16*16+32+80
+Sprite: 91 16*16+48+80
+Sprite: 92 16*16+64+80
+Sprite: 93 16*16+80+80
+Sprite: 94 16*16+96+80
+Sprite: 95 16*16+112+80
+Sprite: 96 16*16+128+80
+Sprite: 97 16*16+144+80
+Sprite: 98 16*16+160+80
+Sprite: 99 16*16+176+80
+Sprite: 100 16*16+192+80
+Sprite: 101 16*16+208+80
+Sprite: 102 16*16+224+80
+Sprite: 103 16*16+240+80
+
+# HARDCODED laser ends
+Sprite: 140 16*16+0+81
+Sprite: 141 16*16+32+81
+Sprite: 142 16*16+64+81
+Sprite: 143 16*16+96+81
+Sprite: 144 16*16+128+81
+Sprite: 145 16*16+160+81
+
 
 # Scripts: some are hardcoded in the game
 
+# HARDCODED: Bullet type 0
+Script: 0 # Numeroted balls
+Instruction: 0 0 1 56
+Instruction: 0 0 15
+
+# HARDCODED: Bullet type 1
 Script: 1 # Energy balls
 Instruction: 0 0 1 14
 Instruction: 0 0 15
 
-
+# HARDCODED: Bullet type 2
 Script: 2 # Focused things
-Instruction: 0 0 1 21
+Instruction: 0 0 1 40
 Instruction: 0 0 26 1
 Instruction: 0 0 15
 
-
-# Hardcoded scripts
-
-Script: 0
-Instruction: 0 0 1 0
-Instruction: 0 0 15
-
+# HARDCODED: Bullet type 3
 Script: 3
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
+# HARDCODED: Bullet type 4
 Script: 4
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
+# HARDCODED: Bullet type 5
 Script: 5
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
+# HARDCODED: Bullet type 6
 Script: 6
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
+# HARDCODED: Bullet type 7
 Script: 7
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
+# HARDCODED: Bullet type 8
 Script: 8
 Instruction: 0 0 1 0
 Instruction: 0 0 15
 
-
+# HARDCODED: Laser type 0
 Script: 9
-Instruction: 0 0 1 0
+Instruction: 0 0 1 72
+Instruction: 0 0 13
 Instruction: 0 0 15
 
+# HARDCODED: Laser type 1
 Script: 10
-Instruction: 0 0 1 0
+Instruction: 0 0 1 88
+Instruction: 0 0 13
 Instruction: 0 0 15
 
+# ARDCODED: cancel anim for bullet type 0
 Script: 11
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 0 0 0
 
+# HARDCODED: cancel anim for bullet type 1, 2, 3, 4, 5
 Script: 12
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 0 0 0
 
+# HARDCODED: cancel anim for bullet type 6, 7, 8
 Script: 13
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 0 0 0
 
+# HARDCODED: launch anim for bullet type 0, flag 2
 Script: 14
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 20 0 0
 
+# HARDCODED: launch anim for bullet type 0, flag 4
 Script: 15
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
+# HARDCODED: launch anim for bullet type 0, flag 8
 Script: 16
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
+# HARDCODED: launch anim for bullet type (1, 2, 3, 4, 5), flag 2
 Script: 17
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
+# HARDCODED: launch anim for bullet type (1, 2, 3, 4, 5), flag 4
 Script: 18
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
+# HARDCODED: launch anim for bullet type (1, 2, 3, 4, 5), flag 8
 Script: 19
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
+# HARDCODED: launch anim for bullet type (6, 7, 8), flag (2, 4, 8)
 Script: 20
-Instruction: 0 0 1 0
-Instruction: 0 0 15
+Instruction: 0 0 1 56
+Instruction: 200 0 0
 
 # HARDCODED: Power item
 Script: 21
