@@ -769,11 +769,13 @@ class ECLRunner(object):
             if arg == 0:
                 for bullet in self._game_state.bullets:
                     bullet.speed = bullet.angle = 0.
-                    bullet.set_anim(sprite_idx_offset=0) #TODO: check
+                    bullet.delta = (0., 0.)
+                    bullet.set_anim(sprite_idx_offset=15) #TODO: check
             else:
                 for bullet in self._game_state.bullets:
                     bullet.speed = 2.0 #TODO
                     bullet.angle = self._game_state.prng.rand_double() * pi #TODO
+                    bullet.delta = (cos(bullet.angle) * bullet.speed, sin(bullet.angle) * bullet.speed)
         else:
             logger.warn("Unimplemented special function %d!", function)
 
