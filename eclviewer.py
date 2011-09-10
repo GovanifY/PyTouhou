@@ -20,14 +20,14 @@ from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
 from pytouhou.opengl.gamerenderer import GameRenderer
 from pytouhou.game.games import EoSDGame
-from pytouhou.game.player import Player
+from pytouhou.game.player import PlayerState
 
 
 def main(path, stage_num):
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
                                     for name in ('CM.DAT', 'ST.DAT'))
-    game = EoSDGame(resource_loader, [Player()], stage_num, 3, 16)
+    game = EoSDGame(resource_loader, [PlayerState()], stage_num, 3, 16)
 
     # Load stage data
     stage = resource_loader.get_stage('stage%d.std' % stage_num)

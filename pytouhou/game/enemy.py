@@ -13,10 +13,6 @@
 ##
 
 
-from itertools import chain
-from io import BytesIO
-import os
-from struct import unpack, pack
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.eclrunner import ECLRunner
 from pytouhou.vm.anmrunner import ANMRunner

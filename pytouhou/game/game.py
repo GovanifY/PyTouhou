@@ -17,16 +17,19 @@ from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner
 
+from pytouhou.game.player import Player
 from pytouhou.game.enemy import Enemy
 
 
 class GameState(object):
     __slots__ = ('resource_loader', 'bullets', 'players', 'rank', 'difficulty', 'frame',
-                 'stage', 'boss', 'prng', 'bullet_types')
-    def __init__(self, resource_loader, players, stage, rank, difficulty, bullet_types):
+                 'stage', 'boss', 'prng', 'bullet_types', 'characters')
+    def __init__(self, resource_loader, players, stage, rank, difficulty,
+                 bullet_types, characters):
         self.resource_loader = resource_loader
 
         self.bullet_types = bullet_types
+        self.characters = characters
 
         self.bullets = []
 
@@ -41,9 +44,13 @@ class GameState(object):
 
 
 class Game(object):
-    def __init__(self, resource_loader, players, stage, rank, difficulty, bullet_types):
-        self.game_state = GameState(resource_loader, players, stage, rank, difficulty, bullet_types)
+    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
+                 bullet_types, characters):
+        self.game_state = GameState(resource_loader, player_states, stage,
+                                    rank, difficulty,
+                                    bullet_types, characters)
 
+        self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
         self.enemies = []
 
         self.bonuses = []
@@ -68,6 +75,17 @@ class Game(object):
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
 
         # 3. Let's play!
+        for player in self.players:
+            player.update(keystate) #TODO: differentiate keystates
+            if player.state.x < 8.:
+                player.state.x = 8.
+            if player.state.x > 384.-8: #TODO
+                player.state.x = 384.-8
+            if player.state.y < 16.:
+                player.state.y = 16.
+            if player.state.y > 448.-16: #TODO
+                player.state.y = 448.-16
+
         for enemy in self.enemies:
             enemy.update()
 

@@ -13,6 +13,7 @@
 ##
 
 from pytouhou.game.game import Game
+from pytouhou.game.character import Character
 from pytouhou.game.bullettype import BulletType
 
 class EoSDGame(Game):
@@ -30,4 +31,13 @@ class EoSDGame(Game):
                         BulletType(etama3, 8, 13, 20, 20, 20),
                         BulletType(etama4, 0, 1, 2, 2, 2)]
 
-        Game.__init__(self, resource_loader, players, stage, rank, difficulty, bullet_types)
+        player00 = resource_loader.get_anm_wrapper(('player00.anm',))
+        player01 = resource_loader.get_anm_wrapper(('player01.anm',))
+        characters = [Character(player00, 4., 2., 4.),
+                      Character(player00, 4., 2., 4.),
+                      Character(player01, 5., 2.5, 5.),
+                      Character(player01, 5., 2.5, 5.)]
+
+        Game.__init__(self, resource_loader, players, stage, rank, difficulty,
+                      bullet_types, characters)
+

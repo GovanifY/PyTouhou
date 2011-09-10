@@ -35,7 +35,7 @@ class GameRenderer(pyglet.window.Window):
 
         self.texture_manager = TextureManager(resource_loader)
 
-        self.fps_display =         pyglet.clock.ClockDisplay()
+        self.fps_display = pyglet.clock.ClockDisplay()
 
         self.game = game
         self.background = background
@@ -65,27 +65,54 @@ class GameRenderer(pyglet.window.Window):
                         ctypes.byref(buff, 3 * 4),
                         ctypes.byref(buff, 3 * 4 + 2 * 4))
 
-        pyglet.clock.schedule_interval(self.update, 1./120.)
-        pyglet.app.run()
+        # Use our own loop to ensure 60 (for now, 120) fps
+        pyglet.clock.set_fps_limit(120)
+        while not self.has_exit:
+            pyglet.clock.tick()
+            self.dispatch_events()
+            self.update()
+            self.on_draw()
+            self.flip()
 
 
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)
 
 
-    def update(self, dt):
-        if self.background:
-            self.background.update(self.game.game_state.frame)
-        if self.game:
-            self.game.run_iter(0) #TODO: self.keys...
-
-
     def on_key_press(self, symbol, modifiers):
         if symbol == pyglet.window.key.ESCAPE:
-            pyglet.app.exit()
+            self.has_exit = True
         # XXX: Fullscreen will be enabled the day pyglet stops sucking
         elif symbol == pyglet.window.key.F11:
             self.set_fullscreen(not self.fullscreen)
+
+
+    def update(self):
+        if self.background:
+            self.background.update(self.game.game_state.frame)
+        if self.game:
+            #TODO: allow user settings
+            keystate = 0
+            if self.keys[pyglet.window.key.W]:
+                keystate |= 1
+            if self.keys[pyglet.window.key.X]:
+                keystate |= 2
+            #TODO: on some configurations, LSHIFT is Shift_L when pressed
+            # and ISO_Prev_Group when released, confusing the hell out of pyglet
+            # and leading to a always-on LSHIFT...
+            if self.keys[pyglet.window.key.LSHIFT]:
+                keystate |= 4
+            if self.keys[pyglet.window.key.UP]:
+                keystate |= 16
+            if self.keys[pyglet.window.key.DOWN]:
+                keystate |= 32
+            if self.keys[pyglet.window.key.LEFT]:
+                keystate |= 64
+            if self.keys[pyglet.window.key.RIGHT]:
+                keystate |= 128
+            if self.keys[pyglet.window.key.LCTRL]:
+                keystate |= 256
+            self.game.run_iter(keystate) #TODO: self.keys...
 
 
     def render_elements(self, elements):
@@ -197,6 +224,7 @@ class GameRenderer(pyglet.window.Window):
             glDisable(GL_FOG)
             self.render_elements(game.enemies)
             self.render_elements(game.game_state.bullets)
+            self.render_elements(game.players)
             glEnable(GL_FOG)
 
         #TODO
