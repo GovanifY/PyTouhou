@@ -110,8 +110,6 @@ class Bullet(object):
         self.x += dx
         self.y += dy
 
-        self.frame += 1
-
         if not self._anmrunner.run_frame():
             self.launch()
 
@@ -156,7 +154,7 @@ class Bullet(object):
             if sprite.automatic_orientation:
                 sprite._changed = True
             if self.frame % frame == 0:
-                if count > 0:
+                if count >= 0:
                     self.attributes[1] -= 1
                 else:
                     self.flags ^= 32
@@ -183,7 +181,7 @@ class Bullet(object):
                     if sprite.automatic_orientation:
                         sprite._changed = True
 
-                if count > 0:
+                if count >= 0:
                     self.speed_interpolator = Interpolator((self.speed,), self.frame,
                                                            (0.,), self.frame + frame - 1)
                 else:
