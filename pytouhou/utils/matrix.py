@@ -28,52 +28,60 @@ class Matrix(object):
 
 
     def flip(self):
-        self.data[0][:] = (-x for x in self.data[0])
+        data = self.data
+        a, b, c, d = data[0]
+        data[0] = [-a, -b, -c, -d]
 
 
     def scale(self, x, y, z):
         d1 = self.data
-        d1[0][:] = (a * x for a in d1[0])
-        d1[1][:] = (a * y for a in d1[1])
-        d1[2][:] = (a * z for a in d1[2])
+        d1[0] = [a * x for a in d1[0]]
+        d1[1] = [a * y for a in d1[1]]
+        d1[2] = [a * z for a in d1[2]]
 
 
     def scale2d(self, x, y):
-        d1 = self.data
-        d1[0][:] = (a * x for a in d1[0])
-        d1[1][:] = (a * y for a in d1[1])
+        data = self.data
+        d1a, d1b, d1c, d1d = data[0]
+        d2a, d2b, d2c, d2d = data[1]
+        data[0] = [d1a * x, d1b * x, d1c * x, d1d * x]
+        data[1] = [d2a * y, d2b * y, d2c * y, d2d * y]
 
 
     def translate(self, x, y, z):
-        d1 = self.data
-        a, b, c = (v * m for v, m in zip(d1[3][:3], (x, y, z)))
-        d1[0][:] = (v + a for v in d1[0])
-        d1[1][:] = (v + b for v in d1[1])
-        d1[2][:] = (v + c for v in d1[2])
+        data = self.data
+        a, b, c = data[3][:3]
+        a, b, c = a * x, b * y, c * z
+        d1a, d1b, d1c, d1d = data[0]
+        d2a, d2b, d2c, d2d = data[1]
+        d3a, d3b, d3c, d3d = data[2]
+        data[0] = [d1a + a, d1b + a, d1c + a, d1d + a]
+        data[1] = [d2a + b, d2b + b, d2c + b, d2d + b]
+        data[2] = [d3a + c, d3b + c, d3c + c, d3d + c]
 
 
     def rotate_x(self, angle):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        d1[1][:], d1[2][:] = ([cos_a * d1[1][i] - sin_a * d1[2][i] for i in range(4)],
-                              [sin_a * d1[1][i] + cos_a * d1[2][i] for i in range(4)])
+        d1[1], d1[2] = ([cos_a * d1[1][i] - sin_a * d1[2][i] for i in range(4)],
+                        [sin_a * d1[1][i] + cos_a * d1[2][i] for i in range(4)])
 
 
     def rotate_y(self, angle):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        d1[0][:], d1[2][:] = ([cos_a * d1[0][i] + sin_a * d1[2][i] for i in range(4)],
-                              [- sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)])
+        d1[0], d1[2] = ([cos_a * d1[0][i] + sin_a * d1[2][i] for i in range(4)],
+                        [- sin_a * d1[0][i] + cos_a * d1[2][i] for i in range(4)])
 
 
     def rotate_z(self, angle):
         d1 = self.data
         cos_a = cos(angle)
         sin_a = sin(angle)
-        d1[0][:], d1[1][:] = ([cos_a * d1[0][i] - sin_a * d1[1][i] for i in range(4)],
-                              [sin_a * d1[0][i] + cos_a * d1[1][i] for i in range(4)])
+        d1[0], d1[1] = ([cos_a * d1[0][i] - sin_a * d1[1][i] for i in range(4)],
+                        [sin_a * d1[0][i] + cos_a * d1[1][i] for i in range(4)])
 
 
     @classmethod

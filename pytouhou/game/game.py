@@ -65,7 +65,7 @@ class Game(object):
         self.ecl_runner.run_iter()
 
         # 2. Filter out destroyed enemies
-        self.enemies[:] = (enemy for enemy in self.enemies if not enemy._removed)
+        self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
 
         # 3. Let's play!
         for enemy in self.enemies:
@@ -92,10 +92,7 @@ class Game(object):
 
         # Filter out-of-scren bullets
         # TODO: was_visible thing
-        bullets = self.game_state.bullets
-        for bullet in tuple(bullets):
-            if not bullet.is_visible(384, 448):
-                bullets.remove(bullet)
+        self.game_state.bullets = [bullet for bullet in self.game_state.bullets if bullet.is_visible(384, 448)]
 
         # Disable boss mode if it is dead/it has timeout
         if self.game_state.boss and self.game_state.boss._removed:

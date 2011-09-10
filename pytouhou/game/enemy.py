@@ -85,8 +85,10 @@ class Enemy(object):
 
 
     def fire(self):
-        (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots,
+        (type_, type_idx, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
+
+        bullet_type = self._game_state.bullet_types[type_idx]
 
         ox, oy = self.bullet_launch_offset
         launch_pos = self.x + ox, self.y + oy
@@ -116,7 +118,7 @@ class Enemy(object):
                 if type_ == 75: # 102.h@0x4138cf
                     bullet_angle = self._game_state.prng.rand_double() * (launch_angle - angle) + angle
                     shot_speed = self._game_state.prng.rand_double() * (speed - speed2) + speed2
-                bullets.append(Bullet(launch_pos, anim, sprite_idx_offset,
+                bullets.append(Bullet(launch_pos, bullet_type, sprite_idx_offset,
                                       bullet_angle, shot_speed,
                                       self.extended_bullet_attributes,
                                       flags, player, self._game_state))
@@ -173,15 +175,14 @@ class Enemy(object):
         else:
             tx, ty, tw, th = 0., 0., 0., 0.
 
+        x, y = self.x, self.y
         max_x = tw / 2.
         max_y = th / 2.
-        min_x = -max_x
-        min_y = -max_y
 
-        if any((min_x > screen_width - self.x,
-                max_x < -self.x,
-                min_y > screen_height - self.y,
-                max_y < -self.y)):
+        if (max_x < x - screen_width
+            or max_x < -x
+            or max_y < y - screen_height
+            or max_y < -y):
             return False
         return True
 

@@ -20,14 +20,14 @@ from pytouhou.game.sprite import Sprite
 
 
 class Bullet(object):
-    def __init__(self, pos, type_idx, sprite_idx_offset,
+    def __init__(self, pos, bullet_type, sprite_idx_offset,
                        angle, speed, attributes, flags, player, game_state):
         self._game_state = game_state
         self._sprite = None
         self._anmrunner = None
         self._removed = False
         self._launched = False
-        self._bullet_type = game_state.bullet_types[type_idx]
+        self._bullet_type = bullet_type
 
         self.speed_interpolator = None
         self.frame = 0
@@ -48,21 +48,20 @@ class Bullet(object):
 
         #TODO
         if flags & 14:
-            bt = self._bullet_type
             if flags & 2:
-                index = bt.launch_anim2_index
-                launch_mult = bt.launch_anim_penalties[0]
+                index = bullet_type.launch_anim2_index
+                launch_mult = bullet_type.launch_anim_penalties[0]
             elif flags & 4:
-                index = bt.launch_anim4_index
-                launch_mult = bt.launch_anim_penalties[1]
+                index = bullet_type.launch_anim4_index
+                launch_mult = bullet_type.launch_anim_penalties[1]
             else:
-                index = bt.launch_anim8_index
-                launch_mult = bt.launch_anim_penalties[2]
+                index = bullet_type.launch_anim8_index
+                launch_mult = bullet_type.launch_anim_penalties[2]
             self.launch_delta = dx * launch_mult, dy * launch_mult
             self._sprite = Sprite()
-            self._anmrunner = ANMRunner(bt.anm_wrapper,
+            self._anmrunner = ANMRunner(bullet_type.anm_wrapper,
                                         index, self._sprite,
-                                        bt.launch_anim_offsets[sprite_idx_offset])
+                                        bullet_type.launch_anim_offsets[sprite_idx_offset])
             self._anmrunner.run_frame()
         else:
             self.launch()
@@ -72,16 +71,15 @@ class Bullet(object):
 
     def is_visible(self, screen_width, screen_height):
         tx, ty, tw, th = self._sprite.texcoords
-        if self._sprite.corner_relative_placement:
-            raise Exception #TODO
+        x, y = self.x, self.y
 
         max_x = tw / 2.
         max_y = th / 2.
 
-        if any((max_x < self.x - screen_width,
-                max_x < -self.x,
-                max_y < self.y - screen_height,
-                max_y < -self.y)):
+        if (max_x < x - screen_width
+            or max_x < -x
+            or max_y < y - screen_height
+            or max_y < -y):
             return False
         return True
 
