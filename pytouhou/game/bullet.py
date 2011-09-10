@@ -167,25 +167,27 @@ class Bullet(object):
             if self.frame % frame == 0:
                 count = count - 1
 
-                if self.flags & 64:
-                    self.angle += angle
-                elif self.flags & 128:
-                    self.angle = atan2(self.player.y - y, self.player.x - x) + angle
-                elif self.flags & 256:
-                    self.angle = angle
+                if self.frame != 0:
+                    self.speed = speed
 
-                dx, dy = cos(self.angle) * speed, sin(self.angle) * speed
-                self.delta = dx, dy
-                sprite.angle = self.angle
-                if sprite.automatic_orientation:
-                    sprite._changed = True
+                    if self.flags & 64:
+                        self.angle += angle
+                    elif self.flags & 128:
+                        self.angle = atan2(self.player.y - y, self.player.x - x) + angle
+                    elif self.flags & 256:
+                        self.angle = angle
+
+                    dx, dy = cos(self.angle) * speed, sin(self.angle) * speed
+                    self.delta = dx, dy
+                    sprite.angle = self.angle
+                    if sprite.automatic_orientation:
+                        sprite._changed = True
 
                 if count > 0:
-                    self.speed_interpolator = Interpolator((speed,), self.frame,
+                    self.speed_interpolator = Interpolator((self.speed,), self.frame,
                                                            (0.,), self.frame + frame - 1)
                 else:
                     self.flags &= ~448
-                    self.speed = speed
 
                 self.attributes[1] = count
         #TODO: other flags
@@ -195,6 +197,8 @@ class Bullet(object):
         if self.speed_interpolator:
             self.speed_interpolator.update(self.frame)
             self.speed, = self.speed_interpolator.values
+            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
+            self.delta = dx, dy
 
         self.x, self.y = x + dx, y + dy
 
