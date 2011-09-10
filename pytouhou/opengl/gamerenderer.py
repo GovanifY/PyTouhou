@@ -102,8 +102,7 @@ class GameRenderer(pyglet.window.Window):
             if sprite:
                 ox, oy = element.x, element.y
                 key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
-                rec = indices_by_texture.setdefault(key, [0, []])
-                index = rec[0]
+                rec = indices_by_texture.setdefault(key, [])
 
                 # Pack data in buffer
                 (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
@@ -127,8 +126,8 @@ class GameRenderer(pyglet.window.Window):
                                             r4, g4, b4, a4)
 
                 # Add indices
-                rec[0] += 4
-                rec[1].extend((index, index + 1, index + 2, index + 3))
+                index = nb_vertices
+                rec.extend((index, index + 1, index + 2, index + 3))
 
                 nb_vertices += 4
 
@@ -136,7 +135,8 @@ class GameRenderer(pyglet.window.Window):
         glTexCoordPointer(2, GL_FLOAT, 24, _uvs)
         glColorPointer(4, GL_UNSIGNED_BYTE, 24, _colors)
 
-        for (texture_key, blendfunc), (nb_indices, indices) in indices_by_texture.items():
+        for (texture_key, blendfunc), indices in indices_by_texture.items():
+            nb_indices = len(indices)
             indices = struct.pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key].id)
