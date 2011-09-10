@@ -38,8 +38,8 @@ def get_background_rendering_data(background):
 
     nb_vertices = len(vertices)
     vertices = pack(str(3 * nb_vertices) + 'f', *chain(*vertices))
-    uvs = pack(str(2 * nb_vertices) + 'f', *chain(*uvs))
-    colors = pack(str(4 * nb_vertices) + 'B', *chain(*colors))
+    uvs = pack(str(2 * nb_vertices) + 'f', *uvs)
+    colors = pack(str(4 * nb_vertices) + 'B', *colors)
 
     background._rendering_data = [(key, (nb_vertices, vertices, uvs, colors))]
 

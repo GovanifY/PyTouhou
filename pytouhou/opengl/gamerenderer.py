@@ -14,6 +14,7 @@
 
 import struct
 from itertools import chain
+import ctypes
 
 import pyglet
 from pyglet.gl import *
@@ -21,6 +22,9 @@ from pyglet.gl import *
 from pytouhou.opengl.texture import TextureManager
 from pytouhou.opengl.sprite import get_sprite_rendering_data
 from pytouhou.opengl.background import get_background_rendering_data
+
+
+MAX_ELEMENTS = 10000
 
 
 class GameRenderer(pyglet.window.Window):
@@ -55,7 +59,13 @@ class GameRenderer(pyglet.window.Window):
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
-        pyglet.clock.schedule_interval(self.update, 1./120)
+        # Allocate buffers
+        buff = ctypes.c_buffer(MAX_ELEMENTS * 4 * (3 * 4 + 2 * 4 + 4))
+        self.buffers = (buff,
+                        ctypes.byref(buff, 3 * 4),
+                        ctypes.byref(buff, 3 * 4 + 2 * 4))
+
+        pyglet.clock.schedule_interval(self.update, 1./120.)
         pyglet.app.run()
 
 
@@ -80,29 +90,57 @@ class GameRenderer(pyglet.window.Window):
 
     def render_elements(self, elements):
         texture_manager = self.texture_manager
-        objects_by_texture = {}
+
+        pack_data = struct.Struct('fff ff BBBB' * 4).pack_into
+        _vertices, _uvs, _colors = self.buffers
+
+        nb_vertices = 0
+        indices_by_texture = {}
+
         for element in elements:
             sprite = element._sprite
             if sprite:
                 ox, oy = element.x, element.y
                 key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
-                rec = objects_by_texture.setdefault(key, ([], [], []))
-                vertices = ((x + ox, y + oy, z) for x, y, z in vertices)
-                rec[0].extend(vertices)
-                rec[1].extend(uvs)
-                rec[2].extend(colors)
+                rec = indices_by_texture.setdefault(key, [0, []])
+                index = rec[0]
 
-        for (texture_key, blendfunc), (vertices, uvs, colors) in objects_by_texture.items():
-            nb_vertices = len(vertices)
-            vertices = struct.pack(str(3 * nb_vertices) + 'f', *chain(*vertices))
-            uvs = struct.pack(str(2 * nb_vertices) + 'f', *chain(*uvs))
-            colors = struct.pack(str(4 * nb_vertices) + 'B', *chain(*colors))
+                # Pack data in buffer
+                (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
+                r1, g1, b1, a1, r2, g2, b2, a2, r3, g3, b3, a3, r4, g4, b4, a4 = colors
+                u1, v1, u2, v2, u3, v3, u4, v4 = uvs
+                pack_data(_vertices, nb_vertices * (3 * 4 + 2 * 4 + 4),
+                                            x1 + ox, y1 + oy, z1,
+                                            u1, v1,
+                                            r1, g1, b1, a1,
+
+                                            x2 + ox, y2 + oy, z2,
+                                            u2, v2,
+                                            r2, g2, b2, a2,
+
+                                            x3 + ox, y3 + oy, z3,
+                                            u3, v3,
+                                            r3, g3, b3, a3,
+
+                                            x4 + ox, y4 + oy, z4,
+                                            u4, v4,
+                                            r4, g4, b4, a4)
+
+                # Add indices
+                rec[0] += 4
+                rec[1].extend((index, index + 1, index + 2, index + 3))
+
+                nb_vertices += 4
+
+        glVertexPointer(3, GL_FLOAT, 24, _vertices)
+        glTexCoordPointer(2, GL_FLOAT, 24, _uvs)
+        glColorPointer(4, GL_UNSIGNED_BYTE, 24, _colors)
+
+        for (texture_key, blendfunc), (nb_indices, indices) in indices_by_texture.items():
+            indices = struct.pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key].id)
-            glVertexPointer(3, GL_FLOAT, 0, vertices)
-            glTexCoordPointer(2, GL_FLOAT, 0, uvs)
-            glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-            glDrawArrays(GL_QUADS, 0, nb_vertices)
+            glDrawElements(GL_QUADS, nb_indices, GL_UNSIGNED_SHORT, indices)
 
 
     def on_draw(self):

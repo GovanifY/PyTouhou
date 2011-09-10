@@ -57,16 +57,16 @@ def get_sprite_rendering_data(sprite):
     x_1 = 1. / sprite.anm.size[0]
     y_1 = 1. / sprite.anm.size[1]
     tox, toy = sprite.texoffsets
-    uvs = [(tx * x_1 + tox,         1. - (ty * y_1) + toy),
-           ((tx + tw) * x_1 + tox,  1. - (ty * y_1) + toy),
-           ((tx + tw) * x_1 + tox,  1. - ((ty + th) * y_1 + toy)),
-           (tx * x_1 + tox,         1. - ((ty + th) * y_1 + toy))]
+    uvs = [tx * x_1 + tox,         1. - (ty * y_1) + toy,
+           (tx + tw) * x_1 + tox,  1. - (ty * y_1) + toy,
+           (tx + tw) * x_1 + tox,  1. - ((ty + th) * y_1 + toy),
+           tx * x_1 + tox,         1. - ((ty + th) * y_1 + toy)]
 
-    d = vertmat.data
-    assert (d[3][0], d[3][1], d[3][2], d[3][3]) == (1., 1., 1., 1.)
+    (x1, x2 , x3, x4), (y1, y2, y3, y4), (z1, z2, z3, z4), _ = vertmat.data
 
     key = (sprite.anm.first_name, sprite.anm.secondary_name), sprite.blendfunc
-    values = zip(d[0], d[1], d[2]), uvs, [(sprite.color[0], sprite.color[1], sprite.color[2], sprite.alpha)] * 4
+    r, g, b = sprite.color
+    values = ((x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4)), uvs, [r, g, b, sprite.alpha] * 4
     sprite._rendering_data = key, values
     sprite._changed = False
 
