@@ -12,8 +12,12 @@
 ## GNU General Public License for more details.
 ##
 
-class BitStream(object):
-    def __init__(self, io):
+cdef class BitStream:
+    cdef public io
+    cdef public int bits
+    cdef public int byte
+
+    def __init__(BitStream self, io):
         self.io = io
         self.bits = 0
         self.byte = 0
@@ -27,21 +31,21 @@ class BitStream(object):
         return self.io.__exit__(type, value, traceback)
 
 
-    def seek(self, offset, whence=0):
+    def seek(BitStream self, offset, whence=0):
         self.io.seek(offset, whence)
         self.byte = 0
         self.bits = 0
 
 
-    def tell(self):
+    def tell(BitStream self):
         return self.io.tell()
 
 
-    def tell2(self):
+    def tell2(BitStream self):
         return self.io.tell(), self.bits
 
 
-    def read_bit(self):
+    cpdef unsigned char read_bit(BitStream self):
         if not self.bits:
             self.byte = ord(self.io.read(1))
             self.bits = 8
@@ -49,14 +53,15 @@ class BitStream(object):
         return (self.byte >> self.bits) & 0x01
 
 
-    def read(self, nb_bits):
+    def read(BitStream self, nb_bits):
+        cdef unsigned int value
         value = 0
         for i in range(nb_bits - 1, -1, -1):
             value |= self.read_bit() << i
         return value
 
 
-    def write_bit(self, bit):
+    cpdef write_bit(BitStream self, bit):
         if self.bits == 8:
             self.io.write(chr(self.byte))
             self.bits = 0
@@ -66,12 +71,12 @@ class BitStream(object):
         self.bits += 1
 
 
-    def write(self, bits, nb_bits):
+    def write(BitStream self, bits, nb_bits):
         for i in range(nb_bits):
             self.write_bit(bits >> (nb_bits - 1 - i) & 0x01)
 
 
-    def flush(self):
+    def flush(BitStream self):
         self.io.write(chr(self.byte))
         self.bits = 0
         self.byte = 0

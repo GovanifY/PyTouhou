@@ -16,9 +16,12 @@
 import sys
 import os
 
+import pyximport
+pyximport.install()
+
 from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
-from pytouhou.opengl.gamerenderer import GameRenderer
+from pytouhou.opengl.gamerunner import GameRunner
 from pytouhou.game.games import EoSDGame
 from pytouhou.game.player import PlayerState
 
@@ -39,8 +42,8 @@ def main(path, stage_num):
     print(stage.name)
 
     # Main loop
-    renderer = GameRenderer(resource_loader, game, background)
-    renderer.start()
+    runner = GameRunner(resource_loader, game, background)
+    runner.start()
 
 
 try:

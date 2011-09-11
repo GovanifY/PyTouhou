@@ -11,8 +11,14 @@ Additionally, this project aims for a perfect compatibility with the official ga
 Dependencies:
 -------------
 
+Running:
     * Python2 (>= 2.6)
+    * Cython
     * Pyglet
+
+
+Building sample data:
+    * thtk (http://code.google.com/p/thtk/)
 
 
 

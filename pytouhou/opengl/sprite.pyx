@@ -15,10 +15,12 @@
 
 from math import pi
 
-from pytouhou.utils.matrix import Matrix
+from pytouhou.utils.matrix cimport Matrix
 
 
-def get_sprite_rendering_data(sprite):
+cpdef object get_sprite_rendering_data(object sprite):
+    cdef Matrix vertmat
+
     if not sprite._changed:
         return sprite._rendering_data
 
@@ -52,7 +54,7 @@ def get_sprite_rendering_data(sprite):
     if sprite.corner_relative_placement: # Reposition
         vertmat.translate(width / 2., height / 2., 0.)
     if sprite.allow_dest_offset:
-        vertmat.translate(*sprite.dest_offset)
+        vertmat.translate(sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
 
     x_1 = 1. / sprite.anm.size[0]
     y_1 = 1. / sprite.anm.size[1]

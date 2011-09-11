@@ -56,6 +56,6 @@ class Interpolator(object):
             self.start_frame = frame
         else:
             coeff = self._formula(float(frame - self.start_frame) / float(self.end_frame - self.start_frame))
-            self.values = tuple(start_value + coeff * (end_value - start_value)
-                                for (start_value, end_value) in zip(self.start_values, self.end_values))
+            self.values = [start_value + coeff * (end_value - start_value)
+                           for (start_value, end_value) in zip(self.start_values, self.end_values)]
 
