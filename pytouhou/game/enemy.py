@@ -97,7 +97,7 @@ class Enemy(object):
         player = self.select_player()
 
         if type_ in (67, 69, 71):
-            launch_angle += self.get_player_angle(player)
+            launch_angle += self.get_player_angle(player, launch_pos)
         if type_ in (69, 70, 71):
             angle = 2. * pi / bullets_per_shot
         if type_ == 71:
@@ -125,9 +125,10 @@ class Enemy(object):
         return (players or self._game_state.players)[0] #TODO
 
 
-    def get_player_angle(self, player=None):
+    def get_player_angle(self, player=None, pos=None):
         player = player or self.select_player()
-        return atan2(player.y - self.y, player.x - self.x)
+        x, y = pos or (self.x, self.y)
+        return atan2(player.y - y, player.x - x)
 
 
     def set_anim(self, index):
