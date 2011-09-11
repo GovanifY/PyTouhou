@@ -4,6 +4,7 @@ from pytouhou.formats.pbg3 import PBG3
 from pytouhou.formats.std import Stage
 from pytouhou.formats.ecl import ECL
 from pytouhou.formats.anm0 import Animations
+from pytouhou.formats.msg import MSG
 
 
 from pytouhou.resource.anmwrapper import AnmWrapper
@@ -42,6 +43,7 @@ class Loader(object):
         self.instanced_ecls = {}
         self.instanced_anms = {}
         self.instanced_stages = {}
+        self.instanced_msgs = {}
 
 
     def scan_archives(self, paths):
@@ -82,6 +84,13 @@ class Loader(object):
             file = self.get_file(name)
             self.instanced_ecls[name] = ECL.read(file) #TODO: modular
         return self.instanced_ecls[name]
+
+
+    def get_msg(self, name):
+        if name not in self.instanced_msgs:
+            file = self.get_file(name)
+            self.instanced_msgs[name] = MSG.read(file) #TODO: modular
+        return self.instanced_msgs[name]
 
 
     def get_anm_wrapper(self, names):
