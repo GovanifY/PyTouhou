@@ -66,7 +66,7 @@ class ECLMainRunner(object):
     @instruction(2)
     @instruction(4)
     @instruction(6)
-    def pop_enemy(self, sub, instr_type, x, y, z, life, unknown1, unknown2, unknown3):
+    def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
         if self._game_state.boss:
             return
         if instr_type & 4:
@@ -76,7 +76,7 @@ class ECLMainRunner(object):
                 y = self._game_state.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 y = self._game_state.prng.rand_double() * 800
-        enemy = self._new_enemy_func((x, y), life, instr_type)
+        enemy = self._new_enemy_func((x, y), life, instr_type, self.pop_enemy)
         process = ECLRunner(self._ecl, sub, enemy, self._game_state)
         self.processes.append(process)
         process.run_iteration()
@@ -640,7 +640,7 @@ class ECLRunner(object):
 
     @instruction(81)
     def set_bullet_launch_offset(self, x, y, z):
-        self._enemy.bullet_launch_offset = (x, y)
+        self._enemy.bullet_launch_offset = (self._getval(x), self._getval(y))
 
 
     @instruction(82)
@@ -652,6 +652,11 @@ class ECLRunner(object):
     def set_spellcard(self, unknown, number, name):
         #TODO: display it on the game.
         print("%d - %s" % (number, name))
+
+
+    @instruction(95)
+    def pop_enemy(self, sub, x, y, z, life, bonus_dropped, unknown2):
+        self._enemy.pop_enemy(sub, 0, self._getval(x), self._getval(y), 0, life, bonus_dropped, unknown2, 0) # TODO: check about unknown values
 
 
     @instruction(97)

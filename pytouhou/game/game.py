@@ -61,8 +61,8 @@ class Game(object):
         self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self.game_state)
 
 
-    def new_enemy(self, pos, life, instr_type):
-        enemy = Enemy(pos, life, instr_type, self.enm_anm_wrapper, self.game_state)
+    def new_enemy(self, pos, life, instr_type, pop_enemy):
+        enemy = Enemy(pos, life, instr_type, self.enm_anm_wrapper, self.game_state, pop_enemy)
         self.enemies.append(enemy)
         return enemy
 
