@@ -50,40 +50,31 @@ class MSG(object):
         msg = cls()
         msg.msgs = []
 
-        new_entry = True
-        while True:
-            offset = file.tell()
+        for offset in entry_offsets:
+            if msg.msgs and offset == entry_offsets[0]: # In EoSD, Reimu’s scripts start at 0, and Marisa’s ones at 10.
+                continue                                # If Reimu has less than 10 scripts, the remaining offsets are equal to her first.
 
-            try:
+            msg.msgs.append([])
+            file.seek(offset)
+
+            while True:
                 time, opcode, size = unpack('<HBB', file.read(4))
-            except:
-                return
+                if time == 0 and opcode == 0:
+                    break
+                data = file.read(size)
+                if opcode in cls._instructions:
+                    fmt = '<%s' % cls._instructions[opcode][0]
+                    if fmt.endswith('s'):
+                        fmt = fmt[:-1]
+                        fmt = '%s%ds' % (fmt, size - calcsize(fmt))
+                    args = unpack(fmt, data)
+                    if fmt.endswith('s'):
+                        args = args[:-1] + (args[-1].decode('shift_jis'),)
+                else:
+                    args = (data, )
+                    logger.warn('unknown msg opcode %d', opcode)
 
-            if time == 0 and opcode == 0:
-                new_entry = True
-
-            if new_entry and opcode != 0:
-                new_entry = False
-                time = -1
-                if offset in entry_offsets:
-                    #print(entry_offsets.index(offset))
-                    msg.msgs.append([])
-
-            data = file.read(size)
-
-            if opcode in cls._instructions:
-                fmt = '<%s' % cls._instructions[opcode][0]
-                if fmt.endswith('s'):
-                    fmt = fmt[:-1]
-                    fmt = '%s%ds' % (fmt, size - calcsize(fmt))
-                args = unpack(fmt, data)
-                if fmt.endswith('s'):
-                    args = args[:-1] + (args[-1].decode('shift_jis'),)
-            else:
-                args = (data, )
-                logger.warn('unknown msg opcode %d', opcode)
-
-            msg.msgs[-1].append((time, opcode, args))
+                msg.msgs[-1].append((time, opcode, args))
 
 
         return msg
