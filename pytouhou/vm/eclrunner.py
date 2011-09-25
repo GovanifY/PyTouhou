@@ -62,13 +62,7 @@ class ECLMainRunner(object):
                                                 if process.run_iteration())
 
 
-    @instruction(0)
-    @instruction(2)
-    @instruction(4)
-    @instruction(6)
-    def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
-        if self._game_state.boss:
-            return
+    def _pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
         if instr_type & 4:
             if x < -990: #102h.exe@0x411820
                 x = self._game_state.prng.rand_double() * 368
@@ -76,10 +70,20 @@ class ECLMainRunner(object):
                 y = self._game_state.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 y = self._game_state.prng.rand_double() * 800
-        enemy = self._new_enemy_func((x, y), life, instr_type, self.pop_enemy)
+        enemy = self._new_enemy_func((x, y), life, instr_type, self._pop_enemy)
         process = ECLRunner(self._ecl, sub, enemy, self._game_state)
         self.processes.append(process)
         process.run_iteration()
+
+
+    @instruction(0)
+    @instruction(2)
+    @instruction(4)
+    @instruction(6)
+    def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
+        if self._game_state.boss:
+            return
+        self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3)
 
 
 
@@ -477,17 +481,23 @@ class ECLRunner(object):
 
     @instruction(56)
     def move_to_linear(self, duration, x, y, z):
-        self._enemy.move_to(duration, x, y, z, lambda x: x)
+        self._enemy.move_to(duration,
+                            self._getval(x), self._getval(y), self._getval(z),
+                            lambda x: x)
 
 
     @instruction(57)
     def move_to_decel(self, duration, x, y, z):
-        self._enemy.move_to(duration, x, y, z, lambda x: 2. * x - x ** 2)
+        self._enemy.move_to(duration,
+                            self._getval(x), self._getval(y), self._getval(z),
+                            lambda x: 2. * x - x ** 2)
 
 
     @instruction(59)
     def move_to_accel(self, duration, x, y, z):
-        self._enemy.move_to(duration, x, y, z, lambda x: x ** 2)
+        self._enemy.move_to(duration,
+                            self._getval(x), self._getval(y), self._getval(z),
+                            lambda x: x ** 2)
 
 
     @instruction(61)
