@@ -39,5 +39,5 @@ class EoSDGame(Game):
                       Character(player01, 5., 2.5, 2.5)]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
-                      bullet_types, characters)
+                      bullet_types, characters, nb_bullets_max=640)
 

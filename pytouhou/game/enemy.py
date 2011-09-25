@@ -108,11 +108,15 @@ class Enemy(object):
             launch_angle -= angle * (bullets_per_shot - 1) / 2.
 
         bullets = self._game_state.bullets
+        nb_bullets_max = self._game_state.nb_bullets_max
 
         for shot_nb in range(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
             bullet_angle = launch_angle
             for bullet_nb in range(bullets_per_shot):
+                if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
+                    break
+
                 if type_ == 75: # 102h.exe@0x4138cf
                     bullet_angle = self._game_state.prng.rand_double() * (launch_angle - angle) + angle
                 if type_ in (74, 75): # 102h.exe@0x4138cf
