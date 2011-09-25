@@ -43,6 +43,8 @@ class Player(object):
         self._sprite = None
         self._anmrunner = None
 
+        self.hitbox_half_size = character.hitbox_size / 2.
+
         self.state = state
         self.character = character
         self.anm_wrapper = character.anm_wrapper

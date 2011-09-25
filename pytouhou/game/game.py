@@ -75,8 +75,9 @@ class Game(object):
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
 
         # 3. Let's play!
+        #TODO: check update orders
         for player in self.players:
-            player.update(keystate) #TODO: differentiate keystates
+            player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
                 player.state.x = 8.
             if player.state.x > 384.-8: #TODO
@@ -92,7 +93,24 @@ class Game(object):
         for bullet in self.game_state.bullets:
             bullet.update()
 
-        # 4. Cleaning
+        # 4. Check for collisions!
+        #TODO
+        for player in self.players:
+            px, py = player.x, player.y
+            phalf_size = player.hitbox_half_size
+            px1, px2 = px - phalf_size, px + phalf_size
+            py1, py2 = py - phalf_size, py + phalf_size
+            for bullet in self.game_state.bullets:
+                half_size = bullet.hitbox_half_size
+                bx, by = bullet.x, bullet.y
+                bx1, bx2 = bx - half_size, bx + half_size
+                by1, by2 = by - half_size, by + half_size
+
+                if not (bx2 < px1 or bx1 > px2
+                        or by2 < py1 or by1 > py2):
+                    print('collided!') #TODO
+
+        # 5. Cleaning
         self.cleanup()
 
         self.game_state.frame += 1

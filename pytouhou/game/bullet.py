@@ -29,6 +29,8 @@ class Bullet(object):
         self._launched = False
         self._bullet_type = bullet_type
 
+        self.hitbox_half_size = bullet_type.hitbox_size / 2.
+
         self.speed_interpolator = None
         self.frame = 0
         self.grazed = False
