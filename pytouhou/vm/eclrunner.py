@@ -285,7 +285,7 @@ class ECLRunner(object):
 
 
     @instruction(9)
-    def set_random_float2(self, variable_id, minval, amp):
+    def set_random_float2(self, variable_id, amp, minval):
         self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game_state.prng.rand_double())
 
 
