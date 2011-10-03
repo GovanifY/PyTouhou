@@ -13,6 +13,8 @@
 ##
 
 import pyglet
+import traceback
+
 from pyglet.gl import *
 
 from pytouhou.opengl.texture import TextureManager
@@ -61,6 +63,17 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)
+
+
+    def _event_text_symbol(self, ev):
+        # XXX: Ugly workaround to a pyglet bug on X11
+        #TODO: fix that bug in pyglet
+        try:
+            return pyglet.window.Window._event_text_symbol(self, ev)
+        except Exception as exc:
+            print('*WARNING* Pyglet error:')
+            traceback.print_exc(exc)
+            return None, None
 
 
     def on_key_press(self, symbol, modifiers):
