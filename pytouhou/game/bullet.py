@@ -137,6 +137,9 @@ class Bullet(object):
             length, angle = self.attributes[4:6]
             angle = self.angle if angle < -900.0 else angle #TODO: is that right?
             dx, dy = dx + cos(angle) * length, dy + sin(angle) * length
+            self.angle = sprite.angle = atan2(dy, dx)
+            if sprite.automatic_orientation:
+                sprite._changed = True
             self.delta = dx, dy
             if self.frame == frame: #TODO: include last frame, or not?
                 if count > 0:
