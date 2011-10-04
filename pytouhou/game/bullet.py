@@ -133,7 +133,6 @@ class Bullet(object):
         dx, dy = self.delta
 
         if self.flags & 16:
-            frame, count = self.attributes[0:2]
             length, angle = self.attributes[4:6]
             angle = self.angle if angle < -900.0 else angle #TODO: is that right?
             dx, dy = dx + cos(angle) * length, dy + sin(angle) * length
@@ -141,15 +140,10 @@ class Bullet(object):
             if sprite.automatic_orientation:
                 sprite._changed = True
             self.delta = dx, dy
-            if self.frame == frame: #TODO: include last frame, or not?
-                if count > 0:
-                    self.attributes[1] -= 1
-                    self.frame = 0
-                else:
-                    self.flags ^= 16
+            if self.frame == self.attributes[0]: #TODO: include last frame, or not?
+                self.flags ^= 16
         elif self.flags & 32:
             #TODO: check
-            frame, count = self.attributes[0:2]
             acceleration, angular_speed = self.attributes[4:6]
             self.speed += acceleration
             self.angle += angular_speed
@@ -158,11 +152,8 @@ class Bullet(object):
             sprite.angle = self.angle
             if sprite.automatic_orientation:
                 sprite._changed = True
-            if self.frame % frame == 0:
-                if count >= 0:
-                    self.attributes[1] -= 1
-                else:
-                    self.flags ^= 32
+            if self.frame == self.attributes[0]:
+                self.flags ^= 32
         elif self.flags & 448:
             #TODO: check
             frame, count = self.attributes[0:2]
