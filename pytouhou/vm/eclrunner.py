@@ -25,13 +25,13 @@ logger = get_logger(__name__)
 
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_new_enemy_func', '_game_state', 'processes',
+    __slots__ = ('_ecl', '_new_enemy_func', '_game', 'processes',
                  'instruction_pointer')
 
-    def __init__(self, ecl, new_enemy_func, game_state):
+    def __init__(self, ecl, new_enemy_func, game):
         self._ecl = ecl
         self._new_enemy_func = new_enemy_func
-        self._game_state = game_state
+        self._game = game
 
         self.processes = []
 
@@ -45,12 +45,12 @@ class ECLMainRunner(object):
             except IndexError:
                 break
 
-            if frame > self._game_state.frame:
+            if frame > self._game.frame:
                 break
             else:
                 self.instruction_pointer += 1
 
-            if frame == self._game_state.frame:
+            if frame == self._game.frame:
                 try:
                     callback = self._handlers[instr_type]
                 except KeyError:
@@ -65,13 +65,13 @@ class ECLMainRunner(object):
     def _pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
         if instr_type & 4:
             if x < -990: #102h.exe@0x411820
-                x = self._game_state.prng.rand_double() * 368
+                x = self._game.prng.rand_double() * 368
             if y < -990: #102h.exe@0x41184b
-                y = self._game_state.prng.rand_double() * 416
+                y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
-                y = self._game_state.prng.rand_double() * 800
+                y = self._game.prng.rand_double() * 800
         enemy = self._new_enemy_func((x, y), life, instr_type, self._pop_enemy)
-        process = ECLRunner(self._ecl, sub, enemy, self._game_state)
+        process = ECLRunner(self._ecl, sub, enemy, self._game)
         self.processes.append(process)
         process.run_iteration()
 
@@ -81,7 +81,7 @@ class ECLMainRunner(object):
     @instruction(4)
     @instruction(6)
     def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
-        if self._game_state.boss:
+        if self._game.boss:
             return
         self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3)
 
@@ -90,14 +90,14 @@ class ECLMainRunner(object):
 
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_enemy', '_game_state', 'variables', 'sub', 'frame',
+    __slots__ = ('_ecl', '_enemy', '_game', 'variables', 'sub', 'frame',
                  'instruction_pointer', 'comparison_reg', 'stack')
 
-    def __init__(self, ecl, sub, enemy, game_state):
+    def __init__(self, ecl, sub, enemy, game):
         # Things not supposed to change
         self._ecl = ecl
         self._enemy = enemy
-        self._game_state = game_state
+        self._game = game
 
         # Things supposed to change (and be put in the stack)
         self.variables = [0,  0,  0,  0,
@@ -159,7 +159,7 @@ class ECLRunner(object):
 
 
             #TODO: skip bad ranks
-            if not rank_mask & (0x100 << self._game_state.rank):
+            if not rank_mask & (0x100 << self._game.rank):
                 continue
 
 
@@ -181,9 +181,9 @@ class ECLRunner(object):
             return self.variables[int(-10001-value)]
         elif -10025 <= value <= -10013:
             if value == -10013:
-                return self._game_state.rank
+                return self._game.rank
             elif value == -10014:
-                return self._game_state.difficulty
+                return self._game.difficulty
             elif value == -10015:
                 return self._enemy.x
             elif value == -10016:
@@ -203,7 +203,7 @@ class ECLRunner(object):
             elif value == -10024:
                 return self._enemy.life
             elif value == -10025:
-                return self._enemy.select_player().character
+                return self._enemy.select_player().state.character #TODO
             raise NotImplementedError(value) #TODO
         else:
             return value
@@ -274,19 +274,19 @@ class ECLRunner(object):
     def set_random_int(self, variable_id, maxval):
         """Set the specified variable to a random int in the [0, maxval) range.
         """
-        self._setval(variable_id, int(self._getval(maxval) * self._game_state.prng.rand_double()))
+        self._setval(variable_id, int(self._getval(maxval) * self._game.prng.rand_double()))
 
 
     @instruction(8)
     def set_random_float(self, variable_id, maxval):
         """Set the specified variable to a random float in [0, maxval) range.
         """
-        self._setval(variable_id, self._getval(maxval) * self._game_state.prng.rand_double())
+        self._setval(variable_id, self._getval(maxval) * self._game.prng.rand_double())
 
 
     @instruction(9)
     def set_random_float2(self, variable_id, amp, minval):
-        self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game_state.prng.rand_double())
+        self._setval(variable_id, self._getval(minval) + self._getval(amp) * self._game.prng.rand_double())
 
 
     @instruction(10)
@@ -443,7 +443,7 @@ class ECLRunner(object):
 
     @instruction(49)
     def set_random_angle(self, min_angle, max_angle):
-        angle = self._game_state.prng.rand_double() * (max_angle - min_angle) + min_angle
+        angle = self._game.prng.rand_double() * (max_angle - min_angle) + min_angle
         self._enemy.angle = angle
 
 
@@ -454,7 +454,7 @@ class ECLRunner(object):
         else:
             minx, miny, maxx, maxy = (0., 0., 0., 0.)
 
-        angle = self._game_state.prng.rand_double() * (max_angle - min_angle) + min_angle
+        angle = self._game.prng.rand_double() * (max_angle - min_angle) + min_angle
         sa, ca = sin(angle), cos(angle)
 
         distx = min(96.0, (maxx - minx) / 2.)
@@ -635,7 +635,7 @@ class ECLRunner(object):
     @instruction(77)
     def set_bullet_interval_ex(self, value):
         self._enemy.bullet_launch_interval = value
-        self._enemy.bullet_launch_timer = int(self._game_state.prng.rand_double() * value) #TODO: check
+        self._enemy.bullet_launch_timer = int(self._game.prng.rand_double() * value) #TODO: check
 
 
     @instruction(78)
@@ -660,7 +660,7 @@ class ECLRunner(object):
 
     @instruction(83)
     def change_bullets_into_star_items(self):
-        self._game_state.change_bullets_into_star_items()
+        self._game.change_bullets_into_star_items()
 
 
     @instruction(93)
@@ -693,7 +693,7 @@ class ECLRunner(object):
     @instruction(101)
     def set_boss_mode(self, unknown):
         #TODO: unknown
-        self._game_state.boss = self._enemy
+        self._game.boss = self._enemy
 
 
     @instruction(103)
@@ -787,14 +787,14 @@ class ECLRunner(object):
     def call_special_function(self, function, arg):
         if function == 0: # Cirno
             if arg == 0:
-                for bullet in self._game_state.bullets:
+                for bullet in self._game.bullets:
                     bullet.speed = bullet.angle = 0.
                     bullet.delta = (0., 0.)
                     bullet.set_anim(sprite_idx_offset=15) #TODO: check
             else:
-                for bullet in self._game_state.bullets:
+                for bullet in self._game.bullets:
                     bullet.speed = 2.0 #TODO
-                    bullet.angle = self._game_state.prng.rand_double() * pi #TODO
+                    bullet.angle = self._game.prng.rand_double() * pi #TODO
                     bullet.delta = (cos(bullet.angle) * bullet.speed, sin(bullet.angle) * bullet.speed)
         else:
             logger.warn("Unimplemented special function %d!", function)

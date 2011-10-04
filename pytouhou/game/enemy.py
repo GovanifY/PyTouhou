@@ -22,8 +22,8 @@ from math import cos, sin, atan2, pi
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, anm_wrapper, game_state, pop_enemy):
-        self._game_state = game_state
+    def __init__(self, pos, life, _type, anm_wrapper, game, pop_enemy):
+        self._game = game
         self._anm_wrapper = anm_wrapper
         self._sprite = None
         self._anmrunner = None
@@ -86,7 +86,7 @@ class Enemy(object):
         (type_, type_idx, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
 
-        bullet_type = self._game_state.bullet_types[type_idx]
+        bullet_type = self._game.bullet_types[type_idx]
 
         ox, oy = self.bullet_launch_offset
         launch_pos = self.x + ox, self.y + oy
@@ -107,8 +107,8 @@ class Enemy(object):
         if type_ != 75:
             launch_angle -= angle * (bullets_per_shot - 1) / 2.
 
-        bullets = self._game_state.bullets
-        nb_bullets_max = self._game_state.nb_bullets_max
+        bullets = self._game.bullets
+        nb_bullets_max = self._game.nb_bullets_max
 
         for shot_nb in range(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
@@ -118,18 +118,18 @@ class Enemy(object):
                     break
 
                 if type_ == 75: # 102h.exe@0x4138cf
-                    bullet_angle = self._game_state.prng.rand_double() * (launch_angle - angle) + angle
+                    bullet_angle = self._game.prng.rand_double() * (launch_angle - angle) + angle
                 if type_ in (74, 75): # 102h.exe@0x4138cf
-                    shot_speed = self._game_state.prng.rand_double() * (speed - speed2) + speed2
+                    shot_speed = self._game.prng.rand_double() * (speed - speed2) + speed2
                 bullets.append(Bullet(launch_pos, bullet_type, sprite_idx_offset,
                                       bullet_angle, shot_speed,
                                       self.extended_bullet_attributes,
-                                      flags, player, self._game_state))
+                                      flags, player, self._game))
                 bullet_angle += angle
 
 
     def select_player(self, players=None):
-        return (players or self._game_state.players)[0] #TODO
+        return (players or self._game.players)[0] #TODO
 
 
     def get_player_angle(self, player=None, pos=None):
@@ -147,12 +147,12 @@ class Enemy(object):
     def set_pos(self, x, y, z):
         self.x, self.y = x, y
         self.interpolator = Interpolator((x, y))
-        self.interpolator.set_interpolation_start(self._game_state.frame, (x, y))
+        self.interpolator.set_interpolation_start(self._game.frame, (x, y))
 
 
     def move_to(self, duration, x, y, z, formula):
         if not self.interpolator:
-            frame = self._game_state.frame
+            frame = self._game.frame
             self.interpolator = Interpolator((self.x, self.y), formula)
             self.interpolator.set_interpolation_start(frame, (self.x, self.y))
             self.interpolator.set_interpolation_end(frame + duration - 1, (x, y))
@@ -163,7 +163,7 @@ class Enemy(object):
 
     def stop_in(self, duration, formula):
         if not self.speed_interpolator:
-            frame = self._game_state.frame
+            frame = self._game.frame
             self.speed_interpolator = Interpolator((self.speed,), formula)
             self.speed_interpolator.set_interpolation_start(frame, (self.speed,))
             self.speed_interpolator.set_interpolation_end(frame + duration - 1, (0.,))
@@ -194,7 +194,7 @@ class Enemy(object):
     def update(self):
         x, y = self.x, self.y
         if self.interpolator:
-            self.interpolator.update(self._game_state.frame)
+            self.interpolator.update(self._game.frame)
             x, y = self.interpolator.values
 
         self.speed += self.acceleration #TODO: units? Execution order?
@@ -202,7 +202,7 @@ class Enemy(object):
 
 
         if self.speed_interpolator:
-            self.speed_interpolator.update(self._game_state.frame)
+            self.speed_interpolator.update(self._game.frame)
             self.speed, = self.speed_interpolator.values
 
 

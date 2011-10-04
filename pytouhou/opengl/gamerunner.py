@@ -86,7 +86,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
     def update(self):
         if self.background:
-            self.background.update(self.game.game_state.frame)
+            self.background.update(self.game.frame)
         if self.game:
             #TODO: allow user settings
             keystate = 0

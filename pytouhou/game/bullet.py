@@ -21,8 +21,8 @@ from pytouhou.game.sprite import Sprite
 
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
-                       angle, speed, attributes, flags, player, game_state):
-        self._game_state = game_state
+                       angle, speed, attributes, flags, player, game):
+        self._game = game
         self._sprite = None
         self._anmrunner = None
         self._removed = False

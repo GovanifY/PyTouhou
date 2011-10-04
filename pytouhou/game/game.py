@@ -22,28 +22,33 @@ from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 
 
-class GameState(object):
-    __slots__ = ('resource_loader', 'bullets', 'items', 'players', 'rank', 'difficulty', 'frame',
-                 'stage', 'boss', 'prng', 'bullet_types', 'item_types', 'characters', 'nb_bullets_max')
-    def __init__(self, resource_loader, players, stage, rank, difficulty,
-                 bullet_types, item_types, characters, nb_bullets_max):
+
+class Game(object):
+    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
+                 bullet_types, item_types, characters, nb_bullets_max=None):
         self.resource_loader = resource_loader
 
+        self.nb_bullets_max = nb_bullets_max
         self.bullet_types = bullet_types
         self.item_types = item_types
         self.characters = characters
 
+        self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
+        self.enemies = []
         self.bullets = []
         self.items = []
-        self.nb_bullets_max = nb_bullets_max
 
         self.stage = stage
-        self.players = players
         self.rank = rank
         self.difficulty = difficulty
         self.boss = None
         self.prng = Random()
         self.frame = 0
+
+        self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
+                                                                 'stg%denm2.anm' % stage))
+        ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
+        self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self)
 
 
     def change_bullets_into_star_items(self):
@@ -53,27 +58,8 @@ class GameState(object):
         self.bullets = []
 
 
-
-class Game(object):
-    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
-                 bullet_types, item_types, characters, nb_bullets_max=None):
-        self.game_state = GameState(resource_loader, player_states, stage,
-                                    rank, difficulty,
-                                    bullet_types, item_types, characters, nb_bullets_max)
-
-        self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
-        self.enemies = []
-
-        self.bonuses = []
-
-        self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
-                                                                 'stg%denm2.anm' % stage))
-        ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
-        self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self.game_state)
-
-
     def new_enemy(self, pos, life, instr_type, pop_enemy):
-        enemy = Enemy(pos, life, instr_type, self.enm_anm_wrapper, self.game_state, pop_enemy)
+        enemy = Enemy(pos, life, instr_type, self.enm_anm_wrapper, self, pop_enemy)
         self.enemies.append(enemy)
         return enemy
 
@@ -101,10 +87,10 @@ class Game(object):
         for enemy in self.enemies:
             enemy.update()
 
-        for bullet in self.game_state.bullets:
+        for bullet in self.bullets:
             bullet.update()
 
-        for item in self.game_state.items:
+        for item in self.items:
             item.update()
 
         # 4. Check for collisions!
@@ -114,7 +100,7 @@ class Game(object):
             phalf_size = player.hitbox_half_size
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
-            for bullet in self.game_state.bullets:
+            for bullet in self.bullets:
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y
                 bx1, bx2 = bx - half_size, bx + half_size
@@ -130,7 +116,7 @@ class Game(object):
         # 5. Cleaning
         self.cleanup()
 
-        self.game_state.frame += 1
+        self.frame += 1
 
 
     def cleanup(self):
@@ -145,9 +131,9 @@ class Game(object):
 
         # Filter out-of-scren bullets
         # TODO: was_visible thing
-        self.game_state.bullets = [bullet for bullet in self.game_state.bullets if bullet.is_visible(384, 448)]
+        self.bullets = [bullet for bullet in self.bullets if bullet.is_visible(384, 448)]
 
         # Disable boss mode if it is dead/it has timeout
-        if self.game_state.boss and self.game_state.boss._removed:
-            self.game_state.boss = None
+        if self.boss and self.boss._removed:
+            self.boss = None
 

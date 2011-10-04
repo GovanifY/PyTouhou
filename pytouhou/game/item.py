@@ -17,8 +17,8 @@ from math import cos, sin, atan2, pi
 
 
 class Item(object):
-    def __init__(self, pos, item_type, angle, speed, player, game_state):
-        self._game_state = game_state
+    def __init__(self, pos, item_type, angle, speed, player, game):
+        self._game = game
         self._sprite = item_type.sprite
         self._removed = False
         self._item_type = item_type
