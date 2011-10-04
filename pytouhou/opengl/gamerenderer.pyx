@@ -85,11 +85,11 @@ cdef class GameRenderer:
 
                 nb_vertices += 4
 
-        glVertexPointer(3, GL_FLOAT, 24, <long> &self.vertex_buffer[0].x)
-        glTexCoordPointer(2, GL_FLOAT, 24, <long> &self.vertex_buffer[0].u)
-        glColorPointer(4, GL_UNSIGNED_BYTE, 24, <long> &self.vertex_buffer[0].r)
-
         for (texture_key, blendfunc), indices in indices_by_texture.items():
+            glVertexPointer(3, GL_FLOAT, 24, <long> &self.vertex_buffer[0].x)
+            glTexCoordPointer(2, GL_FLOAT, 24, <long> &self.vertex_buffer[0].u)
+            glColorPointer(4, GL_UNSIGNED_BYTE, 24, <long> &self.vertex_buffer[0].r)
+
             nb_indices = len(indices)
             indices = struct.pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
