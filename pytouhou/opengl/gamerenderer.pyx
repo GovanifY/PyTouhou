@@ -152,5 +152,7 @@ cdef class GameRenderer:
             self.render_elements(game.enemies)
             self.render_elements(game.players)
             self.render_elements(game.game_state.bullets)
+            self.render_elements(game.game_state.items)
+            #TODO: display item indicators
             glEnable(GL_FOG)
 

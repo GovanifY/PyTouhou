@@ -27,7 +27,7 @@ class Sprite(object):
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self._removed = False
-        self._changed = False
+        self._changed = True
 
         self.width_override = width_override
         self.height_override = height_override

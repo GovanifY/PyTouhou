@@ -15,6 +15,7 @@
 from pytouhou.game.game import Game
 from pytouhou.game.character import Character
 from pytouhou.game.bullettype import BulletType
+from pytouhou.game.itemtype import ItemType
 
 class EoSDGame(Game):
     def __init__(self, resource_loader, players, stage, rank, difficulty):
@@ -30,6 +31,13 @@ class EoSDGame(Game):
                         BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
                         BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
                         BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
+        item_types = [ItemType(etama3, 0, 7,  speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 1, 8,  speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 2, 9,  speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 3, 10, speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 4, 11, speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 5, 12, speed=8., hitbox_size=42), #TODO: hitbox
+                      ItemType(etama3, 6, 13, speed=8., hitbox_size=42)] #TODO: hitbox
 
         player00 = resource_loader.get_anm_wrapper(('player00.anm',))
         player01 = resource_loader.get_anm_wrapper(('player01.anm',))
@@ -39,5 +47,5 @@ class EoSDGame(Game):
                       Character(player01, 5., 2.5, 2.5)]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
-                      bullet_types, characters, nb_bullets_max=640)
+                      bullet_types, item_types, characters, nb_bullets_max=640)
 

@@ -19,19 +19,22 @@ from pytouhou.vm.eclrunner import ECLMainRunner
 
 from pytouhou.game.player import Player
 from pytouhou.game.enemy import Enemy
+from pytouhou.game.item import Item
 
 
 class GameState(object):
-    __slots__ = ('resource_loader', 'bullets', 'players', 'rank', 'difficulty', 'frame',
-                 'stage', 'boss', 'prng', 'bullet_types', 'characters', 'nb_bullets_max')
+    __slots__ = ('resource_loader', 'bullets', 'items', 'players', 'rank', 'difficulty', 'frame',
+                 'stage', 'boss', 'prng', 'bullet_types', 'item_types', 'characters', 'nb_bullets_max')
     def __init__(self, resource_loader, players, stage, rank, difficulty,
-                 bullet_types, characters, nb_bullets_max):
+                 bullet_types, item_types, characters, nb_bullets_max):
         self.resource_loader = resource_loader
 
         self.bullet_types = bullet_types
+        self.item_types = item_types
         self.characters = characters
 
         self.bullets = []
+        self.items = []
         self.nb_bullets_max = nb_bullets_max
 
         self.stage = stage
@@ -43,13 +46,20 @@ class GameState(object):
         self.frame = 0
 
 
+    def change_bullets_into_star_items(self):
+        player = self.players[0] #TODO
+        item_type = self.item_types[6]
+        self.items.extend(Item((bullet.x, bullet.y), item_type, 0.0, item_type.speed, player, self) for bullet in self.bullets)
+        self.bullets = []
+
+
 
 class Game(object):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
-                 bullet_types, characters, nb_bullets_max=None):
+                 bullet_types, item_types, characters, nb_bullets_max=None):
         self.game_state = GameState(resource_loader, player_states, stage,
                                     rank, difficulty,
-                                    bullet_types, characters, nb_bullets_max)
+                                    bullet_types, item_types, characters, nb_bullets_max)
 
         self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
         self.enemies = []
@@ -94,6 +104,9 @@ class Game(object):
         for bullet in self.game_state.bullets:
             bullet.update()
 
+        for item in self.game_state.items:
+            item.update()
+
         # 4. Check for collisions!
         #TODO
         for player in self.players:
@@ -110,6 +123,9 @@ class Game(object):
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
                     print('collided!') #TODO
+
+        #TODO: enemy-player collision
+        #TODO: item-player collision
 
         # 5. Cleaning
         self.cleanup()

@@ -658,6 +658,11 @@ class ECLRunner(object):
         self._enemy.extended_bullet_attributes = tuple(self._getval(attr) for attr in attributes)
 
 
+    @instruction(83)
+    def change_bullets_into_star_items(self):
+        self._game_state.change_bullets_into_star_items()
+
+
     @instruction(93)
     def set_spellcard(self, unknown, number, name):
         #TODO: display it on the game.
