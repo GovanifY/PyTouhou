@@ -341,7 +341,7 @@ class ECLRunner(object):
     @instruction(25)
     def get_direction(self, variable_id, x1, y1, x2, y2):
         #TODO: takes only floats.
-        self._setval(variable_id, math.atan2(self._getval(y2) - self._getval(y1), self._getval(x2) - self._getval(x1)))
+        self._setval(variable_id, atan2(self._getval(y2) - self._getval(y1), self._getval(x2) - self._getval(x1)))
 
 
     @instruction(27)
