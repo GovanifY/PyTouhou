@@ -18,17 +18,19 @@ from pytouhou.vm.eclrunner import ECLRunner
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet
+from pytouhou.game.item import Item
 from math import cos, sin, atan2, pi
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, anm_wrapper, game, pop_enemy):
+    def __init__(self, pos, life, _type, bonus_dropped, anm_wrapper, game, pop_enemy):
         self._game = game
         self._anm_wrapper = anm_wrapper
         self._sprite = None
         self._anmrunner = None
         self._removed = False
         self._type = _type
+        self._bonus_dropped = bonus_dropped
         self._was_visible = False
 
         self.frame = 0
@@ -153,6 +155,17 @@ class Enemy(object):
             player.die()
 
 
+    def killed(self):
+        if self.touchable:
+            if 0 <= self._bonus_dropped < 256:
+                self._game.drop_bonus(self.x, self.y, 0)
+            elif -256 <= self._bonus_dropped < 0:
+                pass #TODO: should be random, search how it is done.
+
+            #TODO: use self.death_flags
+            self._removed = True
+
+
     def set_pos(self, x, y, z):
         self.x, self.y = x, y
         self.interpolator = Interpolator((x, y))
@@ -262,6 +275,9 @@ class Enemy(object):
             self.bullet_launch_timer += 1
             if self.bullet_launch_timer == self.bullet_launch_interval:
                 self.fire()
+
+        if self.life <= 0:
+            self.killed()
 
         self.frame += 1
 

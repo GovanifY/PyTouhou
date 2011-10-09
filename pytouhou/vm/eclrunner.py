@@ -70,7 +70,7 @@ class ECLMainRunner(object):
                 y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 y = self._game.prng.rand_double() * 800
-        enemy = self._new_enemy_func((x, y), life, instr_type, self._pop_enemy)
+        enemy = self._new_enemy_func((x, y), life, instr_type, bonus_dropped, self._pop_enemy)
         process = ECLRunner(self._ecl, sub, enemy, self._game)
         self.processes.append(process)
         process.run_iteration()
@@ -674,6 +674,12 @@ class ECLRunner(object):
         self._enemy.pop_enemy(sub, 0, self._getval(x), self._getval(y), 0, life, bonus_dropped, unknown2, 0) # TODO: check about unknown values
 
 
+    @instruction(96)
+    def kill_enemies(self):
+        for enemy in self._game.enemies:
+            enemy.killed()
+
+
     @instruction(97)
     def set_anim(self, sprite_index):
         self._enemy.set_anim(sprite_index)
@@ -778,6 +784,14 @@ class ECLRunner(object):
         self._enemy.touchable = bool(value)
 
 
+    @instruction(119)
+    def drop_some_bonus(self, number):
+        for i in range(number):
+            #TODO: find the formula in the binary.
+            self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
+                                  self._enemy.y - 64 + self._game.prng.rand_uint16() % 128, 0)
+
+
     @instruction(120)
     def set_automatic_orientation(self, flags):
         #TODO: does it change anything else than the sprite's rotation?
@@ -805,6 +819,11 @@ class ECLRunner(object):
     def skip_frames(self, frames):
         #TODO: is that all?
         self.frame += self._getval(frames)
+
+
+    @instruction(124)
+    def drop_specific_bonus(self, _type):
+        self._game.drop_bonus(self._enemy.x, self._enemy.y, _type)
 
 
     @instruction(126)
