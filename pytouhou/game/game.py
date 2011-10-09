@@ -51,10 +51,17 @@ class Game(object):
         self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self)
 
 
+    def drop_bonus(self, x, y, _type):
+        player = self.players[0] #TODO
+        item_type = self.item_types[_type]
+        item = Item((x, y), item_type, self)
+        self.items.append(item)
+
+
     def change_bullets_into_star_items(self):
         player = self.players[0] #TODO
         item_type = self.item_types[6]
-        self.items.extend(Item((bullet.x, bullet.y), item_type, 0.0, item_type.speed, player, self) for bullet in self.bullets)
+        self.items.extend(Item((bullet.x, bullet.y), item_type, self, player=player) for bullet in self.bullets)
         self.bullets = []
 
 

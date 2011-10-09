@@ -31,13 +31,14 @@ class EoSDGame(Game):
                         BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
                         BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
                         BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
-        item_types = [ItemType(etama3, 0, 7,  speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 1, 8,  speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 2, 9,  speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 3, 10, speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 4, 11, speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 5, 12, speed=8., hitbox_size=42), #TODO: hitbox
-                      ItemType(etama3, 6, 13, speed=8., hitbox_size=42)] #TODO: hitbox
+        #TODO: hitbox
+        item_types = [ItemType(etama3, 0, 7,  hitbox_size=42, score=10), #Power
+                      ItemType(etama3, 1, 8,  hitbox_size=42, score=100000), #Point, TODO: changes for hard, lunatic and poc
+                      ItemType(etama3, 2, 9,  hitbox_size=42, score=10), #Big power
+                      ItemType(etama3, 3, 10, hitbox_size=42), #Bomb
+                      ItemType(etama3, 4, 11, hitbox_size=42, score=1000), #Full power
+                      ItemType(etama3, 5, 12, hitbox_size=42), #1up
+                      ItemType(etama3, 6, 13, hitbox_size=42, score=500)] #Star
 
         player00 = resource_loader.get_anm_wrapper(('player00.anm',))
         player01 = resource_loader.get_anm_wrapper(('player01.anm',))
