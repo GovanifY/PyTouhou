@@ -70,6 +70,8 @@ class Game(object):
 
         # 2. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
+        self.bullets = [bullet for bullet in self.bullets if not bullet._removed]
+        self.items = [item for item in self.items if not item._removed]
 
         # 3. Let's play!
         #TODO: check update orders
@@ -100,6 +102,7 @@ class Game(object):
             phalf_size = player.hitbox_half_size
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
+
             for bullet in self.bullets:
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y
@@ -108,10 +111,27 @@ class Game(object):
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
-                    print('collided!') #TODO
+                    bullet.collide(player)
 
-        #TODO: enemy-player collision
-        #TODO: item-player collision
+            for enemy in self.enemies:
+                half_size_x, half_size_y = enemy.hitbox_half_size
+                bx, by = enemy.x, enemy.y
+                bx1, bx2 = bx - half_size_x, bx + half_size_x
+                by1, by2 = by - half_size_y, by + half_size_y
+
+                if not (bx2 < px1 or bx1 > px2
+                        or by2 < py1 or by1 > py2):
+                    enemy.collide(player)
+
+            for item in self.items:
+                half_size = item.hitbox_half_size
+                bx, by = item.x, item.y
+                bx1, bx2 = bx - half_size, bx + half_size
+                by1, by2 = by - half_size, by + half_size
+
+                if not (bx2 < px1 or bx1 > px2
+                        or by2 < py1 or by1 > py2):
+                    item.collect(player)
 
         # 5. Cleaning
         self.cleanup()

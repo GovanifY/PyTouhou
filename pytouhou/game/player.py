@@ -69,6 +69,14 @@ class Player(object):
         self._anmrunner.run_frame()
 
 
+    def die(self):
+        self.state.lives -= 1
+        self.state.x = 192.0
+        self.state.y = 384.0
+        #TODO: animation
+        #TODO: set invulnerability.
+
+
     def update(self, keystate):
         try:
             dx, dy = {16: (0.0, -1.0), 32: (0.0, 1.0), 64: (-1.0, 0.0), 128: (1.0, 0.0),

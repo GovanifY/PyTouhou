@@ -107,6 +107,12 @@ class Bullet(object):
                                                    (self.speed,), 16)
 
 
+    def collide(self, player):
+        #TODO: animation
+        self._removed = True
+        player.die()
+
+
     def update(self):
         dx, dy = self.launch_delta
         self.x += dx

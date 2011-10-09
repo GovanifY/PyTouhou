@@ -67,6 +67,7 @@ class Enemy(object):
         self.acceleration = 0.
 
         self.hitbox = (0, 0)
+        self.hitbox_half_size = (0, 0)
         self.screen_box = None
 
         self.pop_enemy = pop_enemy
@@ -142,6 +143,14 @@ class Enemy(object):
         self._sprite = Sprite()
         self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
         self._anmrunner.run_frame()
+
+
+    def collide(self, player):
+        if self.touchable:
+            #TODO: animation
+            #TODO: doesn’t always kill herself (a boss for example), search how
+            self._removed = True
+            player.die()
 
 
     def set_pos(self, x, y, z):
