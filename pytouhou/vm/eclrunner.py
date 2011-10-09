@@ -344,6 +344,12 @@ class ECLRunner(object):
         self._setval(variable_id, atan2(self._getval(y2) - self._getval(y1), self._getval(x2) - self._getval(x1)))
 
 
+    @instruction(26)
+    def float_to_unit_circle(self, variable_id):
+        #TODO: takes only floats.
+        self._setval(variable_id, (self._getval(variable_id) + pi) % (2*pi) - pi)
+
+
     @instruction(27)
     @instruction(28)
     def compare(self, a, b):
@@ -666,7 +672,16 @@ class ECLRunner(object):
     @instruction(93)
     def set_spellcard(self, unknown, number, name):
         #TODO: display it on the game.
-        print("%d - %s" % (number, name))
+        #TODO: change the background.
+        #TODO: make the enemies more resistants (and find how).
+        print("%d - %s" % (number+1, name))
+
+
+    @instruction(94)
+    def end_spellcard(self):
+        #TODO: return everything back to normal
+        #TODO: give the spellcard bonus.
+        self._game.change_bullets_into_star_items()
 
 
     @instruction(95)
