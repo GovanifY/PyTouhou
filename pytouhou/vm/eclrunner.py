@@ -25,12 +25,11 @@ logger = get_logger(__name__)
 
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_new_enemy_func', '_game', 'processes',
+    __slots__ = ('_ecl', '_game', 'processes',
                  'instruction_pointer')
 
-    def __init__(self, ecl, new_enemy_func, game):
+    def __init__(self, ecl, game):
         self._ecl = ecl
-        self._new_enemy_func = new_enemy_func
         self._game = game
 
         self.processes = []
@@ -70,7 +69,7 @@ class ECLMainRunner(object):
                 y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 y = self._game.prng.rand_double() * 800
-        enemy = self._new_enemy_func((x, y), life, instr_type, bonus_dropped, self._pop_enemy)
+        enemy = self._game.new_enemy((x, y), life, instr_type, bonus_dropped, self._pop_enemy)
         process = ECLRunner(self._ecl, sub, enemy, self._game)
         self.processes.append(process)
         process.run_iteration()

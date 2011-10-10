@@ -48,7 +48,7 @@ class Game(object):
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
                                                                  'stg%denm2.anm' % stage))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
-        self.ecl_runner = ECLMainRunner(ecl, self.new_enemy, self)
+        self.ecl_runner = ECLMainRunner(ecl, self)
 
 
     def drop_bonus(self, x, y, _type):
