@@ -22,7 +22,7 @@ from math import cos, sin, atan2, pi
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, bonus_dropped, anm_wrapper, game, pop_enemy):
+    def __init__(self, pos, life, _type, bonus_dropped, anm_wrapper, game):
         self._game = game
         self._anm_wrapper = anm_wrapper
         self._sprite = None
@@ -70,8 +70,6 @@ class Enemy(object):
         self.hitbox = (0, 0)
         self.hitbox_half_size = (0, 0)
         self.screen_box = None
-
-        self.pop_enemy = pop_enemy
 
 
     def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
