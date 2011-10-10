@@ -107,10 +107,9 @@ class Bullet(object):
                                                    (self.speed,), 16)
 
 
-    def collide(self, player):
+    def collide(self):
         #TODO: animation
         self._removed = True
-        player.die()
 
 
     def update(self):

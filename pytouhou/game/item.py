@@ -50,11 +50,6 @@ class Item(object):
         self._sprite.angle = angle
 
 
-    def collect(self, player):
-        player.state.score += self._item_type.score
-        self._removed = True
-
-
     def update(self):
         dx, dy = self.delta
 

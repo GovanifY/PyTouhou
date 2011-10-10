@@ -118,7 +118,8 @@ class Game(object):
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
-                    bullet.collide(player)
+                    bullet.collide()
+                    player.collide()
 
             for enemy in self.enemies:
                 half_size_x, half_size_y = enemy.hitbox_half_size
@@ -126,9 +127,10 @@ class Game(object):
                 bx1, bx2 = bx - half_size_x, bx + half_size_x
                 by1, by2 = by - half_size_y, by + half_size_y
 
-                if not (bx2 < px1 or bx1 > px2
-                        or by2 < py1 or by1 > py2):
-                    enemy.collide(player)
+                if enemy.touchable and not (bx2 < px1 or bx1 > px2
+                                            or by2 < py1 or by1 > py2):
+                    enemy.collide()
+                    player.collide()
 
             for item in self.items:
                 half_size = item.hitbox_half_size
@@ -138,7 +140,7 @@ class Game(object):
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
-                    item.collect(player)
+                    player.collect(item)
 
         # 5. Cleaning
         self.cleanup()

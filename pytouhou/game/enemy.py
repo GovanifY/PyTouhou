@@ -147,12 +147,10 @@ class Enemy(object):
         self._anmrunner.run_frame()
 
 
-    def collide(self, player):
-        if self.touchable:
-            #TODO: animation
-            #TODO: doesn’t always kill herself (a boss for example), search how
-            self._removed = True
-            player.die()
+    def collide(self):
+        #TODO: animation
+        #TODO: doesn’t always kill herself (a boss for example), search how
+        self._removed = True
 
 
     def killed(self):

@@ -69,12 +69,18 @@ class Player(object):
         self._anmrunner.run_frame()
 
 
-    def die(self):
+    def collide(self):
         self.state.lives -= 1
         self.state.x = 192.0
         self.state.y = 384.0
         #TODO: animation
         #TODO: set invulnerability.
+
+
+    def collect(self, item):
+        #TODO
+        self.state.score += item._item_type.score
+        item._removed = True
 
 
     def update(self, keystate):
