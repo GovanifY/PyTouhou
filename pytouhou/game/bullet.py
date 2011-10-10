@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from math import cos, sin, atan2, pi
+from math import cos, sin, atan2
 
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner

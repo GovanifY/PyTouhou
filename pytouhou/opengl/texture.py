@@ -22,6 +22,7 @@ class TextureManager(object):
         self.loader = loader
         self.textures = {}
 
+
     def __getitem__(self, key):
         if not key in self.textures:
             self.textures[key] = self.load_texture(key)

@@ -13,8 +13,6 @@
 ##
 
 
-from math import cos, sin, atan2, pi
-
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 

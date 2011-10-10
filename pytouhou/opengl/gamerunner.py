@@ -17,9 +17,6 @@ import traceback
 
 from pyglet.gl import *
 
-from pytouhou.opengl.texture import TextureManager
-from pytouhou.opengl.sprite import get_sprite_rendering_data #TODO: cimport?
-from pytouhou.opengl.background import get_background_rendering_data
 from pytouhou.opengl.gamerenderer import GameRenderer
 
 

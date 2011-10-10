@@ -462,9 +462,6 @@ class ECLRunner(object):
         angle = self._game.prng.rand_double() * (max_angle - min_angle) + min_angle
         sa, ca = sin(angle), cos(angle)
 
-        distx = min(96.0, (maxx - minx) / 2.)
-        disty = min(96.0, (maxy - miny) / 2.)
-
         if self._enemy.x > maxx - 96.0:
             ca = -abs(ca)
         elif self._enemy.x < minx + 96.0:
