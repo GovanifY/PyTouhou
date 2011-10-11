@@ -670,6 +670,7 @@ class ECLRunner(object):
         #TODO: display it on the game.
         #TODO: change the background.
         #TODO: make the enemies more resistants (and find how).
+        self._game.change_bullets_into_star_items()
         print("%d - %s" % (number+1, name))
 
 
