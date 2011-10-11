@@ -36,6 +36,7 @@ class Game(object):
         self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
         self.enemies = []
         self.bullets = []
+        self.cancelled_bullets = []
         self.items = []
 
         self.stage = stage
@@ -78,6 +79,7 @@ class Game(object):
         # 2. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
         self.bullets = [bullet for bullet in self.bullets if not bullet._removed]
+        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet._removed]
         self.items = [item for item in self.items if not item._removed]
 
         # 3. Let's play!
@@ -97,6 +99,9 @@ class Game(object):
             enemy.update()
 
         for bullet in self.bullets:
+            bullet.update()
+
+        for bullet in self.cancelled_bullets:
             bullet.update()
 
         for item in self.items:
@@ -161,6 +166,7 @@ class Game(object):
         # Filter out-of-scren bullets
         # TODO: was_visible thing
         self.bullets = [bullet for bullet in self.bullets if bullet.is_visible(384, 448)]
+        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if bullet.is_visible(384, 448)]
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._removed:

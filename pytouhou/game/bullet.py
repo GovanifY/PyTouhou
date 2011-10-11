@@ -108,8 +108,24 @@ class Bullet(object):
 
 
     def collide(self):
-        #TODO: animation
-        self._removed = True
+        self.cancel()
+
+
+    def cancel(self):
+        # Cancel animation
+        bt = self._bullet_type
+        self._sprite = Sprite()
+        self._sprite.angle = self.angle
+        self._anmrunner = ANMRunner(bt.anm_wrapper, bt.cancel_anim_index,
+                                    self._sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
+        self._anmrunner.run_frame()
+
+        # Change update method
+        self.update = self.update_cancel
+
+        # Do not use this one for collisions anymore
+        self._game.bullets.remove(self)
+        self._game.cancelled_bullets.append(self)
 
 
     def update(self):
@@ -119,6 +135,15 @@ class Bullet(object):
 
         if not self._anmrunner.run_frame():
             self.launch()
+
+
+    def update_cancel(self):
+        dx, dy = self.delta
+        self.x += dx
+        self.y += dy
+
+        if not self._anmrunner.run_frame():
+            self._removed = True
 
 
     def update_simple(self):
