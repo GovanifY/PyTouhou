@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from math import cos, sin, atan2
+from math import cos, sin, atan2, pi
 
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
@@ -21,7 +21,7 @@ from pytouhou.game.sprite import Sprite
 
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
-                       angle, speed, attributes, flags, player, game):
+                       angle, speed, attributes, flags, player, game, player_bullet=False):
         self._game = game
         self._sprite = None
         self._anmrunner = None
@@ -48,6 +48,8 @@ class Bullet(object):
         dx, dy = cos(angle) * speed, sin(angle) * speed
         self.delta = dx, dy
 
+        self.player_bullet = player_bullet
+
         #TODO
         if flags & 14:
             if flags & 2:
@@ -68,7 +70,10 @@ class Bullet(object):
         else:
             self.launch()
 
-        self._sprite.angle = angle
+        if self.player_bullet:
+            self._sprite.angle = angle - pi
+        else:
+            self._sprite.angle = angle
 
 
     def is_visible(self, screen_width, screen_height):
@@ -92,7 +97,10 @@ class Bullet(object):
 
         bt = self._bullet_type
         self._sprite = Sprite()
-        self._sprite.angle = self.angle
+        if self.player_bullet:
+            self._sprite.angle = self.angle - pi
+        else:
+            self._sprite.angle = self.angle
         self._anmrunner = ANMRunner(bt.anm_wrapper, bt.anim_index,
                                     self._sprite, self.sprite_idx_offset)
         self._anmrunner.run_frame()
@@ -115,16 +123,23 @@ class Bullet(object):
         # Cancel animation
         bt = self._bullet_type
         self._sprite = Sprite()
-        self._sprite.angle = self.angle
+        if self.player_bullet:
+            self._sprite.angle = self.angle - pi
+        else:
+            self._sprite.angle = self.angle
         self._anmrunner = ANMRunner(bt.anm_wrapper, bt.cancel_anim_index,
                                     self._sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
         self._anmrunner.run_frame()
+        self.delta = self.delta[0] / 2., self.delta[1] / 2.
 
         # Change update method
         self.update = self.update_cancel
 
         # Do not use this one for collisions anymore
-        self._game.bullets.remove(self)
+        if self.player_bullet:
+            self._game.players_bullets.remove(self)
+        else:
+            self._game.bullets.remove(self)
         self._game.cancelled_bullets.append(self)
 
 
