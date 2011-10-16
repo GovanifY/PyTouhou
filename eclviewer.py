@@ -26,11 +26,11 @@ from pytouhou.game.games import EoSDGame
 from pytouhou.game.player import PlayerState
 
 
-def main(path, stage_num, rank):
+def main(path, stage_num, rank, character):
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
                                     for name in ('CM.DAT', 'ST.DAT'))
-    game = EoSDGame(resource_loader, [PlayerState()], stage_num, rank, 16)
+    game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16)
 
     # Load stage data
     stage = resource_loader.get_stage('stage%d.std' % stage_num)
@@ -47,11 +47,12 @@ def main(path, stage_num, rank):
 
 
 try:
-    file_path, stage_num, rank = sys.argv[1:]
+    file_path, stage_num, rank, character = sys.argv[1:]
     stage_num = int(stage_num)
     rank = int(rank)
+    character = int(character)
 except ValueError:
-    print('Usage: %s game_dir_path stage_num rank' % sys.argv[0])
+    print('Usage: %s game_dir_path stage_num rank character' % sys.argv[0])
 else:
-    main(file_path, stage_num, rank)
+    main(file_path, stage_num, rank, character)
 
