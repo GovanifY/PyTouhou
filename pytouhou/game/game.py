@@ -37,6 +37,7 @@ class Game(object):
         self.enemies = []
         self.bullets = []
         self.cancelled_bullets = []
+        self.players_bullets = []
         self.items = []
 
         self.stage = stage
@@ -104,6 +105,9 @@ class Game(object):
         for bullet in self.cancelled_bullets:
             bullet.update()
 
+        for bullet in self.players_bullets:
+            bullet.update()
+
         for item in self.items:
             item.update()
 
@@ -147,6 +151,23 @@ class Game(object):
                         or by2 < py1 or by1 > py2):
                     player.collect(item)
 
+        for enemy in self.enemies:
+            ex, ey = enemy.x, enemy.y
+            ehalf_size_x, ehalf_size_y = enemy.hitbox_half_size
+            ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
+            ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
+
+            for bullet in self.players_bullets:
+                half_size = bullet.hitbox_half_size
+                bx, by = bullet.x, bullet.y
+                bx1, bx2 = bx - half_size, bx + half_size
+                by1, by2 = by - half_size, by + half_size
+
+                if not (bx2 < ex1 or bx1 > ex2
+                        or by2 < ey1 or by1 > ey2):
+                    bullet.collide()
+                    enemy.life -= bullet._bullet_type.damage
+
         # 5. Cleaning
         self.cleanup()
 
@@ -167,6 +188,7 @@ class Game(object):
         # TODO: was_visible thing
         self.bullets = [bullet for bullet in self.bullets if bullet.is_visible(384, 448)]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if bullet.is_visible(384, 448)]
+        self.players_bullets = [bullet for bullet in self.players_bullets if bullet.is_visible(384, 448)]
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._removed:
