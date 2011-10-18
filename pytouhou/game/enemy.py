@@ -75,7 +75,7 @@ class Enemy(object):
         self.bullet_launch_timer = 0
         self.delay_attack = False
 
-        self.death_anim = None
+        self.death_anim = 0
         self.movement_dependant_sprites = None
         self.direction = None
         self.interpolator = None #TODO
