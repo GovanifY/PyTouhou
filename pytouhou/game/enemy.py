@@ -21,6 +21,24 @@ from pytouhou.game.item import Item
 from math import cos, sin, atan2, pi
 
 
+class Effect(object):
+    def __init__(self, pos, index, anm_wrapper):
+        self._sprite = Sprite()
+        self._anmrunner = ANMRunner(anm_wrapper, index, self._sprite)
+        self._anmrunner.run_frame()
+        self._removed = False
+
+        self.x, self.y = pos
+
+    def update(self):
+        if self._anmrunner and not self._anmrunner.run_frame():
+            self._anmrunner = None
+
+        if self._sprite:
+            if self._sprite._removed:
+                self._sprite = None
+
+
 class Enemy(object):
     def __init__(self, pos, life, _type, bonus_dropped, anm_wrapper, game):
         self._game = game
@@ -144,21 +162,18 @@ class Enemy(object):
         self._anmrunner.run_frame()
 
 
-    def collide(self):
-        #TODO: animation
-        #TODO: doesn’t always kill herself (a boss for example), search how
-        self._removed = True
+    def on_attack(self, bullet):
+        if self.damageable:
+            self.life -= bullet._bullet_type.damage
 
 
-    def killed(self):
-        if self.touchable:
-            if 0 <= self._bonus_dropped < 256:
-                self._game.drop_bonus(self.x, self.y, 0)
-            elif -256 <= self._bonus_dropped < 0:
-                pass #TODO: should be random, search how it is done.
+    def on_collide(self):
+        self.life -= 80 # found experimentally
 
-            #TODO: use self.death_flags
-            self._removed = True
+
+    def die_anim(self):
+        eff00 = self._game.resource_loader.get_anm_wrapper(('eff00.anm',))
+        self._game.effects.append(Effect((self.x, self.y), self.death_anim, eff00))
 
 
     def set_pos(self, x, y, z):
@@ -270,9 +285,6 @@ class Enemy(object):
             self.bullet_launch_timer += 1
             if self.bullet_launch_timer == self.bullet_launch_interval:
                 self.fire()
-
-        if self.life <= 0:
-            self.killed()
 
         self.frame += 1
 

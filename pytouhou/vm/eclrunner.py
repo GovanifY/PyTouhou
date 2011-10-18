@@ -118,8 +118,10 @@ class ECLRunner(object):
             self.sub = enm.boss_callback
             self.instruction_pointer = 0
             enm.boss_callback = None
-        if enm.life <= 0:
+        if enm.life <= 0 and enm.touchable:
             death_flags = enm.death_flags & 7
+
+            enm.die_anim()
 
             if death_flags < 4:
                 if enm._bonus_dropped >= 0:
@@ -127,7 +129,22 @@ class ECLRunner(object):
                 elif enm._bonus_dropped == -1:
                     self._game.drop_bonus(enm.x, enm.y, self._game.prng.rand_uint16() % 2) #TODO: find the formula in the binary. Can be big power sometimes.
 
-            if enm.death_callback is not None:
+                if death_flags == 0:
+                    enm._removed = True
+                    return
+
+                if death_flags == 1:
+                    enm.touchable = False
+                elif death_flags == 2:
+                    pass # Just that?
+                elif death_flags == 3:
+                    enm.damageable = False
+                    enm.life = 1
+                    enm.death_flags = 0
+            else:
+                pass #TODO: sparks
+
+            if death_flags != 0 and enm.death_callback is not None:
                 self.frame = 0
                 self.sub = enm.death_callback
                 self.instruction_pointer = 0
@@ -702,7 +719,8 @@ class ECLRunner(object):
     @instruction(96)
     def kill_enemies(self):
         for enemy in self._game.enemies:
-            enemy.killed()
+            if enemy.touchable:
+                enemy.life = 0
 
 
     @instruction(97)

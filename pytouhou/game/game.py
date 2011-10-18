@@ -35,6 +35,7 @@ class Game(object):
 
         self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
         self.enemies = []
+        self.effects = []
         self.bullets = []
         self.cancelled_bullets = []
         self.players_bullets = []
@@ -81,6 +82,7 @@ class Game(object):
 
         # 2. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
+        self.effects = [enemy for enemy in self.effects if not enemy._removed]
         self.bullets = [bullet for bullet in self.bullets if not bullet._removed]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet._removed]
         self.items = [item for item in self.items if not item._removed]
@@ -99,6 +101,9 @@ class Game(object):
                 player.state.y = 448.-16
 
         for enemy in self.enemies:
+            enemy.update()
+
+        for enemy in self.effects:
             enemy.update()
 
         for bullet in self.bullets:
@@ -140,7 +145,7 @@ class Game(object):
 
                 if enemy.touchable and not (bx2 < px1 or bx1 > px2
                                             or by2 < py1 or by1 > py2):
-                    enemy.collide()
+                    enemy.on_collide()
                     player.collide()
 
             for item in self.items:
@@ -168,7 +173,7 @@ class Game(object):
                 if not (bx2 < ex1 or bx1 > ex2
                         or by2 < ey1 or by1 > ey2):
                     bullet.collide()
-                    enemy.life -= bullet._bullet_type.damage
+                    enemy.on_attack(bullet)
 
         # 5. Cleaning
         self.cleanup()

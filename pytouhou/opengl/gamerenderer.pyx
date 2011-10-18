@@ -150,6 +150,7 @@ cdef class GameRenderer:
 
             glDisable(GL_FOG)
             self.render_elements(game.enemies)
+            self.render_elements(game.effects)
             self.render_elements(game.players)
             self.render_elements(game.bullets)
             self.render_elements(game.cancelled_bullets)
