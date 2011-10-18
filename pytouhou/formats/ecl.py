@@ -132,10 +132,10 @@ class ECL(object):
                      134: ('', None),
                      135: ('i', None)} #TODO
 
-    _main_instructions = {0: ('fffhHHH', 'spawn_enemy'),
-                          2: ('fffhHHH', 'spawn_enemy_mirrored'),
-                          4: ('fffhHHH', 'spawn_enemy_random'),
-                          6: ('fffhHHH', 'spawn_enemy_mirrored_random'),
+    _main_instructions = {0: ('fffhhHH', 'spawn_enemy'),
+                          2: ('fffhhHH', 'spawn_enemy_mirrored'),
+                          4: ('fffhhHH', 'spawn_enemy_random'),
+                          6: ('fffhhHH', 'spawn_enemy_mirrored_random'),
                           8: ('', None),
                           9: ('', None),
                           10: ('II', None),

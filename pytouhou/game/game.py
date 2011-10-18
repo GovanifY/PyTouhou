@@ -55,6 +55,8 @@ class Game(object):
 
     def drop_bonus(self, x, y, _type):
         player = self.players[0] #TODO
+        if _type > 6:
+            return
         item_type = self.item_types[_type]
         item = Item((x, y), item_type, self)
         self.items.append(item)
@@ -189,6 +191,9 @@ class Game(object):
         self.bullets = [bullet for bullet in self.bullets if bullet.is_visible(384, 448)]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if bullet.is_visible(384, 448)]
         self.players_bullets = [bullet for bullet in self.players_bullets if bullet.is_visible(384, 448)]
+
+        # Filter out-of-scren items
+        self.items = [item for item in self.items if item.y < 448]
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._removed:

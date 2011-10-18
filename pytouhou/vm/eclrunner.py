@@ -118,12 +118,25 @@ class ECLRunner(object):
             self.sub = enm.boss_callback
             self.instruction_pointer = 0
             enm.boss_callback = None
-        if enm.life == 0 and enm.death_callback is not None:
+        if enm.life <= 0:
+            death_flags = enm.death_flags & 7
+
+            if death_flags < 4:
+                if enm._bonus_dropped >= 0:
+                    self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
+                elif enm._bonus_dropped == -1:
+                    self._game.drop_bonus(enm.x, enm.y, self._game.prng.rand_uint16() % 2) #TODO: find the formula in the binary. Can be big power sometimes.
+
+            if enm.death_callback is not None:
+                self.frame = 0
+                self.sub = enm.death_callback
+                self.instruction_pointer = 0
+                enm.death_callback = None
+        elif enm.life <= enm.low_life_trigger and enm.low_life_callback is not None:
             self.frame = 0
-            self.sub = enm.death_callback
+            self.sub = enm.low_life_callback
             self.instruction_pointer = 0
-            #TODO: various things, like deleting the character
-            enm.death_callback = None #XXX
+            enm.low_life_callback = None
         elif enm.timeout and enm.frame == enm.timeout:
             enm.frame = 0
             if enm.timeout_callback is not None:
@@ -798,10 +811,12 @@ class ECLRunner(object):
 
     @instruction(119)
     def drop_some_bonus(self, number):
+        bonus = 0 if self._enemy.select_player().state.power < 128 else 1
         for i in range(number):
             #TODO: find the formula in the binary.
             self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
-                                  self._enemy.y - 64 + self._game.prng.rand_uint16() % 128, 0)
+                                  self._enemy.y - 64 + self._game.prng.rand_uint16() % 128,
+                                  bonus)
 
 
     @instruction(120)
@@ -835,6 +850,7 @@ class ECLRunner(object):
 
     @instruction(124)
     def drop_specific_bonus(self, _type):
+        #TODO: if _type < 0, “drop” an bullet animation instead of a bonus (never used).
         self._game.drop_bonus(self._enemy.x, self._enemy.y, _type)
 
 
