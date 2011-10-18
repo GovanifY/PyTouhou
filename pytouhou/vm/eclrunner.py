@@ -856,6 +856,11 @@ class ECLRunner(object):
                     bullet.speed = 2.0 #TODO
                     bullet.angle = self._game.prng.rand_double() * pi #TODO
                     bullet.delta = (cos(bullet.angle) * bullet.speed, sin(bullet.angle) * bullet.speed)
+        elif function == 1: # Cirno
+            self._enemy.bullet_launch_offset = (
+                self._game.prng.rand_uint16() % arg - arg / 2,
+                self._game.prng.rand_uint16() % arg - arg / 2)
+            self._enemy.fire()
         else:
             logger.warn("Unimplemented special function %d!", function)
 
