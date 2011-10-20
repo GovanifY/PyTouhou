@@ -176,9 +176,24 @@ class ANMRunner(object):
         self.load_sprite(min_idx + randrange(amp))
 
 
+    @instruction(17)
+    def move(self, x, y, z):
+        self._sprite.dest_offset = (x, y, z)
+
+
+    @instruction(18)
+    def move_in_linear(self, x, y, z, duration):
+        self._sprite.move_in(duration, x, y, z, lambda x: x)
+
+
     @instruction(19)
-    def move_in(self, x, y, z, duration):
-        self._sprite.move_in(duration, x, y, z, lambda x: x) #TODO: formula
+    def move_in_decel(self, x, y, z, duration):
+        self._sprite.move_in(duration, x, y, z, lambda x: 2. * x - x ** 2)
+
+
+    @instruction(20)
+    def move_in_accel(self, x, y, z, duration):
+        self._sprite.move_in(duration, x, y, z, lambda x: x ** 2)
 
 
     @instruction(23)
