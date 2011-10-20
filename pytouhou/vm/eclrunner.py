@@ -61,7 +61,7 @@ class ECLMainRunner(object):
                                                 if process.run_iteration())
 
 
-    def _pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
+    def _pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, die_score):
         if instr_type & 4:
             if x < -990: #102h.exe@0x411820
                 x = self._game.prng.rand_double() * 368
@@ -69,7 +69,7 @@ class ECLMainRunner(object):
                 y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 y = self._game.prng.rand_double() * 800
-        enemy = self._game.new_enemy((x, y), life, instr_type, bonus_dropped)
+        enemy = self._game.new_enemy((x, y), life, instr_type, bonus_dropped, die_score)
         process = ECLRunner(self._ecl, sub, enemy, self._game)
         self.processes.append(process)
         process.run_iteration()
@@ -79,10 +79,10 @@ class ECLMainRunner(object):
     @instruction(2)
     @instruction(4)
     @instruction(6)
-    def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3):
+    def pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, die_score):
         if self._game.boss:
             return
-        self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, unknown2, unknown3)
+        self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, die_score)
 
 
 
@@ -712,8 +712,8 @@ class ECLRunner(object):
 
 
     @instruction(95)
-    def pop_enemy(self, sub, x, y, z, life, bonus_dropped, unknown2):
-        self._game.ecl_runner._pop_enemy(sub, 0, self._getval(x), self._getval(y), 0, life, bonus_dropped, unknown2, 0) # TODO: check about unknown values
+    def pop_enemy(self, sub, x, y, z, life, bonus_dropped, die_score):
+        self._game.ecl_runner._pop_enemy(sub, 0, self._getval(x), self._getval(y), 0, life, bonus_dropped, die_score)
 
 
     @instruction(96)

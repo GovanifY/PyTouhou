@@ -40,7 +40,7 @@ class Effect(object):
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, bonus_dropped, anm_wrapper, game):
+    def __init__(self, pos, life, _type, bonus_dropped, die_score, anm_wrapper, game):
         self._game = game
         self._anm_wrapper = anm_wrapper
         self._sprite = None
@@ -48,6 +48,7 @@ class Enemy(object):
         self._removed = False
         self._type = _type
         self._bonus_dropped = bonus_dropped
+        self._die_score = die_score #TODO: use it
         self._was_visible = False
 
         self.frame = 0

@@ -70,8 +70,8 @@ class Game(object):
         self.bullets = []
 
 
-    def new_enemy(self, pos, life, instr_type, bonus_dropped):
-        enemy = Enemy(pos, life, instr_type, bonus_dropped, self.enm_anm_wrapper, self)
+    def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
+        enemy = Enemy(pos, life, instr_type, bonus_dropped, die_score, self.enm_anm_wrapper, self)
         self.enemies.append(enemy)
         return enemy
 
