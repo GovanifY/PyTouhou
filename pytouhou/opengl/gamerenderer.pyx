@@ -29,7 +29,7 @@ MAX_ELEMENTS = 10000
 
 
 cdef struct Vertex:
-    float x, y, z
+    int x, y, z
     float u, v
     unsigned char r, g, b, a
 
@@ -86,7 +86,7 @@ cdef class GameRenderer:
                 nb_vertices += 4
 
         for (texture_key, blendfunc), indices in indices_by_texture.items():
-            glVertexPointer(3, GL_FLOAT, 24, <long> &self.vertex_buffer[0].x)
+            glVertexPointer(3, GL_INT, 24, <long> &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, 24, <long> &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, 24, <long> &self.vertex_buffer[0].r)
 
