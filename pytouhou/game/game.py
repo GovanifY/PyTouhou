@@ -33,7 +33,7 @@ class Game(object):
         self.item_types = item_types
         self.characters = characters
 
-        self.players = [Player(player_state, characters[player_state.character]) for player_state in player_states]
+        self.players = [Player(player_state, characters[player_state.character], self) for player_state in player_states]
         self.enemies = []
         self.effects = []
         self.bullets = []
@@ -54,12 +54,12 @@ class Game(object):
         self.ecl_runner = ECLMainRunner(ecl, self)
 
 
-    def drop_bonus(self, x, y, _type):
+    def drop_bonus(self, x, y, _type, end_pos=None):
         player = self.players[0] #TODO
         if _type > 6:
             return
         item_type = self.item_types[_type]
-        item = Item((x, y), item_type, self)
+        item = Item((x, y), item_type, self, end_pos=end_pos)
         self.items.append(item)
 
 
@@ -121,6 +121,9 @@ class Game(object):
         # 4. Check for collisions!
         #TODO
         for player in self.players:
+            if not player.state.touchable:
+                continue
+
             px, py = player.x, player.y
             phalf_size = player.hitbox_half_size
             px1, px2 = px - phalf_size, px + phalf_size
@@ -135,7 +138,8 @@ class Game(object):
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
                     bullet.collide()
-                    player.collide()
+                    if player.state.invulnerable_time == 0:
+                        player.collide()
 
             for enemy in self.enemies:
                 half_size_x, half_size_y = enemy.hitbox_half_size
@@ -146,7 +150,8 @@ class Game(object):
                 if enemy.touchable and not (bx2 < px1 or bx1 > px2
                                             or by2 < py1 or by1 > py2):
                     enemy.on_collide()
-                    player.collide()
+                    if player.state.invulnerable_time == 0:
+                        player.collide()
 
             for item in self.items:
                 half_size = item.hitbox_half_size
@@ -174,6 +179,7 @@ class Game(object):
                         or by2 < ey1 or by1 > ey2):
                     bullet.collide()
                     enemy.on_attack(bullet)
+                    player.state.score += 90 # found experimentally
 
         # 5. Cleaning
         self.cleanup()
