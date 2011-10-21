@@ -20,6 +20,7 @@ from pytouhou.vm.eclrunner import ECLMainRunner
 from pytouhou.game.player import Player
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
+from pytouhou.game.effect import Effect
 
 
 
@@ -50,6 +51,7 @@ class Game(object):
 
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
                                                                  'stg%denm2.anm' % stage))
+        self.eff00 = resource_loader.get_anm_wrapper(('eff00.anm',))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
 
@@ -68,6 +70,10 @@ class Game(object):
         item_type = self.item_types[6]
         self.items.extend(Item((bullet.x, bullet.y), item_type, self, player=player) for bullet in self.bullets)
         self.bullets = []
+
+
+    def new_effect(self, pos, anim):
+        self.effects.append(Effect(pos, anim, self.eff00))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):

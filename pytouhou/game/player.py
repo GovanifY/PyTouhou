@@ -14,7 +14,6 @@
 
 
 from pytouhou.game.sprite import Sprite
-from pytouhou.game.enemy import Effect
 from pytouhou.vm.anmrunner import ANMRunner
 
 
@@ -77,8 +76,7 @@ class Player(object):
     def collide(self):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
-            eff00 = self._game.resource_loader.get_anm_wrapper(('eff00.anm',))
-            self._game.effects.append(Effect((self.state.x, self.state.y), 2, eff00))
+            self._game.new_effect((self.state.x, self.state.y), 2)
 
 
     def collect(self, item):

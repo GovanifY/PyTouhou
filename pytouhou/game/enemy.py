@@ -21,24 +21,6 @@ from pytouhou.game.item import Item
 from math import cos, sin, atan2, pi
 
 
-class Effect(object):
-    def __init__(self, pos, index, anm_wrapper):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(anm_wrapper, index, self._sprite)
-        self._anmrunner.run_frame()
-        self._removed = False
-
-        self.x, self.y = pos
-
-    def update(self):
-        if self._anmrunner and not self._anmrunner.run_frame():
-            self._anmrunner = None
-
-        if self._sprite:
-            if self._sprite._removed:
-                self._sprite = None
-
-
 class Enemy(object):
     def __init__(self, pos, life, _type, bonus_dropped, die_score, anm_wrapper, game):
         self._game = game
@@ -173,8 +155,7 @@ class Enemy(object):
 
 
     def die_anim(self):
-        eff00 = self._game.resource_loader.get_anm_wrapper(('eff00.anm',))
-        self._game.effects.append(Effect((self.x, self.y), self.death_anim, eff00))
+        self._game.new_effect((self.x, self.y), self.death_anim)
 
 
     def set_pos(self, x, y, z):
