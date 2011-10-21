@@ -125,13 +125,13 @@ class Player(object):
         if self.death_time:
             time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
+                self.state.touchable = False
                 self._game.drop_bonus(self.state.x, self.state.y, 2, end_pos=None) #TODO: find the formula
                 for i in range(5):
                     self._game.drop_bonus(self.state.x, self.state.y, 0, end_pos=None) #TODO: find the formula
                 self.state.lives -= 1
 
             elif time == 7:
-                self.state.touchable = False
                 self._sprite.mirrored = False
                 self._sprite.fade(24, 128, lambda x: x)
                 self._sprite.blendfunc = 1
