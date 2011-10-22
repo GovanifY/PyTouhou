@@ -135,6 +135,10 @@ class Game(object):
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
 
+            ghalf_size = player.graze_hitbox_half_size
+            gx1, gx2 = px - ghalf_size, px + ghalf_size
+            gy1, gy2 = py - ghalf_size, py + ghalf_size
+
             for bullet in self.bullets:
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y
@@ -146,6 +150,10 @@ class Game(object):
                     bullet.collide()
                     if player.state.invulnerable_time == 0:
                         player.collide()
+
+                elif not (bx2 < gx1 or bx1 > gx2
+                        or by2 < gy1 or by1 > gy2):
+                    pass#TODO: graze
 
             for enemy in self.enemies:
                 half_size_x, half_size_y = enemy.hitbox_half_size

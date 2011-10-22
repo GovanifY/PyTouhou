@@ -46,6 +46,7 @@ class Player(object):
         self._game = game
 
         self.hitbox_half_size = character.hitbox_size / 2.
+        self.graze_hitbox_half_size = character.graze_hitbox_size / 2.
 
         self.state = state
         self.character = character

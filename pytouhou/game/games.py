@@ -42,10 +42,10 @@ class EoSDGame(Game):
 
         player00 = resource_loader.get_anm_wrapper(('player00.anm',))
         player01 = resource_loader.get_anm_wrapper(('player01.anm',))
-        characters = [Character(player00, 4., 2., 2.5),
-                      Character(player00, 4., 2., 2.5),
-                      Character(player01, 5., 2.5, 2.5),
-                      Character(player01, 5., 2.5, 2.5)]
+        characters = [Character(player00, 4., 2., 2.5, 42.),
+                      Character(player00, 4., 2., 2.5, 42.),
+                      Character(player01, 5., 2.5, 2.5, 42.),
+                      Character(player01, 5., 2.5, 2.5, 42.)]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, item_types, characters, nb_bullets_max=640)
