@@ -20,7 +20,7 @@ It is the only truly reverse-engineered piece of code of this project,
 as it is needed in order to retain compatibility with replay files produced by
 the offical game code.
 
-It has been reverse engineered from 102h.exe@0x41e780."""
+It has been reverse engineered from 102h.exe."""
 
 
 #TODO: maybe some post-processing is missing
@@ -41,12 +41,22 @@ class Random(object):
         self.counter = 0
 
 
+    def rewind(self):
+        """Rewind the PRNG by 1 step. This is the reverse of rand_uint16.
+        Might be useful for debugging purposes.
+        """
+        x = self.seed
+        x = (x >> 2) | ((x & 3) << 14)
+        self.seed = ((x + 0x6553) & 0xffff) ^ 0x9630
+        self.counter -= 1
+        return self.seed
+
+
     def rand_uint16(self):
-        # Further reverse engineering might be needed.
+        # 102h.exe@0x41e780
         x = ((self.seed ^ 0x9630) - 0x6553) & 0xffff
-        self.seed = (((x & 0x0c000) >> 0xe) | (x << 2)) & 0xffff
+        self.seed = (((x & 0xc000) >> 14) | (x << 2)) & 0xffff
         self.counter += 1
-        self.counter &= 0xffff
         return self.seed
 
 
