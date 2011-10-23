@@ -25,12 +25,13 @@ logger = get_logger(__name__)
 
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_game', 'processes',
+    __slots__ = ('_ecl', '_game', 'processes', 'frame',
                  'instruction_pointer')
 
     def __init__(self, ecl, game):
         self._ecl = ecl
         self._game = game
+        self.frame = 0
 
         self.processes = []
 
@@ -44,12 +45,12 @@ class ECLMainRunner(object):
             except IndexError:
                 break
 
-            if frame > self._game.frame:
+            if frame > self.frame:
                 break
             else:
                 self.instruction_pointer += 1
 
-            if frame == self._game.frame:
+            if frame == self.frame:
                 try:
                     callback = self._handlers[instr_type]
                 except KeyError:
@@ -59,6 +60,9 @@ class ECLMainRunner(object):
 
         self.processes[:] = (process for process in self.processes
                                                 if process.run_iteration())
+
+        if not self._game.spellcard:
+            self.frame += 1
 
 
     def _pop_enemy(self, sub, instr_type, x, y, z, life, bonus_dropped, die_score):
@@ -701,6 +705,7 @@ class ECLRunner(object):
         #TODO: change the background.
         #TODO: make the enemies more resistants (and find how).
         self._game.change_bullets_into_star_items()
+        self._game.spellcard = number
         print("%d - %s" % (number+1, name))
 
 
@@ -708,7 +713,9 @@ class ECLRunner(object):
     def end_spellcard(self):
         #TODO: return everything back to normal
         #TODO: give the spellcard bonus.
-        self._game.change_bullets_into_star_items()
+        if self._game.spellcard:
+            self._game.change_bullets_into_star_items()
+        self._game.spellcard = None
 
 
     @instruction(95)

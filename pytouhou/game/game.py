@@ -46,6 +46,7 @@ class Game(object):
         self.rank = rank
         self.difficulty = difficulty
         self.boss = None
+        self.spellcard = None
         self.prng = Random()
         self.frame = 0
 
