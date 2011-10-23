@@ -876,15 +876,22 @@ class ECLRunner(object):
             if self._enemy.bullet_attributes is None:
                 return
 
+            if self._enemy.frame % 6:
+                return
+
             offset = self._enemy.bullet_launch_offset
             pos = self._enemy.x, self._enemy.y
             attributes = self._enemy.bullet_attributes
 
-            self._enemy.x, self._enemy.y = (0, 0)
-            self._enemy.bullet_launch_offset = (192, 224)
+            self._enemy.x, self._enemy.y = (192, 224)
             type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots, speed, speed2, launch_angle, angle, flags = attributes
-            self._enemy.bullet_attributes = (69, anim, sprite_idx_offset, arg, number_of_shots, speed, speed2, launch_angle, angle, flags)
-            self._enemy.fire()
+            for i in range(arg):
+                _angle = i*2*pi/arg
+                _angle2 = _angle + self._getval(-10007)
+                _distance = self._getval(-10008)
+                self._enemy.bullet_launch_offset = (cos(_angle2) * _distance, sin(_angle2) * _distance)
+                self._enemy.bullet_attributes = (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots, speed, speed2, self._getval(-10006) + _angle, angle, flags)
+                self._enemy.fire()
 
             self._enemy.bullet_attributes = attributes
             self._enemy.x, self._enemy.y = pos
