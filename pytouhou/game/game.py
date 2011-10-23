@@ -21,6 +21,7 @@ from pytouhou.game.player import Player
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 from pytouhou.game.effect import Effect
+from pytouhou.game.effect import Particle
 
 
 
@@ -52,7 +53,7 @@ class Game(object):
 
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
                                                                  'stg%denm2.anm' % stage))
-        self.eff00 = resource_loader.get_anm_wrapper(('eff00.anm',))
+        self.etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
 
@@ -73,8 +74,15 @@ class Game(object):
         self.bullets = []
 
 
-    def new_effect(self, pos, anim):
-        self.effects.append(Effect(pos, anim, self.eff00))
+    def new_death(self, pos, index):
+        anim = {0: 3, 1: 4, 2: 5}[index % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
+        self.effects.append(Effect(pos, anim, self.etama4))
+
+
+    def new_particle(self, pos, color, size, amp):
+        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size,
+                                     (pos[0] + amp * self.prng.rand_double() - amp/2,
+                                      pos[1] + amp * self.prng.rand_double() - amp/2)))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
@@ -152,9 +160,13 @@ class Game(object):
                     if player.state.invulnerable_time == 0:
                         player.collide()
 
-                elif not (bx2 < gx1 or bx1 > gx2
+                elif not bullet.grazed and not (bx2 < gx1 or bx1 > gx2
                         or by2 < gy1 or by1 > gy2):
-                    pass#TODO: graze
+                    bullet.grazed = True
+                    player.state.score += 500 # found experimentally
+                    self.new_particle((px, py), 0, .8, 192)
+                    #TODO: display a static particle during one frame at
+                    # 12 pixels of the player, in the axis of the “collision”.
 
             for enemy in self.enemies:
                 half_size_x, half_size_y = enemy.hitbox_half_size

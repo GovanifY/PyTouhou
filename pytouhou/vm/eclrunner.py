@@ -743,7 +743,7 @@ class ECLRunner(object):
 
     @instruction(100)
     def set_death_anim(self, sprite_index):
-        self._enemy.death_anim = sprite_index % 256 #TODO
+        self._enemy.death_anim = sprite_index
 
 
     @instruction(101)

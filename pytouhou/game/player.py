@@ -77,7 +77,7 @@ class Player(object):
     def collide(self):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
-            self._game.new_effect((self.state.x, self.state.y), 2)
+            self._game.new_death((self.state.x, self.state.y), 2)
 
 
     def collect(self, item):
@@ -131,6 +131,8 @@ class Player(object):
                 for i in range(5):
                     self._game.drop_bonus(self.state.x, self.state.y, 0, end_pos=None) #TODO: find the formula
                 self.state.lives -= 1
+                for i in range(16):
+                    self._game.new_particle((self.state.x, self.state.y), 0, 4., 256)
 
             elif time == 7:
                 self._sprite.mirrored = False

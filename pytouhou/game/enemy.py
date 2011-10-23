@@ -156,7 +156,11 @@ class Enemy(object):
 
 
     def die_anim(self):
-        self._game.new_effect((self.x, self.y), self.death_anim)
+        self._game.new_death((self.x, self.y), self.death_anim)
+        #TODO: 8 white particles are used only in stage 3 to 6,
+        # in other stages they are 2 red and 6 blue.
+        for i in range(8):
+            self._game.new_particle((self.x, self.y), 0, 3., 192)
 
 
     def set_pos(self, x, y, z):
