@@ -719,7 +719,7 @@ class ECLRunner(object):
     @instruction(96)
     def kill_enemies(self):
         for enemy in self._game.enemies:
-            if enemy.touchable:
+            if enemy.touchable and not enemy.boss:
                 enemy.life = 0
 
 
@@ -740,9 +740,18 @@ class ECLRunner(object):
 
 
     @instruction(101)
-    def set_boss_mode(self, unknown):
-        #TODO: unknown
-        self._game.boss = self._enemy
+    def set_boss_mode(self, value):
+        #TODO: if there are multiple boss, spawned by a 95,
+        #      only the last one has her life displayed,
+        #      but standard enemies are blocked only until any of them is killed.
+        if value == 0:
+            self._enemy.boss = True
+            self._game.boss = self._enemy
+        elif value == -1:
+            self._enemy.boss = False
+            self._game.boss = None
+        else:
+            raise Exception #TODO
 
 
     @instruction(103)

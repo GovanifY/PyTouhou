@@ -41,6 +41,7 @@ class Enemy(object):
         self.touchable = True
         self.damageable = True
         self.death_flags = 0
+        self.boss = False
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
