@@ -42,6 +42,7 @@ class Enemy(object):
         self.damageable = True
         self.death_flags = 0
         self.boss = False
+        self.difficulty_coeffs = (-.5, .5, 0, 0, 0, 0)
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
@@ -77,11 +78,30 @@ class Enemy(object):
     def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
                               bullets_per_shot, number_of_shots, speed, speed2,
                               launch_angle, angle, flags):
+
+        # Apply difficulty-specific modifiers
+        speed_a, speed_b, nb_a, nb_b, shots_a, shots_b = self.difficulty_coeffs
+        diff_coeff = self._game.difficulty / 32.
+
+        speed += speed_a * (1. - diff_coeff) + speed_b * diff_coeff
+        speed2 += (speed_a * (1. - diff_coeff) + speed_b * diff_coeff) / 2.
+        bullets_per_shot += int(nb_a * (1. - diff_coeff) + nb_b * diff_coeff)
+        number_of_shots += int(shots_a * (1. - diff_coeff) + shots_b * diff_coeff)
+
         self.bullet_attributes = (type_, anim, sprite_idx_offset, bullets_per_shot,
                                   number_of_shots, speed, speed2, launch_angle,
                                   angle, flags)
         if not self.delay_attack:
             self.fire()
+
+
+    def set_bullet_launch_interval(self, value, start=0.):
+        # Apply difficulty-specific modifiers:
+        value *= 1. - .4 * (self._game.difficulty - 16.) / 32.
+
+        self.bullet_launch_interval = int(value)
+        self.bullet_launch_timer = int(value * start)
+        print(self.bullet_launch_interval, self.bullet_launch_timer)
 
 
     def fire(self):

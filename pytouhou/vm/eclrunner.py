@@ -665,13 +665,12 @@ class ECLRunner(object):
 
     @instruction(76)
     def set_bullet_interval(self, value):
-        self._enemy.bullet_launch_interval = value
+        self._enemy.set_bullet_launch_interval(value)
 
 
     @instruction(77)
     def set_bullet_interval_ex(self, value):
-        self._enemy.bullet_launch_interval = value
-        self._enemy.bullet_launch_timer = int(self._game.prng.rand_double() * value) #TODO: check
+        self._enemy.set_bullet_launch_interval(value, self._game.prng.rand_double()) #TODO: check
 
 
     @instruction(78)
@@ -922,4 +921,9 @@ class ECLRunner(object):
     @instruction(126)
     def set_remaining_lives(self, lives):
         self._enemy.remaining_lives = lives
+
+
+    @instruction(131)
+    def set_difficulty_coeffs(self, speed_a, speed_b, nb_a, nb_b, shots_a, shots_b):
+        self._enemy.difficulty_coeffs = (speed_a, speed_b, nb_a, nb_b, shots_a, shots_b)
 
