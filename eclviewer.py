@@ -13,7 +13,7 @@
 ## GNU General Public License for more details.
 ##
 
-import sys
+import argparse
 import os
 
 import pyximport
@@ -46,13 +46,13 @@ def main(path, stage_num, rank, character):
     runner.start()
 
 
-try:
-    file_path, stage_num, rank, character = sys.argv[1:]
-    stage_num = int(stage_num)
-    rank = int(rank)
-    character = int(character)
-except ValueError:
-    print('Usage: %s game_dir_path stage_num rank character' % sys.argv[0])
-else:
-    main(file_path, stage_num, rank, character)
+parser = argparse.ArgumentParser(description='Libre reimplementation of the Touhou 6 engine.')
 
+parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
+parser.add_argument('-s', '--stage', metavar='STAGE', type=int, required=True, help='Stage, 1 to 7 (Extra).')
+parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
+parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
+
+args = parser.parse_args()
+
+main(args.path, args.stage, args.rank, args.character)
