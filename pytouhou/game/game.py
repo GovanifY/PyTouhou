@@ -163,8 +163,9 @@ class Game(object):
                 elif not bullet.grazed and not (bx2 < gx1 or bx1 > gx2
                         or by2 < gy1 or by1 > gy2):
                     bullet.grazed = True
+                    player.state.graze += 1
                     player.state.score += 500 # found experimentally
-                    self.new_particle((px, py), 0, .8, 192)
+                    self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
 

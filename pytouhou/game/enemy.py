@@ -169,6 +169,7 @@ class Enemy(object):
     def on_attack(self, bullet):
         if self.damageable:
             self.life -= bullet._bullet_type.damage
+            self._game.new_particle((self.x, self.y), 1, 3., 192) #TODO: find the real size and range.
 
 
     def on_collide(self):
@@ -180,7 +181,7 @@ class Enemy(object):
         #TODO: 8 white particles are used only in stage 3 to 6,
         # in other stages they are 2 red and 6 blue.
         for i in range(8):
-            self._game.new_particle((self.x, self.y), 0, 3., 192)
+            self._game.new_particle((self.x, self.y), 0, 3., 192) #TODO: find the real size and range.
 
 
     def set_pos(self, x, y, z):

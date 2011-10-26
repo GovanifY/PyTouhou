@@ -127,12 +127,22 @@ class Player(object):
             time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
                 self.state.touchable = False
-                self._game.drop_bonus(self.state.x, self.state.y, 2, end_pos=None) #TODO: find the formula
-                for i in range(5):
-                    self._game.drop_bonus(self.state.x, self.state.y, 0, end_pos=None) #TODO: find the formula
                 self.state.lives -= 1
+                if self.state.power > 16:
+                    self.state.power -= 16
+                else:
+                    self.state.power = 0
+
+                self._game.drop_bonus(self.state.x, self.state.y, 2,
+                                      end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
+                                               self._game.prng.rand_double() * 192 - 64))        # @0x41f3
+                for i in range(5):
+                    self._game.drop_bonus(self.state.x, self.state.y, 0,
+                                          end_pos=(self._game.prng.rand_double() * 288 + 48,
+                                                   self._game.prng.rand_double() * 192 - 64))
+
                 for i in range(16):
-                    self._game.new_particle((self.state.x, self.state.y), 0, 4., 256)
+                    self._game.new_particle((self.state.x, self.state.y), 0, 4., 256) #TODO: find the real size and range.
 
             elif time == 7:
                 self._sprite.mirrored = False
