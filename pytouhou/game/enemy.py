@@ -28,6 +28,7 @@ class Enemy(object):
         self._sprite = None
         self._anmrunner = None
         self._removed = False
+        self._visible = True
         self._type = _type
         self._bonus_dropped = bonus_dropped
         self._die_score = die_score #TODO: use it
@@ -101,7 +102,6 @@ class Enemy(object):
 
         self.bullet_launch_interval = int(value)
         self.bullet_launch_timer = int(value * start)
-        print(self.bullet_launch_interval, self.bullet_launch_timer)
 
 
     def fire(self):
@@ -280,7 +280,7 @@ class Enemy(object):
         if self._anmrunner and not self._anmrunner.run_frame():
             self._anmrunner = None
 
-        if self._sprite:
+        if self._sprite and self._visible:
             if self._sprite._removed:
                 self._sprite = None
             else:

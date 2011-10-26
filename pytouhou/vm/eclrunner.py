@@ -515,6 +515,12 @@ class ECLRunner(object):
         self._enemy.angle = self._enemy.get_player_angle()
 
 
+    @instruction(52)
+    def move_in_decel(self, duration, angle, speed):
+        self._enemy.angle, self._enemy.speed = angle, speed
+        self._enemy.stop_in(duration, lambda x: 2. * x - x ** 2)
+
+
     @instruction(56)
     def move_to_linear(self, duration, x, y, z):
         self._enemy.move_to(duration,
@@ -921,6 +927,13 @@ class ECLRunner(object):
     @instruction(126)
     def set_remaining_lives(self, lives):
         self._enemy.remaining_lives = lives
+
+
+    @instruction(132)
+    def set_visible(self, value):
+        self._enemy._visible = bool(value)
+        if self._enemy._sprite:
+            self._enemy._sprite._removed = bool(value)
 
 
     @instruction(131)
