@@ -41,7 +41,7 @@ class T6RP(object):
         self.character = 0
         self.rank = 0
         self.key = 0
-        self.levels = []
+        self.levels = [None] * 7
 
 
     @classmethod
@@ -77,14 +77,12 @@ class T6RP(object):
 
         stages_offsets = unpack('<7I', file.read(28))
 
-        replay.levels = []
-
-        for offset in stages_offsets:
+        for i, offset in enumerate(stages_offsets):
             if offset == 0:
                 continue
 
             level = Level()
-            replay.levels.append(level)
+            replay.levels[i] = level
 
             file.seek(offset)
             (level.score, level.random_seed, level.unknown1, level.power,
