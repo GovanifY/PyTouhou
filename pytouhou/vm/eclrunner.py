@@ -132,8 +132,13 @@ class ECLRunner(object):
                     enm.drop_particles(7, 0)
                     self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
                 elif enm._bonus_dropped == -1:
-                    enm.drop_particles(10, 0)
-                    self._game.drop_bonus(enm.x, enm.y, self._game.prng.rand_uint16() % 2) #TODO: find the formula in the binary. Can be big power sometimes.
+                    if self._game.deaths_count % 3:
+                        enm.drop_particles(10, 0)
+                        self._game.drop_bonus(enm.x, enm.y, self._game.bonus_list[self._game.next_bonus])
+                        self._game.next_bonus = (self._game.next_bonus + 1) % 32
+                    else:
+                        enm.drop_particles(4, 0)
+                    self._game.deaths_count += 1
                 else:
                     enm.drop_particles(4, 0)
 

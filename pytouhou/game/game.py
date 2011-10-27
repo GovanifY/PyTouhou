@@ -48,6 +48,9 @@ class Game(object):
         self.difficulty = difficulty
         self.boss = None
         self.spellcard = None
+        self.deaths_count = 0
+        self.next_bonus = 0
+        self.bonus_list = [0,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,1,0,2]
         self.prng = prng or Random()
         self.frame = 0
 
