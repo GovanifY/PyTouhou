@@ -27,7 +27,7 @@ from pytouhou.game.effect import Particle
 
 class Game(object):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
-                 bullet_types, item_types, characters, nb_bullets_max=None):
+                 bullet_types, item_types, characters, prng=None, nb_bullets_max=None):
         self.resource_loader = resource_loader
 
         self.nb_bullets_max = nb_bullets_max
@@ -48,7 +48,7 @@ class Game(object):
         self.difficulty = difficulty
         self.boss = None
         self.spellcard = None
-        self.prng = Random()
+        self.prng = prng or Random()
         self.frame = 0
 
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
@@ -56,6 +56,11 @@ class Game(object):
         self.etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
+
+        #TODO: The game calls it two times. What for?
+        # See 102h.exe@0x413220 if you think you're brave enough.
+        self.prng.rand_uint16()
+        self.prng.rand_uint16()
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):

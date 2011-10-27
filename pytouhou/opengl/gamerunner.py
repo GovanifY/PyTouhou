@@ -30,7 +30,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.push_handlers(self.keys)
         else:
             self.keys = 0
-            self.instruction_pointer = 0
             self.replay_level = replay.levels[game.stage-1]
 
         self.fps_display = pyglet.clock.ClockDisplay()
@@ -113,20 +112,16 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     keystate |= 128
                 if self.keys[pyglet.window.key.LCTRL]:
                     keystate |= 256
-                self.game.run_iter(keystate) #TODO: self.keys...
+                self.game.run_iter(keystate)
             else:
-                frame, keys = self.replay_level.keys[self.instruction_pointer]
+                keystate = 0
+                for frame, _keystate, unknown in self.replay_level.keys:
+                    if self.game.frame < frame:
+                        break
+                    else:
+                        keystate = _keystate
 
-                if frame > self.game.frame:
-                    self.game.run_iter(self.keys)
-                    return
-
-                self.instruction_pointer += 1
-
-                if frame == self.game.frame:
-                    self.keys = keys
-
-                self.game.run_iter(self.keys)
+                self.game.run_iter(keystate)
 
 
     def on_draw(self):

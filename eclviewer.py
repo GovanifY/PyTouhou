@@ -35,11 +35,16 @@ def main(path, stage_num, rank, character, replay):
         character = replay.character
         if not replay.levels[stage_num-1]:
             raise Exception
+        from pytouhou.utils.random import Random
+        prng = Random(replay.levels[stage_num-1].random_seed)
+    else:
+        prng = None
 
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
                                     for name in ('CM.DAT', 'ST.DAT'))
-    game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16)
+    game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16,
+                    prng=prng)
 
     # Load stage data
     stage = resource_loader.get_stage('stage%d.std' % stage_num)
