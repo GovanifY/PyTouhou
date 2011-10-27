@@ -35,7 +35,7 @@ class PlayerState(object):
         self.x = 192.0
         self.y = 384.0
 
-        self.invulnerable_time = 60
+        self.invulnerable_time = 240
         self.touchable = True
 
 
