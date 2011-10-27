@@ -169,7 +169,7 @@ class Enemy(object):
     def on_attack(self, bullet):
         if self.damageable:
             self.life -= bullet._bullet_type.damage
-            self._game.new_particle((self.x, self.y), 1, 3., 192) #TODO: find the real size and range.
+            self.drop_particles(1, 1)
 
 
     def on_collide(self):
@@ -178,10 +178,16 @@ class Enemy(object):
 
     def die_anim(self):
         self._game.new_death((self.x, self.y), self.death_anim)
-        #TODO: 8 white particles are used only in stage 3 to 6,
-        # in other stages they are 2 red and 6 blue.
-        for i in range(8):
-            self._game.new_particle((self.x, self.y), 0, 3., 192) #TODO: find the real size and range.
+
+
+    def drop_particles(self, number, color):
+        #TODO: white particles are only used in stage 3 to 6,
+        # in other stages they are blue.
+        if color == 0:
+            if self._game.stage in [1, 2, 7]:
+                color = 3
+        for i in range(number):
+            self._game.new_particle((self.x, self.y), color, 4., 256, delay=False) #TODO: find the real size.
 
 
     def set_pos(self, x, y, z):

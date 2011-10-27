@@ -129,9 +129,13 @@ class ECLRunner(object):
 
             if death_flags < 4:
                 if enm._bonus_dropped >= 0:
+                    enm.drop_particles(7, 0)
                     self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
                 elif enm._bonus_dropped == -1:
+                    enm.drop_particles(10, 0)
                     self._game.drop_bonus(enm.x, enm.y, self._game.prng.rand_uint16() % 2) #TODO: find the formula in the binary. Can be big power sometimes.
+                else:
+                    enm.drop_particles(4, 0)
 
                 if death_flags == 0:
                     enm._removed = True

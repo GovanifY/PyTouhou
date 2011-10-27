@@ -40,36 +40,53 @@ class Effect(object):
 
 
 class Particle(object):
-    def __init__(self, start_pos, index, anm_wrapper, size, end_pos):
+    def __init__(self, start_pos, index, anm_wrapper, size, amp, delay, game):
         self._sprite = Sprite()
         self._sprite.anm, self._sprite.texcoords = anm_wrapper.get_sprite(index)
+        self._game = game
         self._removed = False
 
         self.x, self.y = start_pos
         self.frame = 0
         self._sprite.alpha = 128
         self._sprite.blendfunc = 1
+        self._sprite.rescale = (size, size)
 
-        self.pos_interpolator = Interpolator(start_pos, 0,
+        self.pos_interpolator = None
+        self.scale_interpolator = None
+        self.rotations_interpolator = None
+
+        self.delay = delay
+        self.amp = amp
+
+
+    def set_end_pos(self, amp):
+        end_pos = (self.x + amp * self._game.prng.rand_double() - amp/2,
+                   self.y + amp * self._game.prng.rand_double() - amp/2)
+
+        self.pos_interpolator = Interpolator((self.x, self.y), 0,
                                              end_pos, 24, formula=(lambda x: 2. * x - x ** 2))
-        self.scale_interpolator = Interpolator((size, size), 0,
+        self.scale_interpolator = Interpolator(self._sprite.rescale, 0,
                                                (0., 0.), 24)
-        self.rotations_interpolator = Interpolator((0., 0., 0.), 0,
+        self.rotations_interpolator = Interpolator(self._sprite.rotations_3d, 0,
                                                    (0., 0., 2*pi), 24)
-        self._sprite._changed = True
 
 
     def update(self):
-        self.pos_interpolator.update(self.frame)
-        self.x, self.y = self.pos_interpolator.values
+        if (self.frame == 0 and not self.delay) or (self.frame == 1 and self.delay):
+            self.set_end_pos(self.amp)
 
-        self.scale_interpolator.update(self.frame)
-        self._sprite.rescale = self.scale_interpolator.values
+        if self.pos_interpolator:
+            self.pos_interpolator.update(self.frame)
+            self.x, self.y = self.pos_interpolator.values
 
-        self.rotations_interpolator.update(self.frame)
-        self._sprite.rotations_3d = self.rotations_interpolator.values
+            self.scale_interpolator.update(self.frame)
+            self._sprite.rescale = self.scale_interpolator.values
 
-        self._sprite._changed = True
+            self.rotations_interpolator.update(self.frame)
+            self._sprite.rotations_3d = self.rotations_interpolator.values
+
+            self._sprite._changed = True
 
         if self.frame == 24:
             self._removed = True

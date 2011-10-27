@@ -84,10 +84,8 @@ class Game(object):
         self.effects.append(Effect(pos, anim, self.etama4))
 
 
-    def new_particle(self, pos, color, size, amp):
-        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size,
-                                     (pos[0] + amp * self.prng.rand_double() - amp/2,
-                                      pos[1] + amp * self.prng.rand_double() - amp/2)))
+    def new_particle(self, pos, color, size, amp, delay=False):
+        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size, amp, delay, self))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
@@ -170,7 +168,7 @@ class Game(object):
                     bullet.grazed = True
                     player.state.graze += 1
                     player.state.score += 500 # found experimentally
-                    self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
+                    self.new_particle((px, py), 0, .8, 192, delay=True) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
 

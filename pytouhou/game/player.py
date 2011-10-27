@@ -78,6 +78,8 @@ class Player(object):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
             self._game.new_death((self.state.x, self.state.y), 2)
+            for i in range(16):
+                self._game.new_particle((self.state.x, self.state.y), 2, 4., 256, delay=True) #TODO: find the real size and range.
 
 
     def collect(self, item):
@@ -140,9 +142,6 @@ class Player(object):
                     self._game.drop_bonus(self.state.x, self.state.y, 0,
                                           end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                    self._game.prng.rand_double() * 192 - 64))
-
-                for i in range(16):
-                    self._game.new_particle((self.state.x, self.state.y), 0, 4., 256) #TODO: find the real size and range.
 
             elif time == 7:
                 self._sprite.mirrored = False
