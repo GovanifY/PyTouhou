@@ -24,9 +24,18 @@ from pytouhou.game.background import Background
 from pytouhou.opengl.gamerunner import GameRunner
 from pytouhou.game.games import EoSDGame
 from pytouhou.game.player import PlayerState
+from pytouhou.formats.t6rp import T6RP
 
 
-def main(path, stage_num, rank, character):
+def main(path, stage_num, rank, character, replay):
+    if replay:
+        with open(replay, 'rb') as file:
+            replay = T6RP.read(file)
+        rank = replay.rank
+        character = replay.character
+        if not replay.levels[stage_num-1]:
+            raise Exception
+
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
                                     for name in ('CM.DAT', 'ST.DAT'))
@@ -42,7 +51,7 @@ def main(path, stage_num, rank, character):
     print(stage.name)
 
     # Main loop
-    runner = GameRunner(resource_loader, game, background)
+    runner = GameRunner(resource_loader, game, background, replay=replay)
     runner.start()
 
 
@@ -52,7 +61,8 @@ parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game
 parser.add_argument('-s', '--stage', metavar='STAGE', type=int, required=True, help='Stage, 1 to 7 (Extra).')
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
+parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
 
 args = parser.parse_args()
 
-main(args.path, args.stage, args.rank, args.character)
+main(args.path, args.stage, args.rank, args.character, args.replay)

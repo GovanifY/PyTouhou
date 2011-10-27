@@ -42,7 +42,7 @@ cdef class GameRenderer:
     cdef Vertex *vertex_buffer
 
 
-    def __cinit__(self, resource_loader, game=None, background=None):
+    def __cinit__(self):
         # Allocate buffers
         self.vertex_buffer = <Vertex*> malloc(MAX_ELEMENTS * sizeof(Vertex))
 

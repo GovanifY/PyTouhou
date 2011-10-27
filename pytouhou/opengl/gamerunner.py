@@ -21,11 +21,17 @@ from pytouhou.opengl.gamerenderer import GameRenderer
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None):
+    def __init__(self, resource_loader, game=None, background=None, replay=None):
         GameRenderer.__init__(self, resource_loader, game, background)
         pyglet.window.Window.__init__(self, caption='PyTouhou', resizable=False)
-        self.keys = pyglet.window.key.KeyStateHandler()
-        self.push_handlers(self.keys)
+        self.replay_level = None
+        if not replay or not replay.levels[game.stage-1]:
+            self.keys = pyglet.window.key.KeyStateHandler()
+            self.push_handlers(self.keys)
+        else:
+            self.keys = 0
+            self.instruction_pointer = 0
+            self.replay_level = replay.levels[game.stage-1]
 
         self.fps_display = pyglet.clock.ClockDisplay()
 
@@ -85,28 +91,42 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         if self.background:
             self.background.update(self.game.frame)
         if self.game:
-            #TODO: allow user settings
-            keystate = 0
-            if self.keys[pyglet.window.key.W]:
-                keystate |= 1
-            if self.keys[pyglet.window.key.X]:
-                keystate |= 2
-            #TODO: on some configurations, LSHIFT is Shift_L when pressed
-            # and ISO_Prev_Group when released, confusing the hell out of pyglet
-            # and leading to a always-on LSHIFT...
-            if self.keys[pyglet.window.key.LSHIFT]:
-                keystate |= 4
-            if self.keys[pyglet.window.key.UP]:
-                keystate |= 16
-            if self.keys[pyglet.window.key.DOWN]:
-                keystate |= 32
-            if self.keys[pyglet.window.key.LEFT]:
-                keystate |= 64
-            if self.keys[pyglet.window.key.RIGHT]:
-                keystate |= 128
-            if self.keys[pyglet.window.key.LCTRL]:
-                keystate |= 256
-            self.game.run_iter(keystate) #TODO: self.keys...
+            if not self.replay_level:
+                #TODO: allow user settings
+                keystate = 0
+                if self.keys[pyglet.window.key.W]:
+                    keystate |= 1
+                if self.keys[pyglet.window.key.X]:
+                    keystate |= 2
+                #TODO: on some configurations, LSHIFT is Shift_L when pressed
+                # and ISO_Prev_Group when released, confusing the hell out of pyglet
+                # and leading to a always-on LSHIFT...
+                if self.keys[pyglet.window.key.LSHIFT]:
+                    keystate |= 4
+                if self.keys[pyglet.window.key.UP]:
+                    keystate |= 16
+                if self.keys[pyglet.window.key.DOWN]:
+                    keystate |= 32
+                if self.keys[pyglet.window.key.LEFT]:
+                    keystate |= 64
+                if self.keys[pyglet.window.key.RIGHT]:
+                    keystate |= 128
+                if self.keys[pyglet.window.key.LCTRL]:
+                    keystate |= 256
+                self.game.run_iter(keystate) #TODO: self.keys...
+            else:
+                frame, keys = self.replay_level.keys[self.instruction_pointer]
+
+                if frame > self.game.frame:
+                    self.game.run_iter(self.keys)
+                    return
+
+                self.instruction_pointer += 1
+
+                if frame == self.game.frame:
+                    self.keys = keys
+
+                self.game.run_iter(self.keys)
 
 
     def on_draw(self):
