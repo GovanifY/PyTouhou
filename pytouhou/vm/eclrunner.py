@@ -449,7 +449,7 @@ class ECLRunner(object):
         self.frame = 0
         self.instruction_pointer = 0
         self.variables[0] = param1
-        self.variables[1] = param2
+        self.variables[4] = param2
 
 
     @instruction(36)
