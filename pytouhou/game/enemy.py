@@ -187,7 +187,7 @@ class Enemy(object):
             if self._game.stage in [1, 2, 7]:
                 color = 3
         for i in range(number):
-            self._game.new_particle((self.x, self.y), color, 4., 256, delay=False) #TODO: find the real size.
+            self._game.new_particle((self.x, self.y), color, 4., 256) #TODO: find the real size.
 
 
     def set_pos(self, x, y, z):

@@ -40,7 +40,7 @@ class Effect(object):
 
 
 class Particle(object):
-    def __init__(self, start_pos, index, anm_wrapper, size, amp, delay, game):
+    def __init__(self, start_pos, index, anm_wrapper, size, amp, game):
         self._sprite = Sprite()
         self._sprite.anm, self._sprite.texcoords = anm_wrapper.get_sprite(index)
         self._game = game
@@ -56,7 +56,6 @@ class Particle(object):
         self.scale_interpolator = None
         self.rotations_interpolator = None
 
-        self.delay = delay
         self.amp = amp
 
 
@@ -73,7 +72,7 @@ class Particle(object):
 
 
     def update(self):
-        if (self.frame == 0 and not self.delay) or (self.frame == 1 and self.delay):
+        if self.frame == 0:
             self.set_end_pos(self.amp)
 
         if self.pos_interpolator:

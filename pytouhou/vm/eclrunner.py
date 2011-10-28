@@ -132,7 +132,7 @@ class ECLRunner(object):
                     enm.drop_particles(7, 0)
                     self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
                 elif enm._bonus_dropped == -1:
-                    if self._game.deaths_count % 3:
+                    if self._game.deaths_count % 3 == 0:
                         enm.drop_particles(10, 0)
                         self._game.drop_bonus(enm.x, enm.y, self._game.bonus_list[self._game.next_bonus])
                         self._game.next_bonus = (self._game.next_bonus + 1) % 32

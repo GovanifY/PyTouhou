@@ -48,8 +48,6 @@ class Game(object):
         self.difficulty = difficulty
         self.boss = None
         self.spellcard = None
-        self.deaths_count = 0
-        self.next_bonus = 0
         self.bonus_list = [0,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,1,0,2]
         self.prng = prng or Random()
         self.frame = 0
@@ -60,10 +58,9 @@ class Game(object):
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
 
-        #TODO: The game calls it two times. What for?
         # See 102h.exe@0x413220 if you think you're brave enough.
-        self.prng.rand_uint16()
-        self.prng.rand_uint16()
+        self.deaths_count = self.prng.rand_uint16() % 3
+        self.next_bonus = self.prng.rand_uint16() % 8
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):
@@ -87,8 +84,8 @@ class Game(object):
         self.effects.append(Effect(pos, anim, self.etama4))
 
 
-    def new_particle(self, pos, color, size, amp, delay=False):
-        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size, amp, delay, self))
+    def new_particle(self, pos, color, size, amp):
+        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size, amp, self))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
@@ -108,8 +105,49 @@ class Game(object):
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet._removed]
         self.items = [item for item in self.items if not item._removed]
 
+
         # 3. Let's play!
-        #TODO: check update orders
+        # In the original game, updates are done in prioritized functions called "chains"
+        # We have to mimic this functionnality to be replay-compatible with the official game.
+
+        # Pri 6 is background
+        self.update_players(keystate) # Pri 7
+        self.update_enemies() # Pri 9
+        self.update_effects() # Pri 10
+        self.update_bullets() # Pri 11
+        # Pri 12 is HUD
+
+        # 4. Cleaning
+        self.cleanup()
+
+        self.frame += 1
+
+
+    def update_enemies(self):
+        for enemy in self.enemies:
+            enemy.update()
+
+        # Check for collisions
+        for enemy in self.enemies:
+            ex, ey = enemy.x, enemy.y
+            ehalf_size_x, ehalf_size_y = enemy.hitbox_half_size
+            ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
+            ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
+
+            for bullet in self.players_bullets:
+                half_size = bullet.hitbox_half_size
+                bx, by = bullet.x, bullet.y
+                bx1, bx2 = bx - half_size, bx + half_size
+                by1, by2 = by - half_size, by + half_size
+
+                if not (bx2 < ex1 or bx1 > ex2
+                        or by2 < ey1 or by1 > ey2):
+                    bullet.collide()
+                    enemy.on_attack(bullet)
+                    player.state.score += 90 # found experimentally
+
+
+    def update_players(self, keystate):
         for player in self.players:
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
@@ -121,26 +159,53 @@ class Game(object):
             if player.state.y > 448.-16: #TODO
                 player.state.y = 448.-16
 
-        for enemy in self.enemies:
-            enemy.update()
-
-        for enemy in self.effects:
-            enemy.update()
-
-        for bullet in self.bullets:
+        for bullet in self.players_bullets:
             bullet.update()
 
+        # Check for collisions
+        for player in self.players:
+            if not player.state.touchable:
+                continue
+
+            px, py = player.x, player.y
+            phalf_size = player.hitbox_half_size
+            px1, px2 = px - phalf_size, px + phalf_size
+            py1, py2 = py - phalf_size, py + phalf_size
+
+            ghalf_size = player.graze_hitbox_half_size
+            gx1, gx2 = px - ghalf_size, px + ghalf_size
+            gy1, gy2 = py - ghalf_size, py + ghalf_size
+
+            #TODO: Should that be done here or in update_enemies?
+            for enemy in self.enemies:
+                half_size_x, half_size_y = enemy.hitbox_half_size
+                bx, by = enemy.x, enemy.y
+                bx1, bx2 = bx - half_size_x, bx + half_size_x
+                by1, by2 = by - half_size_y, by + half_size_y
+
+                #TODO: box-box or point-in-box?
+                if enemy.touchable and not (bx2 < px1 or bx1 > px2
+                                            or by2 < py1 or by1 > py2):
+                    enemy.on_collide()
+                    if player.state.invulnerable_time == 0:
+                        player.collide()
+
+
+    def update_effects(self):
+        for effect in self.effects:
+            effect.update()
+
+
+    def update_bullets(self):
         for bullet in self.cancelled_bullets:
             bullet.update()
 
-        for bullet in self.players_bullets:
+        for bullet in self.bullets:
             bullet.update()
 
         for item in self.items:
             item.update()
 
-        # 4. Check for collisions!
-        #TODO
         for player in self.players:
             if not player.state.touchable:
                 continue
@@ -171,21 +236,9 @@ class Game(object):
                     bullet.grazed = True
                     player.state.graze += 1
                     player.state.score += 500 # found experimentally
-                    self.new_particle((px, py), 0, .8, 192, delay=True) #TODO: find the real size and range.
+                    self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
-
-            for enemy in self.enemies:
-                half_size_x, half_size_y = enemy.hitbox_half_size
-                bx, by = enemy.x, enemy.y
-                bx1, bx2 = bx - half_size_x, bx + half_size_x
-                by1, by2 = by - half_size_y, by + half_size_y
-
-                if enemy.touchable and not (bx2 < px1 or bx1 > px2
-                                            or by2 < py1 or by1 > py2):
-                    enemy.on_collide()
-                    if player.state.invulnerable_time == 0:
-                        player.collide()
 
             for item in self.items:
                 half_size = item.hitbox_half_size
@@ -196,29 +249,6 @@ class Game(object):
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
                     player.collect(item)
-
-        for enemy in self.enemies:
-            ex, ey = enemy.x, enemy.y
-            ehalf_size_x, ehalf_size_y = enemy.hitbox_half_size
-            ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
-            ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
-
-            for bullet in self.players_bullets:
-                half_size = bullet.hitbox_half_size
-                bx, by = bullet.x, bullet.y
-                bx1, bx2 = bx - half_size, bx + half_size
-                by1, by2 = by - half_size, by + half_size
-
-                if not (bx2 < ex1 or bx1 > ex2
-                        or by2 < ey1 or by1 > ey2):
-                    bullet.collide()
-                    enemy.on_attack(bullet)
-                    player.state.score += 90 # found experimentally
-
-        # 5. Cleaning
-        self.cleanup()
-
-        self.frame += 1
 
 
     def cleanup(self):

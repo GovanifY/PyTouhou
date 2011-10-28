@@ -71,8 +71,8 @@ class T6RP(object):
                 raise Exception #TODO
 
         replay.unknown3 = unpack('<B', file.read(1))
-        replay.date = read_string(file, 9, 'ascii')
-        replay.name = read_string(file, 9, 'ascii').rstrip()
+        replay.date = file.read(9) #read_string(file, 9, 'ascii')
+        replay.name = file.read(9) #read_string(file, 9, 'ascii').rstrip()
         replay.unknown4, replay.score, replay.unknown5, replay.slowdown, replay.unknown6 = unpack('<HIIfI', file.read(18))
 
         stages_offsets = unpack('<7I', file.read(28))

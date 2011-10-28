@@ -79,7 +79,7 @@ class Player(object):
             self.death_time = self._game.frame
             self._game.new_death((self.state.x, self.state.y), 2)
             for i in range(16):
-                self._game.new_particle((self.state.x, self.state.y), 2, 4., 256, delay=True) #TODO: find the real size and range.
+                self._game.new_particle((self.state.x, self.state.y), 2, 4., 256) #TODO: find the real size and range.
 
 
     def collect(self, item):
