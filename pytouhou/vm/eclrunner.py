@@ -444,7 +444,7 @@ class ECLRunner(object):
     @instruction(35)
     def call(self, sub, param1, param2):
         self.stack.append((self.sub, self.frame, self.instruction_pointer,
-                           self.variables, self.comparison_reg))
+                           list(self.variables), self.comparison_reg))
         self.sub = sub
         self.frame = 0
         self.instruction_pointer = 0
