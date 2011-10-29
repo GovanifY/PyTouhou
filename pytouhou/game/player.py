@@ -15,6 +15,9 @@
 
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.game.bullettype import BulletType
+
+from math import pi
 
 
 SQ2 = 2. ** 0.5 / 2.
@@ -40,17 +43,27 @@ class PlayerState(object):
 
 
 class Player(object):
-    def __init__(self, state, character, game):
+    def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
         self._sprite = None
         self._anmrunner = None
         self._game = game
+        self.anm_wrapper = anm_wrapper
 
-        self.hitbox_half_size = character.hitbox_size / 2.
-        self.graze_hitbox_half_size = character.graze_hitbox_size / 2.
+        self.speed = speed
+        self.focused_speed = speed/2.
+
+        self.hitbox_size = hitbox_size
+        self.hitbox_half_size = self.hitbox_size / 2.
+        self.graze_hitbox_size = graze_hitbox_size
+        self.graze_hitbox_half_size = self.graze_hitbox_size / 2.
+
+        self.bullet_type = BulletType(anm_wrapper, 64, 96, 0, 0, 0, hitbox_size=4, damage=48)
+        self.bullet_launch_interval = 5
+        self.bullet_speed = 12.
+        self.bullet_launch_angle = -pi/2
+        self.fire_time = 0
 
         self.state = state
-        self.character = character
-        self.anm_wrapper = character.anm_wrapper
         self.direction = None
 
         self.set_anim(0)
@@ -98,7 +111,7 @@ class Player(object):
                 speed = 0.0
                 dx, dy = 0.0, 0.0
             else:
-                speed = self.character.focused_speed if keystate & 4 else self.character.speed
+                speed = self.focused_speed if keystate & 4 else self.speed
                 dx, dy = dx * speed, dy * speed
 
             if dx < 0 and self.direction != -1:
@@ -124,6 +137,12 @@ class Player(object):
                 elif m == 2:
                     self._sprite.color = (64, 64, 64)
                     self._sprite._changed = True
+
+            if keystate & 1 and self.fire_time == 0:
+                self.fire_time = 30
+            if self.fire_time > 0:
+                self.fire()
+                self.fire_time -= 1
 
         if self.death_time:
             time = self._game.frame - self.death_time

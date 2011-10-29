@@ -26,16 +26,15 @@ from pytouhou.game.effect import Particle
 
 
 class Game(object):
-    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
-                 bullet_types, item_types, characters, prng=None, nb_bullets_max=None):
+    def __init__(self, resource_loader, players, stage, rank, difficulty,
+                 bullet_types, item_types, prng=None, nb_bullets_max=None):
         self.resource_loader = resource_loader
 
         self.nb_bullets_max = nb_bullets_max
         self.bullet_types = bullet_types
         self.item_types = item_types
-        self.characters = characters
 
-        self.players = [Player(player_state, characters[player_state.character], self) for player_state in player_states]
+        self.players = players
         self.enemies = []
         self.effects = []
         self.bullets = []
@@ -144,7 +143,8 @@ class Game(object):
                         or by2 < ey1 or by1 > ey2):
                     bullet.collide()
                     enemy.on_attack(bullet)
-                    player.state.score += 90 # found experimentally
+                    #TODO: place that at the right place.
+                    #player.state.score += 90 # found experimentally
 
 
     def update_players(self, keystate):
