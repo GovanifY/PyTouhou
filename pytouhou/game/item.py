@@ -75,18 +75,22 @@ class Item(object):
                     score = 51200
                 player_state.power_bonus = bonus
             player_state.score += score
+            self._game.modify_difficulty(+1)
 
         elif self._type == 1: # point
             player_state.points += 1
             if player_state.y < 128: #TODO: find the exact poc.
                 score = 100000
+                self._game.modify_difficulty(+30)
             else:
                 score = 0 #TODO: find the formula.
+                self._game.modify_difficulty(+3)
             player_state.score += score
 
         elif self._type == 3: # bomb
             if player_state.bombs < 8:
                 player_state.bombs += 1
+            self._game.modify_difficulty(+5)
 
         elif self._type == 4: # full power
             player_state.score += 1000
@@ -95,6 +99,7 @@ class Item(object):
         elif self._type == 5: # 1up
             if player_state.lives < 8:
                 player_state.lives += 1
+            self._game.modify_difficulty(+200)
 
         elif self._type == 6: # star
             player_state.score += 500

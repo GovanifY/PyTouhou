@@ -45,6 +45,9 @@ class Game(object):
         self.stage = stage
         self.rank = rank
         self.difficulty = difficulty
+        self.difficulty_counter = 0
+        self.difficulty_min = 12 if rank == 0 else 10
+        self.difficulty_max = 20 if rank == 0 else 32
         self.boss = None
         self.spellcard = None
         self.bonus_list = [0,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,1,0,2]
@@ -60,6 +63,20 @@ class Game(object):
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
         self.next_bonus = self.prng.rand_uint16() % 8
+
+
+    def modify_difficulty(self, diff):
+        self.difficulty_counter += diff
+        while self.difficulty_counter < 0:
+            self.difficulty -= 1
+            self.difficulty_counter += 100
+        while self.difficulty_counter >= 100:
+            self.difficulty += 1
+            self.difficulty_counter -= 100
+        if self.difficulty < self.difficulty_min:
+            self.difficulty = self.difficulty_min
+        elif self.difficulty > self.difficulty_max:
+            self.difficulty = self.difficulty_max
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):
@@ -96,6 +113,8 @@ class Game(object):
     def run_iter(self, keystate):
         # 1. VMs.
         self.ecl_runner.run_iter()
+        if self.frame % (32*60) == (32*60): #TODO: check if that is really that frame.
+            self.modify_difficulty(+100)
 
         # 2. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
@@ -236,6 +255,7 @@ class Game(object):
                     bullet.grazed = True
                     player.state.graze += 1
                     player.state.score += 500 # found experimentally
+                    self.modify_difficulty(+6)
                     self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
@@ -268,7 +288,13 @@ class Game(object):
         self.players_bullets = [bullet for bullet in self.players_bullets if bullet.is_visible(384, 448)]
 
         # Filter out-of-scren items
-        self.items = [item for item in self.items if item.y < 448]
+        items = []
+        for item in self.items:
+            if item.y < 448:
+                items.append(item)
+            else:
+                self.modify_difficulty(-3)
+        self.items = items
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._removed:
