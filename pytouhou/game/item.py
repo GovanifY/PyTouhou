@@ -19,10 +19,11 @@ from pytouhou.utils.interpolator import Interpolator
 
 
 class Item(object):
-    def __init__(self, start_pos, item_type, game, angle=pi/2, speed=8., player=None, end_pos=None):
+    def __init__(self, start_pos, _type, item_type, game, angle=pi/2, speed=8., player=None, end_pos=None):
         self._game = game
         self._sprite = item_type.sprite
         self._removed = False
+        self._type = _type
         self._item_type = item_type
 
         self.hitbox_half_size = item_type.hitbox_size / 2.
@@ -48,6 +49,61 @@ class Item(object):
                                                        (0.,), 60)
 
         self._sprite.angle = angle
+
+
+    def on_collect(self, player_state):
+        old_power = player_state.power
+
+        if self._type == 0 or self._type == 2: # power or big power
+            if old_power < 128:
+                player_state.power_bonus = 0
+                score = 10
+                player_state.power += (1 if self._type == 0 else 8)
+                if player_state.power > 128:
+                    player_state.power = 128
+            else:
+                bonus = player_state.power_bonus + (1 if self._type == 0 else 8)
+                if bonus > 30:
+                    bonus = 30
+                if bonus < 9:
+                    score = (bonus + 1) * 10
+                elif bonus < 18:
+                    score = (bonus - 8) * 100
+                elif bonus < 30:
+                    score = (bonus - 17) * 1000
+                elif bonus == 30:
+                    score = 51200
+                player_state.power_bonus = bonus
+            player_state.score += score
+
+        elif self._type == 1: # point
+            player_state.points += 1
+            if player_state.y < 128: #TODO: find the exact poc.
+                score = 100000
+            else:
+                score = 0 #TODO: find the formula.
+            player_state.score += score
+
+        elif self._type == 3: # bomb
+            if player_state.bombs < 8:
+                player_state.bombs += 1
+
+        elif self._type == 4: # full power
+            player_state.score += 1000
+            player_state.power = 128
+
+        elif self._type == 5: # 1up
+            if player_state.lives < 8:
+                player_state.lives += 1
+
+        elif self._type == 6: # star
+            player_state.score += 500
+
+        if old_power < 128 and player_state.power >= 128:
+            #TODO: display “full power”.
+            self._game.change_bullets_into_star_items()
+
+        self._removed = True
 
 
     def update(self):

@@ -67,14 +67,14 @@ class Game(object):
         if _type > 6:
             return
         item_type = self.item_types[_type]
-        item = Item((x, y), item_type, self, end_pos=end_pos)
+        item = Item((x, y), _type, item_type, self, end_pos=end_pos)
         self.items.append(item)
 
 
     def change_bullets_into_star_items(self):
         player = self.players[0] #TODO
         item_type = self.item_types[6]
-        self.items.extend(Item((bullet.x, bullet.y), item_type, self, player=player) for bullet in self.bullets)
+        self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player) for bullet in self.bullets)
         self.bullets = []
 
 
@@ -248,7 +248,7 @@ class Game(object):
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
-                    player.collect(item)
+                    item.on_collect(player.state)
 
 
     def cleanup(self):

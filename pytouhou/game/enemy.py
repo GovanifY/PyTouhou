@@ -17,7 +17,6 @@ from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet
-from pytouhou.game.item import Item
 from math import cos, sin, atan2, pi
 
 

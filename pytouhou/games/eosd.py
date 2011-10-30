@@ -37,13 +37,13 @@ class EoSDGame(Game):
                         BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
                         BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
         #TODO: hitbox
-        item_types = [ItemType(etama3, 0, 7,  hitbox_size=42, score=10), #Power
-                      ItemType(etama3, 1, 8,  hitbox_size=42, score=100000), #Point, TODO: changes for hard, lunatic and poc
-                      ItemType(etama3, 2, 9,  hitbox_size=42, score=10), #Big power
-                      ItemType(etama3, 3, 10, hitbox_size=42), #Bomb
-                      ItemType(etama3, 4, 11, hitbox_size=42, score=1000), #Full power
-                      ItemType(etama3, 5, 12, hitbox_size=42), #1up
-                      ItemType(etama3, 6, 13, hitbox_size=42, score=500)] #Star
+        item_types = [ItemType(etama3, 0, 7), #Power
+                      ItemType(etama3, 1, 8), #Point
+                      ItemType(etama3, 2, 9), #Big power
+                      ItemType(etama3, 3, 10), #Bomb
+                      ItemType(etama3, 4, 11), #Full power
+                      ItemType(etama3, 5, 12), #1up
+                      ItemType(etama3, 6, 13)] #Star
 
         eosd_characters = [ReimuA, ReimuB, MarisaA, MarisaB]
         players = []

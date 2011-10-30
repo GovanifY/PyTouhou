@@ -41,6 +41,8 @@ class PlayerState(object):
         self.invulnerable_time = 240
         self.touchable = True
 
+        self.power_bonus = 0 # Never goes over 30.
+
 
 class Player(object):
     def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
@@ -93,12 +95,6 @@ class Player(object):
             self._game.new_death((self.state.x, self.state.y), 2)
             for i in range(16):
                 self._game.new_particle((self.state.x, self.state.y), 2, 4., 256) #TODO: find the real size and range.
-
-
-    def collect(self, item):
-        #TODO
-        self.state.score += item._item_type.score
-        item._removed = True
 
 
     def update(self, keystate):
