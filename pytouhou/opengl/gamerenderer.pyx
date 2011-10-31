@@ -16,7 +16,8 @@ from libc.stdlib cimport malloc, free
 
 import ctypes
 
-import struct
+from struct import pack
+from itertools import chain
 
 from pyglet.gl import *
 
@@ -91,7 +92,7 @@ cdef class GameRenderer:
             glColorPointer(4, GL_UNSIGNED_BYTE, 24, <long> &self.vertex_buffer[0].r)
 
             nb_indices = len(indices)
-            indices = struct.pack(str(nb_indices) + 'H', *indices)
+            indices = pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key].id)
             glDrawElements(GL_QUADS, nb_indices, GL_UNSIGNED_SHORT, indices)
@@ -151,13 +152,10 @@ cdef class GameRenderer:
             glDisable(GL_FOG)
             self.render_elements(game.enemies)
             self.render_elements(game.effects)
-            self.render_elements(game.players)
-            for player in game.players:
-                self.render_elements(player.objects())
-            self.render_elements(game.bullets)
-            self.render_elements(game.cancelled_bullets)
-            self.render_elements(game.players_bullets)
-            self.render_elements(game.items)
+            self.render_elements(chain(game.players_bullets,
+                                       game.players,
+                                       *(player.objects() for player in game.players)))
+            self.render_elements(chain(game.bullets, game.cancelled_bullets, game.items))
             #TODO: display item indicators
             glEnable(GL_FOG)
 
