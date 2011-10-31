@@ -18,6 +18,7 @@ from pytouhou.game.bullettype import BulletType
 from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.bullet import Bullet
+from pytouhou.game.orb import Orb
 
 from math import pi
 
@@ -72,7 +73,7 @@ class Reimu(Player):
                 bullets_per_shot = 3
             elif self.state.power < 128:
                 bullets_per_shot = 4
-            elif self.state.power >= 128:
+            else:
                 bullets_per_shot = 5
 
             bullets = self._game.players_bullets
@@ -89,12 +90,15 @@ class Reimu(Player):
                                       0, self, self._game, player_bullet=True))
                 bullet_angle += self.bullet_angle
 
+        for orb in self.orbs:
+            orb.fire(orb)
+
 
 class ReimuA(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
 
-        self.bulletA_type = BulletType(self.anm_wrapper, 65, 97, 0, 0, 0, hitbox_size=4, damage=48) #TODO: verify the hitbox and damages.
+        self.bulletA_type = BulletType(self.anm_wrapper, 65, 97, 0, 0, 0, hitbox_size=4, damage=14) #TODO: verify the hitbox.
         self.bulletA_speed = 12.
 
 
@@ -112,70 +116,67 @@ class ReimuB(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
 
-        self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4, damage=48) #TODO: verify the hitbox and damages.
+        self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4, damage=12) #TODO: verify the hitbox.
         self.bulletB_speed = 22.
 
+        self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
+                     Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
+        self.orbs[0].dx = -24
+        self.orbs[1].dx = 24
 
-    def fire_spine(self, offset_x):
+
+    def fire_spine(self, orb, offset_x):
         bullets = self._game.players_bullets
         nb_bullets_max = self._game.nb_bullets_max
 
         if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
             return
 
-        bullets.append(Bullet((self.x + offset_x, self.y), self.bulletB_type, 0,
+        bullets.append(Bullet((orb.x + offset_x, orb.y), self.bulletB_type, 0,
                               self.bullet_launch_angle, self.bulletB_speed,
                               (0, 0, 0, 0, 0., 0., 0., 0.),
                               0, self, self._game, player_bullet=True))
 
-
-    def fire(self):
-        Reimu.fire(self)
-
+    def orb_fire(self, orb):
         if self.state.power < 8:
             return
 
         elif self.state.power < 16:
             if self.fire_time % 15 == 0:
-                for offset in (-24, 24):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, 0)
 
         elif self.state.power < 32:
             if self.fire_time % 10 == 0:
-                for offset in (-24, 24):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, 0)
 
         elif self.state.power < 48:
             if self.fire_time % 8 == 0:
-                for offset in (-24, 24):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, 0)
 
         elif self.state.power < 96:
-            if self.fire_time % 5 == 0:
-                for offset in (-16, 32):
-                    self.fire_spine(offset)
             if self.fire_time % 8 == 0:
-                for offset in (-32, 16):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, -8)
+            if self.fire_time % 5 == 0:
+                self.fire_spine(orb, 8)
 
         elif self.state.power < 128:
-            if self.fire_time % 3 == 0:
-                for offset in (-12, 36):
-                    self.fire_spine(offset)
             if self.fire_time % 5 == 0:
-                for offset in (-36, 12):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, -12)
             if self.fire_time % 10 == 0:
-                for offset in (-24, 24):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, 0)
+            if self.fire_time % 3 == 0:
+                self.fire_spine(orb, 12)
 
         else:
             if self.fire_time % 3 == 0:
-                for offset in (-36, -12, 12, 36):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, -12)
+                self.fire_spine(orb, 12)
             if self.fire_time % 5 == 0:
-                for offset in (-24, 24):
-                    self.fire_spine(offset)
+                self.fire_spine(orb, 0)
+
+
+    def update(self, keystate):
+        Player.update(self, keystate)
 
 
 class Marisa(Player):
@@ -194,7 +195,7 @@ class Marisa(Player):
                 bullets_per_shot = 2
             elif self.state.power < 128:
                 bullets_per_shot = 3
-            elif self.state.power >= 128:
+            else:
                 bullets_per_shot = 5
 
             bullets = self._game.players_bullets
@@ -217,10 +218,10 @@ class MarisaA(Marisa):
         Marisa.__init__(self, state, game, resource_loader)
 
         #TODO: verify the hitbox and damages.
-        self.bulletA_types = [BulletType(self.anm_wrapper, 65, 0, 0, 0, 0, hitbox_size=4, damage=48),
-                              BulletType(self.anm_wrapper, 66, 0, 0, 0, 0, hitbox_size=4, damage=48),
-                              BulletType(self.anm_wrapper, 67, 0, 0, 0, 0, hitbox_size=4, damage=48),
-                              BulletType(self.anm_wrapper, 68, 0, 0, 0, 0, hitbox_size=4, damage=48)]
+        self.bulletA_types = [BulletType(self.anm_wrapper, 65, 0, 0, 0, 0, hitbox_size=4, damage=40),
+                              BulletType(self.anm_wrapper, 66, 0, 0, 0, 0, hitbox_size=4),
+                              BulletType(self.anm_wrapper, 67, 0, 0, 0, 0, hitbox_size=4),
+                              BulletType(self.anm_wrapper, 68, 0, 0, 0, 0, hitbox_size=4)]
         self.bulletA_speed_interpolator = None
 
 
@@ -238,7 +239,17 @@ class MarisaB(Marisa):
     def __init__(self, state, game, resource_loader):
         Marisa.__init__(self, state, game, resource_loader)
 
-        self.laser_type = None
+        #TODO:  power   damages period
+        #       8       240     120
+        #       16      390     170
+        #       32      480     ???
+        #       48      510     ???
+        #       64      760     ???
+        #       80      840     ???
+        #       96      1150    270
+        #       128     1740    330
+        # The duration of the laser is period - 42.
+        # The damages are given for one laser shot on one enemy for its entire duration.
 
 
     def fire(self):

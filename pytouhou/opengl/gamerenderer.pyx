@@ -152,6 +152,8 @@ cdef class GameRenderer:
             self.render_elements(game.enemies)
             self.render_elements(game.effects)
             self.render_elements(game.players)
+            for player in game.players:
+                self.render_elements(player.objects())
             self.render_elements(game.bullets)
             self.render_elements(game.cancelled_bullets)
             self.render_elements(game.players_bullets)

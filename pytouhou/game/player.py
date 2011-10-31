@@ -16,6 +16,7 @@
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
+from pytouhou.utils.interpolator import Interpolator
 
 from math import pi
 
@@ -40,6 +41,7 @@ class PlayerState(object):
 
         self.invulnerable_time = 240
         self.touchable = True
+        self.focused = False
 
         self.power_bonus = 0 # Never goes over 30.
 
@@ -72,6 +74,9 @@ class Player(object):
 
         self.death_time = 0
 
+        self.orb_dx_interpolator = None
+        self.orb_dy_interpolator = None
+
 
     @property
     def x(self):
@@ -81,6 +86,10 @@ class Player(object):
     @property
     def y(self):
         return self.state.y
+
+
+    def objects(self):
+        return self.orbs if self.state.power >= 8 else []
 
 
     def set_anim(self, index):
@@ -123,6 +132,32 @@ class Player(object):
 
             self.state.x += dx
             self.state.y += dy
+
+            if not self.state.focused and keystate & 4:
+                self.orb_dx_interpolator = Interpolator((24,), self._game.frame,
+                                                        (8,), self._game.frame + 8,
+                                                        lambda x: x ** 2)
+                self.orb_dy_interpolator = Interpolator((0,), self._game.frame,
+                                                        (-32,), self._game.frame + 8)
+                self.state.focused = True
+            elif self.state.focused and not keystate & 4:
+                self.orb_dx_interpolator = Interpolator((8,), self._game.frame,
+                                                        (24,), self._game.frame + 8,
+                                                        lambda x: x ** 2)
+                self.orb_dy_interpolator = Interpolator((-32,), self._game.frame,
+                                                        (0,), self._game.frame + 8)
+                self.state.focused = False
+
+            if self.orb_dx_interpolator:
+                self.orb_dx_interpolator.update(self._game.frame)
+                dx, = self.orb_dx_interpolator.values
+                self.orbs[0].offset_x = -dx
+                self.orbs[1].offset_x = dx
+            if self.orb_dy_interpolator:
+                self.orb_dy_interpolator.update(self._game.frame)
+                dy, = self.orb_dy_interpolator.values
+                self.orbs[0].offset_y = dy
+                self.orbs[1].offset_y = dy
 
             if self.state.invulnerable_time > 0:
                 self.state.invulnerable_time -= 1
@@ -190,6 +225,10 @@ class Player(object):
 
             if time > 90: # start the bullet hell again
                 self.death_time = 0
+
+
+        for orb in self.orbs:
+            orb.update()
 
 
         self._anmrunner.run_frame()
