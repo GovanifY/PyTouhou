@@ -165,16 +165,6 @@ class Enemy(object):
         self._anmrunner.run_frame()
 
 
-    def on_attack(self, bullet):
-        if self.damageable:
-            self.life -= bullet._bullet_type.damage
-            self.drop_particles(1, 1)
-
-
-    def on_collide(self):
-        self.life -= 80 # found experimentally
-
-
     def die_anim(self):
         self._game.new_death((self.x, self.y), self.death_anim)
 
@@ -234,6 +224,62 @@ class Enemy(object):
             or max_y < -y):
             return False
         return True
+
+
+    def check_collisions(self):
+        # Check for collisions
+        ex, ey = self.x, self.y
+        ehalf_size_x, ehalf_size_y = self.hitbox_half_size
+        ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
+        ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
+
+        damages = 0
+
+        # Check for enemy-bullet collisions
+        for bullet in self._game.players_bullets:
+            half_size = bullet.hitbox_half_size
+            bx, by = bullet.x, bullet.y
+            bx1, bx2 = bx - half_size, bx + half_size
+            by1, by2 = by - half_size, by + half_size
+
+            if not (bx2 < ex1 or bx1 > ex2
+                    or by2 < ey1 or by1 > ey2):
+                bullet.collide()
+                damages += bullet._bullet_type.damage
+                self.drop_particles(1, 1)
+
+        # Check for enemy-player collisions
+        if self.touchable:
+            for player in self._game.players:
+                if not player.state.touchable:
+                    continue
+
+                px, py = player.x, player.y
+                phalf_size = player.hitbox_half_size
+                px1, px2 = px - phalf_size, px + phalf_size
+                py1, py2 = py - phalf_size, py + phalf_size
+
+                #TODO: box-box or point-in-box?
+                if not (ex2 < px1 or ex1 > px2 or ey2 < py1 or ey1 > py2):
+                    if not self.boss:
+                        damages += 10
+                    if player.state.invulnerable_time == 0: #TODO
+                        player.collide()
+
+        # Adjust damages
+        damages = min(70, damages)
+        score = (damages // 5) * 10 #TODO: give to which player?
+
+        if self._game.spellcard:
+            #TODO: there is a division by 3, somewhere... where is it?
+            if damages <= 7:
+                damages = 1 if damages else 0
+            else:
+                damages //= 7
+
+        # Apply damages
+        if self.damageable:
+            self.life -= damages
 
 
     def update(self):
@@ -298,6 +344,10 @@ class Enemy(object):
             self.bullet_launch_timer += 1
             if self.bullet_launch_timer == self.bullet_launch_interval:
                 self.fire()
+
+        # Check collisions
+        if self.touchable:
+            self.check_collisions()
 
         self.frame += 1
 

@@ -145,26 +145,6 @@ class Game(object):
         for enemy in self.enemies:
             enemy.update()
 
-        # Check for collisions
-        for enemy in self.enemies:
-            ex, ey = enemy.x, enemy.y
-            ehalf_size_x, ehalf_size_y = enemy.hitbox_half_size
-            ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
-            ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
-
-            for bullet in self.players_bullets:
-                half_size = bullet.hitbox_half_size
-                bx, by = bullet.x, bullet.y
-                bx1, bx2 = bx - half_size, bx + half_size
-                by1, by2 = by - half_size, by + half_size
-
-                if not (bx2 < ex1 or bx1 > ex2
-                        or by2 < ey1 or by1 > ey2):
-                    bullet.collide()
-                    enemy.on_attack(bullet)
-                    #TODO: place that at the right place.
-                    #player.state.score += 90 # found experimentally
-
 
     def update_players(self, keystate):
         for player in self.players:
@@ -180,34 +160,6 @@ class Game(object):
 
         for bullet in self.players_bullets:
             bullet.update()
-
-        # Check for collisions
-        for player in self.players:
-            if not player.state.touchable:
-                continue
-
-            px, py = player.x, player.y
-            phalf_size = player.hitbox_half_size
-            px1, px2 = px - phalf_size, px + phalf_size
-            py1, py2 = py - phalf_size, py + phalf_size
-
-            ghalf_size = player.graze_hitbox_half_size
-            gx1, gx2 = px - ghalf_size, px + ghalf_size
-            gy1, gy2 = py - ghalf_size, py + ghalf_size
-
-            #TODO: Should that be done here or in update_enemies?
-            for enemy in self.enemies:
-                half_size_x, half_size_y = enemy.hitbox_half_size
-                bx, by = enemy.x, enemy.y
-                bx1, bx2 = bx - half_size_x, bx + half_size_x
-                by1, by2 = by - half_size_y, by + half_size_y
-
-                #TODO: box-box or point-in-box?
-                if enemy.touchable and not (bx2 < px1 or bx1 > px2
-                                            or by2 < py1 or by1 > py2):
-                    enemy.on_collide()
-                    if player.state.invulnerable_time == 0:
-                        player.collide()
 
 
     def update_effects(self):
