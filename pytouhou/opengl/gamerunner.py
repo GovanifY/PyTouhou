@@ -15,7 +15,13 @@
 import pyglet
 import traceback
 
-from pyglet.gl import *
+from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
+                       glHint, glEnableClientState, glViewport,
+                       gluPerspective, gluLookAt,
+                       GL_MODELVIEW, GL_PROJECTION,
+                       GL_TEXTURE_2D, GL_BLEND, GL_FOG,
+                       GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
+                       GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
 from pytouhou.opengl.gamerenderer import GameRenderer
 

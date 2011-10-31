@@ -12,7 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-import struct
 from struct import pack, unpack, calcsize
 from pytouhou.utils.helpers import read_string
 

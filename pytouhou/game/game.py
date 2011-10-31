@@ -17,7 +17,6 @@ from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner
 
-from pytouhou.game.player import Player
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 from pytouhou.game.effect import Effect
@@ -50,7 +49,8 @@ class Game(object):
         self.difficulty_max = 20 if rank == 0 else 32
         self.boss = None
         self.spellcard = None
-        self.bonus_list = [0,0,1,0,1,0,0,1,1,1,0,0,0,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,1,0,2]
+        self.bonus_list = [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0,
+                           1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 2]
         self.prng = prng or Random()
         self.frame = 0
 

@@ -13,7 +13,8 @@
 ##
 
 import pyglet
-from pyglet.gl import *
+from pyglet.gl import (glTexParameteri,
+                       GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 import os
 
 
