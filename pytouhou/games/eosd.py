@@ -121,8 +121,8 @@ class ReimuB(Reimu):
 
         self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
                      Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
-        self.orbs[0].dx = -24
-        self.orbs[1].dx = 24
+        self.orbs[0].offset_x = -24
+        self.orbs[1].offset_x = 24
 
 
     def fire_spine(self, orb, offset_x):
@@ -175,9 +175,6 @@ class ReimuB(Reimu):
                 self.fire_spine(orb, 0)
 
 
-    def update(self, keystate):
-        Player.update(self, keystate)
-
 
 class Marisa(Player):
     def __init__(self, state, game, resource_loader):
@@ -213,6 +210,7 @@ class Marisa(Player):
                 bullet_angle += self.bullet_angle
 
 
+
 class MarisaA(Marisa):
     def __init__(self, state, game, resource_loader):
         Marisa.__init__(self, state, game, resource_loader)
@@ -233,6 +231,7 @@ class MarisaA(Marisa):
 
         else:
             pass #TODO
+
 
 
 class MarisaB(Marisa):
@@ -260,3 +259,4 @@ class MarisaB(Marisa):
 
         else:
             pass #TODO
+

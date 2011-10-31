@@ -18,6 +18,9 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Orb(object):
+    __slots__ = ('_sprite', '_anmrunner', 'offset_x', 'offset_y', 'player_state',
+                 'fire')
+
     def __init__(self, anm_wrapper, index, player_state, fire_func):
         self._sprite = Sprite()
         self._anmrunner = ANMRunner(anm_wrapper, index, self._sprite)
