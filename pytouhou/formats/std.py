@@ -12,6 +12,14 @@
 ## GNU General Public License for more details.
 ##
 
+"""Stage Definition (STD) files handling.
+
+This module provides classes for handling the Stage Definition file format.
+The STD file format is a format used in Touhou 6: EoSD to describe non-gameplay
+aspects of a stage: its name, its music, 3D models composing its background,
+and various scripted events such as camera movement.
+"""
+
 
 from struct import pack, unpack, calcsize
 from pytouhou.utils.helpers import read_string, get_logger
@@ -29,6 +37,25 @@ class Model(object):
 
 
 class Stage(object):
+    """Handle Touhou 6 Stage Definition files.
+
+    Stage Definition files are structured files describing non-gameplay aspects
+    aspects of a stage. They are split in a header an 3 additional sections.
+
+    The header contains the name of the stage, the background musics (BGM) used,
+    as well as the number of quads and objects composing the background.
+    The first section describes the models composing the background, whereas
+    the second section dictates how they are used.
+    The last section describes the changes to the camera, fog, and other things.
+
+    Instance variables:
+    name -- name of the stage
+    bgms -- list of (name, path) describing the different background musics used
+    models -- list of Model objects
+    object_instances -- list of instances of the aforementioned models
+    script -- stage script (camera, fog, etc.)
+    """
+
     _instructions = {0: ('fff', 'set_viewpos'),
                      1: ('BBBxff', 'set_fog'),
                      2: ('fff', 'set_viewpos2'),
@@ -45,6 +72,12 @@ class Stage(object):
 
     @classmethod
     def read(cls, file):
+        """Read a Stage Definition file.
+
+        Raise an exception if the file is invalid.
+        Return a STD instance otherwise.
+        """
+
         stage = Stage()
 
         nb_models, nb_faces = unpack('<HH', file.read(4))
@@ -71,9 +104,13 @@ class Stage(object):
         for offset in offsets:
             model = Model()
             file.seek(offset)
+
+            # Read model header
             id_, unknown, x, y, z, width, height, depth = unpack('<HHffffff', file.read(28))
             model.unknown = unknown
             model.bounding_box = x, y, z, width, height, depth #TODO: check
+
+            # Read model quads
             while True:
                 unknown, size = unpack('<HH', file.read(4))
                 if unknown == 0xffff:
@@ -116,14 +153,15 @@ class Stage(object):
 
 
     def write(self, file):
+        """Write to a Stage Definition file."""
         model_offsets = []
         second_section_offset = 0
         third_section_offset = 0
 
         nb_faces = sum(len(model.quads) for model in self.models)
 
-        # Write header
-        file.write(pack('<HH', len(self.models), nb_faces)) #TODO: nb_faces
+        # Write header (offsets, number of quads, name and background musics)
+        file.write(pack('<HH', len(self.models), nb_faces))
         file.write(pack('<II', 0, 0))
         file.write(pack('<I', 0))
         file.write(pack('<128s', self.name.encode('shift_jis')))
@@ -133,7 +171,7 @@ class Stage(object):
             file.write(pack('<128s', bgm_path.encode('ascii')))
         file.write(b'\x00\x00\x00\x00' * len(self.models))
 
-        # Write first section
+        # Write first section (models)
         for i, model in enumerate(self.models):
             model_offsets.append(file.tell())
             file.write(pack('<HHffffff', i, model.unknown, *model.bounding_box))
@@ -142,13 +180,13 @@ class Stage(object):
                 file.write(pack('<Hxxfffff', *quad))
             file.write(pack('<HH', 0xffff, 4))
 
-        # Write second section
+        # Write second section (object instances)
         second_section_offset = file.tell()
         for obj_id, x, y, z in self.object_instances:
             file.write(pack('<HHfff', obj_id, 256, x, y, z))
         file.write(b'\xff' * 16)
 
-        # Write third section
+        # Write third section (script)
         third_section_offset = file.tell()
         for frame, opcode, args in self.script:
             size = calcsize(self._instructions[opcode][0])

@@ -12,6 +12,13 @@
 ## GNU General Public License for more details.
 ##
 
+"""ECL files handling.
+
+This module provides classes for handling the ECL file format.
+The ECL format is a format used in Touhou 6: EoSD to script most of the gameplay
+aspects of the game, such as enemy movements, attacks, and so on.
+"""
+
 import struct
 from struct import pack, unpack, calcsize
 
@@ -20,6 +27,20 @@ from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
 class ECL(object):
+    """Handle Touhou 6 ECL files.
+
+    ECL files are binary script files used to describe the behavior of enemies.
+    They are basically composed of a header and two additional sections.
+    The first section is a list of subroutines, each composed of a list of timed
+    instructions.
+    The second section is a list of a different set of instructions describing
+    enemy waves, triggering dialogs and level completion.
+
+    Instance variables:
+    main -- list of instructions describing waves and triggering dialogs
+    subs -- list of subroutines
+    """
+
     _instructions = {0: ('', 'noop?'),
                      1: ('I', 'delete?'),
                      2: ('Ii', 'relative_jump'),
@@ -40,7 +61,7 @@ class ECL(object):
                      21: ('iff', 'substract_float'),
                      23: ('iff', 'divide_float'),
                      25: ('iffff', 'get_direction'),
-                     26: ('i', None),
+                     26: ('i', 'float_to_unit_circle'), #TODO: find a better name
                      27: ('ii', 'compare_ints'),
                      28: ('ff', 'compare_floats'),
                      29: ('ii', 'relative_jump_if_lower_than'),
@@ -50,7 +71,7 @@ class ECL(object):
                      33: ('ii', 'relative_jump_if_greater_or_equal'),
                      34: ('ii', 'relative_jump_if_not_equal'),
                      35: ('iif', 'call'),
-                     36: ('', 'return?'),
+                     36: ('', 'return'),
                      39: ('iifii', 'call_if_equal'),
                      43: ('fff', 'set_position'),
                      45: ('ff', 'set_angle_and_speed'),
@@ -81,18 +102,18 @@ class ECL(object):
                      79: ('', 'no_delay_attack'),
                      81: ('fff', 'set_bullet_launch_offset'),
                      82: ('iiiiffff', 'set_extended_bullet_attributes'),
-                     83: ('', None),
+                     83: ('', 'change_bullets_in_star_bonus'),
                      84: ('i', None),
                      85: ('hhffffffiiiiii', 'laser'),
                      86: ('hhffffffiiiiii', 'laser2'),
                      87: ('i', 'set_upcoming_id'),
                      88: ('if','alter_laser_angle'),
-                     90: ('iiii', None),
-                     92: ('i', None),
+                     90: ('iiii', 'translate_laser'),
+                     92: ('i', 'cancel_laser'),
                      93: ('hhs', 'set_spellcard'),
                      94: ('', 'end_spellcard'),
-                     95: ('ifffhhi', None),
-                     96: ('', None),
+                     95: ('ifffhhi', 'spawn_enemy'),
+                     96: ('', 'kill_all_enemies'),
                      97: ('i', 'set_anim'),
                      98: ('hhhhhxx', 'set_multiple_anims'),
                      99: ('ii', None),
@@ -123,14 +144,14 @@ class ECL(object):
                      125: ('', None),
                      126: ('i', 'set_remaining_lives'),
                      127: ('i', None),
-                     128: ('i', None),
+                     128: ('i', 'set_smooth_disappear'),
                      129: ('ii', None),
                      130: ('i', None),
-                     131: ('ffiiii', None),
-                     132: ('i', None),
+                     131: ('ffiiii', 'set_difficulty_coeffs'),
+                     132: ('i', 'set_invisible'),
                      133: ('', None),
                      134: ('', None),
-                     135: ('i', None)} #TODO
+                     135: ('i', 'enable_spellcard_bonus')} #TODO
 
     _main_instructions = {0: ('fffhhI', 'spawn_enemy'),
                           2: ('fffhhI', 'spawn_enemy_mirrored'),
@@ -149,6 +170,12 @@ class ECL(object):
 
     @classmethod
     def read(cls, file):
+        """Read an ECL file.
+
+        Raise an exception if the file is invalid.
+        Return a ECL instance otherwise.
+        """
+
         sub_count, main_offset = unpack('<II', file.read(8))
         if file.read(8) != b'\x00\x00\x00\x00\x00\x00\x00\x00':
             raise Exception #TODO
@@ -171,6 +198,7 @@ class ECL(object):
                 time, opcode = unpack('<IH', file.read(6))
                 if time == 0xffffffff or opcode == 0xffff:
                     break
+
                 size, rank_mask, param_mask = unpack('<HHH', file.read(6))
                 data = file.read(size - 12)
                 if opcode in cls._instructions:
@@ -188,7 +216,10 @@ class ECL(object):
                 ecl.subs[-1].append((time, opcode, rank_mask, param_mask, args))
 
 
-            # Translate offsets to instruction pointers
+            # Translate offsets to instruction pointers.
+            # Indeed, jump instructions are relative and byte-based.
+            # Since our representation doesn't conserve offsets, we have to
+            # keep trace of where the jump is supposed to end up.
             for instr_offset, (i, instr) in zip(instruction_offsets, enumerate(ecl.subs[-1])):
                 time, opcode, rank_mask, param_mask, args = instr
                 if opcode in (2, 29, 30, 31, 32, 33, 34): # relative_jump
@@ -222,6 +253,8 @@ class ECL(object):
 
 
     def write(self, file):
+        """Write to an ECL file."""
+
         sub_count = len(self.subs)
         sub_offsets = []
         main_offset = 0

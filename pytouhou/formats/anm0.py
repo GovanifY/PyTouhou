@@ -12,6 +12,14 @@
 ## GNU General Public License for more details.
 ##
 
+"""ANM0 files handling.
+
+This module provides classes for handling the ANM0 file format.
+The ANM0 format is a format used in Touhou 6: EoSD to describe sprites
+and animations.
+Almost everything rendered in the game is described by an ANM0 file.
+"""
+
 from struct import pack, unpack
 from pytouhou.utils.helpers import read_string, get_logger
 

@@ -12,6 +12,14 @@
 ## GNU General Public License for more details.
 ##
 
+"""Touhou 6 Replay (T6RP) files handling.
+
+This module provides classes for handling the Touhou 6 Replay file format.
+The T6RP file format is an encrypted format describing different aspects of
+a game of EoSD. Since the EoSD engine is entirely deterministic, a small
+replay file is sufficient to unfold a full game.
+"""
+
 from struct import unpack
 from io import BytesIO
 
@@ -46,6 +54,16 @@ class T6RP(object):
 
     @classmethod
     def read(cls, file, decrypt=True, verify=True):
+        """Read a T6RP file.
+
+        Raise an exception if the file is invalid.
+        Return a T6RP instance otherwise.
+
+        Keyword arguments:
+        decrypt -- whether or not to decrypt the file (default True)
+        verify -- whether or not to verify the file's checksum (default True)
+        """
+
         if file.read(4) != b'T6RP':
             raise Exception
 
