@@ -21,9 +21,9 @@ from itertools import chain
 
 from pyglet.gl import *
 
-from pytouhou.opengl.texture import TextureManager
-from pytouhou.opengl.sprite cimport get_sprite_rendering_data
-from pytouhou.opengl.background import get_background_rendering_data
+from .texture import TextureManager
+from .sprite cimport get_sprite_rendering_data
+from .background import get_background_rendering_data
 
 
 MAX_ELEMENTS = 10000

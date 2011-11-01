@@ -23,7 +23,7 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
-from pytouhou.opengl.gamerenderer import GameRenderer
+from .gamerenderer import GameRenderer
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):

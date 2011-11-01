@@ -21,7 +21,7 @@ pyximport.install()
 
 from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
-from pytouhou.opengl.gamerunner import GameRunner
+from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDGame
 from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP

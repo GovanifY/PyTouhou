@@ -17,7 +17,7 @@
 from struct import pack
 from itertools import chain
 
-from pytouhou.opengl.sprite import get_sprite_rendering_data
+from .sprite import get_sprite_rendering_data
 
 def get_background_rendering_data(background):
     #TODO

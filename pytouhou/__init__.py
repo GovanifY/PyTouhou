@@ -8,6 +8,7 @@ formats -- file formats handling
 game -- game logic
 games -- game-specific classes
 resource -- resource loading
+ui -- user interface related classes
 utils -- various helpers and non Touhou-specific functions
 vm -- virtual machines for enemies, etc.
 """
