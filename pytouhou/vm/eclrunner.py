@@ -886,12 +886,9 @@ class ECLRunner(object):
                     bullet.angle = self._game.prng.rand_double() * pi #TODO
                     bullet.delta = (cos(bullet.angle) * bullet.speed, sin(bullet.angle) * bullet.speed)
         elif function == 1: # Cirno
-            offset = self._enemy.bullet_launch_offset
-            self._enemy.bullet_launch_offset = (
-                self._game.prng.rand_uint16() % arg - arg / 2,
-                self._game.prng.rand_uint16() % arg - arg / 2)
-            self._enemy.fire()
-            self._enemy.bullet_launch_offset = offset
+            offset = (self._game.prng.rand_uint16() % arg - arg / 2,
+                      self._game.prng.rand_uint16() % arg - arg / 2)
+            self._enemy.fire(offset=offset)
         elif function == 13:
             if self._enemy.bullet_attributes is None:
                 return
@@ -899,23 +896,20 @@ class ECLRunner(object):
             if self._enemy.frame % 6:
                 return
 
-            offset = self._enemy.bullet_launch_offset
-            pos = self._enemy.x, self._enemy.y
-            attributes = self._enemy.bullet_attributes
-
-            self._enemy.x, self._enemy.y = (192, 224)
-            type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots, speed, speed2, launch_angle, angle, flags = attributes
+            (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots,
+             speed, speed2, launch_angle, angle, flags) = self._enemy.bullet_attributes
             for i in range(arg):
                 _angle = i*2*pi/arg
                 _angle2 = _angle + self._getval(-10007)
                 _distance = self._getval(-10008)
-                self._enemy.bullet_launch_offset = (cos(_angle2) * _distance, sin(_angle2) * _distance)
-                self._enemy.bullet_attributes = (type_, anim, sprite_idx_offset, bullets_per_shot, number_of_shots, speed, speed2, self._getval(-10006) + _angle, angle, flags)
-                self._enemy.fire()
-
-            self._enemy.bullet_attributes = attributes
-            self._enemy.x, self._enemy.y = pos
-            self._enemy.bullet_launch_offset = offset
+                launch_pos = (192 + cos(_angle2) * _distance,
+                              224 + sin(_angle2) * _distance)
+                bullet_attributes = (type_, anim, sprite_idx_offset,
+                                     bullets_per_shot, number_of_shots,
+                                     speed, speed2,
+                                     self._getval(-10006) + _angle, angle, flags)
+                self._enemy.fire(launch_pos=launch_pos,
+                                 bullet_attributes=bullet_attributes)
         else:
             logger.warn("Unimplemented special function %d!", function)
 

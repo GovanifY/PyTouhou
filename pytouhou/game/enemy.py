@@ -103,14 +103,15 @@ class Enemy(object):
         self.bullet_launch_timer = int(value * start)
 
 
-    def fire(self):
+    def fire(self, offset=None, bullet_attributes=None, launch_pos=None):
         (type_, type_idx, sprite_idx_offset, bullets_per_shot, number_of_shots,
-         speed, speed2, launch_angle, angle, flags) = self.bullet_attributes
+         speed, speed2, launch_angle, angle, flags) = bullet_attributes or self.bullet_attributes
 
         bullet_type = self._game.bullet_types[type_idx]
 
-        ox, oy = self.bullet_launch_offset
-        launch_pos = self.x + ox, self.y + oy
+        if not launch_pos:
+            ox, oy = offset or self.bullet_launch_offset
+            launch_pos = self.x + ox, self.y + oy
 
         if speed2 < 0.3:
             speed2 = 0.3
