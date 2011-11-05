@@ -16,7 +16,6 @@
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
-from pytouhou.utils.interpolator import Interpolator
 
 from math import pi
 
@@ -74,9 +73,6 @@ class Player(object):
 
         self.death_time = 0
 
-        self.orb_dx_interpolator = None
-        self.orb_dy_interpolator = None
-
 
     @property
     def x(self):
@@ -89,7 +85,7 @@ class Player(object):
 
 
     def objects(self):
-        return self.orbs if self.state.power >= 8 else []
+        return []
 
 
     def set_anim(self, index):
@@ -105,6 +101,14 @@ class Player(object):
             self._game.modify_difficulty(-1600)
             for i in range(16):
                 self._game.new_particle((self.state.x, self.state.y), 2, 4., 256) #TODO: find the real size and range.
+
+
+    def start_focusing(self):
+        self.state.focused = True
+
+
+    def stop_focusing(self):
+        self.state.focused = False
 
 
     def update(self, keystate):
@@ -134,30 +138,9 @@ class Player(object):
             self.state.y += dy
 
             if not self.state.focused and keystate & 4:
-                self.orb_dx_interpolator = Interpolator((24,), self._game.frame,
-                                                        (8,), self._game.frame + 8,
-                                                        lambda x: x ** 2)
-                self.orb_dy_interpolator = Interpolator((0,), self._game.frame,
-                                                        (-32,), self._game.frame + 8)
-                self.state.focused = True
+                self.start_focusing()
             elif self.state.focused and not keystate & 4:
-                self.orb_dx_interpolator = Interpolator((8,), self._game.frame,
-                                                        (24,), self._game.frame + 8,
-                                                        lambda x: x ** 2)
-                self.orb_dy_interpolator = Interpolator((-32,), self._game.frame,
-                                                        (0,), self._game.frame + 8)
-                self.state.focused = False
-
-            if self.orb_dx_interpolator:
-                self.orb_dx_interpolator.update(self._game.frame)
-                dx, = self.orb_dx_interpolator.values
-                self.orbs[0].offset_x = -dx
-                self.orbs[1].offset_x = dx
-            if self.orb_dy_interpolator:
-                self.orb_dy_interpolator.update(self._game.frame)
-                dy, = self.orb_dy_interpolator.values
-                self.orbs[0].offset_y = dy
-                self.orbs[1].offset_y = dy
+                self.stop_focusing()
 
             if self.state.invulnerable_time > 0:
                 self.state.invulnerable_time -= 1
@@ -225,11 +208,6 @@ class Player(object):
 
             if time > 90: # start the bullet hell again
                 self.death_time = 0
-
-
-        for orb in self.orbs:
-            orb.update()
-
 
         self._anmrunner.run_frame()
 

@@ -12,6 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
+from pytouhou.utils.interpolator import Interpolator
 
 from pytouhou.game.game import Game
 from pytouhou.game.bullettype import BulletType
@@ -55,12 +56,73 @@ class EoSDGame(Game):
                       bullet_types, item_types, nb_bullets_max=640, **kwargs)
 
 
-class Reimu(Player):
+
+class EoSDPlayer(Player):
+    def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
+        Player.__init__(self, state, game, anm_wrapper, speed=4.)
+
+        self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
+                     Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
+
+        self.orbs[0].offset_x = -24
+        self.orbs[1].offset_x = 24
+
+        self.orb_dx_interpolator = None
+        self.orb_dy_interpolator = None
+
+
+    def start_focusing(self):
+        self.orb_dx_interpolator = Interpolator((24,), self._game.frame,
+                                                (8,), self._game.frame + 8,
+                                                lambda x: x ** 2)
+        self.orb_dy_interpolator = Interpolator((0,), self._game.frame,
+                                                (-32,), self._game.frame + 8)
+        self.state.focused = True
+
+
+    def stop_focusing(self):
+        self.orb_dx_interpolator = Interpolator((8,), self._game.frame,
+                                                (24,), self._game.frame + 8,
+                                                lambda x: x ** 2)
+        self.orb_dy_interpolator = Interpolator((-32,), self._game.frame,
+                                                (0,), self._game.frame + 8)
+        self.state.focused = False
+
+
+    def objects(self):
+        return self.orbs if self.state.power >= 8 else []
+
+
+    def update(self, keystate):
+        Player.update(self, keystate)
+
+        if self.death_time == 0 or self._game.frame - self.death_time > 60:
+            if self.orb_dx_interpolator:
+                self.orb_dx_interpolator.update(self._game.frame)
+                dx, = self.orb_dx_interpolator.values
+                self.orbs[0].offset_x = -dx
+                self.orbs[1].offset_x = dx
+            if self.orb_dy_interpolator:
+                self.orb_dy_interpolator.update(self._game.frame)
+                dy, = self.orb_dy_interpolator.values
+                self.orbs[0].offset_y = dy
+                self.orbs[1].offset_y = dy
+
+        for orb in self.orbs:
+            orb.update()
+
+
+    def orb_fire(self, orb):
+        pass
+
+
+
+class Reimu(EoSDPlayer):
     def __init__(self, state, game, resource_loader):
         anm_wrapper = resource_loader.get_anm_wrapper(('player00.anm',))
         self.bullet_angle = pi/30 #TODO: check
 
-        Player.__init__(self, state, game, anm_wrapper, speed=4.)
+        EoSDPlayer.__init__(self, state, game, anm_wrapper, speed=4.)
 
 
     def fire(self):
@@ -94,6 +156,7 @@ class Reimu(Player):
             orb.fire(orb)
 
 
+
 class ReimuA(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
@@ -112,17 +175,13 @@ class ReimuA(Reimu):
             pass #TODO
 
 
+
 class ReimuB(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
 
         self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4, damage=12) #TODO: verify the hitbox.
         self.bulletB_speed = 22.
-
-        self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
-                     Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
-        self.orbs[0].offset_x = -24
-        self.orbs[1].offset_x = 24
 
 
     def fire_spine(self, orb, offset_x):
@@ -176,12 +235,12 @@ class ReimuB(Reimu):
 
 
 
-class Marisa(Player):
+class Marisa(EoSDPlayer):
     def __init__(self, state, game, resource_loader):
         anm_wrapper = resource_loader.get_anm_wrapper(('player01.anm',))
         self.bullet_angle = pi/40 #TODO: check
 
-        Player.__init__(self, state, game, anm_wrapper, speed=5.)
+        EoSDPlayer.__init__(self, state, game, anm_wrapper, speed=5.)
 
 
     def fire(self):
