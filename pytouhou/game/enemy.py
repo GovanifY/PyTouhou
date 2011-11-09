@@ -36,7 +36,7 @@ class Enemy(object):
         self.frame = 0
 
         self.x, self.y = pos
-        self.life = life
+        self.life = 1 if life < 0 else life
         self.max_life = life
         self.touchable = True
         self.damageable = True
