@@ -88,6 +88,12 @@ class Game(object):
         self.items.append(item)
 
 
+    def autocollect(self, player):
+        for item in self.items:
+            if not item.player:
+                item.autocollect(player)
+
+
     def change_bullets_into_star_items(self):
         player = self.players[0] #TODO
         item_type = self.item_types[6]
@@ -211,6 +217,10 @@ class Game(object):
                     self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
+
+            #TODO: is it the right place?
+            if py < 128 and player.state.power >= 128: #TODO: check py.
+                self.autocollect(player)
 
             for item in self.items:
                 half_size = item.hitbox_half_size

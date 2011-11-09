@@ -51,6 +51,11 @@ class Item(object):
         self._sprite.angle = angle
 
 
+    def autocollect(self, player):
+        self.player = player
+        self.speed = 8.
+
+
     def on_collect(self, player_state):
         old_power = player_state.power
 
