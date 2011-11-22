@@ -39,6 +39,7 @@ class Enemy(object):
         self.life = 1 if life < 0 else life
         self.max_life = life
         self.touchable = True
+        self.collidable = True
         self.damageable = True
         self.death_flags = 0
         self.boss = False
@@ -250,7 +251,7 @@ class Enemy(object):
                 self.drop_particles(1, 1)
 
         # Check for enemy-player collisions
-        if self.touchable:
+        if self.collidable:
             for player in self._game.players:
                 if not player.state.touchable:
                     continue
