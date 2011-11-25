@@ -179,11 +179,12 @@ class Player(object):
 
             elif time == 7:
                 self._sprite.mirrored = False
-                self._sprite.fade(24, 128, lambda x: x)
-                self._sprite.blendfunc = 1
-                self._sprite.scale_in(24, 0., 2., lambda x: x)
+                self._sprite.blendfunc = 0
+                self._sprite.rescale = 0.75, 1.5
+                self._sprite.fade(26, 96, lambda x: x)
+                self._sprite.scale_in(26, 0.00, 2.5, lambda x: x)
 
-            elif time == 31:
+            elif time == 32:
                 self.state.x = 192.0
                 self.state.y = 384.0
                 self.direction = None
@@ -191,16 +192,17 @@ class Player(object):
                 self._sprite = Sprite()
                 self._anmrunner = ANMRunner(self.anm_wrapper, 0, self._sprite)
                 self._sprite.alpha = 128
-                self._sprite.rescale = 0., 2.
+                self._sprite.rescale = 0.0, 2.5
                 self._sprite.fade(30, 255, lambda x: x)
                 self._sprite.blendfunc = 1
                 self._sprite.scale_in(30, 1., 1., lambda x: x)
                 self._anmrunner.run_frame()
 
-            elif time == 60: # respawned
+            elif time == 61: # respawned
                 self.state.touchable = True
                 self.state.invulnerable_time = 240
                 self._sprite.blendfunc = 0
+                self._sprite._changed = True
 
             if time > 30:
                 for bullet in self._game.bullets:
