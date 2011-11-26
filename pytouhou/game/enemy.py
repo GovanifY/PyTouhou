@@ -251,11 +251,10 @@ class Enemy(object):
                 self.drop_particles(1, 1)
 
         # Check for enemy-player collisions
+        ex1, ex2 = ex - ehalf_size_x * 2. / 3., ex + ehalf_size_x * 2. / 3.
+        ey1, ey2 = ey - ehalf_size_y * 2. / 3., ey + ehalf_size_y * 2. / 3.
         if self.collidable:
             for player in self._game.players:
-                if not player.state.touchable:
-                    continue
-
                 px, py = player.x, player.y
                 phalf_size = player.hitbox_half_size
                 px1, px2 = px - phalf_size, px + phalf_size
@@ -265,8 +264,7 @@ class Enemy(object):
                 if not (ex2 < px1 or ex1 > px2 or ey2 < py1 or ey1 > py2):
                     if not self.boss:
                         damages += 10
-                    if player.state.invulnerable_time == 0: #TODO
-                        player.collide()
+                    player.collide()
 
         # Adjust damages
         damages = min(70, damages)
