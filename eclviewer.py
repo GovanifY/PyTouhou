@@ -27,7 +27,7 @@ from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP
 
 
-def main(path, stage_num, rank, character, replay):
+def main(path, stage_num, rank, character, replay, data):
     if replay:
         with open(replay, 'rb') as file:
             replay = T6RP.read(file)
@@ -42,7 +42,7 @@ def main(path, stage_num, rank, character, replay):
 
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
-                                    for name in ('CM.DAT', 'ST.DAT'))
+                                    for name in data)
     game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16,
                     prng=prng)
 
@@ -62,6 +62,7 @@ def main(path, stage_num, rank, character, replay):
 
 parser = argparse.ArgumentParser(description='Libre reimplementation of the Touhou 6 engine.')
 
+parser.add_argument('data', metavar='DAT', default=('CM.DAT', 'ST.DAT'), nargs='*', help='Game’s .DAT data files')
 parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
 parser.add_argument('-s', '--stage', metavar='STAGE', type=int, required=True, help='Stage, 1 to 7 (Extra).')
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
@@ -70,4 +71,4 @@ parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
 
 args = parser.parse_args()
 
-main(args.path, args.stage, args.rank, args.character, args.replay)
+main(args.path, args.stage, args.rank, args.character, args.replay, tuple(args.data))
