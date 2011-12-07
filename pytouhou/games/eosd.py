@@ -59,7 +59,7 @@ class EoSDGame(Game):
 
 class EoSDPlayer(Player):
     def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
-        Player.__init__(self, state, game, anm_wrapper, speed=4.)
+        Player.__init__(self, state, game, anm_wrapper, speed=speed)
 
         self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
                      Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
