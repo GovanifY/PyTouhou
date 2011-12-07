@@ -59,8 +59,8 @@ cpdef object get_sprite_rendering_data(object sprite):
     x_1 = 1. / sprite.anm.size[0]
     y_1 = 1. / sprite.anm.size[1]
     tox, toy = sprite.texoffsets
-    uvs = [tx * x_1 + tox,         1. - (ty * y_1) + toy,
-           (tx + tw) * x_1 + tox,  1. - (ty * y_1) + toy,
+    uvs = [tx * x_1 + tox,         1. - (ty * y_1 + toy),
+           (tx + tw) * x_1 + tox,  1. - (ty * y_1 + toy),
            (tx + tw) * x_1 + tox,  1. - ((ty + th) * y_1 + toy),
            tx * x_1 + tox,         1. - ((ty + th) * y_1 + toy)]
 
