@@ -60,6 +60,9 @@ class Game(object):
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
 
+        self.effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
+        self.effect = None
+
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
         self.next_bonus = self.prng.rand_uint16() % 8
@@ -77,6 +80,14 @@ class Game(object):
             self.difficulty = self.difficulty_min
         elif self.difficulty > self.difficulty_max:
             self.difficulty = self.difficulty_max
+
+
+    def enable_effect(self):
+        self.effect = Effect((0, 0), 0, self.effect_anm_wrapper)
+
+
+    def disable_effect(self):
+        self.effect = None
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):
@@ -135,6 +146,7 @@ class Game(object):
         # We have to mimic this functionnality to be replay-compatible with the official game.
 
         # Pri 6 is background
+        self.update_effect() #TODO: Pri unknown
         self.update_players(keystate) # Pri 7
         self.update_enemies() # Pri 9
         self.update_effects() # Pri 10
@@ -145,6 +157,11 @@ class Game(object):
         self.cleanup()
 
         self.frame += 1
+
+
+    def update_effect(self):
+        if self.effect is not None:
+            self.effect.update()
 
 
     def update_enemies(self):

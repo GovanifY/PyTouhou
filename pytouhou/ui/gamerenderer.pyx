@@ -105,7 +105,21 @@ cdef class GameRenderer:
         game = self.game
         texture_manager = self.texture_manager
 
-        if back is not None:
+        if game.effect is not None:
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+            # Some explanations on the magic constants:
+            # 192. = 384. / 2. = width / 2.
+            # 224. = 448. / 2. = height / 2.
+            # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
+            # This is so that objects on the (O, x, y) plane use pixel coordinates
+            gluLookAt(192., 224., - 835.979370,
+                      192., 224., 0., 0., -1., 0.)
+
+            glDisable(GL_FOG)
+            self.render_elements([game.effect])
+            glEnable(GL_FOG)
+        elif back is not None:
             fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values

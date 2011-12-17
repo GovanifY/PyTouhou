@@ -715,10 +715,10 @@ class ECLRunner(object):
     @instruction(93)
     def set_spellcard(self, unknown, number, name):
         #TODO: display it on the game.
-        #TODO: change the background.
         #TODO: make the enemies more resistants (and find how).
         self._game.change_bullets_into_star_items()
         self._game.spellcard = number
+        self._game.enable_effect()
         print("%d - %s" % (number+1, name))
 
 
@@ -729,6 +729,7 @@ class ECLRunner(object):
         if self._game.spellcard:
             self._game.change_bullets_into_star_items()
         self._game.spellcard = None
+        self._game.disable_effect()
 
 
     @instruction(95)
