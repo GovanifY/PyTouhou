@@ -105,7 +105,7 @@ cdef class GameRenderer:
         game = self.game
         texture_manager = self.texture_manager
 
-        if game.effect is not None:
+        if game is not None and game.effect is not None:
             glMatrixMode(GL_MODELVIEW)
             glLoadIdentity()
             # Some explanations on the magic constants:
