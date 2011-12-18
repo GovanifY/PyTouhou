@@ -1,5 +1,5 @@
 cdef class Matrix:
-    cdef public data
+    cdef public list data
 
     cpdef flip(Matrix self)
     cpdef scale(Matrix self, x, y, z)

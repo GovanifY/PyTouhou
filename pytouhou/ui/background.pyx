@@ -17,10 +17,13 @@
 from struct import pack
 from itertools import chain
 
-from .sprite import get_sprite_rendering_data
+from .sprite cimport get_sprite_rendering_data
 
-def get_background_rendering_data(background):
-    #TODO
+cpdef object get_background_rendering_data(object background):
+    cdef float x, y, z, ox, oy, oz, ox2, oy2, oz2
+    cdef list vertices, uvs, colors
+
+    #TODO: do not cache the results, and use view frustum culling
     try:
         return background._rendering_data
     except AttributeError:
@@ -29,18 +32,22 @@ def get_background_rendering_data(background):
     vertices = []
     uvs = []
     colors = []
+
     for ox, oy, oz, model_id, model in background.object_instances:
         for ox2, oy2, oz2, width_override, height_override, sprite in model:
+            #TODO: view frustum culling
             key, (vertices2, uvs2, colors2) = get_sprite_rendering_data(sprite)
-            vertices.extend((x + ox + ox2, y + oy + oy2, z + oz + oz2) for x, y, z in vertices2)
+            vertices.extend([(x + ox + ox2, y + oy + oy2, z + oz + oz2)
+                                for x, y, z in vertices2])
             uvs.extend(uvs2)
             colors.extend(colors2)
 
     nb_vertices = len(vertices)
-    vertices = pack(str(3 * nb_vertices) + 'f', *chain(*vertices))
-    uvs = pack(str(2 * nb_vertices) + 'f', *uvs)
-    colors = pack(str(4 * nb_vertices) + 'B', *colors)
+    vertices_s = pack(str(3 * nb_vertices) + 'f', *chain(*vertices))
+    uvs_s = pack(str(2 * nb_vertices) + 'f', *uvs)
+    colors_s = pack(str(4 * nb_vertices) + 'B', *colors)
 
-    background._rendering_data = [(key, (nb_vertices, vertices, uvs, colors))]
+    background._rendering_data = [(key, (nb_vertices, vertices_s, uvs_s, colors_s))]
 
     return background._rendering_data
+

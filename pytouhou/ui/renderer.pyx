@@ -21,7 +21,7 @@ from struct import pack
 from pyglet.gl import *
 
 from .sprite cimport get_sprite_rendering_data
-from .texture import TextureManager
+from .texture cimport TextureManager
 
 
 MAX_ELEMENTS = 10000

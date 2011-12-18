@@ -18,7 +18,7 @@ from itertools import chain
 from pyglet.gl import *
 
 from .renderer cimport Renderer
-from .background import get_background_rendering_data
+from .background cimport get_background_rendering_data
 
 
 

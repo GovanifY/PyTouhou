@@ -18,7 +18,7 @@ from pyglet.gl import (glTexParameteri,
 import os
 
 
-class TextureManager(object):
+cdef class TextureManager:
     def __init__(self, loader=None):
         self.loader = loader
         self.textures = {}
@@ -54,7 +54,7 @@ class TextureManager(object):
             alpha_data = alpha_file.get_data('RGB', image_file.width * 3)
             image_file = pyglet.image.ImageData(image_file.width, image_file.height, 'RGBA', b''.join(data[i*3:i*3+3] + alpha_data[i*3] for i in range(image_file.width * image_file.height)))
 
-            #TODO
+            #TODO: improve perfs somehow
 
         texture = image_file.get_texture()
 
