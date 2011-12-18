@@ -24,6 +24,9 @@ from pytouhou.game.orb import Orb
 from math import pi
 
 
+SQ2 = 2. ** 0.5 / 2.
+
+
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty, **kwargs):
         etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
@@ -58,8 +61,8 @@ class EoSDGame(Game):
 
 
 class EoSDPlayer(Player):
-    def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
-        Player.__init__(self, state, game, anm_wrapper, speed=speed)
+    def __init__(self, state, game, anm_wrapper, speeds=None, hitbox_size=2.5, graze_hitbox_size=42.):
+        Player.__init__(self, state, game, anm_wrapper, speeds=speeds)
 
         self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
                      Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
@@ -122,7 +125,7 @@ class Reimu(EoSDPlayer):
         anm_wrapper = resource_loader.get_anm_wrapper(('player00.anm',))
         self.bullet_angle = pi/30 #TODO: check
 
-        EoSDPlayer.__init__(self, state, game, anm_wrapper, speed=4.)
+        EoSDPlayer.__init__(self, state, game, anm_wrapper, speeds=(4., 4. * SQ2, 2., 2. * SQ2))
 
 
     def fire(self):
@@ -149,7 +152,7 @@ class Reimu(EoSDPlayer):
                 bullets.append(Bullet((self.x, self.y), self.bullet_type, 0,
                                       bullet_angle, self.bullet_speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True))
+                                      0, self, self._game, damage=48, player_bullet=True))
                 bullet_angle += self.bullet_angle
 
         for orb in self.orbs:
@@ -161,7 +164,7 @@ class ReimuA(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
 
-        self.bulletA_type = BulletType(self.anm_wrapper, 65, 97, 0, 0, 0, hitbox_size=4, damage=14) #TODO: verify the hitbox.
+        self.bulletA_type = BulletType(self.anm_wrapper, 65, 97, 0, 0, 0, hitbox_size=4) #TODO: verify the hitbox, damage is 14.
         self.bulletA_speed = 12.
 
 
@@ -180,7 +183,7 @@ class ReimuB(Reimu):
     def __init__(self, state, game, resource_loader):
         Reimu.__init__(self, state, game, resource_loader)
 
-        self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4, damage=12) #TODO: verify the hitbox.
+        self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4) #TODO: verify the hitbox.
         self.bulletB_speed = 22.
 
 
@@ -194,7 +197,7 @@ class ReimuB(Reimu):
         bullets.append(Bullet((orb.x + offset_x, orb.y), self.bulletB_type, 0,
                               self.bullet_launch_angle, self.bulletB_speed,
                               (0, 0, 0, 0, 0., 0., 0., 0.),
-                              0, self, self._game, player_bullet=True))
+                              0, self, self._game, damage=12, player_bullet=True))
 
     def orb_fire(self, orb):
         if self.state.power < 8:
@@ -240,7 +243,7 @@ class Marisa(EoSDPlayer):
         anm_wrapper = resource_loader.get_anm_wrapper(('player01.anm',))
         self.bullet_angle = pi/40 #TODO: check
 
-        EoSDPlayer.__init__(self, state, game, anm_wrapper, speed=5.)
+        EoSDPlayer.__init__(self, state, game, anm_wrapper, speeds=(5., 5. * SQ2, 2.5, 2.5 * SQ2))
 
 
     def fire(self):
@@ -265,7 +268,7 @@ class Marisa(EoSDPlayer):
                 bullets.append(Bullet((self.x, self.y), self.bullet_type, 0,
                                       bullet_angle, self.bullet_speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True))
+                                      0, self, self._game, damage=48, player_bullet=True))
                 bullet_angle += self.bullet_angle
 
 
@@ -275,7 +278,7 @@ class MarisaA(Marisa):
         Marisa.__init__(self, state, game, resource_loader)
 
         #TODO: verify the hitbox and damages.
-        self.bulletA_types = [BulletType(self.anm_wrapper, 65, 0, 0, 0, 0, hitbox_size=4, damage=40),
+        self.bulletA_types = [BulletType(self.anm_wrapper, 65, 0, 0, 0, 0, hitbox_size=4), # damage is 40.
                               BulletType(self.anm_wrapper, 66, 0, 0, 0, 0, hitbox_size=4),
                               BulletType(self.anm_wrapper, 67, 0, 0, 0, 0, hitbox_size=4),
                               BulletType(self.anm_wrapper, 68, 0, 0, 0, 0, hitbox_size=4)]

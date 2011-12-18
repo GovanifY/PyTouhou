@@ -216,8 +216,8 @@ class Game(object):
             for bullet in self.bullets:
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y
-                bx1, bx2 = bx - half_size, bx + half_size
-                by1, by2 = by - half_size, by + half_size
+                bx1, bx2 = bx - half_size[0], bx + half_size[0]
+                by1, by2 = by - half_size[1], by + half_size[1]
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
@@ -247,7 +247,7 @@ class Game(object):
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
-                    item.on_collect(player.state)
+                    item.on_collect(player)
 
 
     def cleanup(self):

@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 class Shot(object):
     def __init__(self):
-        self.interval = 0.
+        self.interval = 0
         self.unknown1 = None
         self.pos = (0., 0.)
         self.hitbox = (0., 0.)
@@ -41,12 +41,11 @@ class Shot(object):
 class SHT(object):
     def __init__(self):
         self.unknown1 = None
-        self.level_count = 9
         self.bombs = 0.
         self.unknown2 = None
         self.hitbox = 0.
         self.graze_hitbox = 0.
-        self.autocollected_item_speed = 0.
+        self.autocollection_speed = 0.
         self.item_hitbox = 0.
         self.percentage_of_cherry_loss_on_die = 0.
         self.point_of_collection = 0
@@ -59,18 +58,20 @@ class SHT(object):
 
     @classmethod
     def read(cls, file):
-        (_, level_count, bombs, _, hitbox, graze_hitbox,
-         autocollected_item_speed, item_hitbox, percentage_of_cherry_loss_on_die,
-         point_of_collection, horizontal_vertical_speed,
-         horizontal_vertical_focused_speed, diagonal_speed,
-         diagonal_focused_speed) = unpack('<hhfI10f', file.read(52))
+        sht = cls()
+
+        data = unpack('<hhfI10f', file.read(52))
+        (sht.unknown1, level_count, sht.bombs, sht.unknown2, sht.hitbox,
+         sht.graze_hitbox, sht.autocollection_speed, sht.item_hitbox,
+         sht.percentage_of_cherry_loss_on_die, sht.point_of_collection,
+         sht.horizontal_vertical_speed, sht.horizontal_vertical_focused_speed,
+         sht.diagonal_speed, sht.diagonal_focused_speed) = data
 
         levels = []
         for i in xrange(level_count):
             offset, power = unpack('<II', file.read(8))
             levels.append((power, offset))
 
-        sht = cls()
         sht.shots = {}
 
         for power, offset in levels:
@@ -84,20 +85,19 @@ class SHT(object):
 
                 shot = Shot()
 
-                data = file.read(48)
+                shot.interval = interval
+                shot.unknown1 = unknown1
+
+                data = unpack('<6fHBBhh4I', file.read(48))
                 (x, y, hitbox_x, hitbox_y, shot.angle, shot.speed,
                  shot.damage, shot.orb, shot.unknown2, shot.sprite,
-                 shot.unknown3, unknown4, homing, unknown5,
-                 unknown6) = unpack('<6fHBBhh4I', data)
+                 shot.unknown3, shot.unknown4, shot.homing, shot.unknown5,
+                 shot.unknown6) = data
 
                 shot.pos = (x, y)
                 shot.hitbox = (hitbox_x, hitbox_y)
-                shot.unknown4 = bool(unknown4)
-                shot.homing = bool(homing)
-                shot.unknown5 = bool(unknown5)
-                shot.unknown6 = bool(unknown6)
 
-                sht.shts[power].append(shot)
+                sht.shots[power].append(shot)
 
 
         return sht

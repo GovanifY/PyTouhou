@@ -241,13 +241,13 @@ class Enemy(object):
         for bullet in self._game.players_bullets:
             half_size = bullet.hitbox_half_size
             bx, by = bullet.x, bullet.y
-            bx1, bx2 = bx - half_size, bx + half_size
-            by1, by2 = by - half_size, by + half_size
+            bx1, bx2 = bx - half_size[0], bx + half_size[0]
+            by1, by2 = by - half_size[1], by + half_size[1]
 
             if not (bx2 < ex1 or bx1 > ex2
                     or by2 < ey1 or by1 > ey2):
                 bullet.collide()
-                damages += bullet._bullet_type.damage
+                damages += bullet.damage
                 self.drop_particles(1, 1)
 
         # Check for enemy-player collisions

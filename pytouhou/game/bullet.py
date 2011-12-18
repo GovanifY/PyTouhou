@@ -21,7 +21,8 @@ from pytouhou.game.sprite import Sprite
 
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
-                       angle, speed, attributes, flags, player, game, player_bullet=False):
+                       angle, speed, attributes, flags, player, game,
+                       player_bullet=False, damage=0, hitbox=None):
         self._game = game
         self._sprite = None
         self._anmrunner = None
@@ -29,7 +30,10 @@ class Bullet(object):
         self._launched = False
         self._bullet_type = bullet_type
 
-        self.hitbox_half_size = bullet_type.hitbox_size / 2.
+        if hitbox:
+            self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)
+        else:
+            self.hitbox_half_size = (bullet_type.hitbox_size / 2., bullet_type.hitbox_size / 2.)
 
         self.speed_interpolator = None
         self.frame = 0
@@ -49,6 +53,7 @@ class Bullet(object):
         self.delta = dx, dy
 
         self.player_bullet = player_bullet
+        self.damage = damage
 
         #TODO
         if flags & 14:

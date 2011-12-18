@@ -20,9 +20,6 @@ from pytouhou.game.bullettype import BulletType
 from math import pi
 
 
-SQ2 = 2. ** 0.5 / 2.
-
-
 class PlayerState(object):
     def __init__(self, character=0, score=0, power=0, lives=0, bombs=0):
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
@@ -46,21 +43,20 @@ class PlayerState(object):
 
 
 class Player(object):
-    def __init__(self, state, game, anm_wrapper, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
+    def __init__(self, state, game, anm_wrapper, hitbox_size=2.5, graze_hitbox_size=42., speeds=None):
         self._sprite = None
         self._anmrunner = None
         self._game = game
         self.anm_wrapper = anm_wrapper
 
-        self.speed = speed
-        self.focused_speed = speed/2.
+        self.speeds = speeds
 
         self.hitbox_size = hitbox_size
         self.hitbox_half_size = self.hitbox_size / 2.
         self.graze_hitbox_size = graze_hitbox_size
         self.graze_hitbox_half_size = self.graze_hitbox_size / 2.
 
-        self.bullet_type = BulletType(anm_wrapper, 64, 96, 0, 0, 0, hitbox_size=4, damage=48)
+        self.bullet_type = BulletType(anm_wrapper, 64, 96, 0, 0, 0, hitbox_size=4)
         self.bullet_launch_interval = 5
         self.bullet_speed = 12.
         self.bullet_launch_angle = -pi/2
@@ -113,16 +109,13 @@ class Player(object):
 
     def update(self, keystate):
         if self.death_time == 0 or self._game.frame - self.death_time > 60:
+            speed, diag_speed = self.speeds[2:] if self.state.focused else self.speeds[:2]
             try:
-                dx, dy = {16: (0.0, -1.0), 32: (0.0, 1.0), 64: (-1.0, 0.0), 128: (1.0, 0.0),
-                          16|64: (-SQ2, -SQ2), 16|128: (SQ2, -SQ2),
-                          32|64: (-SQ2, SQ2), 32|128:  (SQ2, SQ2)}[keystate & (16|32|64|128)]
+                dx, dy = {16: (0.0, -speed), 32: (0.0, speed), 64: (-speed, 0.0), 128: (speed, 0.0),
+                          16|64: (-diag_speed, -diag_speed), 16|128: (diag_speed, -diag_speed),
+                          32|64: (-diag_speed, diag_speed), 32|128:  (diag_speed, diag_speed)}[keystate & (16|32|64|128)]
             except KeyError:
-                speed = 0.0
                 dx, dy = 0.0, 0.0
-            else:
-                speed = self.focused_speed if keystate & 4 else self.speed
-                dx, dy = dx * speed, dy * speed
 
             if dx < 0 and self.direction != -1:
                 self.set_anim(1)

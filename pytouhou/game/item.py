@@ -19,7 +19,7 @@ from pytouhou.utils.interpolator import Interpolator
 
 
 class Item(object):
-    def __init__(self, start_pos, _type, item_type, game, angle=pi/2, speed=8., player=None, end_pos=None):
+    def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
         self._game = game
         self._sprite = item_type.sprite
         self._removed = False
@@ -29,14 +29,13 @@ class Item(object):
         self.hitbox_half_size = item_type.hitbox_size / 2.
 
         self.frame = 0
-
-        self.player = player
-
         self.x, self.y = start_pos
         self.angle = angle
-        self.speed = speed
-        dx, dy = cos(angle) * speed, sin(angle) * speed
-        self.delta = dx, dy
+
+        if player:
+            self.autocollect(player)
+        else:
+            self.player = None
 
         if not player:
             #TODO: find the formulae in the binary.
@@ -53,10 +52,11 @@ class Item(object):
 
     def autocollect(self, player):
         self.player = player
-        self.speed = 8.
+        self.speed = player.sht.autocollection_speed if hasattr(player, 'sht') else 8.
 
 
-    def on_collect(self, player_state):
+    def on_collect(self, player):
+        player_state = player.state
         old_power = player_state.power
 
         if self._type == 0 or self._type == 2: # power or big power
@@ -84,7 +84,8 @@ class Item(object):
 
         elif self._type == 1: # point
             player_state.points += 1
-            if player_state.y < 128: #TODO: find the exact poc.
+            poc = player.sht.point_of_collection if hasattr(player, 'sht') else 128 #TODO: find the exact poc in EoSD.
+            if player_state.y < poc:
                 score = 100000
                 self._game.modify_difficulty(+30)
             else:
@@ -117,8 +118,6 @@ class Item(object):
 
 
     def update(self):
-        dx, dy = self.delta
-
         if self.frame == 60:
             self.speed_interpolator = Interpolator((0.,), 60,
                                                    (3.,), 180)
@@ -134,7 +133,6 @@ class Item(object):
             self.speed_interpolator.update(self.frame)
             self.speed, = self.speed_interpolator.values
             dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-            self.delta = dx, dy
             self.x += dx
             self.y += dy
 
