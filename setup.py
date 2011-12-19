@@ -20,6 +20,7 @@ except ImportError:
 # The installed script shouldn't call pyximport, strip references to it
 class BuildScripts(build_scripts):
     def copy_scripts(self):
+        self.mkpath('scripts')
         for script in (os.path.basename(script) for script in self.scripts):
             outfile = os.path.join('scripts', script)
             if not self.force and not newer(script, outfile):
@@ -30,7 +31,7 @@ class BuildScripts(build_scripts):
                         if not 'pyximport' in line:
                             out.write(line)
 
-        orig_build_scripts.copy_scripts(self)
+        build_scripts.copy_scripts(self)
 
 
 packages = []
