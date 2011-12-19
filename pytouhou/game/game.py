@@ -26,8 +26,11 @@ from pytouhou.game.effect import Particle
 
 class Game(object):
     def __init__(self, resource_loader, players, stage, rank, difficulty,
-                 bullet_types, item_types, prng=None, nb_bullets_max=None):
+                 bullet_types, item_types,
+                 nb_bullets_max=None, width=384, height=448, prng=None):
         self.resource_loader = resource_loader
+
+        self.width, self.height = width, height
 
         self.nb_bullets_max = nb_bullets_max
         self.bullet_types = bullet_types
@@ -174,12 +177,12 @@ class Game(object):
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
                 player.state.x = 8.
-            if player.state.x > 384.-8: #TODO
-                player.state.x = 384.-8
+            if player.state.x > self.width - 8:
+                player.state.x = self.width - 8
             if player.state.y < 16.:
                 player.state.y = 16.
-            if player.state.y > 448.-16: #TODO
-                player.state.y = 448.-16
+            if player.state.y > self.height - 16:
+                player.state.y = self.height -16
 
         for bullet in self.players_bullets:
             bullet.update()
@@ -253,7 +256,7 @@ class Game(object):
     def cleanup(self):
         # Filter out non-visible enemies
         for enemy in tuple(self.enemies):
-            if enemy.is_visible(384, 448): #TODO
+            if enemy.is_visible(self.width, self.height):
                 enemy._was_visible = True
             elif enemy._was_visible:
                 # Filter out-of-screen enemy
@@ -262,9 +265,12 @@ class Game(object):
 
         # Filter out-of-scren bullets
         # TODO: was_visible thing
-        self.bullets = [bullet for bullet in self.bullets if bullet.is_visible(384, 448)]
-        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if bullet.is_visible(384, 448)]
-        self.players_bullets = [bullet for bullet in self.players_bullets if bullet.is_visible(384, 448)]
+        self.bullets = [bullet for bullet in self.bullets
+                            if bullet.is_visible(self.width, self.height)]
+        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
+                            if bullet.is_visible(self.width, self.height)]
+        self.players_bullets = [bullet for bullet in self.players_bullets
+                            if bullet.is_visible(self.width, self.height)]
 
         # Filter out-of-scren items
         items = []

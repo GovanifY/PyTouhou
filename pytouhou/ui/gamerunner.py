@@ -17,7 +17,7 @@ import traceback
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
                        glHint, glEnableClientState, glViewport,
-                       gluPerspective, gluLookAt,
+                       gluPerspective, gluOrtho2D,
                        GL_MODELVIEW, GL_PROJECTION,
                        GL_TEXTURE_2D, GL_BLEND, GL_FOG,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
@@ -34,7 +34,11 @@ logger = get_logger(__name__)
 class GameRunner(pyglet.window.Window, GameRenderer):
     def __init__(self, resource_loader, game=None, background=None, replay=None):
         GameRenderer.__init__(self, resource_loader, game, background)
-        pyglet.window.Window.__init__(self, caption='PyTouhou', resizable=False)
+
+        width, height = (game.width, game.height) if game else (None, None)
+        pyglet.window.Window.__init__(self, width=width, height=height,
+                                      caption='PyTouhou', resizable=False)
+
         self.replay_level = None
         if not replay or not replay.levels[game.stage-1]:
             self.keys = pyglet.window.key.KeyStateHandler()
@@ -46,15 +50,14 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         self.fps_display = pyglet.clock.ClockDisplay()
 
 
-    def start(self, width=384, height=448):
-        self.set_size(width, height)
+    def start(self, width=None, height=None):
+        width = width or (self.game.width if self.game else 640)
+        height = height or (self.game.height if self.game else 480)
+
+        if (width, height) != (self.width, self.height):
+            self.set_size(width, height)
 
         # Initialize OpenGL
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(30, float(width)/float(height),
-                       101010101./2010101., 101010101./10101.)
-
         glEnable(GL_BLEND)
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_FOG)
@@ -135,12 +138,22 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
 
     def on_draw(self):
+        # Switch to game projection
+        #TODO: move that to GameRenderer?
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(30, float(self.width) / float(self.height),
+                       101010101./2010101., 101010101./10101.)
+
         GameRenderer.render(self)
 
-        #TODO
+        # Get back to standard orthographic projection
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        gluLookAt(192., 224., 835.979370,
-                  192, 224., 0., 0., 1., 0.)
+
+        #TODO: draw interface
+        gluOrtho2D(0., float(self.game.width), 0., float(self.game.height))
         self.fps_display.draw()
 

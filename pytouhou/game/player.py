@@ -178,8 +178,8 @@ class Player(object):
                 self._sprite.scale_in(26, 0.00, 2.5, lambda x: x)
 
             elif time == 32:
-                self.state.x = 192.0
-                self.state.y = 384.0
+                self.state.x = float(self._game.width) / 2. #TODO
+                self.state.y = float(self._game.width) #TODO
                 self.direction = None
 
                 self._sprite = Sprite()
