@@ -23,7 +23,12 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
+from pytouhou.utils.helpers import get_logger
+
 from .gamerenderer import GameRenderer
+
+
+logger = get_logger(__name__)
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
@@ -79,8 +84,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         try:
             return pyglet.window.Window._event_text_symbol(self, ev)
         except Exception as exc:
-            print('*WARNING* Pyglet error:')
-            traceback.print_exc(exc)
+            logger.warn('Pyglet error: %s', traceback.format_exc(exc))
             return None, None
 
 

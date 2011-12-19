@@ -38,9 +38,6 @@ def main(path, stage_num, rank, character, data):
     background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
     background = Background(stage, background_anm_wrapper)
 
-    # Let's go!
-    print(stage.name)
-
     # Main loop
     runner = GameRunner(resource_loader, game, background)
     runner.start()

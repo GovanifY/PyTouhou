@@ -719,7 +719,6 @@ class ECLRunner(object):
         self._game.change_bullets_into_star_items()
         self._game.spellcard = number
         self._game.enable_effect()
-        print("%d - %s" % (number+1, name))
 
 
     @instruction(94)
