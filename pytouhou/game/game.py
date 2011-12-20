@@ -86,7 +86,8 @@ class Game(object):
 
 
     def enable_effect(self):
-        self.effect = Effect((0, 0), 0, self.effect_anm_wrapper)
+        self.effect = Effect((-32., -16.), 0, self.effect_anm_wrapper) #TODO: find why this offset is necessary.
+        self.effect._sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
 
 
     def disable_effect(self):
