@@ -7,7 +7,6 @@ from distutils.command.build_scripts import build_scripts
 from distutils.dep_util import newer
 from distutils import log
 
-
 # Cython is needed
 try:
     from Cython.Distutils import build_ext
@@ -15,6 +14,12 @@ except ImportError:
     print('You don’t seem to have Cython installed. Please get a '
           'copy from www.cython.org and install it')
     sys.exit(1)
+
+
+packages = []
+extension_names = []
+extensions = []
+
 
 
 # The installed script shouldn't call pyximport, strip references to it
@@ -34,8 +39,6 @@ class BuildScripts(build_scripts):
         build_scripts.copy_scripts(self)
 
 
-packages = []
-extensions = []
 
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
@@ -43,12 +46,27 @@ for directory, _, files in os.walk('pytouhou'):
     for filename in files:
         if filename.endswith('.pyx'):
             extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
+            extension_names.append(extension_name)
             extensions.append(Extension(extension_name,
                                         [os.path.join(directory, filename)]))
 
 
 
+# TODO: find a less-intrusive, cleaner way to do this...
+try:
+    from cx_Freeze import setup, Executable
+except ImportError:
+    extra = {}
+else:
+    extra = {
+             'options': {'build_exe': {'includes': extension_names}},
+             'executables': [Executable(script='scripts/eosd', base='Win32GUI')]
+            }
+
+
+
 setup(name='PyTouhou',
+      version="0.1",
       author='Thibaut Girka',
       author_email='thib@sitedethib.com',
       url='http://hg.sitedethib.com/touhou/',
@@ -57,6 +75,7 @@ setup(name='PyTouhou',
       ext_modules=extensions,
       scripts=['scripts/eosd'],
       cmdclass={'build_ext': build_ext,
-                'build_scripts': BuildScripts}
+                'build_scripts': BuildScripts},
+      **extra
      )
 
