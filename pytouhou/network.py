@@ -12,14 +12,13 @@ class Network(object):
 
         self.remote_addr = dest
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.sock.setblocking(0)
         self.sock.bind(('', port))
 
 
     def read_messages(self):
         messages = []
 
-        rlist, wlist, xlist = select([self.sock], [], [], 0)
+        rlist, wlist, xlist = select([self.sock], [], [], 1./60.)
         while rlist:
             msg, addr = rlist[0].recvfrom(MSG_STRUCT.size)
             # Check whether the message comes from the right address

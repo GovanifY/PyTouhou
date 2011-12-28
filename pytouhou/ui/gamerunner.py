@@ -70,7 +70,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         # Use our own loop to ensure 60 (for now, 120) fps
-        pyglet.clock.set_fps_limit(120)
+        pyglet.clock.set_fps_limit(60)
         while not self.has_exit:
             pyglet.clock.tick()
             self.dispatch_events()
