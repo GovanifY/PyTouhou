@@ -61,11 +61,11 @@ class Network(object):
             self.old_keystate, self.keystate = self.keystate, keystate
             self.frame = game.frame
 
+        self.send_message()
+
         for frame, keystate, old_keystate, checksum in self.read_messages():
             if frame == game.frame:
                 self.run_game_iter(game, self.keystate, keystate)
             elif frame == game.frame + 1:
                 self.run_game_iter(game, self.old_keystate, keystate)
-
-        self.send_message()
 
