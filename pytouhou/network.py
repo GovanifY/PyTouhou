@@ -58,7 +58,7 @@ class Network(object):
                 game.run_iter([self.keystate, keystate])
             elif frame == game.frame + 1:
                 print('Skipped')
-                game.run_iter([self.keystate, old_keystate])
+                game.run_iter([self.old_keystate, old_keystate])
                 game.run_iter([self.keystate, keystate])
 
         self.send_message()
