@@ -44,13 +44,17 @@ def main(path, stage_num, rank, character, replay, data, port, remote):
 
     if port != 0:
         from pytouhou.network import Network
+        from pytouhou.utils.random import Random
+
         if remote:
             remote_addr, remote_port = remote.split(':')
             addr = remote_addr, int(remote_port)
+            players = [PlayerState(character=0), PlayerState(character=2)]
         else:
             addr = None
+            players = [PlayerState(character=2), PlayerState(character=0)]
 
-        players.append(PlayerState(character=character))
+        prng = Random(0)
         con = Network(port, addr)
     else:
         con = None
