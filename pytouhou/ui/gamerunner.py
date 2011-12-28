@@ -32,13 +32,15 @@ logger = get_logger(__name__)
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None, replay=None):
+    def __init__(self, resource_loader, game=None, background=None, replay=None,
+                 con=None):
         GameRenderer.__init__(self, resource_loader, game, background)
 
         width, height = (game.width, game.height) if game else (None, None)
         pyglet.window.Window.__init__(self, width=width, height=height,
                                       caption='PyTouhou', resizable=False)
 
+        self.con = con
         self.replay_level = None
         if not replay or not replay.levels[game.stage-1]:
             self.keys = pyglet.window.key.KeyStateHandler()
@@ -125,7 +127,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     keystate |= 128
                 if self.keys[pyglet.window.key.LCTRL]:
                     keystate |= 256
-                self.game.run_iter(keystate)
             else:
                 keystate = 0
                 for frame, _keystate, unknown in self.replay_level.keys:
@@ -134,7 +135,10 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     else:
                         keystate = _keystate
 
-                self.game.run_iter(keystate)
+            if self.con:
+                self.con.run_iter(self.game, keystate)
+            else:
+                self.game.run_iter([keystate])
 
 
     def on_draw(self):

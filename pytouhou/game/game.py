@@ -131,7 +131,7 @@ class Game(object):
         return enemy
 
 
-    def run_iter(self, keystate):
+    def run_iter(self, keystates):
         # 1. VMs.
         self.ecl_runner.run_iter()
         if self.frame % (32*60) == (32*60): #TODO: check if that is really that frame.
@@ -151,7 +151,7 @@ class Game(object):
 
         # Pri 6 is background
         self.update_effect() #TODO: Pri unknown
-        self.update_players(keystate) # Pri 7
+        self.update_players(keystates) # Pri 7
         self.update_enemies() # Pri 9
         self.update_effects() # Pri 10
         self.update_bullets() # Pri 11
@@ -173,8 +173,8 @@ class Game(object):
             enemy.update()
 
 
-    def update_players(self, keystate):
-        for player in self.players:
+    def update_players(self, keystates):
+        for player, keystate in zip(self.players, keystates):
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
                 player.state.x = 8.

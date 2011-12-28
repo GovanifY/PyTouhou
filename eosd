@@ -27,7 +27,9 @@ from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP
 
 
-def main(path, stage_num, rank, character, replay, data):
+def main(path, stage_num, rank, character, replay, data, port, remote):
+    players = [PlayerState(character=character)]
+
     if replay:
         with open(replay, 'rb') as file:
             replay = T6RP.read(file)
@@ -40,10 +42,23 @@ def main(path, stage_num, rank, character, replay, data):
     else:
         prng = None
 
+    if port != 0:
+        from pytouhou.network import Network
+        if remote:
+            remote_addr, remote_port = remote.split(':')
+            addr = remote_addr, int(remote_port)
+        else:
+            addr = None
+
+        players.append(PlayerState(character=character))
+        con = Network(port, addr)
+    else:
+        con = None
+
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name)
                                     for name in data)
-    game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16,
+    game = EoSDGame(resource_loader, players, stage_num, rank, 16,
                     prng=prng)
 
     # Load stage data
@@ -53,7 +68,7 @@ def main(path, stage_num, rank, character, replay, data):
     background = Background(stage, background_anm_wrapper)
 
     # Main loop
-    runner = GameRunner(resource_loader, game, background, replay=replay)
+    runner = GameRunner(resource_loader, game, background, replay=replay, con=con)
     runner.start()
 
 
@@ -65,7 +80,9 @@ parser.add_argument('-s', '--stage', metavar='STAGE', type=int, required=True, h
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
+parser.add_argument('--port', metavar='PORT', type=int, default=0, help='Port to use for netplay')
+parser.add_argument('--remote', metavar='REMOTE', default=None, help='Remote address')
 
 args = parser.parse_args()
 
-main(args.path, args.stage, args.rank, args.character, args.replay, tuple(args.data))
+main(args.path, args.stage, args.rank, args.character, args.replay, tuple(args.data), args.port, args.remote)
