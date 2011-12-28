@@ -67,5 +67,5 @@ class Network(object):
             if frame == game.frame:
                 self.run_game_iter(game, self.keystate, keystate)
             elif frame == game.frame + 1:
-                self.run_game_iter(game, self.old_keystate, keystate)
+                self.run_game_iter(game, self.old_keystate, old_keystate)
 
