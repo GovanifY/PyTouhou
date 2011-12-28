@@ -5,10 +5,12 @@ from select import select
 MSG_STRUCT = struct.Struct('!IHHB')
 
 class Network(object):
-    def __init__(self, port=8080, dest=None):
+    def __init__(self, port=8080, dest=None, selected_player=0):
         self.frame = 0
         self.keystate = 0
         self.old_keystate = 0
+
+        self.selected_player = selected_player
 
         self.remote_addr = dest
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -48,6 +50,12 @@ class Network(object):
             self.sock.sendto(MSG_STRUCT.pack(frame, keystate, old_keystate, checksum), self.remote_addr)
 
 
+    def run_game_iter(self, game, keystate, other_keystate):
+        keystates = [other_keystate, other_keystate]
+        keystates[self.selected_player] = keystate
+        game.run_iter(keystates)
+
+
     def run_iter(self, game, keystate):
         if self.frame < game.frame:
             self.old_keystate, self.keystate = self.keystate, keystate
@@ -55,11 +63,9 @@ class Network(object):
 
         for frame, keystate, old_keystate, checksum in self.read_messages():
             if frame == game.frame:
-                game.run_iter([self.keystate, keystate])
+                self.run_game_iter(game, self.keystate, keystate)
             elif frame == game.frame + 1:
-                print('Skipped')
-                game.run_iter([self.old_keystate, old_keystate])
-                game.run_iter([self.keystate, keystate])
+                self.run_game_iter(game, self.old_keystate, keystate)
 
         self.send_message()
 

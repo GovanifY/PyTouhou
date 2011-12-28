@@ -152,7 +152,7 @@ class Enemy(object):
 
 
     def select_player(self, players=None):
-        return (players or self._game.players)[0] #TODO
+        return min(players or self._game.players, key=lambda p: ((p.x - self.x) ** 2 + (p.y - self.y) ** 2, p.state.character)) #TODO
 
 
     def get_player_angle(self, player=None, pos=None):

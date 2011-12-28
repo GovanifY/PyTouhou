@@ -95,7 +95,6 @@ class Game(object):
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):
-        player = self.players[0] #TODO
         if _type > 6:
             return
         item_type = self.item_types[_type]
@@ -110,7 +109,7 @@ class Game(object):
 
 
     def change_bullets_into_star_items(self):
-        player = self.players[0] #TODO
+        player = min(self.players, key=lambda x: (x.state.score, x.state.character)) #TODO
         item_type = self.item_types[6]
         self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player) for bullet in self.bullets)
         self.bullets = []
