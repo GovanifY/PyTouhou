@@ -18,8 +18,8 @@ class Network(object):
         self.sock.bind(('', port))
 
 
-    def read_messages(self):
-        messages = []
+    def read_message(self):
+        message = None
 
         start_time = time.time()
         delta = 1./60.
@@ -28,23 +28,23 @@ class Network(object):
         while rlist:
             msg, addr = rlist[0].recvfrom(MSG_STRUCT.size)
             # Check whether the message comes from the right address
-            if self.remote_addr is None or addr == self.remote_addr:
+            if self.frame == 0 or addr == self.remote_addr:
                 self.remote_addr = addr
 
                 frame, keystate, old_keystate = MSG_STRUCT.unpack(msg)
 
                 # Check for well-formedness
                 if frame in (self.frame, self.frame + 1):
-                    messages.append((frame, keystate, old_keystate))
+                    message = (frame, keystate, old_keystate)
             else:
                 print('Mismatch', self.remote_addr, addr)
 
-            delta = 0 if messages else max(0, 1./60. - (time.time() - start_time))
+            # If no valid message has been read, wait for one as long as possible
+            # else, read as much as we can without blocking.
+            delta = 0 if message else max(0, 1./60. - (time.time() - start_time))
             rlist, wlist, xlist = select(rlist, [], [], delta)
 
-            #TODO: self.send_message()
-
-        return messages
+        return message
 
 
     def send_message(self):
@@ -66,7 +66,10 @@ class Network(object):
 
         self.send_message()
 
-        for frame, keystate, old_keystate in self.read_messages():
+        # Follow one valid update
+        message = self.read_message()
+        if message:
+            frame, keystate, old_keystate = message
             if frame == game.frame:
                 self.run_game_iter(game, self.keystate, keystate)
             elif frame == game.frame + 1:
