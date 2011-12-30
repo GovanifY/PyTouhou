@@ -22,20 +22,20 @@ logger = get_logger(__name__)
 class Shot(object):
     def __init__(self):
         self.interval = 0
-        self.unknown1 = None
+        self.delay = 0
         self.pos = (0., 0.)
         self.hitbox = (0., 0.)
         self.angle = 0.
         self.speed = 0.
         self.damage = 0
         self.orb = 0
-        self.unknown2 = None
+        self.shot_type = 0
         self.sprite = 0
+        self.unknown1 = None
+        self.unknown2 = None
         self.unknown3 = None
         self.unknown4 = None
-        self.homing = False
         self.unknown5 = None
-        self.unknown6 = None
 
 
 class SHT(object):
@@ -79,20 +79,20 @@ class SHT(object):
             file.seek(offset)
 
             while True:
-                interval, unknown1 = unpack('<HH', file.read(4))
-                if interval == 0xffff and unknown1 == 0xffff:
+                interval, delay = unpack('<HH', file.read(4))
+                if interval == 0xffff and delay == 0xffff:
                     break
 
                 shot = Shot()
 
                 shot.interval = interval
-                shot.unknown1 = unknown1
+                shot.delay = delay
 
                 data = unpack('<6fHBBhh4I', file.read(48))
                 (x, y, hitbox_x, hitbox_y, shot.angle, shot.speed,
-                 shot.damage, shot.orb, shot.unknown2, shot.sprite,
-                 shot.unknown3, shot.unknown4, shot.homing, shot.unknown5,
-                 shot.unknown6) = data
+                 shot.damage, shot.orb, shot.shot_type, shot.sprite,
+                 shot.unknown1, shot.unknown2, shot.unknown3, shot.unknown4,
+                 shot.unknown5) = data
 
                 shot.pos = (x, y)
                 shot.hitbox = (hitbox_x, hitbox_y)

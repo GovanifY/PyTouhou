@@ -50,10 +50,14 @@ class EoSDGame(Game):
                       ItemType(etama3, 5, 12), #1up
                       ItemType(etama3, 6, 13)] #Star
 
-        eosd_characters = [ReimuA, ReimuB, MarisaA, MarisaB]
+        characters = resource_loader.get_eosd_characters('102h.exe')
+        print characters[0]
+
+        #eosd_characters = [ReimuA, ReimuB, MarisaA, MarisaB]
         players = []
         for player in player_states:
-            players.append(eosd_characters[player.character](player, self, resource_loader))
+            #players.append(eosd_characters[player.character](player, self, resource_loader))
+            players.append(EoSDPlayer(player, self, resource_loader, sht=characters[player.character]))
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, item_types, nb_bullets_max=640, **kwargs)
@@ -61,11 +65,19 @@ class EoSDGame(Game):
 
 
 class EoSDPlayer(Player):
-    def __init__(self, state, game, anm_wrapper, speeds=None, hitbox_size=2.5, graze_hitbox_size=42.):
-        Player.__init__(self, state, game, anm_wrapper, speeds=speeds)
+    def __init__(self, state, game, resource_loader, speeds=None, hitbox_size=2.5, graze_hitbox_size=42., sht=None):
+        self.sht = sht
+        anm_wrapper = resource_loader.get_anm_wrapper(('player0%d.anm' % (state.character // 2),))
+        self.anm_wrapper = anm_wrapper
 
-        self.orbs = [Orb(self.anm_wrapper, 128, self.state, self.orb_fire),
-                     Orb(self.anm_wrapper, 129, self.state, self.orb_fire)]
+        Player.__init__(self, state, game, anm_wrapper,
+                        speeds=(self.sht.horizontal_vertical_speed,
+                                self.sht.diagonal_speed,
+                                self.sht.horizontal_vertical_focused_speed,
+                                self.sht.diagonal_focused_speed))
+
+        self.orbs = [Orb(self.anm_wrapper, 128, self.state, None),
+                     Orb(self.anm_wrapper, 129, self.state, None)]
 
         self.orbs[0].offset_x = -24
         self.orbs[1].offset_x = 24
@@ -115,210 +127,27 @@ class EoSDPlayer(Player):
             orb.update()
 
 
-    def orb_fire(self, orb):
-        pass
-
-
-
-class Reimu(EoSDPlayer):
-    def __init__(self, state, game, resource_loader):
-        anm_wrapper = resource_loader.get_anm_wrapper(('player00.anm',))
-        self.bullet_angle = pi/30 #TODO: check
-
-        EoSDPlayer.__init__(self, state, game, anm_wrapper, speeds=(4., 4. * SQ2, 2., 2. * SQ2))
-
-
     def fire(self):
-        if self.fire_time % self.bullet_launch_interval == 0:
-            if self.state.power < 16:
-                bullets_per_shot = 1
-            elif self.state.power < 48:
-                bullets_per_shot = 2
-            elif self.state.power < 96:
-                bullets_per_shot = 3
-            elif self.state.power < 128:
-                bullets_per_shot = 4
-            else:
-                bullets_per_shot = 5
+        sht = self.sht
+        power = min(power for power in sht.shots if self.state.power < power)
 
-            bullets = self._game.players_bullets
-            nb_bullets_max = self._game.nb_bullets_max
-
-            bullet_angle = self.bullet_launch_angle - self.bullet_angle * (bullets_per_shot - 1) / 2.
-            for bullet_nb in range(bullets_per_shot):
-                if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
-                    break
-
-                bullets.append(Bullet((self.x, self.y), self.bullet_type, 0,
-                                      bullet_angle, self.bullet_speed,
-                                      (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, damage=48, player_bullet=True))
-                bullet_angle += self.bullet_angle
-
-        for orb in self.orbs:
-            orb.fire(orb)
-
-
-
-class ReimuA(Reimu):
-    def __init__(self, state, game, resource_loader):
-        Reimu.__init__(self, state, game, resource_loader)
-
-        self.bulletA_type = BulletType(self.anm_wrapper, 65, 97, 0, 0, 0, hitbox_size=4) #TODO: verify the hitbox, damage is 14.
-        self.bulletA_speed = 12.
-
-
-    def fire(self):
-        Reimu.fire(self)
-
-        if self.state.power < 8:
-            return
-
-        else:
-            pass #TODO
-
-
-
-class ReimuB(Reimu):
-    def __init__(self, state, game, resource_loader):
-        Reimu.__init__(self, state, game, resource_loader)
-
-        self.bulletB_type = BulletType(self.anm_wrapper, 66, 98, 0, 0, 0, hitbox_size=4) #TODO: verify the hitbox.
-        self.bulletB_speed = 22.
-
-
-    def fire_spine(self, orb, offset_x):
         bullets = self._game.players_bullets
         nb_bullets_max = self._game.nb_bullets_max
 
-        if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
-            return
-
-        bullets.append(Bullet((orb.x + offset_x, orb.y), self.bulletB_type, 0,
-                              self.bullet_launch_angle, self.bulletB_speed,
-                              (0, 0, 0, 0, 0., 0., 0., 0.),
-                              0, self, self._game, damage=12, player_bullet=True))
-
-    def orb_fire(self, orb):
-        if self.state.power < 8:
-            return
-
-        elif self.state.power < 16:
-            if self.fire_time % 15 == 0:
-                self.fire_spine(orb, 0)
-
-        elif self.state.power < 32:
-            if self.fire_time % 10 == 0:
-                self.fire_spine(orb, 0)
-
-        elif self.state.power < 48:
-            if self.fire_time % 8 == 0:
-                self.fire_spine(orb, 0)
-
-        elif self.state.power < 96:
-            if self.fire_time % 8 == 0:
-                self.fire_spine(orb, -8)
-            if self.fire_time % 5 == 0:
-                self.fire_spine(orb, 8)
-
-        elif self.state.power < 128:
-            if self.fire_time % 5 == 0:
-                self.fire_spine(orb, -12)
-            if self.fire_time % 10 == 0:
-                self.fire_spine(orb, 0)
-            if self.fire_time % 3 == 0:
-                self.fire_spine(orb, 12)
-
-        else:
-            if self.fire_time % 3 == 0:
-                self.fire_spine(orb, -12)
-                self.fire_spine(orb, 12)
-            if self.fire_time % 5 == 0:
-                self.fire_spine(orb, 0)
-
-
-
-class Marisa(EoSDPlayer):
-    def __init__(self, state, game, resource_loader):
-        anm_wrapper = resource_loader.get_anm_wrapper(('player01.anm',))
-        self.bullet_angle = pi/40 #TODO: check
-
-        EoSDPlayer.__init__(self, state, game, anm_wrapper, speeds=(5., 5. * SQ2, 2.5, 2.5 * SQ2))
-
-
-    def fire(self):
-        if self.fire_time % self.bullet_launch_interval == 0:
-            if self.state.power < 32:
-                bullets_per_shot = 1
-            elif self.state.power < 96:
-                bullets_per_shot = 2
-            elif self.state.power < 128:
-                bullets_per_shot = 3
-            else:
-                bullets_per_shot = 5
-
-            bullets = self._game.players_bullets
-            nb_bullets_max = self._game.nb_bullets_max
-
-            bullet_angle = self.bullet_launch_angle - self.bullet_angle * (bullets_per_shot - 1) / 2.
-            for bullet_nb in range(bullets_per_shot):
+        for shot in sht.shots[power]:
+            if self.fire_time % shot.interval == shot.delay:
                 if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                     break
 
-                bullets.append(Bullet((self.x, self.y), self.bullet_type, 0,
-                                      bullet_angle, self.bullet_speed,
+                origin = self.orbs[shot.orb - 1] if shot.orb else self
+                x = origin.x + shot.pos[0]
+                y = origin.y + shot.pos[1]
+
+                #TODO: find a better way to do that.
+                bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
+                                                         shot.sprite % 256 + 32, #TODO: find the real cancel anim
+                                                         0, 0, 0, 0.)
+                bullets.append(Bullet((x, y), bullet_type, 0,
+                                      shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, damage=48, player_bullet=True))
-                bullet_angle += self.bullet_angle
-
-
-
-class MarisaA(Marisa):
-    def __init__(self, state, game, resource_loader):
-        Marisa.__init__(self, state, game, resource_loader)
-
-        #TODO: verify the hitbox and damages.
-        self.bulletA_types = [BulletType(self.anm_wrapper, 65, 0, 0, 0, 0, hitbox_size=4), # damage is 40.
-                              BulletType(self.anm_wrapper, 66, 0, 0, 0, 0, hitbox_size=4),
-                              BulletType(self.anm_wrapper, 67, 0, 0, 0, 0, hitbox_size=4),
-                              BulletType(self.anm_wrapper, 68, 0, 0, 0, 0, hitbox_size=4)]
-        self.bulletA_speed_interpolator = None
-
-
-    def fire(self):
-        Marisa.fire(self)
-
-        if self.state.power < 8:
-            return
-
-        else:
-            pass #TODO
-
-
-
-class MarisaB(Marisa):
-    def __init__(self, state, game, resource_loader):
-        Marisa.__init__(self, state, game, resource_loader)
-
-        #TODO:  power   damages period
-        #       8       240     120
-        #       16      390     170
-        #       32      480     ???
-        #       48      510     ???
-        #       64      760     ???
-        #       80      840     ???
-        #       96      1150    270
-        #       128     1740    330
-        # The duration of the laser is period - 42.
-        # The damages are given for one laser shot on one enemy for its entire duration.
-
-
-    def fire(self):
-        Marisa.fire(self)
-
-        if self.state.power < 8:
-            return
-
-        else:
-            pass #TODO
-
+                                      0, self, self._game, player_bullet=True, damage=shot.damage, hitbox=shot.hitbox))

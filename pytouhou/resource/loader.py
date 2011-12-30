@@ -6,6 +6,7 @@ from pytouhou.formats.ecl import ECL
 from pytouhou.formats.anm0 import Animations
 from pytouhou.formats.msg import MSG
 from pytouhou.formats.sht import SHT
+from pytouhou.formats.exe import SHT as EoSDSHT
 
 
 from pytouhou.resource.anmwrapper import AnmWrapper
@@ -100,6 +101,12 @@ class Loader(object):
             file = self.get_file(name)
             self.instanced_shts[name] = SHT.read(file) #TODO: modular
         return self.instanced_shts[name]
+
+
+    def get_eosd_characters(self, name):
+        with open(name, 'rb') as file:
+            characters = EoSDSHT.read(file) #TODO: modular
+        return characters
 
 
     def get_anm_wrapper(self, names):

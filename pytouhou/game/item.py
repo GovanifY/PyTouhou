@@ -26,8 +26,6 @@ class Item(object):
         self._type = _type
         self._item_type = item_type
 
-        self.hitbox_half_size = item_type.hitbox_size / 2.
-
         self.frame = 0
         self.x, self.y = start_pos
         self.angle = angle
@@ -52,7 +50,7 @@ class Item(object):
 
     def autocollect(self, player):
         self.player = player
-        self.speed = player.sht.autocollection_speed if hasattr(player, 'sht') else 8.
+        self.speed = player.sht.autocollection_speed
 
 
     def on_collect(self, player):
@@ -84,7 +82,7 @@ class Item(object):
 
         elif self._type == 1: # point
             player_state.points += 1
-            poc = player.sht.point_of_collection if hasattr(player, 'sht') else 128 #TODO: find the exact poc in EoSD.
+            poc = player.sht.point_of_collection
             if player_state.y < poc:
                 score = 100000
                 self._game.modify_difficulty(+30)

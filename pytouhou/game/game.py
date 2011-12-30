@@ -243,8 +243,8 @@ class Game(object):
             if py < 128 and player.state.power >= 128: #TODO: check py.
                 self.autocollect(player)
 
+            half_size = player.sht.item_hitbox / 2.
             for item in self.items:
-                half_size = item.hitbox_half_size
                 bx, by = item.x, item.y
                 bx1, bx2 = bx - half_size, bx + half_size
                 by1, by2 = by - half_size, by + half_size
