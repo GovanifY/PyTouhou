@@ -51,7 +51,6 @@ class EoSDGame(Game):
                       ItemType(etama3, 6, 13)] #Star
 
         characters = resource_loader.get_eosd_characters('102h.exe')
-        print characters[0]
 
         #eosd_characters = [ReimuA, ReimuB, MarisaA, MarisaB]
         players = []
@@ -135,6 +134,9 @@ class EoSDPlayer(Player):
         nb_bullets_max = self._game.nb_bullets_max
 
         for shot in sht.shots[power]:
+            if shot.type in (2, 3): # TODO: Those shot types aren't handled yet
+                continue
+
             if self.fire_time % shot.interval == shot.delay:
                 if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                     break
@@ -145,9 +147,11 @@ class EoSDPlayer(Player):
 
                 #TODO: find a better way to do that.
                 bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
-                                                         shot.sprite % 256 + 32, #TODO: find the real cancel anim
-                                                         0, 0, 0, 0.)
+                                         shot.sprite % 256 + 32, #TODO: find the real cancel anim
+                                         0, 0, 0, 0.)
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True, damage=shot.damage, hitbox=shot.hitbox))
+                                      0, self, self._game, player_bullet=True,
+                                      damage=shot.damage, hitbox=shot.hitbox))
+

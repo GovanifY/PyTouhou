@@ -34,12 +34,9 @@ class Shot(object):
         self.speed = 0.
         self.damage = 0
         self.orb = 0
-        self.shot_type = 0
+        self.type = 0
         self.sprite = 0
         self.unknown1 = None
-
-    def __repr__(self):
-        return '(%d, %d, %f, %f, %d, %d, %d, %d, %d)' % (self.interval, self.delay, self.angle, self.speed, self.damage, self.orb, self.shot_type, self.sprite, self.unknown1)
 
 
 class SHT(object):
@@ -61,33 +58,63 @@ class SHT(object):
 
 
     @classmethod
-    def find_character_records(self, file, pe_file):
-        format = Struct('<4f2I')
-        data_section = [section for section in pe_file.sections if section.Name.startswith('.data')][0]
-        text_section = [section for section in pe_file.sections if section.Name.startswith('.text')][0]
-        data_va = pe_file.image_base + data_section.VirtualAddress
-        text_va = pe_file.image_base + text_section.VirtualAddress
+    def find_character_defs(cls, pe_file):
+        """Generator returning the possible VA of character definition blocks.
 
-        for addr in xrange(data_va, data_va + data_section.SizeOfRawData, 4):
+        Based on knowledge of the structure, it tries to find valid definition blocks
+        without embedding any copyrighted material or hard-coded offsets that would
+        only be useful for a specific build of the game.
+        """
+
+        format = Struct('<4f2I')
+        data_section = [section for section in pe_file.sections
+                            if section.Name.startswith('.data')][0]
+        text_section = [section for section in pe_file.sections
+                            if section.Name.startswith('.text')][0]
+        data_va = pe_file.image_base + data_section.VirtualAddress
+        data_size = data_section.SizeOfRawData
+        text_va = pe_file.image_base + text_section.VirtualAddress
+        text_size = text_section.SizeOfRawData
+
+        # Search the whole data segment for 4 successive character definitions
+        for addr in xrange(data_va, data_va + data_size, 4):
             for character_id in xrange(4):
                 pe_file.seek_to_va(addr + character_id * 24)
-                speed1, speed2, speed3, speed4, ptr1, ptr2 = format.unpack(file.read(format.size))
+                (speed1, speed2, speed3, speed4,
+                 ptr1, ptr2) = format.unpack(pe_file.file.read(format.size))
 
-                if not (all(0. < x < 8. for x in (speed1, speed2, speed3, speed4))
+                # Check whether the character's speed make sense,
+                # and whether the function pointers point to valid addresses
+                if not (all(0. < x < 10. for x in (speed1, speed2, speed3, speed4))
                         and speed2 <= speed1
-                        and 0 <= ptr1 - text_va < text_section.SizeOfRawData - 8
-                        and 0 <= ptr2 - text_va < text_section.SizeOfRawData - 8):
+                        and 0 <= ptr1 - text_va < text_size - 8
+                        and 0 <= ptr2 - text_va < text_size - 8):
                     break
 
+                # So far, this character definition seems to be valid.
+                # Now, make sure the shoot function wrappers pass valid addresses
                 pe_file.seek_to_va(ptr1 + 4)
-                shtptr1, = unpack('<I', file.read(4))
+                shtptr1, = unpack('<I', pe_file.file.read(4))
                 pe_file.seek_to_va(ptr2 + 4)
-                shtptr2, = unpack('<I', file.read(4))
-
-                if not (0 <= shtptr1 - data_va < data_section.SizeOfRawData
-                        and 0 <= shtptr2 - data_va < data_section.SizeOfRawData):
+                shtptr2, = unpack('<I', pe_file.file.read(4))
+                if not (0 <= shtptr1 - data_va < data_size - 12
+                        and 0 <= shtptr2 - data_va < data_size - 12):
                     break
-            else: # XXX: Obscure python feature! This gets executed if there were no break!
+
+                # It is unlikely this character record is *not* valid, but
+                # just to be sure, let's check the first SHT definition.
+                pe_file.seek_to_va(shtptr1)
+                nb_shots, power, shotsptr = unpack('<III', pe_file.file.read(12))
+                if not (0 < nb_shots <= 1000
+                        and 0 <= power < 1000
+                        and 0 <= shotsptr - data_va < data_size - 36*nb_shots):
+                    break
+
+            else:
+                # XXX: Obscure python feature! This only gets executed if the
+                # XXX: loop ended without a break statement.
+                # In our case, it's only executed if all the 4 character
+                # definitions are considered valid.
                 yield addr
 
 
@@ -95,7 +122,7 @@ class SHT(object):
     def read(cls, file):
         pe_file = PEFile(file)
 
-        character_records_va = list(cls.find_character_records(file, pe_file))[0]
+        character_records_va = list(cls.find_character_defs(pe_file))[0]
 
         characters = []
         shots_offsets = []
@@ -142,7 +169,7 @@ class SHT(object):
 
                     data = unpack('<HH6fHBBhh', file.read(36))
                     (shot.interval, shot.delay, x, y, hitbox_x, hitbox_y,
-                     shot.angle, shot.speed, shot.damage, shot.orb, shot.shot_type,
+                     shot.angle, shot.speed, shot.damage, shot.orb, shot.type,
                      shot.sprite, shot.unknown1) = data
 
                     shot.pos = (x, y)
