@@ -40,9 +40,8 @@ def main(path, stage_num, rank, character, replay, data):
     else:
         prng = None
 
-    resource_loader = Loader()
-    resource_loader.scan_archives(os.path.join(path, name)
-                                    for name in data)
+    resource_loader = Loader(path)
+    resource_loader.scan_archives(data)
     game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16,
                     prng=prng)
 

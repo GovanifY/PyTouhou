@@ -52,10 +52,8 @@ class EoSDGame(Game):
 
         characters = resource_loader.get_eosd_characters('102h.exe')
 
-        #eosd_characters = [ReimuA, ReimuB, MarisaA, MarisaB]
         players = []
         for player in player_states:
-            #players.append(eosd_characters[player.character](player, self, resource_loader))
             players.append(EoSDPlayer(player, self, resource_loader, sht=characters[player.character]))
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,

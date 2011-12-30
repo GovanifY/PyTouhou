@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 from pytouhou.formats.pbg3 import PBG3
@@ -40,7 +41,8 @@ class ArchiveDescription(object):
 
 
 class Loader(object):
-    def __init__(self):
+    def __init__(self, game_dir=None):
+        self.game_dir = game_dir
         self.known_files = {}
         self.instanced_ecls = {}
         self.instanced_anms = {}
@@ -51,6 +53,8 @@ class Loader(object):
 
     def scan_archives(self, paths):
         for path in paths:
+            if self.game_dir and not os.path.isabs(path):
+                path = os.path.join(self.game_dir, path)
             archive_description = ArchiveDescription.get_from_path(path)
             for name in archive_description.file_list:
                 self.known_files[name] = archive_description
@@ -103,8 +107,11 @@ class Loader(object):
         return self.instanced_shts[name]
 
 
-    def get_eosd_characters(self, name):
-        with open(name, 'rb') as file:
+    def get_eosd_characters(self, path):
+        #TODO: Move to pytouhou.games.eosd?
+        if self.game_dir and not os.path.isabs(path):
+            path = os.path.join(self.game_dir, path)
+        with open(path, 'rb') as file:
             characters = EoSDSHT.read(file) #TODO: modular
         return characters
 
