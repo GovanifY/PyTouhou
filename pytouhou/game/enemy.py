@@ -125,7 +125,7 @@ class Enemy(object):
             launch_angle += self.get_player_angle(player, launch_pos)
         if type_ in (69, 70, 71, 74):
             angle = 2. * pi / bullets_per_shot
-        if type_ == 71:
+        if type_ == 71 and bullets_per_shot % 2 or type_ == 69 and not bullets_per_shot % 2:
             launch_angle += pi / bullets_per_shot
         if type_ != 75:
             launch_angle -= angle * (bullets_per_shot - 1) / 2.
