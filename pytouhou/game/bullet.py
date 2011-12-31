@@ -21,7 +21,7 @@ from pytouhou.game.sprite import Sprite
 
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
-                       angle, speed, attributes, flags, player, game,
+                       angle, speed, attributes, flags, target, game,
                        player_bullet=False, damage=0, hitbox=None):
         self._game = game
         self._sprite = None
@@ -39,7 +39,7 @@ class Bullet(object):
         self.frame = 0
         self.grazed = False
 
-        self.player = player
+        self.target = target
 
         self.sprite_idx_offset = sprite_idx_offset
 
@@ -217,7 +217,7 @@ class Bullet(object):
                     if self.flags & 64:
                         self.angle += angle
                     elif self.flags & 128:
-                        self.angle = atan2(self.player.y - y, self.player.x - x) + angle
+                        self.angle = atan2(self.target.y - y, self.target.x - x) + angle
                     elif self.flags & 256:
                         self.angle = angle
 

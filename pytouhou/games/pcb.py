@@ -139,4 +139,5 @@ class PCBPlayer(Player):
                 bullets.append(Bullet((x, y), self.bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True, damage=shot.damage, hitbox=shot.hitbox))
+                                      0, self, self._game, player_bullet=True,
+                                      damage=shot.damage, hitbox=shot.hitbox))

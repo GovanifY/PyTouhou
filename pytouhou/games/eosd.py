@@ -132,21 +132,32 @@ class EoSDPlayer(Player):
         nb_bullets_max = self._game.nb_bullets_max
 
         for shot in sht.shots[power]:
-            if shot.type in (2, 3): # TODO: Those shot types aren't handled yet
+            if shot.type == 3: # TODO: Lasers aren't implemented yet
                 continue
 
-            if self.fire_time % shot.interval == shot.delay:
-                if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
-                    break
+            if self.fire_time % shot.interval != shot.delay:
+                continue
 
-                origin = self.orbs[shot.orb - 1] if shot.orb else self
-                x = origin.x + shot.pos[0]
-                y = origin.y + shot.pos[1]
+            if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
+                break
 
-                #TODO: find a better way to do that.
-                bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
-                                         shot.sprite % 256 + 32, #TODO: find the real cancel anim
-                                         0, 0, 0, 0.)
+            origin = self.orbs[shot.orb - 1] if shot.orb else self
+            x = origin.x + shot.pos[0]
+            y = origin.y + shot.pos[1]
+
+            #TODO: find a better way to do that.
+            bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
+                                     shot.sprite % 256 + 32, #TODO: find the real cancel anim
+                                     0, 0, 0, 0.)
+            if shot.type == 2:
+                #TODO: check acceleration, check duration, check everything!
+                bullets.append(Bullet((x, y), bullet_type, 0,
+                                      shot.angle, shot.speed,
+                                      (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
+                                      16, self, self._game, player_bullet=True,
+                                      damage=shot.damage, hitbox=shot.hitbox))
+            #TODO: types 1 and 4
+            else:
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
