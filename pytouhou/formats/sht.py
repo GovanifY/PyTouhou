@@ -29,7 +29,7 @@ class Shot(object):
         self.speed = 0.
         self.damage = 0
         self.orb = 0
-        self.shot_type = 0
+        self.type = 0
         self.sprite = 0
         self.unknown1 = None
         self.unknown2 = None

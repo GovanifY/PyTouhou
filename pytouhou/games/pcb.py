@@ -18,7 +18,6 @@ from pytouhou.game.game import Game
 from pytouhou.game.bullettype import BulletType
 from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
-from pytouhou.game.bullet import Bullet
 from pytouhou.game.orb import Orb
 
 from math import pi
@@ -38,7 +37,7 @@ class PCBGame(Game):
                         BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
                         BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
                         BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
-        #TODO: hitbox
+
         item_types = [ItemType(etama3, 0, 7), #Power
                       ItemType(etama3, 1, 8), #Point
                       ItemType(etama3, 2, 9), #Big power
@@ -47,9 +46,7 @@ class PCBGame(Game):
                       ItemType(etama3, 5, 12), #1up
                       ItemType(etama3, 6, 13)] #Star
 
-        players = []
-        for player in player_states:
-            players.append(PCBPlayer(player, self, resource_loader))
+        players = [PCBPlayer(state, self, resource_loader) for state in player_states]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, item_types, nb_bullets_max=640, **kwargs)
@@ -57,17 +54,14 @@ class PCBGame(Game):
 
 
 class PCBPlayer(Player):
-    def __init__(self, state, game, resource_loader, speed=4., hitbox_size=2.5, graze_hitbox_size=42.):
+    def __init__(self, state, game, resource_loader):
         number = '%d%s' % (state.character // 2, 'b' if state.character % 2 else 'a')
         self.sht = resource_loader.get_sht('ply0%s.sht' % number)
         self.focused_sht = resource_loader.get_sht('ply0%ss.sht' % number)
         anm_wrapper = resource_loader.get_anm_wrapper(('player0%d.anm' % (state.character // 2),))
+        self.anm_wrapper = anm_wrapper
 
-        Player.__init__(self, state, game, anm_wrapper,
-                        speeds=(self.sht.horizontal_vertical_speed,
-                                self.sht.diagonal_speed,
-                                self.sht.horizontal_vertical_focused_speed,
-                                self.sht.diagonal_focused_speed))
+        Player.__init__(self, state, game, anm_wrapper)
 
         self.orbs = [Orb(self.anm_wrapper, 128, self.state, None),
                      Orb(self.anm_wrapper, 129, self.state, None)]
@@ -119,25 +113,3 @@ class PCBPlayer(Player):
         for orb in self.orbs:
             orb.update()
 
-
-    def fire(self):
-        sht = self.focused_sht if self.state.focused else self.sht
-        power = min(power for power in sht.shots if self.state.power < power)
-
-        bullets = self._game.players_bullets
-        nb_bullets_max = self._game.nb_bullets_max
-
-        for shot in sht.shots[power]:
-            if self.fire_time % shot.interval == 0:
-                if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
-                    break
-
-                origin = self.orbs[shot.orb - 1] if shot.orb else self
-                x = origin.x + shot.pos[0]
-                y = origin.y + shot.pos[1]
-
-                bullets.append(Bullet((x, y), self.bullet_type, 0,
-                                      shot.angle, shot.speed,
-                                      (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True,
-                                      damage=shot.damage, hitbox=shot.hitbox))

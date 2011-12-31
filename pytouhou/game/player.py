@@ -16,6 +16,7 @@
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
+from pytouhou.game.bullet import Bullet
 
 from math import pi
 
@@ -43,23 +44,20 @@ class PlayerState(object):
 
 
 class Player(object):
-    def __init__(self, state, game, anm_wrapper, hitbox_size=2.5, graze_hitbox_size=42., speeds=None):
+    def __init__(self, state, game, anm_wrapper):
         self._sprite = None
         self._anmrunner = None
         self._game = game
         self.anm_wrapper = anm_wrapper
 
-        self.speeds = speeds
+        self.speeds = (self.sht.horizontal_vertical_speed,
+                       self.sht.diagonal_speed,
+                       self.sht.horizontal_vertical_focused_speed,
+                       self.sht.diagonal_focused_speed)
 
-        self.hitbox_size = hitbox_size
-        self.hitbox_half_size = self.hitbox_size / 2.
-        self.graze_hitbox_size = graze_hitbox_size
-        self.graze_hitbox_half_size = self.graze_hitbox_size / 2.
+        self.hitbox_half_size = self.sht.hitbox / 2.
+        self.graze_hitbox_half_size = self.sht.graze_hitbox / 2.
 
-        self.bullet_type = BulletType(anm_wrapper, 64, 96, 0, 0, 0, hitbox_size=4)
-        self.bullet_launch_interval = 5
-        self.bullet_speed = 12.
-        self.bullet_launch_angle = -pi/2
         self.fire_time = 0
 
         self.state = state
@@ -105,6 +103,47 @@ class Player(object):
 
     def stop_focusing(self):
         self.state.focused = False
+
+
+    def fire(self):
+        sht = self.focused_sht if self.state.focused else self.sht
+        power = min(power for power in sht.shots if self.state.power < power)
+
+        bullets = self._game.players_bullets
+        nb_bullets_max = self._game.nb_bullets_max
+
+        for shot in sht.shots[power]:
+            if shot.type == 3: # TODO: Lasers aren't implemented yet
+                continue
+
+            if (self.fire_time + shot.delay) % shot.interval != 0:
+                continue
+
+            if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
+                break
+
+            origin = self.orbs[shot.orb - 1] if shot.orb else self
+            x = origin.x + shot.pos[0]
+            y = origin.y + shot.pos[1]
+
+            #TODO: find a better way to do that.
+            bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
+                                     shot.sprite % 256 + 32, #TODO: find the real cancel anim
+                                     0, 0, 0, 0.)
+            if shot.type == 2:
+                #TODO: triple-check acceleration!
+                bullets.append(Bullet((x, y), bullet_type, 0,
+                                      shot.angle, shot.speed,
+                                      (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
+                                      16, self, self._game, player_bullet=True,
+                                      damage=shot.damage, hitbox=shot.hitbox))
+            #TODO: types 1 and 4
+            else:
+                bullets.append(Bullet((x, y), bullet_type, 0,
+                                      shot.angle, shot.speed,
+                                      (0, 0, 0, 0, 0., 0., 0., 0.),
+                                      0, self, self._game, player_bullet=True,
+                                      damage=shot.damage, hitbox=shot.hitbox))
 
 
     def update(self, keystate):

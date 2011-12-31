@@ -13,7 +13,9 @@
 ## GNU General Public License for more details.
 ##
 
+from copy import copy
 from struct import Struct, unpack
+
 from pytouhou.utils.pe import PEFile
 
 from pytouhou.utils.helpers import get_logger
@@ -125,7 +127,7 @@ class SHT(object):
         character_records_va = list(cls.find_character_defs(pe_file))[0]
 
         characters = []
-        shots_offsets = []
+        shots_offsets = {}
         for character in xrange(4):
             sht = cls()
 
@@ -140,15 +142,21 @@ class SHT(object):
             sht.diagonal_speed = speed * SQ2
             sht.diagonal_focused_speed = speed_focused * SQ2
 
-            # Read from “push” operand
-            pe_file.seek_to_va(shots_func_offset + 4)
-            offset = unpack('<I', file.read(4))[0]
-            shots_offsets.append(offset)
+            # Characters might have different shot types whether they are
+            # focused or not, but properties read earlier apply to both modes.
+            focused_sht = copy(sht)
+            characters.append((sht, focused_sht))
 
-            characters.append(sht)
+            for sht, func_offset in ((sht, shots_func_offset), (focused_sht, shots_func_offset_focused)):
+                # Read from “push” operand
+                pe_file.seek_to_va(func_offset + 4)
+                offset, = unpack('<I', file.read(4))
+                if offset not in shots_offsets:
+                    shots_offsets[offset] = []
+                shots_offsets[offset].append(sht)
 
         character = 0
-        for shots_offset in shots_offsets:
+        for shots_offset, shts in shots_offsets.iteritems():
             pe_file.seek_to_va(shots_offset)
 
             level_count = 9
@@ -157,11 +165,10 @@ class SHT(object):
                 shots_count, power, offset = unpack('<III', file.read(3*4))
                 levels.append((shots_count, power, offset))
 
-            sht = characters[character]
-            sht.shots = {}
+            shots = {}
 
             for shots_count, power, offset in levels:
-                sht.shots[power] = []
+                shots[power] = []
                 pe_file.seek_to_va(offset)
 
                 for i in xrange(shots_count):
@@ -175,7 +182,10 @@ class SHT(object):
                     shot.pos = (x, y)
                     shot.hitbox = (hitbox_x, hitbox_y)
 
-                    sht.shots[power].append(shot)
+                    shots[power].append(shot)
+
+            for sht in shts:
+                sht.shots = shots
 
             character += 1
 

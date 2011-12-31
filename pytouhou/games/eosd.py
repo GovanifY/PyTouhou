@@ -18,7 +18,6 @@ from pytouhou.game.game import Game
 from pytouhou.game.bullettype import BulletType
 from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
-from pytouhou.game.bullet import Bullet
 from pytouhou.game.orb import Orb
 
 from math import pi
@@ -41,7 +40,7 @@ class EoSDGame(Game):
                         BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
                         BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
                         BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
-        #TODO: hitbox
+
         item_types = [ItemType(etama3, 0, 7), #Power
                       ItemType(etama3, 1, 8), #Point
                       ItemType(etama3, 2, 9), #Big power
@@ -51,10 +50,7 @@ class EoSDGame(Game):
                       ItemType(etama3, 6, 13)] #Star
 
         characters = resource_loader.get_eosd_characters('102h.exe')
-
-        players = []
-        for player in player_states:
-            players.append(EoSDPlayer(player, self, resource_loader, sht=characters[player.character]))
+        players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, item_types, nb_bullets_max=640, **kwargs)
@@ -62,16 +58,13 @@ class EoSDGame(Game):
 
 
 class EoSDPlayer(Player):
-    def __init__(self, state, game, resource_loader, speeds=None, hitbox_size=2.5, graze_hitbox_size=42., sht=None):
-        self.sht = sht
+    def __init__(self, state, game, resource_loader, character):
+        self.sht = character[0]
+        self.focused_sht = character[1]
         anm_wrapper = resource_loader.get_anm_wrapper(('player0%d.anm' % (state.character // 2),))
         self.anm_wrapper = anm_wrapper
 
-        Player.__init__(self, state, game, anm_wrapper,
-                        speeds=(self.sht.horizontal_vertical_speed,
-                                self.sht.diagonal_speed,
-                                self.sht.horizontal_vertical_focused_speed,
-                                self.sht.diagonal_focused_speed))
+        Player.__init__(self, state, game, anm_wrapper)
 
         self.orbs = [Orb(self.anm_wrapper, 128, self.state, None),
                      Orb(self.anm_wrapper, 129, self.state, None)]
@@ -122,45 +115,4 @@ class EoSDPlayer(Player):
 
         for orb in self.orbs:
             orb.update()
-
-
-    def fire(self):
-        sht = self.sht
-        power = min(power for power in sht.shots if self.state.power < power)
-
-        bullets = self._game.players_bullets
-        nb_bullets_max = self._game.nb_bullets_max
-
-        for shot in sht.shots[power]:
-            if shot.type == 3: # TODO: Lasers aren't implemented yet
-                continue
-
-            if self.fire_time % shot.interval != shot.delay:
-                continue
-
-            if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
-                break
-
-            origin = self.orbs[shot.orb - 1] if shot.orb else self
-            x = origin.x + shot.pos[0]
-            y = origin.y + shot.pos[1]
-
-            #TODO: find a better way to do that.
-            bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
-                                     shot.sprite % 256 + 32, #TODO: find the real cancel anim
-                                     0, 0, 0, 0.)
-            if shot.type == 2:
-                #TODO: triple-check acceleration!
-                bullets.append(Bullet((x, y), bullet_type, 0,
-                                      shot.angle, shot.speed,
-                                      (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
-                                      16, self, self._game, player_bullet=True,
-                                      damage=shot.damage, hitbox=shot.hitbox))
-            #TODO: types 1 and 4
-            else:
-                bullets.append(Bullet((x, y), bullet_type, 0,
-                                      shot.angle, shot.speed,
-                                      (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True,
-                                      damage=shot.damage, hitbox=shot.hitbox))
 
