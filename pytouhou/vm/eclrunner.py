@@ -863,12 +863,21 @@ class ECLRunner(object):
 
     @instruction(119)
     def drop_some_bonus(self, number):
-        bonus = 0 if self._enemy.select_player().state.power < 128 else 1
-        for i in range(number):
-            #TODO: find the formula in the binary.
-            self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
-                                  self._enemy.y - 64 + self._game.prng.rand_uint16() % 128,
-                                  bonus)
+        if self._enemy.select_player().state.power < 128:
+            if number > 0:
+                #TODO: find the real formula in the binary.
+                self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
+                                      self._enemy.y - 64 + self._game.prng.rand_uint16() % 128,
+                                      2)
+            for i in xrange(number - 1):
+                self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
+                                      self._enemy.y - 64 + self._game.prng.rand_uint16() % 128,
+                                      0)
+        else:
+            for i in xrange(number):
+                self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_uint16() % 128,
+                                      self._enemy.y - 64 + self._game.prng.rand_uint16() % 128,
+                                      1)
 
 
     @instruction(120)
