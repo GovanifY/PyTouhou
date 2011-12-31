@@ -46,6 +46,10 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         else:
             self.keys = 0
             self.replay_level = replay.levels[game.stage-1]
+            self.game.players[0].state.lives = self.replay_level.lives
+            self.game.players[0].state.power = self.replay_level.power
+            self.game.players[0].state.bombs = self.replay_level.bombs
+            self.game.difficulty = self.replay_level.difficulty
 
         self.fps_display = pyglet.clock.ClockDisplay()
 

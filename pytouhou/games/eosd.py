@@ -150,7 +150,7 @@ class EoSDPlayer(Player):
                                      shot.sprite % 256 + 32, #TODO: find the real cancel anim
                                      0, 0, 0, 0.)
             if shot.type == 2:
-                #TODO: check acceleration, check duration, check everything!
+                #TODO: triple-check acceleration!
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
