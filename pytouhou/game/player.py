@@ -130,6 +130,7 @@ class Player(object):
             bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
                                      shot.sprite % 256 + 32, #TODO: find the real cancel anim
                                      0, 0, 0, 0.)
+            #TODO: Type 1 (homing bullets) and type 3 (laser)
             if shot.type == 2:
                 #TODO: triple-check acceleration!
                 bullets.append(Bullet((x, y), bullet_type, 0,
@@ -137,7 +138,6 @@ class Player(object):
                                       (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
                                       16, self, self._game, player_bullet=True,
                                       damage=shot.damage, hitbox=shot.hitbox))
-            #TODO: types 1 and 4
             else:
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,

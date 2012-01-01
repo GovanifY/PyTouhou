@@ -155,7 +155,6 @@ class SHT(object):
                     shots_offsets[offset] = []
                 shots_offsets[offset].append(sht)
 
-        character = 0
         for shots_offset, shts in shots_offsets.iteritems():
             pe_file.seek_to_va(shots_offset)
 
@@ -186,8 +185,6 @@ class SHT(object):
 
             for sht in shts:
                 sht.shots = shots
-
-            character += 1
 
 
         return characters

@@ -19,6 +19,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 
+
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
                        angle, speed, attributes, flags, target, game,
@@ -186,6 +187,7 @@ class Bullet(object):
             length, angle = self.attributes[4:6]
             angle = self.angle if angle < -900.0 else angle #TODO: is that right?
             dx, dy = dx + cos(angle) * length, dy + sin(angle) * length
+            self.speed = (dx ** 2 + dy ** 2) ** 0.5
             self.angle = sprite.angle = atan2(dy, dx)
             if sprite.automatic_orientation:
                 sprite._changed = True

@@ -25,13 +25,15 @@ class ANMRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_anm_wrapper', '_sprite', '_running',
                  'sprite_index_offset',
-                 'script', 'instruction_pointer', 'frame')
+                 'script', 'instruction_pointer', 'frame',
+                 'waiting')
 
 
     def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
         self._anm_wrapper = anm_wrapper
         self._sprite = sprite
         self._running = True
+        self.waiting = False
 
         anm, self.script = anm_wrapper.get_script(script_id)
         self.frame = 0
@@ -40,9 +42,24 @@ class ANMRunner(object):
         self.sprite_index_offset = sprite_index_offset
 
 
+    def interrupt(self, interrupt):
+        new_ip = self.script.interrupts.get(interrupt, None)
+        if new_ip is None:
+            new_ip = self.script.interrupts.get(-1, None)
+        if new_ip is None:
+            return False
+        else:
+            self.instruction_pointer = new_ip
+            self.frame, opcode, args = self.script[self.instruction_pointer]
+            return True
+
+
     def run_frame(self):
         if not self._running:
             return False
+
+        if self.waiting:
+            return True
 
         sprite = self._sprite
 
@@ -166,7 +183,6 @@ class ANMRunner(object):
 
 
     @instruction(15)
-    @instruction(21) #TODO
     def keep_still(self):
         self._running = False
 
@@ -194,6 +210,19 @@ class ANMRunner(object):
     @instruction(20)
     def move_in_accel(self, x, y, z, duration):
         self._sprite.move_in(duration, x, y, z, lambda x: x ** 2)
+
+
+    @instruction(21)
+    def wait(self):
+        """Wait for an interrupt.
+        """
+        self.waiting = True
+
+
+    @instruction(22)
+    def interrupt_label(self, interrupt):
+        """Noop"""
+        pass
 
 
     @instruction(23)

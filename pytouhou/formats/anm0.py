@@ -29,6 +29,13 @@ logger = get_logger(__name__)
 #TODO: refactor/clean up
 
 
+class Script(list):
+    def __init__(self):
+        list.__init__(self)
+        self.interrupts = {}
+
+
+
 class Animations(object):
     _instructions = {0: ('', 'delete'),
                      1: ('I', 'set_sprite'),
@@ -49,8 +56,8 @@ class Animations(object):
                      18: ('fffi', 'move_to_linear'),
                      19: ('fffi', 'move_to_decel'),
                      20: ('fffi', 'move_to_accel'),
-                     21: ('', None),
-                     22: ('i', None),
+                     21: ('', 'wait'),
+                     22: ('i', 'interrupt_label'),
                      23: ('', 'set_corner_relative_placement'),
                      24: ('', None),
                      25: ('i', 'set_allow_offset'), #TODO: better name
@@ -107,7 +114,7 @@ class Animations(object):
         # Scripts
         anm.scripts = {}
         for i, offset in script_offsets:
-            anm.scripts[i] = []
+            anm.scripts[i] = Script()
             instruction_offsets = []
             file.seek(offset)
             while True:
@@ -125,11 +132,14 @@ class Animations(object):
                 if opcode == 0:
                     break
 
-            # Translate offsets to instruction pointers
+            # Translate offsets to instruction pointers and register interrupts
             for instr_offset, (j, instr) in zip(instruction_offsets, enumerate(anm.scripts[i])):
                 time, opcode, args = instr
                 if opcode == 5:
                     args = (instruction_offsets.index(args[0]),)
+                if opcode == 22:
+                    interrupt = args[0]
+                    anm.scripts[i].interrupts[interrupt] = j + 1
                 anm.scripts[i][j] = time, opcode, args
         #TODO
 
