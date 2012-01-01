@@ -58,12 +58,9 @@ class ANMRunner(object):
         if not self._running:
             return False
 
-        if self.waiting:
-            return True
-
         sprite = self._sprite
 
-        while self._running:
+        while self._running and not self.waiting:
             frame, opcode, args = self.script[self.instruction_pointer]
 
             if frame > self.frame:
@@ -79,6 +76,10 @@ class ANMRunner(object):
                 else:
                     callback(self, *args)
                     sprite._changed = True
+
+        if self.waiting:
+            return True
+
         self.frame += 1
 
         # Update sprite
@@ -228,6 +229,14 @@ class ANMRunner(object):
     @instruction(23)
     def set_corner_relative_placement(self):
         self._sprite.corner_relative_placement = True #TODO
+
+
+    @instruction(24)
+    def wait_ex(self):
+        """Hide/delete the sprite and wait for an interrupt.
+        """
+        #TODO: Hide/delete the sprite and figure what happens exactly
+        self.waiting = True
 
 
     @instruction(25)
