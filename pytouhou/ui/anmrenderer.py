@@ -44,13 +44,10 @@ class ANMRenderer(pyglet.window.Window, Renderer):
                                       caption='PyTouhou', resizable=False)
 
         self._anm_wrapper = anm_wrapper
-        self.anm = anm_wrapper.anm_files[0]
         self.sprites = sprites
         self.clear_color = (0., 0., 0., 1.)
-        if sprites:
-            self.items = self.anm.sprites
-        else:
-            self.items = self.anm.scripts
+        self.force_allow_dest_offset = False
+        self.index_items()
         self.load(index)
 
         self.x = width / 2
@@ -106,7 +103,12 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         elif symbol == pyglet.window.key.W:
             self.load()
         elif symbol == pyglet.window.key.X:
-            self.x, self.y = (192, 224) if self.x == 0 else (0, 0)
+            self.x, self.y = {(192, 224): (0, 0),
+                              (0, 0): (-224, 0),
+                              (-224, 0): (192, 224)}[(self.x, self.y)]
+        elif symbol == pyglet.window.key.C:
+            self.force_allow_dest_offset = not self.force_allow_dest_offset
+            self.load()
         elif symbol == pyglet.window.key.LEFT:
             self.change(-1)
         elif symbol == pyglet.window.key.RIGHT:
@@ -144,12 +146,19 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         self.load(item)
 
 
+    def index_items(self):
+        self.items = {}
+        if self.sprites:
+            for anm in self._anm_wrapper.anm_files:
+                self.items.update(anm.sprites)
+        else:
+            for anm in self._anm_wrapper.anm_files:
+                self.items.update(anm.scripts)
+
+
     def toggle_sprites(self):
         self.sprites = not(self.sprites)
-        if self.sprites:
-            self.items = self.anm.sprites
-        else:
-            self.items = self.anm.scripts
+        self.index_items()
         self.load(0)
 
 
@@ -163,6 +172,9 @@ class ANMRenderer(pyglet.window.Window, Renderer):
     def update(self):
         if not self.sprites:
              self._anmrunner.run_frame()
+
+        if self.force_allow_dest_offset:
+            self._sprite.allow_dest_offset = True
 
         glClearColor(*self.clear_color)
         glClear(GL_COLOR_BUFFER_BIT)

@@ -30,7 +30,7 @@ def main(path, data, name, script, sprites):
     resource_loader.scan_archives(os.path.join(path, name) for name in data)
 
     # Get out animation
-    anm_wrapper = resource_loader.get_anm_wrapper((name,))
+    anm_wrapper = resource_loader.get_anm_wrapper(name.split(','))
     anm = ANMRenderer(resource_loader, anm_wrapper, script, sprites)
     anm.start()
 
