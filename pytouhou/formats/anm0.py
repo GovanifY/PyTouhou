@@ -137,7 +137,7 @@ class Animations(object):
                 time, opcode, args = instr
                 if opcode == 5:
                     args = (instruction_offsets.index(args[0]),)
-                if opcode == 22:
+                elif opcode == 22:
                     interrupt = args[0]
                     anm.scripts[i].interrupts[interrupt] = j + 1
                 anm.scripts[i][j] = time, opcode, args

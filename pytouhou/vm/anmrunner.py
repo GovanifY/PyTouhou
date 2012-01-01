@@ -48,11 +48,10 @@ class ANMRunner(object):
             new_ip = self.script.interrupts.get(-1, None)
         if new_ip is None:
             return False
-        else:
-            self.instruction_pointer = new_ip
-            self.frame, opcode, args = self.script[self.instruction_pointer]
-            self.waiting = False
-            return True
+        self.instruction_pointer = new_ip
+        self.frame, opcode, args = self.script[self.instruction_pointer]
+        self.waiting = False
+        return True
 
 
     def run_frame(self):

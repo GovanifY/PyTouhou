@@ -22,7 +22,7 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
                        GL_TEXTURE_2D, GL_BLEND,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
-                       glClear, GL_COLOR_BUFFER_BIT)
+                       glClearColor, glClear, GL_COLOR_BUFFER_BIT)
 
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
@@ -46,6 +46,7 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         self._anm_wrapper = anm_wrapper
         self.anm = anm_wrapper.anm_files[0]
         self.sprites = sprites
+        self.clear_color = (0., 0., 0., 1.)
         if sprites:
             self.items = self.anm.sprites
         else:
@@ -102,9 +103,6 @@ class ANMRenderer(pyglet.window.Window, Renderer):
     def on_key_press(self, symbol, modifiers):
         if symbol == pyglet.window.key.ESCAPE:
             self.has_exit = True
-        # XXX: Fullscreen will be enabled the day pyglet stops sucking
-        elif symbol == pyglet.window.key.F11:
-            self.set_fullscreen(not self.fullscreen)
         elif symbol == pyglet.window.key.W:
             self.load()
         elif symbol == pyglet.window.key.X:
@@ -115,32 +113,33 @@ class ANMRenderer(pyglet.window.Window, Renderer):
             self.change(+1)
         elif symbol == pyglet.window.key.TAB:
             self.toggle_sprites()
+        elif symbol == pyglet.window.key.SPACE:
+            self.toggle_clear_color()
         elif symbol >= pyglet.window.key.F1 and symbol <= pyglet.window.key.F12:
             interrupt = symbol - pyglet.window.key.F1 + 1
-            if modifiers == pyglet.window.key.MOD_CTRL:
+            if modifiers & pyglet.window.key.MOD_SHIFT:
                 interrupt += 12
-            self._anmrunner.interrupt(interrupt)
+            if not self.sprites:
+                self._anmrunner.interrupt(interrupt)
 
 
     def load(self, index=None):
         if index is None:
             index = self.num
         self._sprite = Sprite()
-        print index
         if self.sprites:
             self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(index)
+            print('Loaded sprite %d' % index)
         else:
             self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
-            self._anmrunner.run_frame()
+            print('Loading anim %d, handled events: %r' % (index, self._anmrunner.script.interrupts.keys()))
         self.num = index
 
 
     def change(self, diff):
         keys = self.items.keys()
         keys.sort()
-        index = keys.index(self.num) + diff
-        if index < 0 or index >= len(keys):
-            return
+        index = (keys.index(self.num) + diff) % len(keys)
         item = keys[index]
         self.load(item)
 
@@ -151,13 +150,22 @@ class ANMRenderer(pyglet.window.Window, Renderer):
             self.items = self.anm.sprites
         else:
             self.items = self.anm.scripts
-        self.load()
+        self.load(0)
+
+
+    def toggle_clear_color(self):
+        if self.clear_color[0] == 0.:
+            self.clear_color = (1., 1., 1., 1.)
+        else:
+            self.clear_color = (0., 0., 0., 1.)
 
 
     def update(self):
         if not self.sprites:
-            self._anmrunner.run_frame()
+             self._anmrunner.run_frame()
 
+        glClearColor(*self.clear_color)
         glClear(GL_COLOR_BUFFER_BIT)
-        self.render_elements([self])
+        if not self._sprite._removed:
+            self.render_elements([self])
 
