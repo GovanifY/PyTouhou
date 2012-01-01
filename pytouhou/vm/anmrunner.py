@@ -51,6 +51,7 @@ class ANMRunner(object):
         else:
             self.instruction_pointer = new_ip
             self.frame, opcode, args = self.script[self.instruction_pointer]
+            self.waiting = False
             return True
 
 

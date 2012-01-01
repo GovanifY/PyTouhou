@@ -116,8 +116,10 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         elif symbol == pyglet.window.key.TAB:
             self.toggle_sprites()
         elif symbol >= pyglet.window.key.F1 and symbol <= pyglet.window.key.F12:
-            print (symbol - pyglet.window.key.F1 + (12 if modifiers == pyglet.window.key.MOD_CTRL else 0) + 1)
-            #self._anmrunner.interrupt(symbol - pyglet.window.key.F1 + (12 if modifiers == pyglet.window.key.MOD_CTRL) + 1)
+            interrupt = symbol - pyglet.window.key.F1 + 1
+            if modifiers == pyglet.window.key.MOD_CTRL:
+                interrupt += 12
+            self._anmrunner.interrupt(interrupt)
 
 
     def load(self, index=None):
