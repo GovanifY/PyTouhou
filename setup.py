@@ -73,7 +73,7 @@ setup(name='PyTouhou',
       license='GPLv3',
       packages=packages,
       ext_modules=extensions,
-      scripts=['scripts/eosd'],
+      scripts=['scripts/eosd', 'scripts/anmviewer'],
       cmdclass={'build_ext': build_ext,
                 'build_scripts': BuildScripts},
       **extra

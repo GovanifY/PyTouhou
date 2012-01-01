@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+##
+## Copyright (C) 2011 Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+
+import argparse
+import os
+
+import pyximport
+pyximport.install()
+
+from pytouhou.resource.loader import Loader
+from pytouhou.game.sprite import Sprite
+from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.ui.anmrenderer import ANMRenderer
+
+
+def main(path, data, name, script, sprites):
+    resource_loader = Loader()
+    resource_loader.scan_archives(os.path.join(path, name) for name in data)
+
+    # Get out animation
+    anm_wrapper = resource_loader.get_anm_wrapper((name,))
+    anm = ANMRenderer(resource_loader, anm_wrapper, script, sprites)
+    anm.start()
+
+
+parser = argparse.ArgumentParser(description='Viewer of ANM files, archives containing animations used in Touhou games.')
+
+parser.add_argument('data', metavar='DAT', default=('CM.DAT', 'ST.DAT'), nargs='*', help='Game’s .DAT data files')
+parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
+parser.add_argument('--anm', metavar='ANM', required=True, help='Select an ANM')
+parser.add_argument('--script', metavar='SCRIPT', type=int, default=0, help='First script to play')
+parser.add_argument('--sprites', action='store_true', default=False, help='Display sprites instead of scripts.')
+
+args = parser.parse_args()
+
+main(args.path, tuple(args.data), args.anm, args.script, args.sprites)
