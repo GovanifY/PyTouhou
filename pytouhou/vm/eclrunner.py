@@ -744,14 +744,19 @@ class ECLRunner(object):
 
 
     @instruction(97)
-    def set_anim(self, sprite_index):
-        self._enemy.set_anim(sprite_index)
+    def set_anim(self, script):
+        self._enemy.set_anim(script)
 
 
     @instruction(98)
     def set_multiple_anims(self, default, end_left, end_right, left, right):
         self._enemy.movement_dependant_sprites = end_left, end_right, left, right
         self._enemy.set_anim(default)
+
+
+    @instruction(99)
+    def set_aux_anm(self, number, script):
+        self._enemy.set_aux_anm(number, script)
 
 
     @instruction(100)
@@ -929,6 +934,16 @@ class ECLRunner(object):
     @instruction(126)
     def set_remaining_lives(self, lives):
         self._enemy.remaining_lives = lives
+
+
+    @instruction(128)
+    def interrupt(self, event):
+        self._enemy._anmrunner.interrupt(event)
+
+
+    @instruction(129)
+    def interrupt_aux(self, number, event):
+        self._enemy.aux_anm[number]._anmrunner.interrupt(event)
 
 
     @instruction(132)

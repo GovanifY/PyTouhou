@@ -76,6 +76,7 @@ cdef class GameRenderer(Renderer):
             self.setup_camera(0, 0, 1)
 
             glDisable(GL_FOG)
+            self.render_elements(chain(*(enemy.objects() for enemy in game.enemies)))
             self.render_elements(game.enemies)
             self.render_elements(game.effects)
             self.render_elements(chain(game.players_bullets,

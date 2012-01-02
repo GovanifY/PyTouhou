@@ -17,6 +17,7 @@ from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet
+from pytouhou.game.effect import Effect
 from math import cos, sin, atan2, pi
 
 
@@ -74,6 +75,12 @@ class Enemy(object):
         self.hitbox = (0, 0)
         self.hitbox_half_size = (0, 0)
         self.screen_box = None
+
+        self.aux_anm = 8 * [None]
+
+
+    def objects(self):
+        return [anm for anm in self.aux_anm if anm]
 
 
     def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
@@ -179,6 +186,10 @@ class Enemy(object):
                 color = 3
         for i in range(number):
             self._game.new_particle((self.x, self.y), color, 4., 256) #TODO: find the real size.
+
+
+    def set_aux_anm(self, number, script):
+        self.aux_anm[number] = Effect((self.x, self.y), script, self._anm_wrapper)
 
 
     def set_pos(self, x, y, z):
@@ -348,6 +359,12 @@ class Enemy(object):
         # Check collisions
         if self.touchable:
             self.check_collisions()
+
+        for anm in self.aux_anm:
+            if anm:
+                anm.x = self.x
+                anm.y = self.y
+                anm.update()
 
         self.frame += 1
 
