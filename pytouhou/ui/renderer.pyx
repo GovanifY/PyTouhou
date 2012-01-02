@@ -48,7 +48,7 @@ cdef class Renderer:
 
         for element in elements:
             sprite = element._sprite
-            if sprite:
+            if sprite and sprite.visible:
                 ox, oy = element.x, element.y
                 key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
                 rec = indices_by_texture.setdefault(key, [])

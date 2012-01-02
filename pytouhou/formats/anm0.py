@@ -64,6 +64,7 @@ class Animations(object):
                      26: ('i', 'set_automatic_orientation'),
                      27: ('f', 'shift_texture_x'),
                      28: ('f', 'shift_texture_y'),
+                     29: ('i', 'set_visible'),
                      30: ('ffi', 'scale_in'),
                      31: ('i', None)}
 

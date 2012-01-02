@@ -23,11 +23,12 @@ class Sprite(object):
                  'texcoords', 'dest_offset', 'allow_dest_offset', 'texoffsets',
                  'mirrored', 'rescale', 'scale_speed', 'rotations_3d',
                  'rotations_speed_3d', 'corner_relative_placement', 'frame',
-                 'color', 'alpha', '_rendering_data')
+                 'color', 'alpha', 'visible', '_rendering_data')
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self._removed = False
         self._changed = True
+        self.visible = True
 
         self.width_override = width_override
         self.height_override = height_override

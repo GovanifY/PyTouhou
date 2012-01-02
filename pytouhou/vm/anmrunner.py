@@ -51,6 +51,7 @@ class ANMRunner(object):
         self.instruction_pointer = new_ip
         self.frame, opcode, args = self.script[self.instruction_pointer]
         self.waiting = False
+        self._sprite.visible = True
         return True
 
 
@@ -231,9 +232,9 @@ class ANMRunner(object):
 
     @instruction(24)
     def wait_ex(self):
-        """Hide/delete the sprite and wait for an interrupt.
+        """Hide the sprite and wait for an interrupt.
         """
-        #TODO: Hide/delete the sprite and figure what happens exactly
+        self._sprite.visible = False
         self.waiting = True
 
 
@@ -259,6 +260,11 @@ class ANMRunner(object):
     def shift_texture_y(self, dy):
         tox, toy = self._sprite.texoffsets
         self._sprite.texoffsets = tox, toy + dy
+
+
+    @instruction(29)
+    def set_visible(self, visible):
+        self._sprite.visible = bool(visible & 1)
 
 
     @instruction(30)
