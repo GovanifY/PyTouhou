@@ -77,10 +77,8 @@ class ANMRunner(object):
                     callback(self, *args)
                     sprite._changed = True
 
-        if self.waiting:
-            return True
-
-        self.frame += 1
+        if not self.waiting:
+            self.frame += 1
 
         # Update sprite
         sprite.frame += 1
