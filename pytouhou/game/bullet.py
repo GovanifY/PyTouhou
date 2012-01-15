@@ -114,11 +114,13 @@ class Bullet(object):
 
     def launch(self):
         self._launched = True
-        self.update = self.update_full
         self.set_anim()
         if self.flags & 1:
             self.speed_interpolator = Interpolator((self.speed + 5.,), 0,
                                                    (self.speed,), 16)
+            self.update = self.update_speed
+        else:
+            self.update = self.update_full
 
 
     def collide(self):
@@ -171,6 +173,18 @@ class Bullet(object):
         dx, dy = self.delta
         self.x += dx
         self.y += dy
+
+
+    def update_speed(self):
+        if self.speed_interpolator:
+            self.speed_interpolator.update(self.frame)
+            self.speed, = self.speed_interpolator.values
+            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
+            self.x, self.y = self.x + dx, self.y + dy
+            self.frame += 1
+        else:
+            self.update = self.update_full
+            self.update()
 
 
     def update_full(self):
