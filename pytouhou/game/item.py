@@ -56,6 +56,7 @@ class Item(object):
     def on_collect(self, player):
         player_state = player.state
         old_power = player_state.power
+        score = 0
 
         if self._type == 0 or self._type == 2: # power or big power
             if old_power < 128:
@@ -77,7 +78,6 @@ class Item(object):
                 elif bonus == 30:
                     score = 51200
                 player_state.power_bonus = bonus
-            player_state.score += score
             self._game.modify_difficulty(+1)
 
         elif self._type == 1: # point
@@ -87,9 +87,8 @@ class Item(object):
                 score = 100000
                 self._game.modify_difficulty(+30)
             else:
-                score = 0 #TODO: find the formula.
+                #score =  #TODO: find the formula.
                 self._game.modify_difficulty(+3)
-            player_state.score += score
 
         elif self._type == 3: # bomb
             if player_state.bombs < 8:
@@ -97,7 +96,7 @@ class Item(object):
             self._game.modify_difficulty(+5)
 
         elif self._type == 4: # full power
-            player_state.score += 1000
+            score = 1000
             player_state.power = 128
 
         elif self._type == 5: # 1up
@@ -106,11 +105,15 @@ class Item(object):
             self._game.modify_difficulty(+200)
 
         elif self._type == 6: # star
-            player_state.score += 500
+            score = 500
 
-        if old_power < 128 and player_state.power >= 128:
+        if old_power < 128 and player_state.power == 128:
             #TODO: display “full power”.
             self._game.change_bullets_into_star_items()
+
+        if score > 0:
+            #TODO: display the score.
+            player_state.score += score
 
         self._removed = True
 
