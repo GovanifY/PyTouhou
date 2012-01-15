@@ -3,13 +3,14 @@ import struct
 from select import select
 import time
 
-MSG_STRUCT = struct.Struct('!IHH')
+MSG_STRUCT = struct.Struct('!HHH')
 
 class Network(object):
     def __init__(self, port=8080, dest=None, selected_player=0):
         self.frame = 0
         self.keystate = 0
         self.old_keystate = 0
+        self.remote_keystate = 0
 
         self.selected_player = selected_player
 
@@ -60,18 +61,30 @@ class Network(object):
 
 
     def run_iter(self, game, keystate):
-        if self.frame < game.frame:
+        if game.frame % 3 == 0:
+            # Phase 1: Update game with old data
+            self.run_game_iter(game, self.keystate, self.remote_keystate)
+        elif game.frame % 3 == 1:
+            # Phase 2: Update data, send new data, update game with old data
             self.old_keystate, self.keystate = self.keystate, keystate
-            self.frame = game.frame
+            self.frame = game.frame // 3
+            self.send_message()
+            self.run_game_iter(game, self.old_keystate, self.remote_keystate)
+        elif game.frame % 3 == 2:
+            # Phase 3: Send new data, get remote data, update game with new data
+            self.send_message()
+            # Follow one valid update
+            message = self.read_message()
+            if message:
+                frame, keystate, old_keystate = message
+                if frame == self.frame:
+                    self.remote_keystate = keystate
+                elif frame == self.frame + 1:
+                    self.remote_keystate = old_keystate
+                else:
+                    raise Exception #TODO
+                self.run_game_iter(game, self.keystate, self.remote_keystate)
+            elif game.frame > 2:
+                print('ARGH')
 
-        self.send_message()
-
-        # Follow one valid update
-        message = self.read_message()
-        if message:
-            frame, keystate, old_keystate = message
-            if frame == game.frame:
-                self.run_game_iter(game, self.keystate, keystate)
-            elif frame == game.frame + 1:
-                self.run_game_iter(game, self.keystate, old_keystate)
 
