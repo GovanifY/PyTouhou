@@ -890,14 +890,19 @@ class ECLRunner(object):
     def call_special_function(self, function, arg):
         if function == 0: # Cirno
             if arg == 0:
+                self._game.new_effect((self._enemy.x, self._enemy.y), 17)
                 for bullet in self._game.bullets:
                     bullet.speed = bullet.angle = 0.
                     bullet.delta = (0., 0.)
                     bullet.set_anim(sprite_idx_offset=15) #TODO: check
             else:
+                self._game.new_effect((self._enemy.x, self._enemy.y), 17)
                 for bullet in self._game.bullets:
-                    bullet.speed = 2.0 #TODO
-                    bullet.angle = self._game.prng.rand_double() * pi #TODO
+                    bullet.speed = 0.0 #TODO
+                    bullet.flags = 32 #TODO
+                    bullet.attributes[4:5] = [0.006, 0.] #TODO
+                    bullet.update = bullet.update_full #TODO
+                    bullet.angle = pi + self._game.prng.rand_double() * 2. * pi
                     bullet.delta = (cos(bullet.angle) * bullet.speed, sin(bullet.angle) * bullet.speed)
         elif function == 1: # Cirno
             offset = (self._game.prng.rand_uint16() % arg - arg / 2,
