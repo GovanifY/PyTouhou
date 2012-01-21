@@ -116,9 +116,8 @@ class Game(object):
         self.bullets = []
 
 
-    def new_death(self, pos, index):
-        anim = {0: 3, 1: 4, 2: 5}[index % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
-        self.effects.append(Effect(pos, anim, self.etama4))
+    def new_effect(self, pos, anim, anm_wrapper=None):
+        self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
 
 
     def new_particle(self, pos, color, size, amp):

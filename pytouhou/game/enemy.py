@@ -175,7 +175,8 @@ class Enemy(object):
 
 
     def die_anim(self):
-        self._game.new_death((self.x, self.y), self.death_anim)
+        anim = {0: 3, 1: 4, 2: 5}[self.death_anim % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
+        self._game.new_effect((self.x, self.y), anim)
 
 
     def drop_particles(self, number, color):
