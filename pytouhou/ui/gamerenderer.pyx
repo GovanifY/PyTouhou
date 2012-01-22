@@ -33,6 +33,10 @@ cdef class GameRenderer(Renderer):
         self.game = game
         self.background = background
 
+        if game:
+            # Preload textures
+            self.texture_manager.preload(game.resource_loader.instanced_anms.values())
+
 
     def render(self):
         glClear(GL_DEPTH_BUFFER_BIT)
