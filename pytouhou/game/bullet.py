@@ -30,6 +30,7 @@ class Bullet(object):
         self._removed = False
         self._launched = False
         self._bullet_type = bullet_type
+        self._was_visible = True
 
         if hitbox:
             self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)

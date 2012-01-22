@@ -12,6 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
+from itertools import chain
 
 from pytouhou.utils.random import Random
 
@@ -255,21 +256,31 @@ class Game(object):
 
     def cleanup(self):
         # Filter out non-visible enemies
-        for enemy in tuple(self.enemies):
+        for enemy in self.enemies:
             if enemy.is_visible(self.width, self.height):
                 enemy._was_visible = True
             elif enemy._was_visible:
                 # Filter out-of-screen enemy
                 enemy._removed = True
-                self.enemies.remove(enemy)
+
+        self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
 
         # Filter out-of-scren bullets
-        # TODO: was_visible thing
+        # TODO: move to Bullet?
+        for bullet in chain(self.bullets, self.players_bullets):
+            if bullet.flags & 448:
+                bullet._was_visible = False
+            elif bullet.is_visible(self.width, self.height):
+                bullet._was_visible = True
+            elif bullet._was_visible:
+                # Filter out-of-screen bullets
+                bullet._removed = True
+
         self.bullets = [bullet for bullet in self.bullets
-                            if bullet.is_visible(self.width, self.height)]
-        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
-                            if bullet.is_visible(self.width, self.height)]
+                            if not bullet._removed]
         self.players_bullets = [bullet for bullet in self.players_bullets
+                            if not bullet._removed]
+        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
                             if bullet.is_visible(self.width, self.height)]
 
         # Filter out-of-scren items
