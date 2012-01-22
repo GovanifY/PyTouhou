@@ -21,7 +21,14 @@ from pytouhou.game.sprite import Sprite
 
 LAUNCHING, LAUNCHED, CANCELLED = range(3)
 
-class Bullet(object):
+cdef class Bullet(object):
+    cdef public unsigned int _state, flags, frame, sprite_idx_offset
+    cdef public double dx, dy, angle, speed #TODO
+    cdef public object player_bullet, target
+    cdef public object _game, _sprite, _anmrunner, _removed, _bullet_type, _was_visible
+    cdef public object attributes, damage, hitbox_half_size, speed_interpolator, grazed
+    cdef public object x, y #TODO
+
     def __init__(self, pos, bullet_type, sprite_idx_offset,
                        angle, speed, attributes, flags, target, game,
                        player_bullet=False, damage=0, hitbox=None):
