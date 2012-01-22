@@ -19,6 +19,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 
+LAUNCHING, LAUNCHED, CANCELLED = range(3)
 
 class Bullet(object):
     def __init__(self, pos, bullet_type, sprite_idx_offset,
@@ -28,9 +29,9 @@ class Bullet(object):
         self._sprite = None
         self._anmrunner = None
         self._removed = False
-        self._launched = False
         self._bullet_type = bullet_type
         self._was_visible = True
+        self._state = LAUNCHING
 
         if hitbox:
             self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)
@@ -51,8 +52,7 @@ class Bullet(object):
         self.x, self.y = pos
         self.angle = angle
         self.speed = speed
-        dx, dy = cos(angle) * speed, sin(angle) * speed
-        self.delta = dx, dy
+        self.dx, self.dy = cos(angle) * speed, sin(angle) * speed
 
         self.player_bullet = player_bullet
         self.damage = damage
@@ -68,7 +68,7 @@ class Bullet(object):
             else:
                 index = bullet_type.launch_anim8_index
                 launch_mult = bullet_type.launch_anim_penalties[2]
-            self.launch_delta = dx * launch_mult, dy * launch_mult
+            self.dx, self.dy = self.dx * launch_mult, self.dy * launch_mult
             self._sprite = Sprite()
             self._anmrunner = ANMRunner(bullet_type.anm_wrapper,
                                         index, self._sprite,
@@ -114,14 +114,13 @@ class Bullet(object):
 
 
     def launch(self):
-        self._launched = True
+        self._state = LAUNCHED
+        self.frame = 0
         self.set_anim()
+        self.dx, self.dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
         if self.flags & 1:
             self.speed_interpolator = Interpolator((self.speed + 5.,), 0,
                                                    (self.speed,), 16)
-            self.update = self.update_speed
-        else:
-            self.update = self.update_full
 
 
     def collide(self):
@@ -139,10 +138,10 @@ class Bullet(object):
         self._anmrunner = ANMRunner(bt.anm_wrapper, bt.cancel_anim_index,
                                     self._sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
         self._anmrunner.run_frame()
-        self.delta = self.delta[0] / 2., self.delta[1] / 2.
+        self.dx, self.dy = self.dx / 2., self.dy / 2.
 
         # Change update method
-        self.update = self.update_cancel
+        self._state = CANCELLED
 
         # Do not use this one for collisions anymore
         if self.player_bullet:
@@ -153,74 +152,49 @@ class Bullet(object):
 
 
     def update(self):
-        dx, dy = self.launch_delta
-        self.x += dx
-        self.y += dy
-
-        if not self._anmrunner.run_frame():
-            self.launch()
-
-
-    def update_cancel(self):
-        dx, dy = self.delta
-        self.x += dx
-        self.y += dy
-
-        if not self._anmrunner.run_frame():
-            self._removed = True
-
-
-    def update_simple(self):
-        dx, dy = self.delta
-        self.x += dx
-        self.y += dy
-
-
-    def update_speed(self):
-        if self.speed_interpolator:
-            self.speed_interpolator.update(self.frame)
-            self.speed, = self.speed_interpolator.values
-            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-            self.x, self.y = self.x + dx, self.y + dy
-            self.frame += 1
-        else:
-            self.update = self.update_full
-            self.update()
-
-
-    def update_full(self):
-        sprite = self._sprite
-
         if self._anmrunner is not None and not self._anmrunner.run_frame():
-            self._anmrunner = None
+            if self._state == LAUNCHING:
+                #TODO: check if it doesn't skip a frame
+                self.launch()
+            elif self._state == CANCELLED:
+                self._removed = True
+            else:
+                self._anmrunner = None
 
-        #TODO: flags
-        x, y = self.x, self.y
-        dx, dy = self.delta
-
-        if self.flags & 16:
+        if self._state == LAUNCHING:
+            pass
+        elif self._state == CANCELLED:
+            pass
+        elif self.flags & 1:
+            # Initial speed burst
+            #TODO: use frame instead of interpolator?
+            if not self.speed_interpolator:
+                self.flags &= ~1
+        elif self.flags & 16:
+            # Each frame, add a vector to the speed vector
             length, angle = self.attributes[4:6]
             angle = self.angle if angle < -900.0 else angle #TODO: is that right?
-            dx, dy = dx + cos(angle) * length, dy + sin(angle) * length
-            self.speed = (dx ** 2 + dy ** 2) ** 0.5
-            self.angle = sprite.angle = atan2(dy, dx)
-            if sprite.automatic_orientation:
-                sprite._changed = True
-            self.delta = dx, dy
+            self.dx += cos(angle) * length
+            self.dy += sin(angle) * length
+            self.speed = (self.dx ** 2 + self.dy ** 2) ** 0.5
+            self.angle = self._sprite.angle = atan2(self.dy, self.dx)
+            if self._sprite.automatic_orientation:
+                self._sprite._changed = True
             if self.frame == self.attributes[0]: #TODO: include last frame, or not?
-                self.flags ^= 16
+                self.flags &= ~16
         elif self.flags & 32:
+            # Each frame, accelerate and rotate
             #TODO: check
             acceleration, angular_speed = self.attributes[4:6]
             self.speed += acceleration
             self.angle += angular_speed
-            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-            self.delta = dx, dy
-            sprite.angle = self.angle
-            if sprite.automatic_orientation:
-                sprite._changed = True
+            self.dx = cos(self.angle) * self.speed
+            self.dy = sin(self.angle) * self.speed
+            self._sprite.angle = self.angle
+            if self._sprite.automatic_orientation:
+                self._sprite._changed = True
             if self.frame == self.attributes[0]:
-                self.flags ^= 32
+                self.flags &= ~32
         elif self.flags & 448:
             #TODO: check
             frame, count = self.attributes[0:2]
@@ -234,15 +208,16 @@ class Bullet(object):
                     if self.flags & 64:
                         self.angle += angle
                     elif self.flags & 128:
-                        self.angle = atan2(self.target.y - y, self.target.x - x) + angle
+                        self.angle = atan2(self.target.y - self.y,
+                                           self.target.x - self.x) + angle
                     elif self.flags & 256:
                         self.angle = angle
 
-                    dx, dy = cos(self.angle) * speed, sin(self.angle) * speed
-                    self.delta = dx, dy
-                    sprite.angle = self.angle
-                    if sprite.automatic_orientation:
-                        sprite._changed = True
+                    self.dx = cos(self.angle) * self.speed
+                    self.dy = sin(self.angle) * self.speed
+                    self._sprite.angle = self.angle
+                    if self._sprite.automatic_orientation:
+                        self._sprite._changed = True
 
                 if count >= 0:
                     self.speed_interpolator = Interpolator((self.speed,), self.frame,
@@ -252,16 +227,17 @@ class Bullet(object):
 
                 self.attributes[1] = count
         #TODO: other flags
-        elif not self.speed_interpolator and self._anmrunner is None:
-            self.update = self.update_simple
+
+        # Common updates
 
         if self.speed_interpolator:
             self.speed_interpolator.update(self.frame)
             self.speed, = self.speed_interpolator.values
-            dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
-            self.delta = dx, dy
+            self.dx = cos(self.angle) * self.speed
+            self.dy = sin(self.angle) * self.speed
 
-        self.x, self.y = x + dx, y + dy
+        self.x += self.dx
+        self.y += self.dy
 
         self.frame += 1
 

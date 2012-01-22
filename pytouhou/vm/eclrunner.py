@@ -898,16 +898,15 @@ class ECLRunner(object):
                 self._game.new_effect((self._enemy.x, self._enemy.y), 17)
                 for bullet in self._game.bullets:
                     bullet.speed = bullet.angle = 0.
-                    bullet.delta = (0., 0.)
+                    bullet.dx, bullet.dy = 0., 0.
                     bullet.set_anim(sprite_idx_offset=15) #TODO: check
             else:
                 self._game.new_effect((self._enemy.x, self._enemy.y), 17)
                 for bullet in self._game.bullets:
-                    bullet.flags = 16 #TODO
+                    bullet.flags = 16 #TODO: check
                     angle = pi + self._game.prng.rand_double() * 2. * pi
-                    bullet.attributes[4:6] = [0.01, angle] #TODO
-                    bullet.attributes[0] = -1 #TODO
-                    bullet.update = bullet.update_full #TODO
+                    bullet.attributes[4:6] = [0.01, angle] #TODO: check
+                    bullet.attributes[0] = -1 #TODO: check
                     bullet.set_anim(sprite_idx_offset=15) #TODO: check
         elif function == 1: # Cirno
             offset = (self._game.prng.rand_uint16() % arg - arg / 2,
