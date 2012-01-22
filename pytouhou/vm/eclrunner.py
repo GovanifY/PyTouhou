@@ -470,21 +470,25 @@ class ECLRunner(object):
 
     @instruction(45)
     def set_angle_speed(self, angle, speed):
+        self._enemy.update_mode = 0
         self._enemy.angle, self._enemy.speed = angle, speed
 
 
     @instruction(46)
     def set_rotation_speed(self, speed):
+        self._enemy.update_mode = 0
         self._enemy.rotation_speed = speed
 
 
     @instruction(47)
     def set_speed(self, speed):
+        self._enemy.update_mode = 0
         self._enemy.speed = speed
 
 
     @instruction(48)
     def set_acceleration(self, acceleration):
+        self._enemy.update_mode = 0
         self._enemy.acceleration = acceleration
 
 
@@ -519,6 +523,7 @@ class ECLRunner(object):
     @instruction(51)
     def target_player(self, unknown, speed):
         #TODO: unknown
+        self._enemy.update_mode = 0
         self._enemy.speed = speed
         self._enemy.angle = self._enemy.get_player_angle()
 

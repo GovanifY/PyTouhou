@@ -67,6 +67,7 @@ class Enemy(object):
         self.direction = None
         self.interpolator = None #TODO
         self.speed_interpolator = None
+        self.update_mode = 0
         self.angle = 0.
         self.speed = 0.
         self.rotation_speed = 0.
@@ -195,29 +196,29 @@ class Enemy(object):
 
     def set_pos(self, x, y, z):
         self.x, self.y = x, y
+        self.update_mode = 1
         self.interpolator = Interpolator((x, y))
         self.interpolator.set_interpolation_start(self._game.frame, (x, y))
 
 
     def move_to(self, duration, x, y, z, formula):
-        if not self.interpolator:
-            frame = self._game.frame
-            self.interpolator = Interpolator((self.x, self.y), formula)
-            self.interpolator.set_interpolation_start(frame, (self.x, self.y))
-            self.interpolator.set_interpolation_end(frame + duration - 1, (x, y))
+        frame = self._game.frame
+        self.speed_interpolator = None
+        self.update_mode = 1
+        self.interpolator = Interpolator((self.x, self.y), formula)
+        self.interpolator.set_interpolation_start(frame, (self.x, self.y))
+        self.interpolator.set_interpolation_end(frame + duration - 1, (x, y))
 
-            self.speed = 0.
-            self.angle = atan2(y - self.y, x - self.x)
+        self.angle = atan2(y - self.y, x - self.x)
 
 
     def stop_in(self, duration, formula):
-        if not self.speed_interpolator:
-            frame = self._game.frame
-            self.speed_interpolator = Interpolator((self.speed,), formula)
-            self.speed_interpolator.set_interpolation_start(frame, (self.speed,))
-            self.speed_interpolator.set_interpolation_end(frame + duration - 1, (0.,))
-
-            self.speed = 0.
+        frame = self._game.frame
+        self.interpolator = None
+        self.update_mode = 1
+        self.speed_interpolator = Interpolator((self.speed,), formula)
+        self.speed_interpolator.set_interpolation_start(frame, (self.speed,))
+        self.speed_interpolator.set_interpolation_end(frame + duration - 1, (0.,))
 
 
     def is_visible(self, screen_width, screen_height):
@@ -296,20 +297,21 @@ class Enemy(object):
 
     def update(self):
         x, y = self.x, self.y
-        if self.interpolator:
-            self.interpolator.update(self._game.frame)
-            x, y = self.interpolator.values
 
-        self.speed += self.acceleration #TODO: units? Execution order?
-        self.angle += self.rotation_speed #TODO: units? Execution order?
+        if self.update_mode == 1:
+            speed = 0.0
+            if self.interpolator:
+                self.interpolator.update(self._game.frame)
+                x, y = self.interpolator.values
+            if self.speed_interpolator:
+                self.speed_interpolator.update(self._game.frame)
+                speed, = self.speed_interpolator.values
+        else:
+            speed = self.speed
+            self.speed += self.acceleration
+            self.angle += self.rotation_speed
 
-
-        if self.speed_interpolator:
-            self.speed_interpolator.update(self._game.frame)
-            self.speed, = self.speed_interpolator.values
-
-
-        dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
+        dx, dy = cos(self.angle) * speed, sin(self.angle) * speed
         if self._type & 2:
             x -= dx
         else:
