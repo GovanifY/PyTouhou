@@ -271,7 +271,7 @@ class Game(object):
         self.players_bullets = [bullet for bullet in self.players_bullets
                             if not bullet._removed]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
-                            if bullet.is_visible(self.width, self.height)]
+                            if not bullet._removed]
 
         # Filter out-of-scren items
         items = []
