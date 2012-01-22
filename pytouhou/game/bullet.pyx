@@ -233,7 +233,6 @@ cdef class Bullet(object):
                     self.flags &= ~448
 
                 self.attributes[1] = count
-        #TODO: other flags
 
         # Common updates
 
@@ -249,12 +248,21 @@ cdef class Bullet(object):
         self.frame += 1
 
         # Filter out-of-screen bullets and handle special flags
-        #TODO: flags 1024 and 2048
         if self.flags & 448:
             self._was_visible = False
         elif self.is_visible(self._game.width, self._game.height):
             self._was_visible = True
         elif self._was_visible:
-            # Filter out-of-screen bullets
             self._removed = True
+            if self.flags & (1024 | 2048) and self.attributes[0] > 0:
+                # Bounce!
+                if self.x < 0 or self.x > self._game.width:
+                    self.angle = pi - self.angle
+                    self._removed = False
+                if self.y < 0 or ((self.flags & 1024) and self.y > self._game.height):
+                    self.angle = -self.angle
+                    self._removed = False
+                self.dx = cos(self.angle) * self.speed
+                self.dy = sin(self.angle) * self.speed
+                self.attributes[0] -= 1
 
