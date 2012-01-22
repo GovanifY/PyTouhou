@@ -95,19 +95,28 @@ class SHT(object):
 
                 # So far, this character definition seems to be valid.
                 # Now, make sure the shoot function wrappers pass valid addresses
-                pe_file.seek_to_va(ptr1 + 4)
-                shtptr1, = unpack('<I', pe_file.file.read(4))
-                pe_file.seek_to_va(ptr2 + 4)
-                shtptr2, = unpack('<I', pe_file.file.read(4))
-                if not (0 <= shtptr1 - data_va < data_size - 12
-                        and 0 <= shtptr2 - data_va < data_size - 12):
-                    break
 
-                # It is unlikely this character record is *not* valid, but
-                # just to be sure, let's check the first SHT definition.
-                pe_file.seek_to_va(shtptr1)
-                nb_shots, power, shotsptr = unpack('<III', pe_file.file.read(12))
-                if not (0 < nb_shots <= 1000
+                # Search for the “push” instruction
+                for i in xrange(20):
+                    # Find the “push” instruction
+                    pe_file.seek_to_va(ptr1 + i)
+                    instr1, shtptr1 = unpack('<BI', pe_file.file.read(5))
+                    pe_file.seek_to_va(ptr2 + i)
+                    instr2, shtptr2 = unpack('<BI', pe_file.file.read(5))
+                    if instr1 == 0x68 and instr2 == 0x68 and (0 <= shtptr1 - data_va < data_size - 12
+                                                              and 0 <= shtptr2 - data_va < data_size - 12):
+                        # It is unlikely this character record is *not* valid, but
+                        # just to be sure, let's check the first SHT definition.
+                        pe_file.seek_to_va(shtptr1)
+                        nb_shots, power, shotsptr = unpack('<III', pe_file.file.read(12))
+                        if (0 < nb_shots <= 1000
+                            and 0 <= power < 1000
+                            and 0 <= shotsptr - data_va < data_size - 36*nb_shots):
+                            break
+                # Check if everything is fine...
+                if not (0 <= shtptr1 - data_va < data_size - 12
+                        and 0 <= shtptr2 - data_va < data_size - 12
+                        and 0 < nb_shots <= 1000
                         and 0 <= power < 1000
                         and 0 <= shotsptr - data_va < data_size - 36*nb_shots):
                     break
@@ -123,6 +132,14 @@ class SHT(object):
     @classmethod
     def read(cls, file):
         pe_file = PEFile(file)
+        data_section = [section for section in pe_file.sections
+                            if section.Name.startswith('.data')][0]
+        text_section = [section for section in pe_file.sections
+                            if section.Name.startswith('.text')][0]
+        data_va = pe_file.image_base + data_section.VirtualAddress
+        data_size = data_section.SizeOfRawData
+        text_va = pe_file.image_base + text_section.VirtualAddress
+        text_size = text_section.SizeOfRawData
 
         character_records_va = list(cls.find_character_defs(pe_file))[0]
 
@@ -148,9 +165,18 @@ class SHT(object):
             characters.append((sht, focused_sht))
 
             for sht, func_offset in ((sht, shots_func_offset), (focused_sht, shots_func_offset_focused)):
-                # Read from “push” operand
-                pe_file.seek_to_va(func_offset + 4)
-                offset, = unpack('<I', file.read(4))
+                # Search for the “push” instruction
+                for i in xrange(20):
+                    # Find the “push” instruction
+                    pe_file.seek_to_va(func_offset + i)
+                    instr, offset = unpack('<BI', file.read(5))
+                    if instr == 0x68 and 0 <= offset - data_va < data_size - 12:
+                        pe_file.seek_to_va(offset)
+                        nb_shots, power, shotsptr = unpack('<III', pe_file.file.read(12))
+                        if (0 < nb_shots <= 1000
+                            and 0 <= power < 1000
+                            and 0 <= shotsptr - data_va < data_size - 36*nb_shots):
+                            break
                 if offset not in shots_offsets:
                     shots_offsets[offset] = []
                 shots_offsets[offset].append(sht)
