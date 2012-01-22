@@ -49,7 +49,7 @@ class EoSDGame(Game):
                       ItemType(etama3, 5, 12), #1up
                       ItemType(etama3, 6, 13)] #Star
 
-        characters = resource_loader.get_eosd_characters('102h.exe')
+        characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,

@@ -1,4 +1,6 @@
 import os
+from glob import glob
+from itertools import chain
 from io import BytesIO
 
 from pytouhou.formats.pbg3 import PBG3
@@ -42,6 +44,7 @@ class ArchiveDescription(object):
 
 class Loader(object):
     def __init__(self, game_dir=None):
+        self.exe = None
         self.game_dir = game_dir
         self.known_files = {}
         self.instanced_ecls = {}
@@ -51,13 +54,21 @@ class Loader(object):
         self.instanced_shts = {}
 
 
-    def scan_archives(self, paths):
-        for path in paths:
-            if self.game_dir and not os.path.isabs(path):
-                path = os.path.join(self.game_dir, path)
-            archive_description = ArchiveDescription.get_from_path(path)
-            for name in archive_description.file_list:
-                self.known_files[name] = archive_description
+    def scan_archives(self, paths_lists):
+        for paths in paths_lists:
+            def _expand_paths():
+                for path in paths.split(':'):
+                    if self.game_dir and not os.path.isabs(path):
+                        path = os.path.join(self.game_dir, path)
+                    yield glob(path)
+            paths = list(chain(*_expand_paths()))
+            path = paths[0]
+            if os.path.splitext(path)[1] == '.exe':
+                self.exe = path
+            else:
+                archive_description = ArchiveDescription.get_from_path(path)
+                for name in archive_description.file_list:
+                    self.known_files[name] = archive_description
 
 
     def get_file_data(self, name):
@@ -107,8 +118,9 @@ class Loader(object):
         return self.instanced_shts[name]
 
 
-    def get_eosd_characters(self, path):
+    def get_eosd_characters(self):
         #TODO: Move to pytouhou.games.eosd?
+        path = self.exe
         if self.game_dir and not os.path.isabs(path):
             path = os.path.join(self.game_dir, path)
         with open(path, 'rb') as file:
