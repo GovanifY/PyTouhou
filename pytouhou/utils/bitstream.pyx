@@ -15,7 +15,8 @@
 cdef class BitStream:
     cdef public io
     cdef public int bits
-    cdef public int byte
+    cdef public unsigned char byte
+
 
     def __init__(BitStream self, io):
         self.io = io
@@ -53,9 +54,10 @@ cdef class BitStream:
         return (self.byte >> self.bits) & 0x01
 
 
-    def read(BitStream self, nb_bits):
-        cdef unsigned int value
-        value = 0
+    cpdef unsigned int read(BitStream self, int nb_bits):
+        cdef unsigned int value = 0
+        cdef int i
+
         for i in range(nb_bits - 1, -1, -1):
             value |= self.read_bit() << i
         return value

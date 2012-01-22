@@ -79,7 +79,7 @@ class PBG3(object):
     """
 
     def __init__(self, entries=None, bitstream=None):
-        self.entries = entries or []
+        self.entries = entries or {}
         self.bitstream = bitstream #TODO
 
 
