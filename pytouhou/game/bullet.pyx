@@ -90,7 +90,7 @@ cdef class Bullet(object):
             self._sprite.angle = angle
 
 
-    def is_visible(self, screen_width, screen_height):
+    cpdef is_visible(Bullet self, screen_width, screen_height):
         tx, ty, tw, th = self._sprite.texcoords
         x, y = self.x, self.y
 
@@ -105,7 +105,7 @@ cdef class Bullet(object):
         return True
 
 
-    def set_anim(self, sprite_idx_offset=None):
+    def set_anim(Bullet self, sprite_idx_offset=None):
         if sprite_idx_offset is not None:
             self.sprite_idx_offset = sprite_idx_offset
 
@@ -120,7 +120,7 @@ cdef class Bullet(object):
         self._anmrunner.run_frame()
 
 
-    def launch(self):
+    def launch(Bullet self):
         self._state = LAUNCHED
         self.frame = 0
         self.set_anim()
@@ -130,11 +130,11 @@ cdef class Bullet(object):
                                                    (self.speed,), 16)
 
 
-    def collide(self):
+    def collide(Bullet self):
         self.cancel()
 
 
-    def cancel(self):
+    def cancel(Bullet self):
         # Cancel animation
         bt = self._bullet_type
         self._sprite = Sprite()
@@ -158,7 +158,7 @@ cdef class Bullet(object):
         self._game.cancelled_bullets.append(self)
 
 
-    def update(self):
+    def update(Bullet self):
         if self._anmrunner is not None and not self._anmrunner.run_frame():
             if self._state == LAUNCHING:
                 #TODO: check if it doesn't skip a frame
@@ -247,4 +247,14 @@ cdef class Bullet(object):
         self.y += self.dy
 
         self.frame += 1
+
+        # Filter out-of-screen bullets and handle special flags
+        #TODO: flags 1024 and 2048
+        if self.flags & 448:
+            self._was_visible = False
+        elif self.is_visible(self._game.width, self._game.height):
+            self._was_visible = True
+        elif self._was_visible:
+            # Filter out-of-screen bullets
+            self._removed = True
 

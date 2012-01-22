@@ -266,16 +266,6 @@ class Game(object):
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
 
         # Filter out-of-scren bullets
-        # TODO: move to Bullet?
-        for bullet in chain(self.bullets, self.players_bullets):
-            if bullet.flags & 448:
-                bullet._was_visible = False
-            elif bullet.is_visible(self.width, self.height):
-                bullet._was_visible = True
-            elif bullet._was_visible:
-                # Filter out-of-screen bullets
-                bullet._removed = True
-
         self.bullets = [bullet for bullet in self.bullets
                             if not bullet._removed]
         self.players_bullets = [bullet for bullet in self.players_bullets
