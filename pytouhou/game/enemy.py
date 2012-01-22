@@ -122,6 +122,8 @@ class Enemy(object):
             ox, oy = offset or self.bullet_launch_offset
             launch_pos = self.x + ox, self.y + oy
 
+        if speed < 0.3:
+            speed = 0.3
         if speed2 < 0.3:
             speed2 = 0.3
 
