@@ -912,6 +912,13 @@ class ECLRunner(object):
             offset = (self._game.prng.rand_uint16() % arg - arg / 2,
                       self._game.prng.rand_uint16() % arg - arg / 2)
             self._enemy.fire(offset=offset)
+        elif function == 3: # Patchouli’s dual sign spellcards
+            values = [[0, 3, 1],
+                      [2, 3, 4],
+                      [1, 4, 0],
+                      [4, 2, 3]]
+            character = self._enemy.select_player().state.character
+            self.variables[1:4] = values[character]
         elif function == 13:
             if self._enemy.bullet_attributes is None:
                 return
