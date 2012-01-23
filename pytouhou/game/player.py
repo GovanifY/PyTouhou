@@ -22,7 +22,7 @@ from math import pi
 
 
 class PlayerState(object):
-    def __init__(self, character=0, score=0, power=0, lives=0, bombs=0):
+    def __init__(self, character=0, score=0, power=0, lives=2, bombs=3):
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
         self.score = score

@@ -43,7 +43,8 @@ def main(path, stage_num, rank, character, replay, data):
     resource_loader = Loader(path)
 
     resource_loader.scan_archives(data)
-    game = EoSDGame(resource_loader, [PlayerState(character=character)], stage_num, rank, 16,
+    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
+    game = EoSDGame(resource_loader, [PlayerState(character=character, power=default_power)], stage_num, rank, 16,
                     prng=prng)
 
     # Load stage data
