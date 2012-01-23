@@ -151,29 +151,28 @@ class ECLRunner(object):
                 elif death_flags == 2:
                     pass # Just that?
                 elif death_flags == 3:
+                    #TODO: disable boss mode
                     enm.damageable = False
                     enm.life = 1
                     enm.death_flags = 0
-            else:
-                pass #TODO: sparks
 
-            if death_flags != 0 and enm.death_callback is not None:
+            if death_flags != 0 and enm.death_callback >= 0:
                 self.frame = 0
                 self.sub = enm.death_callback
                 self.instruction_pointer = 0
-                enm.death_callback = None
-        elif enm.life <= enm.low_life_trigger and enm.low_life_callback is not None:
+                enm.death_callback = -1
+        elif enm.life <= enm.low_life_trigger and enm.low_life_callback >= 0:
             self.frame = 0
             self.sub = enm.low_life_callback
             self.instruction_pointer = 0
-            enm.low_life_callback = None
+            enm.low_life_callback = -1
         elif enm.timeout and enm.frame == enm.timeout:
             enm.frame = 0
-            if enm.timeout_callback is not None:
+            if enm.timeout_callback >= 0:
                 self.frame = 0
                 self.sub = enm.timeout_callback
                 self.instruction_pointer = 0
-                enm.timeout_callback = None
+                enm.timeout_callback = -1
             else:
                 enm.life = 0
         #TODO: other callbacks (low life, etc.)
@@ -743,9 +742,18 @@ class ECLRunner(object):
 
     @instruction(96)
     def kill_enemies(self):
-        for enemy in self._game.enemies:
-            if enemy.touchable and not enemy.boss:
-                enemy.life = 0
+        for proc in self._game.ecl_runner.processes:
+            if proc._enemy.boss:
+                pass # Bosses are immune to 96
+            elif proc._enemy.touchable:
+                proc._enemy.life = 0
+            elif proc._enemy.death_callback > 0:
+                #TODO: check
+                #TODO: refactor
+                proc.frame = 0
+                proc.instruction_pointer = 0
+                proc.sub = proc._enemy.death_callback
+                proc._enemy.death_callback = -1
 
 
     @instruction(97)

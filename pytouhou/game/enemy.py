@@ -48,12 +48,12 @@ class Enemy(object):
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
-        self.death_callback = None
+        self.death_callback = -1
         self.boss_callback = None
-        self.low_life_callback = None
+        self.low_life_callback = -1
         self.low_life_trigger = None
-        self.timeout = None
-        self.timeout_callback = None
+        self.timeout = -1
+        self.timeout_callback = -1
         self.remaining_lives = -1
 
         self.automatic_orientation = False
@@ -262,7 +262,8 @@ class Enemy(object):
             if not (bx2 < ex1 or bx1 > ex2
                     or by2 < ey1 or by1 > ey2):
                 bullet.collide()
-                damages += bullet.damage
+                if self.damageable:
+                    damages += bullet.damage
                 self.drop_particles(1, 1)
 
         # Check for enemy-player collisions
@@ -293,8 +294,7 @@ class Enemy(object):
                 damages //= 7
 
         # Apply damages
-        if self.damageable:
-            self.life -= damages
+        self.life -= damages
 
 
     def update(self):
