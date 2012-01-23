@@ -36,7 +36,7 @@ class Enemy(object):
 
         self.frame = 0
 
-        self.x, self.y = pos
+        self.x, self.y, self.z = pos
         self.life = 1 if life < 0 else life
         self.max_life = life
         self.touchable = True
@@ -122,7 +122,7 @@ class Enemy(object):
             ox, oy = offset or self.bullet_launch_offset
             launch_pos = self.x + ox, self.y + oy
 
-        if speed < 0.3:
+        if speed < 0.3 and speed != 0.0:
             speed = 0.3
         if speed2 < 0.3:
             speed2 = 0.3

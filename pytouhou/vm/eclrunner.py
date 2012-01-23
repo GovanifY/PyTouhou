@@ -72,8 +72,8 @@ class ECLMainRunner(object):
             if y < -990: #102h.exe@0x41184b
                 y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
-                y = self._game.prng.rand_double() * 800
-        enemy = self._game.new_enemy((x, y), life, instr_type, bonus_dropped, die_score)
+                z = self._game.prng.rand_double() * 800
+        enemy = self._game.new_enemy((x, y, z), life, instr_type, bonus_dropped, die_score)
         process = ECLRunner(self._ecl, sub, enemy, self._game)
         self.processes.append(process)
         process.run_iteration()
@@ -470,7 +470,7 @@ class ECLRunner(object):
     @instruction(45)
     def set_angle_speed(self, angle, speed):
         self._enemy.update_mode = 0
-        self._enemy.angle, self._enemy.speed = angle, speed
+        self._enemy.angle, self._enemy.speed = self._getval(angle), self._getval(speed)
 
 
     @instruction(46)
@@ -737,7 +737,10 @@ class ECLRunner(object):
 
     @instruction(95)
     def pop_enemy(self, sub, x, y, z, life, bonus_dropped, die_score):
-        self._game.ecl_runner._pop_enemy(sub, 0, self._getval(x), self._getval(y), 0, life, bonus_dropped, die_score)
+        self._game.ecl_runner._pop_enemy(sub, 0, self._getval(x),
+                                                 self._getval(y),
+                                                 self._getval(z),
+                                                 life, bonus_dropped, die_score)
 
 
     @instruction(96)
