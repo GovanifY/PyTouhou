@@ -15,6 +15,34 @@ from pytouhou.formats.exe import SHT as EoSDSHT
 from pytouhou.resource.anmwrapper import AnmWrapper
 
 
+class Directory(object):
+    def __init__(self, path):
+        self.path = path
+
+
+    def __enter__(self):
+        return self
+
+
+    def __exit__(self, type, value, traceback):
+        return False
+
+
+    def list_files(self):
+        file_list = []
+        for path in os.listdir(self.path):
+            if os.path.isfile(os.path.join(self.path, path)):
+                file_list.append(path)
+        return file_list
+
+
+    def extract(self, name):
+        with open(os.path.join(self.path, str(name)), 'rb') as file:
+            contents = file.read()
+        return contents
+
+
+
 class ArchiveDescription(object):
     _formats = {'PBG3': PBG3}
 
@@ -25,6 +53,9 @@ class ArchiveDescription(object):
 
 
     def open(self):
+        if self.format_class is Directory:
+            return self.format_class(self.path)
+
         file = open(self.path, 'rb')
         instance = self.format_class.read(file)
         return instance
@@ -32,6 +63,10 @@ class ArchiveDescription(object):
 
     @classmethod
     def get_from_path(cls, path):
+        if os.path.isdir(path):
+            instance = Directory(path)
+            file_list = instance.list_files()
+            return cls(path, Directory, file_list)
         with open(path, 'rb') as file:
             magic = file.read(4)
             file.seek(0)
