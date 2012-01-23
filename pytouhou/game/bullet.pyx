@@ -262,6 +262,9 @@ cdef class Bullet(object):
                 if self.y < 0 or ((self.flags & 1024) and self.y > self._game.height):
                     self.angle = -self.angle
                     self._removed = False
+                self._sprite.angle = self.angle
+                if self._sprite.automatic_orientation:
+                    self._sprite._changed = True
                 self.dx = cos(self.angle) * self.speed
                 self.dy = sin(self.angle) * self.speed
                 self.attributes[0] -= 1
