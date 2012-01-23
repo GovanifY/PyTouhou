@@ -985,10 +985,6 @@ class ECLRunner(object):
     @instruction(132)
     def set_visible(self, value):
         self._enemy._visible = not bool(value)
-        if not self._enemy._visible:
-            if self._enemy._sprite:
-                self._enemy._sprite._removed = True
-            self._enemy.aux_anm = 8 * [None]
 
 
     @instruction(131)
