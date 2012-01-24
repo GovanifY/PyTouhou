@@ -173,9 +173,16 @@ class ECLRunner(object):
                 self.sub = enm.timeout_callback
                 self.instruction_pointer = 0
                 enm.timeout_callback = -1
-            else:
+            elif enm.touchable:
                 enm.life = 0
-        #TODO: other callbacks (low life, etc.)
+            elif enm.death_callback >= 0:
+                self.frame = 0
+                self.sub = enm.death_callback
+                self.instruction_pointer = 0
+                enm.death_callback = -1
+                enm.timeout = -1 #TODO: check
+            else:
+                raise Exception('What the hell, man!')
 
 
     def run_iteration(self):
