@@ -958,6 +958,17 @@ class ECLRunner(object):
                                      self._getval(-10006) + _angle, angle, flags)
                 self._enemy.fire(launch_pos=launch_pos,
                                  bullet_attributes=bullet_attributes)
+        elif function == 16: # QED: Ripples of 495 years
+            #TODO: the rythm seems to be really wrong
+            # Indeed, Flandre is supposed to start slowly, and those values
+            # match the craziest parts of the spellcard
+            if arg == 0:
+                self.variables[9] = 40 #TODO: is that all?
+                self.variables[7] = 2. #TODO: check value. is that all?
+            else:
+                #TODO: check
+                self.variables[6] = self._game.prng.rand_double() * (self._game.width - 64.) + 32.
+                self.variables[7] = self._game.prng.rand_double() * (self._game.width / 2. - 64.) + 32.
         else:
             logger.warn("Unimplemented special function %d!", function)
 
