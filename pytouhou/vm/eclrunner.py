@@ -781,11 +781,11 @@ class ECLRunner(object):
 
 
     @instruction(93)
-    def set_spellcard(self, unknown, number, name):
+    def set_spellcard(self, face, number, name):
         #TODO: display it on the game.
         #TODO: make the enemies more resistants (and find how).
         self._game.change_bullets_into_star_items()
-        self._game.spellcard = number
+        self._game.spellcard = (number, name)
         self._game.enable_effect()
 
 
