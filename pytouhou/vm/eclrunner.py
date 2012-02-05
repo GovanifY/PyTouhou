@@ -1015,6 +1015,15 @@ class ECLRunner(object):
                                      self._getval(-10006) + _angle, angle, flags)
                 self._enemy.fire(launch_pos=launch_pos,
                                  bullet_attributes=bullet_attributes)
+        elif function == 14: # Laevateinn
+            if arg == 0:
+                self.variables[4] = 0
+                for laser in self._enemy.laser_by_id.values():
+                    self.variables[4] += 1
+                    for pos in laser.get_bullets_pos():
+                        self._enemy.fire(launch_pos=pos)
+            else:
+                pass #TODO: check
         elif function == 16: # QED: Ripples of 495 years
             #TODO: the rythm seems to be really wrong
             # Indeed, Flandre is supposed to start slowly, and those values
