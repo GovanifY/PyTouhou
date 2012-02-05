@@ -17,6 +17,7 @@ from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet
+from pytouhou.game.laser import Laser
 from pytouhou.game.effect import Effect
 from math import cos, sin, atan2, pi
 
@@ -46,6 +47,8 @@ class Enemy(object):
         self.boss = False
         self.difficulty_coeffs = (-.5, .5, 0, 0, 0, 0)
         self.extended_bullet_attributes = (0, 0, 0, 0, 0., 0., 0., 0.)
+        self.current_laser_id = 0
+        self.laser_by_id = {}
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
         self.death_callback = -1
@@ -159,6 +162,22 @@ class Enemy(object):
                                       self.extended_bullet_attributes,
                                       flags, player, self._game))
                 bullet_angle += angle
+
+
+    def new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
+                  start_offset, end_offset, max_length, width,
+                  start_duration, duration, end_duration,
+                  grazing_delay, grazing_extra_duration, unknown):
+        launch_pos = self.x, self.y
+        if variant == 86:
+            angle += self.get_player_angle(self.select_player(), launch_pos)
+        laser = Laser(launch_pos, self._game.laser_types[laser_type],
+                      sprite_idx_offset, angle, speed,
+                      start_offset, end_offset, max_length, width,
+                      start_duration, duration, end_duration, grazing_delay,
+                      grazing_extra_duration, self._game)
+        self._game.lasers.append(laser)
+        self.laser_by_id[self.current_laser_id] = laser
 
 
     def select_player(self, players=None):

@@ -27,7 +27,7 @@ from pytouhou.game.effect import Particle
 
 class Game(object):
     def __init__(self, resource_loader, players, stage, rank, difficulty,
-                 bullet_types, item_types,
+                 bullet_types, laser_types, item_types,
                  nb_bullets_max=None, width=384, height=448, prng=None):
         self.resource_loader = resource_loader
 
@@ -35,12 +35,14 @@ class Game(object):
 
         self.nb_bullets_max = nb_bullets_max
         self.bullet_types = bullet_types
+        self.laser_types = laser_types
         self.item_types = item_types
 
         self.players = players
         self.enemies = []
         self.effects = []
         self.bullets = []
+        self.lasers = []
         self.cancelled_bullets = []
         self.players_bullets = []
         self.items = []
@@ -113,7 +115,12 @@ class Game(object):
     def change_bullets_into_star_items(self):
         player = self.players[0] #TODO
         item_type = self.item_types[6]
-        self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player) for bullet in self.bullets)
+        self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player)
+                            for bullet in self.bullets)
+        for laser in self.lasers:
+            self.items.extend(Item(pos, 6, item_type, self, player=player)
+                                for pos in laser.get_bullets_pos())
+            laser.cancel()
         self.bullets = []
 
 
@@ -155,6 +162,8 @@ class Game(object):
         self.update_enemies() # Pri 9
         self.update_effects() # Pri 10
         self.update_bullets() # Pri 11
+        for laser in self.lasers: #TODO: what priority is it?
+            laser.update()
         # Pri 12 is HUD
 
         # 4. Cleaning
@@ -272,6 +281,9 @@ class Game(object):
                             if not bullet._removed]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
                             if not bullet._removed]
+
+        # Filter “timed-out” lasers
+        self.lasers = [laser for laser in self.lasers if not laser._removed]
 
         # Filter out-of-scren items
         items = []

@@ -723,6 +723,63 @@ class ECLRunner(object):
         self._game.change_bullets_into_star_items()
 
 
+    @instruction(85)
+    def new_laser(self, laser_type, sprite_idx_offset, angle, speed,
+                  start_offset, end_offset, max_length, width,
+                  start_duration, duration, end_duration,
+                  grazing_delay, grazing_extra_duration, unknown):
+        self._enemy.new_laser(85, laser_type, sprite_idx_offset, self._getval(angle), speed,
+                              start_offset, end_offset, max_length, width,
+                              start_duration, duration, end_duration,
+                              grazing_delay, grazing_extra_duration, unknown)
+
+
+    @instruction(86)
+    def new_laser_towards_player(self, laser_type, sprite_idx_offset, angle, speed,
+                                 start_offset, end_offset, max_length, width,
+                                 start_duration, duration, end_duration,
+                                 grazing_delay, grazing_extra_duration, unknown):
+        self._enemy.new_laser(86, laser_type, sprite_idx_offset, self._getval(angle), speed,
+                              start_offset, end_offset, max_length, width,
+                              start_duration, duration, end_duration,
+                              grazing_delay, grazing_extra_duration, unknown)
+
+
+    @instruction(87)
+    def set_upcoming_laser_id(self, laser_id):
+        self._enemy.current_laser_id = laser_id
+
+
+    @instruction(88)
+    def alter_laser_angle(self, laser_id, delta):
+        try:
+            laser = self._enemy.laser_by_id[laser_id]
+        except KeyError:
+            pass #TODO
+        else:
+            laser.angle += self._getval(delta)
+
+
+    @instruction(90)
+    def reposition_laser(self, laser_id, ox, oy, oz):
+        try:
+            laser = self._enemy.laser_by_id[laser_id]
+        except KeyError:
+            pass #TODO
+        else:
+            laser.x, laser.y = self._enemy.x + ox, self._enemy.y + oy
+
+
+    @instruction(92)
+    def cancel_laser(self, laser_id):
+        try:
+            laser = self._enemy.laser_by_id[laser_id]
+        except KeyError:
+            pass #TODO
+        else:
+            laser.cancel()
+
+
     @instruction(93)
     def set_spellcard(self, unknown, number, name):
         #TODO: display it on the game.

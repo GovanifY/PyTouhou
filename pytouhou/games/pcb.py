@@ -16,6 +16,7 @@ from pytouhou.utils.interpolator import Interpolator
 
 from pytouhou.game.game import Game
 from pytouhou.game.bullettype import BulletType
+from pytouhou.game.bullettype import LaserType
 from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
@@ -24,32 +25,40 @@ from math import pi
 
 
 class PCBGame(Game):
-    def __init__(self, resource_loader, player_states, stage, rank, difficulty, **kwargs):
-        etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
-        etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
-        bullet_types = [BulletType(etama3, 0, 11, 14, 15, 16, hitbox_size=4),
-                        BulletType(etama3, 1, 12, 17, 18, 19, hitbox_size=6),
-                        BulletType(etama3, 2, 12, 17, 18, 19, hitbox_size=4),
-                        BulletType(etama3, 3, 12, 17, 18, 19, hitbox_size=6),
-                        BulletType(etama3, 4, 12, 17, 18, 19, hitbox_size=5),
-                        BulletType(etama3, 5, 12, 17, 18, 19, hitbox_size=4),
-                        BulletType(etama3, 6, 13, 20, 20, 20, hitbox_size=16),
-                        BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
-                        BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
-                        BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
+    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
+                 bullet_types=None, laser_types=None, item_types=None,
+                 nb_bullets_max=640, width=384, height=448, prng=None):
+        if not bullet_types:
+            etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
+            etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
+            bullet_types = [BulletType(etama3, 0, 11, 14, 15, 16, hitbox_size=4),
+                            BulletType(etama3, 1, 12, 17, 18, 19, hitbox_size=6),
+                            BulletType(etama3, 2, 12, 17, 18, 19, hitbox_size=4),
+                            BulletType(etama3, 3, 12, 17, 18, 19, hitbox_size=6),
+                            BulletType(etama3, 4, 12, 17, 18, 19, hitbox_size=5),
+                            BulletType(etama3, 5, 12, 17, 18, 19, hitbox_size=4),
+                            BulletType(etama3, 6, 13, 20, 20, 20, hitbox_size=16),
+                            BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
+                            BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
+                            BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
 
-        item_types = [ItemType(etama3, 0, 7), #Power
-                      ItemType(etama3, 1, 8), #Point
-                      ItemType(etama3, 2, 9), #Big power
-                      ItemType(etama3, 3, 10), #Bomb
-                      ItemType(etama3, 4, 11), #Full power
-                      ItemType(etama3, 5, 12), #1up
-                      ItemType(etama3, 6, 13)] #Star
+        if not laser_types:
+            laser_types = [] #TODO
+
+        if not item_types:
+            item_types = [ItemType(etama3, 0, 7), #Power
+                          ItemType(etama3, 1, 8), #Point
+                          ItemType(etama3, 2, 9), #Big power
+                          ItemType(etama3, 3, 10), #Bomb
+                          ItemType(etama3, 4, 11), #Full power
+                          ItemType(etama3, 5, 12), #1up
+                          ItemType(etama3, 6, 13)] #Star
 
         players = [PCBPlayer(state, self, resource_loader) for state in player_states]
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
-                      bullet_types, item_types, nb_bullets_max=640, **kwargs)
+                      bullet_types, laser_types, item_types, nb_bullets_max,
+                      width, height, prng)
 
 
 

@@ -38,6 +38,8 @@ cpdef object get_sprite_rendering_data(object sprite):
     if sprite.mirrored:
         vertmat.flip()
 
+    if sprite.allow_dest_offset:
+        vertmat.translate(sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
     rx, ry, rz = sprite.rotations_3d
     if sprite.automatic_orientation:
         rz += pi/2. - sprite.angle
@@ -51,8 +53,6 @@ cpdef object get_sprite_rendering_data(object sprite):
             vertmat.rotate_y(ry)
         if rz:
             vertmat.rotate_z(-rz) #TODO: minus, really?
-    if sprite.allow_dest_offset:
-        vertmat.translate(sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
     if sprite.corner_relative_placement: # Reposition
         vertmat.translate(width / 2., height / 2., 0.)
 

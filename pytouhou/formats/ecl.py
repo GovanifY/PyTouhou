@@ -108,7 +108,7 @@ class ECL(object):
                      86: ('hhffffffiiiiii', 'laser2'),
                      87: ('i', 'set_upcoming_id'),
                      88: ('if','alter_laser_angle'),
-                     90: ('iiii', 'translate_laser'),
+                     90: ('ifff', 'reposition_laser'),
                      92: ('i', 'cancel_laser'),
                      93: ('hhs', 'set_spellcard'),
                      94: ('', 'end_spellcard'),

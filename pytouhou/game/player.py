@@ -239,6 +239,8 @@ class Player(object):
             if time > 30:
                 for bullet in self._game.bullets:
                     bullet.cancel()
+                for laser in self._game.lasers:
+                    laser.cancel()
 
             if time > 90: # start the bullet hell again
                 self.death_time = 0
