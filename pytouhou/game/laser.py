@@ -70,10 +70,10 @@ class Laser(object):
 
     def get_bullets_pos(self):
         #TODO: check
-        offset = self.start_offset
         length = min(self.end_offset - self.start_offset, self.max_length)
+        offset = self.end_offset - length
         dx, dy = cos(self.angle), sin(self.angle)
-        while 0 <= offset - self.start_offset <= length:
+        while self.start_offset <= offset < self.end_offset:
             yield (self.x + offset * dx, self.y + offset * dy)
             offset += 48.
 
