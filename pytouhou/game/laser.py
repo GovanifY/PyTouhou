@@ -22,7 +22,7 @@ STARTING, STARTED, STOPPING = range(3)
 
 
 class Laser(object):
-    def __init__(self, pos, laser_type, sprite_idx_offset,
+    def __init__(self, base_pos, laser_type, sprite_idx_offset,
                        angle, speed, start_offset, end_offset, max_length, width,
                        start_duration, duration, stop_duration,
                        grazing_delay, grazing_extra_duration,
@@ -45,7 +45,8 @@ class Laser(object):
         self.grazing_extra_duration = grazing_extra_duration
 
         self.sprite_idx_offset = sprite_idx_offset
-        self.x, self.y = pos
+        self.base_pos = base_pos
+        self.x, self.y = 0, 0
         self.angle = angle
         self.speed = speed
         self.start_offset = start_offset
@@ -109,8 +110,8 @@ class Laser(object):
             else:
                 width = self.width * (1. - float(self.frame) / self.stop_duration) #TODO
 
-        self._sprite.allow_dest_offset = True
-        self._sprite.dest_offset = (0., self.end_offset - length / 2., 0.)
+        offset = self.end_offset - length / 2.
+        self.x, self.y = self.base_pos[0] + offset * cos(self.angle), self.base_pos[1] + offset * sin(self.angle)
         self._sprite.width_override = width or 0.01 #TODO
         self._sprite.height_override = length or 0.01 #TODO
 

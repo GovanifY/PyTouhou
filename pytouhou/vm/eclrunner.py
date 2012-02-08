@@ -767,7 +767,7 @@ class ECLRunner(object):
         except KeyError:
             pass #TODO
         else:
-            laser.x, laser.y = self._enemy.x + ox, self._enemy.y + oy
+            laser.base_pos = self._enemy.x + ox, self._enemy.y + oy
 
 
     @instruction(92)
