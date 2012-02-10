@@ -75,7 +75,7 @@ class Laser(object):
         offset = self.end_offset - length
         dx, dy = cos(self.angle), sin(self.angle)
         while self.start_offset <= offset < self.end_offset:
-            yield (self.x + offset * dx, self.y + offset * dy)
+            yield (self.base_pos[0] + offset * dx, self.base_pos[1] + offset * dy)
             offset += 48.
 
 
