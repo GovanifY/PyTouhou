@@ -6,7 +6,7 @@ from io import BytesIO
 from pytouhou.formats.pbg3 import PBG3
 from pytouhou.formats.std import Stage
 from pytouhou.formats.ecl import ECL
-from pytouhou.formats.anm0 import Animations
+from pytouhou.formats.anm0 import ANM0
 from pytouhou.formats.msg import MSG
 from pytouhou.formats.sht import SHT
 from pytouhou.formats.exe import SHT as EoSDSHT
@@ -121,7 +121,7 @@ class Loader(object):
     def get_anm(self, name):
         if name not in self.instanced_anms:
             file = self.get_file(name)
-            self.instanced_anms[name] = Animations.read(file) #TODO: modular
+            self.instanced_anms[name] = ANM0.read(file) #TODO: modular
         return self.instanced_anms[name]
 
 
@@ -163,17 +163,18 @@ class Loader(object):
         return characters
 
 
-    def get_anm_wrapper(self, names):
-        return AnmWrapper(self.get_anm(name) for name in names)
+    def get_anm_wrapper(self, names, offsets=()):
+        return AnmWrapper((self.get_anm(name) for name in names), offsets)
 
 
-    def get_anm_wrapper2(self, names):
-        anims = []
+    def get_anm_wrapper2(self, names, offsets=()):
+        anms = []
+
         try:
             for name in names:
-                anims.append(self.get_anm(name))
+                anms.append(self.get_anm(name))
         except KeyError:
             pass
 
-        return AnmWrapper(anims)
+        return AnmWrapper(anms, offsets)
 

@@ -1,17 +1,22 @@
+from itertools import izip, chain, repeat
+
+
 class AnmWrapper(object):
-    def __init__(self, anm_files):
-        self.anm_files = list(anm_files)
+    def __init__(self, anm_files, offsets=()):
+        self.scripts = {}
+        self.sprites = {}
+
+        for anm, offset in izip(anm_files, chain(offsets, repeat(0))):
+            for script_id, script in anm.scripts.iteritems():
+                self.scripts[script_id + offset] = (anm, script) #TODO: check
+            for sprite_id, sprite in anm.sprites.iteritems():
+                self.sprites[sprite_id + offset] = (anm, sprite)
 
 
     def get_sprite(self, sprite_index):
-        for anm in self.anm_files:
-            if sprite_index in anm.sprites:
-                return anm, anm.sprites[sprite_index]
-        raise IndexError
+        return self.sprites[sprite_index]
 
 
     def get_script(self, script_index):
-        for anm in self.anm_files:
-            if script_index in anm.scripts:
-                return anm, anm.scripts[script_index]
-        raise IndexError
+        return self.scripts[script_index]
+

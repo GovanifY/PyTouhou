@@ -36,7 +36,7 @@ class Script(list):
 
 
 
-class Animations(object):
+class ANM0(object):
     _instructions = {0: ('', 'delete'),
                      1: ('I', 'set_sprite'),
                      2: ('ff', 'set_scale'),
@@ -82,44 +82,44 @@ class Animations(object):
         nb_sprites, nb_scripts, zero1 = unpack('<III', file.read(12))
         width, height, format, zero2 = unpack('<IIII', file.read(16))
         first_name_offset, unused, secondary_name_offset = unpack('<III', file.read(12))
-        version, unknown1, thtxoffset, hasdata, nextoffset = unpack('<IIIII', file.read(20))
+        version, unknown1, thtxoffset, hasdata, nextoffset, zero3 = unpack('<IIIIII', file.read(24))
         if version != 0:
             raise Exception #TODO
-        file.read(4) #TODO
+        if (zero1, zero2, zero3) != (0, 0, 0):
+            raise Exception #TODO
 
         sprite_offsets = [unpack('<I', file.read(4))[0] for i in range(nb_sprites)]
         script_offsets = [unpack('<II', file.read(8)) for i in range(nb_scripts)]
 
-        anm = Animations()
+        self = cls()
 
-        anm.size = (width, height)
+        self.size = (width, height)
 
         # Names
         if first_name_offset:
             file.seek(first_name_offset)
-            anm.first_name = read_string(file, 32, 'ascii') #TODO: 32, really?
+            self.first_name = read_string(file, 32, 'ascii') #TODO: 32, really?
         if secondary_name_offset:
             file.seek(secondary_name_offset)
-            anm.secondary_name = read_string(file, 32, 'ascii') #TODO: 32, really?
+            self.secondary_name = read_string(file, 32, 'ascii') #TODO: 32, really?
 
 
         # Sprites
         file.seek(64)
-        anm.sprites = {}
+        self.sprites = {}
         for offset in sprite_offsets:
             file.seek(offset)
             idx, x, y, width, height = unpack('<Iffff', file.read(20))
-            anm.sprites[idx] = x, y, width, height
+            self.sprites[idx] = x, y, width, height
 
 
         # Scripts
-        anm.scripts = {}
+        self.scripts = {}
         for i, offset in script_offsets:
-            anm.scripts[i] = Script()
+            self.scripts[i] = Script()
             instruction_offsets = []
             file.seek(offset)
             while True:
-                #TODO
                 instruction_offsets.append(file.tell() - offset)
                 time, opcode, size = unpack('<HBB', file.read(4))
                 data = file.read(size)
@@ -129,20 +129,19 @@ class Animations(object):
                     args = (data,)
                     logger.warn('unknown opcode %d', opcode)
 
-                anm.scripts[i].append((time, opcode, args))
+                self.scripts[i].append((time, opcode, args))
                 if opcode == 0:
                     break
 
             # Translate offsets to instruction pointers and register interrupts
-            for instr_offset, (j, instr) in zip(instruction_offsets, enumerate(anm.scripts[i])):
+            for instr_offset, (j, instr) in zip(instruction_offsets, enumerate(self.scripts[i])):
                 time, opcode, args = instr
                 if opcode == 5:
                     args = (instruction_offsets.index(args[0]),)
                 elif opcode == 22:
                     interrupt = args[0]
-                    anm.scripts[i].interrupts[interrupt] = j + 1
-                anm.scripts[i][j] = time, opcode, args
-        #TODO
+                    self.scripts[i].interrupts[interrupt] = j + 1
+                self.scripts[i][j] = time, opcode, args
 
-        return anm
+        return self
 

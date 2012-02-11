@@ -387,8 +387,7 @@ class Enemy(object):
 
         for anm in self.aux_anm:
             if anm:
-                anm.x = self.x
-                anm.y = self.y
+                anm.x, anm.y = self.x, self.y
                 anm.update()
 
         self.frame += 1
