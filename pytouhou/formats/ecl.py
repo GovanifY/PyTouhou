@@ -157,9 +157,9 @@ class ECL(object):
                           2: ('fffhhI', 'spawn_enemy_mirrored'),
                           4: ('fffhhI', 'spawn_enemy_random'),
                           6: ('fffhhI', 'spawn_enemy_mirrored_random'),
-                          8: ('', None),
-                          9: ('', None),
-                          10: ('II', None),
+                          8: ('', 'call_msg'),
+                          9: ('', 'wait_msg'),
+                          10: ('II', 'resume_ecl'),
                           12: ('', 'stop_time')}
 
 

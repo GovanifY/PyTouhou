@@ -50,7 +50,8 @@ class ECLMainRunner(object):
             except IndexError:
                 break
 
-            if frame > self.frame:
+            # The msg_wait instruction stops the reading of the ECL, not just the frame incrementation.
+            if frame > self.frame or self._game.msg_wait or self.time_stopped:
                 break
             else:
                 self.instruction_pointer += 1
@@ -66,7 +67,7 @@ class ECLMainRunner(object):
         self.processes[:] = (process for process in self.processes
                                                 if process.run_iteration())
 
-        if not self.time_stopped:
+        if not (self._game.msg_wait or self.time_stopped):
             self.frame += 1
 
 
@@ -92,6 +93,30 @@ class ECLMainRunner(object):
         if self._game.boss:
             return
         self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, die_score)
+
+
+    @instruction(8)
+    def call_msg(self, sub, instr_type):
+        self._game.new_msg(sub)
+
+
+    @instruction(9)
+    def wait_msg(self, sub, instr_type):
+        self._game.msg_wait = True
+
+
+    @instruction(10)
+    def resume_ecl(self, sub, instr_type, unk1, unk2):
+        boss = self._game.boss
+        enemy = boss._enemy
+        self._game.msg_wait = False
+        if enemy.boss_callback:
+            boss.frame = 0
+            boss.sub = enemy.boss_callback
+            boss.instruction_pointer = 0
+            enemy.boss_callback = None
+        else:
+            raise Exception #TODO
 
 
     @instruction(12)
@@ -127,11 +152,6 @@ class ECLRunner(object):
     def handle_callbacks(self):
         #TODO: implement missing callbacks and clean up!
         enm = self._enemy
-        if enm.boss_callback is not None: #XXX: MSG's job!
-            self.frame = 0
-            self.sub = enm.boss_callback
-            self.instruction_pointer = 0
-            enm.boss_callback = None
         if enm.life <= 0 and enm.touchable:
             death_flags = enm.death_flags & 7
 
@@ -861,7 +881,7 @@ class ECLRunner(object):
         #      but standard enemies are blocked only until any of them is killed.
         if value == 0:
             self._enemy.boss = True
-            self._game.boss = self._enemy
+            self._game.boss = self
         elif value == -1:
             self._enemy.boss = False
             self._game.boss = None
@@ -924,6 +944,8 @@ class ECLRunner(object):
 
     @instruction(113)
     def set_low_life_trigger(self, value):
+        #XXX: this instruction takes 100 frames to fill the enemy's life bar
+        self.frame -= 100
         self._enemy.low_life_trigger = value
 
 
@@ -934,6 +956,7 @@ class ECLRunner(object):
 
     @instruction(115)
     def set_timeout(self, timeout):
+        self._enemy.frame = 0
         self._enemy.timeout = timeout
 
 

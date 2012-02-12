@@ -17,6 +17,7 @@ from itertools import chain
 from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner
+from pytouhou.vm.msgrunner import MSGRunner
 
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
@@ -55,6 +56,8 @@ class Game(object):
         self.difficulty_max = 20 if rank == 0 else 32
         self.boss = None
         self.spellcard = None
+        self.msg_runner = None
+        self.msg_wait = False
         self.bonus_list = [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0,
                            1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 2]
         self.prng = prng or Random()
@@ -72,6 +75,12 @@ class Game(object):
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
         self.next_bonus = self.prng.rand_uint16() % 8
+
+        self.last_keystate = 0
+
+
+    def msg_sprites(self):
+        return []
 
 
     def modify_difficulty(self, diff):
@@ -138,6 +147,11 @@ class Game(object):
         return enemy
 
 
+    def new_msg(self, sub):
+        self.msg_runner = MSGRunner(self.msg, sub, self)
+        self.msg_runner.run_iteration()
+
+
     def run_iter(self, keystate):
         # 1. VMs.
         self.ecl_runner.run_iter()
@@ -158,6 +172,9 @@ class Game(object):
 
         # Pri 6 is background
         self.update_effect() #TODO: Pri unknown
+        if self.msg_runner:
+            self.update_msg(keystate) # Pri ?
+            keystate &= ~3 # Remove the ability to attack (keystates 1 and 2).
         self.update_players(keystate) # Pri 7
         self.update_enemies() # Pri 9
         self.update_effects() # Pri 10
@@ -180,6 +197,15 @@ class Game(object):
     def update_enemies(self):
         for enemy in self.enemies:
             enemy.update()
+
+
+    def update_msg(self, keystate):
+        if keystate & 1 and not self.last_keystate & 1:
+            self.msg_runner.skip()
+        if keystate & 256 and self.msg_runner.allow_skip:
+            self.msg_runner.skip()
+        self.last_keystate = keystate
+        self.msg_runner.run_iteration()
 
 
     def update_players(self, keystate):
@@ -295,6 +321,6 @@ class Game(object):
         self.items = items
 
         # Disable boss mode if it is dead/it has timeout
-        if self.boss and self.boss._removed:
+        if self.boss and self.boss._enemy._removed:
             self.boss = None
 

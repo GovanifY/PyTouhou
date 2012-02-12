@@ -29,8 +29,8 @@ class MSG(object):
                      6: ('', 'add_enemy_sprite'),
                      7: ('I', 'change_music'),
                      8: ('hhs', 'display_character_line'),
-                     9: ('I', None),
-                     10: ('', None),
+                     9: ('I', 'show_scores'),
+                     10: ('', 'freeze'),
                      11: ('', 'next_level'),
                      12: ('', None),
                      13: ('I', None),
@@ -38,7 +38,7 @@ class MSG(object):
 
 
     def __init__(self):
-        self.msgs = [[]]
+        self.msgs = {}
 
 
     @classmethod
@@ -47,13 +47,13 @@ class MSG(object):
         entry_offsets = unpack('<%dI' % entry_count, file.read(4 * entry_count))
 
         msg = cls()
-        msg.msgs = []
+        msg.msgs = {}
 
-        for offset in entry_offsets:
+        for i, offset in enumerate(entry_offsets):
             if msg.msgs and offset == entry_offsets[0]: # In EoSD, Reimu’s scripts start at 0, and Marisa’s ones at 10.
                 continue                                # If Reimu has less than 10 scripts, the remaining offsets are equal to her first.
 
-            msg.msgs.append([])
+            msg.msgs[i] = []
             file.seek(offset)
 
             while True:
@@ -73,7 +73,7 @@ class MSG(object):
                     args = (data, )
                     logger.warn('unknown msg opcode %d', opcode)
 
-                msg.msgs[-1].append((time, opcode, args))
+                msg.msgs[i].append((time, opcode, args))
 
 
         return msg

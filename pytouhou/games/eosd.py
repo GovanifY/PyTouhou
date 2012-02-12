@@ -59,6 +59,21 @@ class EoSDGame(Game):
                           ItemType(etama3, 5, 12), #1up
                           ItemType(etama3, 6, 13)] #Star
 
+        player_face = player_states[0].character // 2
+        enemy_face = [('face03a.anm', 'face03b.anm'),
+                      ('face05a.anm',),
+                      ('face06a.anm', 'face06b.anm'),
+                      ('face08a.anm', 'face08b.anm'),
+                      ('face09a.anm', 'face09b.anm'),
+                      ('face09b.anm', 'face10a.anm', 'face10b.anm'),
+                      ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
+        self.msg = resource_loader.get_msg('msg%d.dat' % stage)
+        self.msg_anm_wrapper = resource_loader.get_anm_wrapper2(('face0%da.anm' % player_face,
+                                                                 'face0%db.anm' % player_face,
+                                                                 'face0%dc.anm' % player_face)
+                                                                + enemy_face[stage - 1],
+                                                                (0, 2, 4, 8, 10, 11, 12))
+
         characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 

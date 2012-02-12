@@ -85,6 +85,7 @@ cdef class GameRenderer(Renderer):
             self.render_elements(game.effects)
             self.render_elements(chain(game.players_bullets,
                                        game.players,
+                                       game.msg_sprites(),
                                        *(player.objects() for player in game.players)))
             self.render_elements(chain(game.bullets, game.lasers, game.cancelled_bullets, game.items))
             #TODO: display item indicators
