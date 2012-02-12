@@ -41,6 +41,9 @@ class ECLMainRunner(object):
 
 
     def run_iter(self):
+        if not self._game.boss:
+            self.time_stopped = False
+
         while True:
             try:
                 frame, sub, instr_type, args = self._ecl.main[self.instruction_pointer]
@@ -62,9 +65,6 @@ class ECLMainRunner(object):
 
         self.processes[:] = (process for process in self.processes
                                                 if process.run_iteration())
-
-        if not self._game.boss:
-            self.time_stopped = False
 
         if not self.time_stopped:
             self.frame += 1
