@@ -1,3 +1,17 @@
+# -*- encoding: utf-8 -*-
+##
+## Copyright (C) 2012 Thibaut Girka <thib@sitedethib.com>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+
 import os
 from glob import glob
 from itertools import chain
@@ -163,11 +177,21 @@ class Loader(object):
         return characters
 
 
-    def get_anm_wrapper(self, names, offsets=()):
+    def get_anm_wrapper(self, names, offsets=None):
+        """Create an AnmWrapper for ANM files “names”.
+
+        If one of the files “names” does not exist or is not a valid ANM file,
+        raises an exception.
+        """
         return AnmWrapper((self.get_anm(name) for name in names), offsets)
 
 
-    def get_anm_wrapper2(self, names, offsets=()):
+    def get_anm_wrapper2(self, names, offsets=None):
+        """Create an AnmWrapper for ANM files “names”.
+
+        Stop at the first non-existent or invalid ANM file if there is one,
+        and return an AnmWrapper for all the previous correct files.
+        """
         anms = []
 
         try:
