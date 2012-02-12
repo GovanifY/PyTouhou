@@ -160,7 +160,7 @@ class ECL(object):
                           8: ('', None),
                           9: ('', None),
                           10: ('II', None),
-                          12: ('', None)}
+                          12: ('', 'stop_time')}
 
 
     def __init__(self):

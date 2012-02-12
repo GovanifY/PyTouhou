@@ -26,12 +26,14 @@ logger = get_logger(__name__)
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_ecl', '_game', 'processes', 'frame',
-                 'instruction_pointer')
+                 'instruction_pointer',
+                 'time_stopped')
 
     def __init__(self, ecl, game):
         self._ecl = ecl
         self._game = game
         self.frame = 0
+        self.time_stopped = False
 
         self.processes = []
 
@@ -61,7 +63,10 @@ class ECLMainRunner(object):
         self.processes[:] = (process for process in self.processes
                                                 if process.run_iteration())
 
-        if not self._game.spellcard:
+        if not self._game.boss:
+            self.time_stopped = False
+
+        if not self.time_stopped:
             self.frame += 1
 
 
@@ -87,6 +92,11 @@ class ECLMainRunner(object):
         if self._game.boss:
             return
         self._pop_enemy(sub, instr_type, x, y, z, life, bonus_dropped, die_score)
+
+
+    @instruction(12)
+    def stop_time(self, sub, instr_type):
+        self.time_stopped = True
 
 
 
