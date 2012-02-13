@@ -149,11 +149,9 @@ class ANMRenderer(pyglet.window.Window, Renderer):
     def index_items(self):
         self.items = {}
         if self.sprites:
-            for anm in self._anm_wrapper.anm_files:
-                self.items.update(anm.sprites)
+            self.items = self._anm_wrapper.sprites
         else:
-            for anm in self._anm_wrapper.anm_files:
-                self.items.update(anm.scripts)
+            self.items = self._anm_wrapper.scripts
 
 
     def toggle_sprites(self):
