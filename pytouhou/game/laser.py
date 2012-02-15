@@ -21,6 +21,34 @@ from pytouhou.game.sprite import Sprite
 STARTING, STARTED, STOPPING = range(3)
 
 
+class LaserLaunchAnim(object):
+    def __init__(self, laser, anm_wrapper, index):
+        self._laser = laser
+        self._sprite = Sprite()
+        self._sprite.anm, self._sprite.texcoords = anm_wrapper.get_sprite(index)
+        self._sprite.blendfunc = 1
+        self._removed = False
+        self.x, self.y = 0, 0
+
+
+    def update(self):
+        laser = self._laser
+        length = min(laser.end_offset - laser.start_offset, laser.max_length)
+        offset = laser.end_offset - length
+        dx, dy = cos(laser.angle), sin(laser.angle)
+
+        self.x = laser.base_pos[0] + offset * dx
+        self.y = laser.base_pos[1] + offset * dy
+
+        scale = laser.width / 10. - (offset - laser.start_offset)
+        self._sprite.rescale = (scale, scale)
+        self._sprite._changed = True
+
+        if laser._removed or scale <= 0.:
+            self._removed = True
+
+
+
 class Laser(object):
     def __init__(self, base_pos, laser_type, sprite_idx_offset,
                        angle, speed, start_offset, end_offset, max_length, width,
@@ -28,7 +56,10 @@ class Laser(object):
                        grazing_delay, grazing_extra_duration,
                        game):
         self._game = game
-        #TODO: aux sprite
+        launch_anim = LaserLaunchAnim(self, laser_type.anm_wrapper,
+                                      laser_type.launch_anim_offsets[sprite_idx_offset]
+                                      + laser_type.launch_sprite_idx)
+        self._game.effects.append(launch_anim)
         self._sprite = None
         self._anmrunner = None
         self._removed = False

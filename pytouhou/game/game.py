@@ -160,7 +160,7 @@ class Game(object):
 
         # 2. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
-        self.effects = [enemy for enemy in self.effects if not enemy._removed]
+        self.effects = [effect for effect in self.effects if not effect._removed]
         self.bullets = [bullet for bullet in self.bullets if not bullet._removed]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet._removed]
         self.items = [item for item in self.items if not item._removed]
@@ -307,6 +307,7 @@ class Game(object):
                             if not bullet._removed]
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
                             if not bullet._removed]
+        self.effects = [effect for effect in self.effects if not effect._removed]
 
         # Filter “timed-out” lasers
         self.lasers = [laser for laser in self.lasers if not laser._removed]
