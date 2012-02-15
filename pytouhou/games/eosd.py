@@ -41,10 +41,14 @@ class EoSDGame(Game):
                             BulletType(etama3, 3, 12, 17, 18, 19, hitbox_size=6),
                             BulletType(etama3, 4, 12, 17, 18, 19, hitbox_size=5),
                             BulletType(etama3, 5, 12, 17, 18, 19, hitbox_size=4),
-                            BulletType(etama3, 6, 13, 20, 20, 20, hitbox_size=16),
-                            BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11),
-                            BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9),
-                            BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32)]
+                            BulletType(etama3, 6, 13, 20, 20, 20, hitbox_size=16,
+                                       launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0)),
+                            BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=11,
+                                       launch_anim_offsets=(1,)*28),
+                            BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=9,
+                                       launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0)),
+                            BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=32,
+                                       launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8))]
 
         if not laser_types:
             laser_types = [LaserType(etama3, 9),
