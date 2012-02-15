@@ -149,6 +149,12 @@ class ECLRunner(object):
         self.stack = []
 
 
+    def switch_to_sub(self, sub):
+        self.frame = 0
+        self.sub = sub
+        self.instruction_pointer = 0
+
+
     def handle_callbacks(self):
         #TODO: implement missing callbacks and clean up!
         enm = self._enemy
@@ -158,7 +164,7 @@ class ECLRunner(object):
             enm.die_anim()
 
             if death_flags < 4:
-                if enm._bonus_dropped >= 0:
+                if enm._bonus_dropped > -1:
                     enm.drop_particles(7, 0)
                     self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
                 elif enm._bonus_dropped == -1:
@@ -186,34 +192,25 @@ class ECLRunner(object):
                     enm.life = 1
                     enm.death_flags = 0
 
-            if death_flags != 0 and enm.death_callback >= 0:
-                self.frame = 0
-                self.sub = enm.death_callback
-                self.instruction_pointer = 0
+            if death_flags != 0 and enm.death_callback > -1:
+                self.switch_to_sub(enm.death_callback)
                 enm.death_callback = -1
-        elif enm.life <= enm.low_life_trigger and enm.low_life_callback >= 0:
-            self.frame = 0
-            self.sub = enm.low_life_callback
-            self.instruction_pointer = 0
+        elif enm.life <= enm.low_life_trigger and enm.low_life_callback > -1:
+            self.switch_to_sub(enm.low_life_callback)
             enm.low_life_callback = -1
-        elif enm.timeout and enm.frame == enm.timeout:
+        elif enm.timeout != -1 and enm.frame == enm.timeout:
             enm.frame = 0
-            if enm.timeout_callback >= 0:
-                self.frame = 0
-                self.sub = enm.timeout_callback
-                self.instruction_pointer = 0
+            if enm.timeout_callback > -1:
+                self.switch_to_sub(enm.timeout_callback)
                 enm.timeout_callback = -1
             elif enm.touchable:
                 enm.life = 0
-            elif enm.death_callback >= 0:
-                self.frame = 0
-                self.sub = enm.death_callback
-                self.instruction_pointer = 0
+            elif enm.death_callback > -1:
+                self.switch_to_sub(enm.death_callback)
                 enm.death_callback = -1
                 enm.timeout = -1 #TODO: check
             else:
                 raise Exception('What the hell, man!')
-
 
     def run_iteration(self):
         # First, if enemy is dead, return
@@ -235,11 +232,8 @@ class ECLRunner(object):
             else:
                 self.instruction_pointer += 1
 
-
-            #TODO: skip bad ranks
             if not rank_mask & (0x100 << self._game.rank):
                 continue
-
 
             if frame == self.frame:
                 try:
@@ -481,11 +475,9 @@ class ECLRunner(object):
     def call(self, sub, param1, param2):
         self.stack.append((self.sub, self.frame, self.instruction_pointer,
                            list(self.variables), self.comparison_reg))
-        self.sub = sub
-        self.frame = 0
-        self.instruction_pointer = 0
         self.variables[0] = param1
         self.variables[4] = param2
+        self.switch_to_sub(sub)
 
 
     @instruction(36)
@@ -920,8 +912,6 @@ class ECLRunner(object):
 
     @instruction(109)
     def memory_write(self, value, index):
-        #TODO
-        #XXX: this is a hack to display bosses although we don't handle MSG :)
         if index == 0:
             self._enemy.boss_callback = value
         else:
@@ -944,8 +934,9 @@ class ECLRunner(object):
 
     @instruction(113)
     def set_low_life_trigger(self, value):
-        #XXX: this instruction takes 100 frames to fill the enemy's life bar
-        self.frame -= 100
+        #TODO: the enemy's life bar fills in 100 frames.
+        # During those frames, the ECL doesn't seem to be executed.
+        # However, the ECL isn't directly paused by this instruction itself.
         self._enemy.low_life_trigger = value
 
 
