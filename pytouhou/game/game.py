@@ -252,6 +252,16 @@ class Game(object):
             gx1, gx2 = px - ghalf_size, px + ghalf_size
             gy1, gy2 = py - ghalf_size, py + ghalf_size
 
+            for laser in self.lasers:
+                if laser.check_collision((px, py)):
+                    if player.state.invulnerable_time == 0:
+                        player.collide()
+                elif laser.check_grazing((px, py)):
+                    player.state.graze += 1 #TODO
+                    player.state.score += 500 #TODO
+                    self.modify_difficulty(+6) #TODO
+                    self.new_particle((px, py), 0, .8, 192) #TODO
+
             for bullet in self.bullets:
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y

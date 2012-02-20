@@ -100,6 +100,46 @@ class Laser(object):
         self._anmrunner.run_frame()
 
 
+    def _check_collision(self, point, border_size):
+        x, y = point[0] - self.base_pos[0], point[1] - self.base_pos[1]
+        dx, dy = cos(self.angle), sin(self.angle)
+        dx2, dy2 = -dy, dx
+
+        length = min(self.end_offset - self.start_offset, self.max_length)
+        offset = self.end_offset - length - border_size / 2.
+        end_offset = self.end_offset + border_size / 2.
+        half_width = self.width / 4. + border_size / 2.
+
+        c1 = dx * offset - dx2 * half_width, dy * offset - dy2 * half_width
+        c2 = dx * offset + dx2 * half_width, dy * offset + dy2 * half_width
+        c3 = dx * end_offset + dx2 * half_width, dy * end_offset + dy2 * half_width
+        vx, vy = x - c2[0], y - c2[1]
+        v1x, v1y = c1[0] - c2[0], c1[1] - c2[1]
+        v2x, v2y = c3[0] - c2[0], c3[1] - c2[1]
+
+        return (0 <= vx * v1x + vy * v1y <= v1x * v1x + v1y * v1y
+                and 0 <= vx * v2x + vy * v2y <= v2x * v2x + v2y * v2y)
+
+
+    def check_collision(self, point):
+        if self.state != STARTED:
+            return False
+
+        return self._check_collision(point, 2.5)
+
+
+    def check_grazing(self, point):
+        #TODO: quadruple check!
+        if self.state == STOPPING and self.frame >= self.grazing_extra_duration:
+            return False
+        if self.state == STARTING and self.frame <= self.grazing_delay:
+            return False
+        if self.frame % 12 != 0:
+            return False
+
+        return self._check_collision(point, 96 + 2.5)
+
+
     def get_bullets_pos(self):
         #TODO: check
         length = min(self.end_offset - self.start_offset, self.max_length)
@@ -111,6 +151,7 @@ class Laser(object):
 
 
     def cancel(self):
+        self.grazing_extra_duration = 0
         if self.state != STOPPING:
             self.frame = 0
             self.state = STOPPING
