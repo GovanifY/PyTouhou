@@ -84,6 +84,7 @@ cdef class GameRenderer(Renderer):
             self.render_elements(enemy for enemy in game.enemies if enemy._visible)
             self.render_elements(game.effects)
             self.render_elements(chain(game.players_bullets,
+                                       game.lasers_sprites(),
                                        game.players,
                                        game.msg_sprites(),
                                        *(player.objects() for player in game.players)))

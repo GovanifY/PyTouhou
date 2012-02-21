@@ -286,6 +286,21 @@ class Enemy(object):
                     damages += bullet.damage
                 self.drop_particles(1, 1)
 
+        # Check for enemy-laser collisions
+        for laser in self._game.players_lasers:
+            if not laser:
+                continue
+
+            half_size = laser.hitbox_half_size
+            lx, ly = laser.x, laser.y * 2.
+            lx1, lx2 = lx - half_size[0], lx + half_size[0]
+
+            if not (lx2 < ex1 or lx1 > ex2
+                    or ly < ey1):
+                if self.damageable:
+                    damages += laser.damage
+                self.drop_particles(1, 1)
+
         # Check for enemy-player collisions
         ex1, ex2 = ex - ehalf_size_x * 2. / 3., ex + ehalf_size_x * 2. / 3.
         ey1, ey2 = ey - ehalf_size_y * 2. / 3., ey + ehalf_size_y * 2. / 3.

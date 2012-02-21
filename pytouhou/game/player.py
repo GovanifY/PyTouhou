@@ -17,6 +17,8 @@ from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
 from pytouhou.game.bullet import Bullet
+from pytouhou.game.lasertype import LaserType
+from pytouhou.game.laser import PlayerLaser
 
 from math import pi
 
@@ -110,10 +112,22 @@ class Player(object):
         power = min(power for power in sht.shots if self.state.power < power)
 
         bullets = self._game.players_bullets
+        lasers = self._game.players_lasers
         nb_bullets_max = self._game.nb_bullets_max
 
         for shot in sht.shots[power]:
-            if shot.type == 3: # TODO: Lasers aren't implemented yet
+            origin = self.orbs[shot.orb - 1] if shot.orb else self.state
+
+            if shot.type == 3:
+                if self.fire_time != 30:
+                    continue
+
+                number = shot.delay #TODO: number can do very surprising things, like removing any bullet creation from enemies with 3. For now, crash when not 0 or 1.
+                if lasers[number]:
+                    continue
+
+                laser_type = LaserType(self.anm_wrapper, shot.sprite % 256, 68)
+                lasers[number] = PlayerLaser(laser_type, 0, shot.hitbox, shot.damage, shot.angle, shot.speed, shot.interval, origin)
                 continue
 
             if (self.fire_time + shot.delay) % shot.interval != 0:
@@ -122,7 +136,6 @@ class Player(object):
             if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                 break
 
-            origin = self.orbs[shot.orb - 1] if shot.orb else self
             x = origin.x + shot.pos[0]
             y = origin.y + shot.pos[1]
 
@@ -130,7 +143,7 @@ class Player(object):
             bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
                                      shot.sprite % 256 + 32, #TODO: find the real cancel anim
                                      0, 0, 0, 0.)
-            #TODO: Type 1 (homing bullets) and type 3 (laser)
+            #TODO: Type 1 (homing bullets)
             if shot.type == 2:
                 #TODO: triple-check acceleration!
                 bullets.append(Bullet((x, y), bullet_type, 0,

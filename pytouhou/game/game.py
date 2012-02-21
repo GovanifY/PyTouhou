@@ -46,6 +46,7 @@ class Game(object):
         self.lasers = []
         self.cancelled_bullets = []
         self.players_bullets = []
+        self.players_lasers = [None, None]
         self.items = []
 
         self.stage = stage
@@ -81,6 +82,10 @@ class Game(object):
 
     def msg_sprites(self):
         return []
+
+
+    def lasers_sprites(self):
+        return [laser for laser in self.players_lasers if laser]
 
 
     def modify_difficulty(self, diff):
@@ -236,6 +241,10 @@ class Game(object):
         for bullet in self.bullets:
             bullet.update()
 
+        for laser in self.players_lasers:
+            if laser:
+                laser.update()
+
         for item in self.items:
             item.update()
 
@@ -315,6 +324,9 @@ class Game(object):
                             if not bullet._removed]
         self.players_bullets = [bullet for bullet in self.players_bullets
                             if not bullet._removed]
+        for i, laser in enumerate(self.players_lasers):
+            if laser and laser._removed:
+                self.players_lasers[i] = None
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
                             if not bullet._removed]
         self.effects = [effect for effect in self.effects if not effect._removed]

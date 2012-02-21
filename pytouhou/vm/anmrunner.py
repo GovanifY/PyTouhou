@@ -137,7 +137,8 @@ class ANMRunner(object):
 
     @instruction(4)
     def set_color(self, b, g, r):
-        self._sprite.color = (r, g, b)
+        if not self._sprite.fade_interpolator:
+            self._sprite.color = (r, g, b)
 
 
     @instruction(5)

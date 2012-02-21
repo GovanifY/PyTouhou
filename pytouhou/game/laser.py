@@ -192,3 +192,66 @@ class Laser(object):
 
         self.frame += 1
 
+
+class PlayerLaser(object):
+    def __init__(self, laser_type, sprite_idx_offset, hitbox, damage,
+                 angle, offset, duration, origin):
+        self._sprite = None
+        self._anmrunner = None
+        self._removed = False
+        self._laser_type = laser_type
+        self.origin = origin
+
+        self.hitbox_half_size = hitbox[0] / 2., hitbox[1] / 2.
+
+        self.frame = 0
+        self.duration = duration
+
+        self.sprite_idx_offset = sprite_idx_offset
+        self.angle = angle
+        self.offset = offset
+        self.damage = damage
+
+        self.set_anim()
+
+
+    @property
+    def x(self):
+        return self.origin.x + self.offset * cos(self.angle)
+
+
+    @property
+    def y(self):
+        return self.origin.y / 2. + self.offset * sin(self.angle)
+
+
+    def set_anim(self, sprite_idx_offset=None):
+        if sprite_idx_offset is not None:
+            self.sprite_idx_offset = sprite_idx_offset
+
+        lt = self._laser_type
+        self._sprite = Sprite()
+        self._anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
+                                    self._sprite, self.sprite_idx_offset)
+        #self._sprite.blendfunc = 1 #XXX
+        self._anmrunner.run_frame()
+
+
+    def cancel(self):
+        self._anmrunner.interrupt(1)
+
+
+    def update(self):
+        if self._anmrunner is not None and not self._anmrunner.run_frame():
+            self._anmrunner = None
+            self._removed = True
+
+        length = self.origin.y
+        if self.frame == self.duration:
+            self.cancel()
+
+        self._sprite.height_override = length or 0.01 #TODO
+        self._sprite._changed = True #TODO
+
+        self.frame += 1
+
