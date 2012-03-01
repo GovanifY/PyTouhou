@@ -505,19 +505,19 @@ class ECLRunner(object):
     @instruction(46)
     def set_rotation_speed(self, speed):
         self._enemy.update_mode = 0
-        self._enemy.rotation_speed = speed
+        self._enemy.rotation_speed = self._getval(speed)
 
 
     @instruction(47)
     def set_speed(self, speed):
         self._enemy.update_mode = 0
-        self._enemy.speed = speed
+        self._enemy.speed = self._getval(speed)
 
 
     @instruction(48)
     def set_acceleration(self, acceleration):
         self._enemy.update_mode = 0
-        self._enemy.acceleration = acceleration
+        self._enemy.acceleration = self._getval(acceleration)
 
 
     @instruction(49)
@@ -852,8 +852,11 @@ class ECLRunner(object):
 
     @instruction(98)
     def set_multiple_anims(self, default, end_left, end_right, left, right):
-        self._enemy.movement_dependant_sprites = end_left, end_right, left, right
-        self._enemy.set_anim(default)
+        if left == -1:
+            self._enemy.movement_dependant_sprites = None
+        else:
+            self._enemy.movement_dependant_sprites = end_left, end_right, left, right
+            self._enemy.set_anim(default)
 
 
     @instruction(99)
