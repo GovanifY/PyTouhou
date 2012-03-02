@@ -1021,6 +1021,17 @@ class ECLRunner(object):
                       [4, 2, 3]]
             character = self._enemy.select_player().state.character
             self.variables[1:4] = values[character]
+        elif function == 8: # Remilia’s magic
+            bullet_attributes = [70, 1, 1, 1, 1, 0., 0., 0., 0.7, 0]
+            n = 0
+            for bullet in self._game.bullets:
+                if bullet._bullet_type.anim_index < 5:
+                    continue
+                n += 1
+                bullet_attributes[8] = bullet.angle
+                self._enemy.fire(launch_pos=(bullet.x, bullet.y),
+                                 bullet_attributes=bullet_attributes)
+            self._setval(-10004, n)
         elif function == 13:
             if self._enemy.bullet_attributes is None:
                 return
