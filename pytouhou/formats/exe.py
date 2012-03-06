@@ -26,6 +26,10 @@ logger = get_logger(__name__)
 SQ2 = 2. ** 0.5 / 2.
 
 
+class InvalidExeException(Exception):
+    pass
+
+
 class Shot(object):
     def __init__(self):
         self.interval = 0
@@ -141,7 +145,11 @@ class SHT(object):
         text_va = pe_file.image_base + text_section.VirtualAddress
         text_size = text_section.SizeOfRawData
 
-        character_records_va = list(cls.find_character_defs(pe_file))[0]
+        possible_character_records = list(cls.find_character_defs(pe_file))
+        if not possible_character_records:
+            raise InvalidExeException
+
+        character_records_va = possible_character_records[0]
 
         characters = []
         shots_offsets = {}

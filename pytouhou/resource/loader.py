@@ -23,10 +23,15 @@ from pytouhou.formats.ecl import ECL
 from pytouhou.formats.anm0 import ANM0
 from pytouhou.formats.msg import MSG
 from pytouhou.formats.sht import SHT
-from pytouhou.formats.exe import SHT as EoSDSHT
+from pytouhou.formats.exe import SHT as EoSDSHT, InvalidExeException
 
 
 from pytouhou.resource.anmwrapper import AnmWrapper
+
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
+
 
 
 class Directory(object):
@@ -93,7 +98,7 @@ class ArchiveDescription(object):
 
 class Loader(object):
     def __init__(self, game_dir=None):
-        self.exe = None
+        self.exe_files = []
         self.game_dir = game_dir
         self.known_files = {}
         self.instanced_ecls = {}
@@ -113,7 +118,7 @@ class Loader(object):
             paths = list(chain(*_expand_paths()))
             path = paths[0]
             if os.path.splitext(path)[1] == '.exe':
-                self.exe = path
+                self.exe_files.extend(paths)
             else:
                 archive_description = ArchiveDescription.get_from_path(path)
                 for name in archive_description.file_list:
@@ -169,10 +174,14 @@ class Loader(object):
 
     def get_eosd_characters(self):
         #TODO: Move to pytouhou.games.eosd?
-        path = self.exe
-        with open(path, 'rb') as file:
-            characters = EoSDSHT.read(file) #TODO: modular
-        return characters
+        for path in self.exe_files:
+            try:
+                with open(path, 'rb') as file:
+                    characters = EoSDSHT.read(file)
+                return characters
+            except InvalidExeException:
+                pass
+        logger.error("Required game exe not found!")
 
 
     def get_anm_wrapper(self, names, offsets=None):
