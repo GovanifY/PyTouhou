@@ -106,7 +106,7 @@ class Loader(object):
     def scan_archives(self, paths_lists):
         for paths in paths_lists:
             def _expand_paths():
-                for path in paths.split(':'):
+                for path in paths.split(os.path.pathsep):
                     if self.game_dir and not os.path.isabs(path):
                         path = os.path.join(self.game_dir, path)
                     yield glob(path)
@@ -170,8 +170,6 @@ class Loader(object):
     def get_eosd_characters(self):
         #TODO: Move to pytouhou.games.eosd?
         path = self.exe
-        if self.game_dir and not os.path.isabs(path):
-            path = os.path.join(self.game_dir, path)
         with open(path, 'rb') as file:
             characters = EoSDSHT.read(file) #TODO: modular
         return characters

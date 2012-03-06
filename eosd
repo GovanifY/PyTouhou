@@ -58,9 +58,10 @@ def main(path, stage_num, rank, character, replay, data):
     runner.start()
 
 
-default_data = ('CM.DAT:th06*_CM.DAT:*CM.DAT:*cm.dat',
-                'ST.DAT:th6*ST.DAT:*ST.DAT:*st.dat',
-                '102h.exe:102*.exe:東方紅魔郷.exe:*.exe')
+pathsep = os.path.pathsep
+default_data = (pathsep.join(('CM.DAT', 'th06*_CM.DAT', '*CM.DAT', '*cm.dat')),
+                pathsep.join(('ST.DAT', 'th6*ST.DAT', '*ST.DAT', '*st.dat')),
+                pathsep.join(('102h.exe', '102*.exe', '東方紅魔郷.exe', '*.exe')))
 
 
 parser = argparse.ArgumentParser(description='Libre reimplementation of the Touhou 6 engine.')
