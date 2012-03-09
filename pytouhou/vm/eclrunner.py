@@ -1021,6 +1021,11 @@ class ECLRunner(object):
                       [4, 2, 3]]
             character = self._enemy.select_player().state.character
             self.variables[1:4] = values[character]
+        elif function == 4:
+            if arg == 1:
+                self._game.time_stop = True
+            else:
+                self._game.time_stop = False
         elif function == 8: # Remilia’s magic
             bullet_attributes = [70, 1, 1, 1, 1, 0., 0., 0., 0.7, 0]
             n = 0

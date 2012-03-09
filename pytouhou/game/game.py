@@ -57,6 +57,7 @@ class Game(object):
         self.difficulty_max = 20 if rank == 0 else 32
         self.boss = None
         self.spellcard = None
+        self.time_stop = False
         self.msg_runner = None
         self.msg_wait = False
         self.bonus_list = [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0,
@@ -195,6 +196,8 @@ class Game(object):
 
 
     def update_effect(self):
+        if self.time_stop:
+            return None
         if self.effect is not None:
             self.effect.update()
 
@@ -214,6 +217,8 @@ class Game(object):
 
 
     def update_players(self, keystate):
+        if self.time_stop:
+            return None
         for player in self.players:
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
@@ -235,6 +240,8 @@ class Game(object):
 
 
     def update_bullets(self):
+        if self.time_stop:
+            return None
         for bullet in self.cancelled_bullets:
             bullet.update()
 
