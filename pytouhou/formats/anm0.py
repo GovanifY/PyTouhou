@@ -80,12 +80,12 @@ class ANM0(object):
     @classmethod
     def read(cls, file):
         nb_sprites, nb_scripts, zero1 = unpack('<III', file.read(12))
-        width, height, format, zero2 = unpack('<IIII', file.read(16))
+        width, height, format, unknown1 = unpack('<IIII', file.read(16))
         first_name_offset, unused, secondary_name_offset = unpack('<III', file.read(12))
-        version, unknown1, thtxoffset, hasdata, nextoffset, zero3 = unpack('<IIIIII', file.read(24))
+        version, unknown2, thtxoffset, hasdata, nextoffset, zero2 = unpack('<IIIIII', file.read(24))
         if version != 0:
             raise Exception #TODO
-        if (zero1, zero2, zero3) != (0, 0, 0):
+        if (zero1, zero2) != (0, 0):
             raise Exception #TODO
 
         sprite_offsets = [unpack('<I', file.read(4))[0] for i in range(nb_sprites)]

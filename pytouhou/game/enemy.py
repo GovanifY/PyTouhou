@@ -319,7 +319,8 @@ class Enemy(object):
 
         # Adjust damages
         damages = min(70, damages)
-        score = (damages // 5) * 10 #TODO: give to which player?
+        score = (damages // 5) * 10
+        self._game.players[0].state.score += score #TODO: better distribution amongst the players.
 
         if self._game.spellcard:
             #TODO: there is a division by 3, somewhere... where is it?

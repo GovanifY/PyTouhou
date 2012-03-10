@@ -14,14 +14,16 @@
 
 import pyglet
 import traceback
+from itertools import chain
 
-from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
-                       glHint, glEnableClientState, glViewport,
+from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
+                       glHint, glEnableClientState, glViewport, glScissor,
                        gluPerspective, gluOrtho2D,
                        GL_MODELVIEW, GL_PROJECTION,
                        GL_TEXTURE_2D, GL_BLEND, GL_FOG,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
-                       GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
+                       GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
+                       GL_SCISSOR_TEST)
 
 from pytouhou.utils.helpers import get_logger
 
@@ -35,7 +37,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
     def __init__(self, resource_loader, game=None, background=None, replay=None):
         GameRenderer.__init__(self, resource_loader, game, background)
 
-        width, height = (game.width, game.height) if game else (None, None)
+        width, height = (game.interface.width, game.interface.height) if game else (None, None)
         pyglet.window.Window.__init__(self, width=width, height=height,
                                       caption='PyTouhou', resizable=False)
 
@@ -51,13 +53,12 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.game.players[0].state.bombs = self.replay_level.bombs
             self.game.difficulty = self.replay_level.difficulty
 
-        self.fps_display = pyglet.clock.ClockDisplay()
+        self.clock = pyglet.clock.get_default()
 
 
     def start(self, width=None, height=None):
-        width = width or (self.game.width if self.game else 640)
-        height = height or (self.game.height if self.game else 480)
-
+        width = width or (self.game.interface.width if self.game else 640)
+        height = height or (self.game.interface.height if self.game else 480)
         if (width, height) != (self.width, self.height):
             self.set_size(width, height)
 
@@ -77,12 +78,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             pyglet.clock.tick()
             self.dispatch_events()
             self.update()
-            self.on_draw()
+            self.render_game()
+            self.render_interface()
             self.flip()
-
-
-    def on_resize(self, width, height):
-        glViewport(0, 0, width, height)
 
 
     def _event_text_symbol(self, ev):
@@ -141,23 +139,46 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                 self.game.run_iter(keystate)
 
 
-    def on_draw(self):
+    def render_game(self):
         # Switch to game projection
         #TODO: move that to GameRenderer?
+        x, y = self.game.interface.game_pos
+        glViewport(x, y, self.game.width, self.game.height)
+        glScissor(x, y, self.game.width, self.game.height)
+        glEnable(GL_SCISSOR_TEST)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(30, float(self.width) / float(self.height),
+        gluPerspective(30, float(self.game.width) / float(self.game.height),
                        101010101./2010101., 101010101./10101.)
 
         GameRenderer.render(self)
 
-        # Get back to standard orthographic projection
+        glDisable(GL_SCISSOR_TEST)
+
+
+    def render_interface(self):
+        # Interface
+        interface = self.game.interface
+        interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_fps())
+
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
+        gluOrtho2D(0., float(self.width), float(self.height), 0.)
+        glViewport(0, 0, self.width, self.height)
 
-        #TODO: draw interface
-        gluOrtho2D(0., float(self.game.width), 0., float(self.game.height))
-        self.fps_display.draw()
+        items = [item for item in interface.items if item._anmrunner and item._anmrunner._running]
+        labels = interface.labels
+        if items:
+            # Force rendering of labels
+            self.render_elements(items)
+            self.render_elements(chain(*(label.objects()
+                                            for label in labels.itervalues())))
+        else:
+            self.render_elements(chain(*(label.objects()
+                                            for label in labels.itervalues()
+                                                if label._changed)))
+        for label in interface.labels.itervalues():
+            label._changed = False
 

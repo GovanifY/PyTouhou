@@ -20,6 +20,8 @@ from pytouhou.game.lasertype import LaserType
 from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
+from pytouhou.game.effect import Effect
+from pytouhou.game.text import Text
 
 from math import pi
 
@@ -81,9 +83,56 @@ class EoSDGame(Game):
         characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
+        interface = EoSDInterface(player_states, resource_loader)
+
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,
-                      width, height, prng)
+                      width, height, prng, interface)
+
+
+
+class EoSDInterface(Game):
+    def __init__(self, states, resource_loader):
+        self.states = states
+        front = resource_loader.get_anm_wrapper(('front.anm',))
+        ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
+
+        self.width = 640
+        self.height = 480
+        self.game_pos = (32, 16)
+
+        self.items = ([Effect((0, 32 * i), 6, front) for i in range(15)] +
+                      [Effect((416 + 32 * i, 32 * j), 6, front) for i in range(7) for j in range(15)] +
+                      [Effect((32 + 32 * i, 0), 7, front) for i in range(12)] +
+                      [Effect((32 + 32 * i, 464), 8, front) for i in range(12)] +
+                      [Effect((0, 0), 5, front)] +
+                      [Effect((0, 0), i, front) for i in range(5) + range(9, 16)])
+        for item in self.items:
+            item._sprite.allow_dest_offset = True #XXX
+
+        self.labels = {
+            'highscore': Text((500, 58), '0', front, ascii_wrapper),
+            'score': Text((500, 82), '0', front, ascii_wrapper),
+            'player': Text((500, 122), 'star star', front, ascii_wrapper),
+            'bombs': Text((500, 146), 'star star', front, ascii_wrapper),
+            'power': Text((500, 186), '0', front, ascii_wrapper),
+            'graze': Text((500, 206), '0', front, ascii_wrapper),
+            'points': Text((500, 226), '0', front, ascii_wrapper),
+            'framerate': Text((512, 464), '', front, ascii_wrapper),
+            'debug?': Text((0, 464), '', front, ascii_wrapper),
+        }
+
+
+    def update(self):
+        for elem in self.items:
+            elem.update()
+
+        player_state = self.states[0]
+
+        self.labels['score'].set_text('%09d' % player_state.score)
+        self.labels['power'].set_text('%d' % player_state.power)
+        self.labels['graze'].set_text('%d' % player_state.graze)
+        self.labels['points'].set_text('%d' % player_state.points)
 
 
 

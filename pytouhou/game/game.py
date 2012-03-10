@@ -29,7 +29,7 @@ from pytouhou.game.effect import Particle
 class Game(object):
     def __init__(self, resource_loader, players, stage, rank, difficulty,
                  bullet_types, laser_types, item_types,
-                 nb_bullets_max=None, width=384, height=448, prng=None):
+                 nb_bullets_max=None, width=384, height=448, prng=None, interface=None):
         self.resource_loader = resource_loader
 
         self.width, self.height = width, height
@@ -48,6 +48,7 @@ class Game(object):
         self.players_bullets = []
         self.players_lasers = [None, None]
         self.items = []
+        self.interface = interface
 
         self.stage = stage
         self.rank = rank
@@ -187,7 +188,7 @@ class Game(object):
         self.update_bullets() # Pri 11
         for laser in self.lasers: #TODO: what priority is it?
             laser.update()
-        # Pri 12 is HUD
+        self.interface.update() # Pri 12
 
         # 4. Cleaning
         self.cleanup()
@@ -344,7 +345,7 @@ class Game(object):
         # Filter out-of-scren items
         items = []
         for item in self.items:
-            if item.y < 448:
+            if item.y < self.height:
                 items.append(item)
             else:
                 self.modify_difficulty(-3)
