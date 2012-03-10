@@ -101,6 +101,7 @@ class EoSDInterface(Game):
         self.height = 480
         self.game_pos = (32, 16)
 
+        self.highscore = 1000000 #TODO: read score.dat
         self.items = ([Effect((0, 32 * i), 6, front) for i in range(15)] +
                       [Effect((416 + 32 * i, 32 * j), 6, front) for i in range(7) for j in range(15)] +
                       [Effect((32 + 32 * i, 0), 7, front) for i in range(12)] +
@@ -129,7 +130,9 @@ class EoSDInterface(Game):
 
         player_state = self.states[0]
 
-        self.labels['score'].set_text('%09d' % player_state.score)
+        self.highscore = max(self.highscore, player_state.effective_score)
+        self.labels['highscore'].set_text('%09d' % self.highscore)
+        self.labels['score'].set_text('%09d' % player_state.effective_score)
         self.labels['power'].set_text('%d' % player_state.power)
         self.labels['graze'].set_text('%d' % player_state.graze)
         self.labels['points'].set_text('%d' % player_state.points)

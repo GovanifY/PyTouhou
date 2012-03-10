@@ -28,6 +28,7 @@ class PlayerState(object):
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
         self.score = score
+        self.effective_score = score
         self.lives = lives
         self.bombs = bombs
         self.power = power

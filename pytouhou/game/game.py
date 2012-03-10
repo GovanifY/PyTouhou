@@ -117,6 +117,8 @@ class Game(object):
         player = self.players[0] #TODO
         if _type > 6:
             return
+        if len(self.items) >= self.nb_bullets_max:
+            return #TODO: check
         item_type = self.item_types[_type]
         item = Item((x, y), _type, item_type, self, end_pos=end_pos)
         self.items.append(item)
@@ -233,6 +235,11 @@ class Game(object):
 
         for bullet in self.players_bullets:
             bullet.update()
+
+        #XXX: Why 78910? Is it really the right value?
+        player.state.effective_score = min(player.state.effective_score + 78910,
+                                           player.state.score)
+        #TODO: give extra lives to the player
 
 
     def update_effects(self):
