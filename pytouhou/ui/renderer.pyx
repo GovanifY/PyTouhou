@@ -24,7 +24,7 @@ from .sprite cimport get_sprite_rendering_data
 from .texture cimport TextureManager
 
 
-MAX_ELEMENTS = 10000
+MAX_ELEMENTS = 640*4*3
 
 
 cdef class Renderer:
@@ -47,6 +47,9 @@ cdef class Renderer:
         indices_by_texture = {}
 
         for element in elements:
+            if nb_vertices >= MAX_ELEMENTS - 4:
+                break
+
             sprite = element._sprite
             if sprite and sprite.visible:
                 ox, oy = element.x, element.y
