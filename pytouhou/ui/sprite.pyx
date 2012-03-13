@@ -21,7 +21,7 @@ from pytouhou.utils.matrix cimport Matrix
 cpdef object get_sprite_rendering_data(object sprite):
     cdef Matrix vertmat
 
-    if not sprite._changed:
+    if not sprite.changed:
         return sprite._rendering_data
 
     vertmat = Matrix([[-.5,     .5,     .5,    -.5],
@@ -70,7 +70,7 @@ cpdef object get_sprite_rendering_data(object sprite):
     r, g, b = sprite.color
     values = ((x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4)), uvs, [r, g, b, sprite.alpha] * 4
     sprite._rendering_data = key, values
-    sprite._changed = False
+    sprite.changed = False
 
     return sprite._rendering_data
 

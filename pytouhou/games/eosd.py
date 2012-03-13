@@ -109,7 +109,7 @@ class EoSDInterface(Game):
                       [Effect((0, 0), 5, front)] +
                       [Effect((0, 0), i, front) for i in range(5) + range(9, 16)])
         for item in self.items:
-            item._sprite.allow_dest_offset = True #XXX
+            item.sprite.allow_dest_offset = True #XXX
 
         self.labels = {
             'highscore': Text((500, 58), '0', front, ascii_wrapper),

@@ -26,14 +26,15 @@ class Enemy(object):
     def __init__(self, pos, life, _type, bonus_dropped, die_score, anm_wrapper, game):
         self._game = game
         self._anm_wrapper = anm_wrapper
-        self._sprite = None
-        self._anmrunner = None
-        self._removed = False
-        self._visible = True
         self._type = _type
-        self._bonus_dropped = bonus_dropped
-        self._die_score = die_score #TODO: use it
-        self._was_visible = False
+
+        self.sprite = None
+        self.anmrunner = None
+        self.removed = False
+        self.visible = True
+        self.was_visible = False
+        self.bonus_dropped = bonus_dropped
+        self.die_score = die_score #TODO: use it
 
         self.frame = 0
 
@@ -192,9 +193,9 @@ class Enemy(object):
 
 
     def set_anim(self, index):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
-        self._anmrunner.run_frame()
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(self._anm_wrapper, index, self.sprite)
+        self.anmrunner.run_frame()
 
 
     def die_anim(self):
@@ -244,9 +245,9 @@ class Enemy(object):
 
 
     def is_visible(self, screen_width, screen_height):
-        if self._sprite:
-            tx, ty, tw, th = self._sprite.texcoords
-            if self._sprite.corner_relative_placement:
+        if self.sprite:
+            tx, ty, tw, th = self.sprite.texcoords
+            if self.sprite.corner_relative_placement:
                 raise Exception #TODO
         else:
             tx, ty, tw, th = 0., 0., 0., 0.
@@ -381,15 +382,15 @@ class Enemy(object):
         self.x, self.y = x, y
 
         #TODO
-        if self._anmrunner and not self._anmrunner.run_frame():
-            self._anmrunner = None
+        if self.anmrunner and not self.anmrunner.run_frame():
+            self.anmrunner = None
 
-        if self._sprite and self._visible:
-            if self._sprite._removed:
-                self._sprite = None
+        if self.sprite and self.visible:
+            if self.sprite.removed:
+                self.sprite = None
             else:
-                self._sprite.update_orientation(self.angle,
-                                                self.automatic_orientation)
+                self.sprite.update_orientation(self.angle,
+                                               self.automatic_orientation)
 
 
         if self.bullet_launch_interval != 0:

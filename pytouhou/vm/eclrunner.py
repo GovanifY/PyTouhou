@@ -164,10 +164,10 @@ class ECLRunner(object):
             enm.die_anim()
 
             if death_flags < 4:
-                if enm._bonus_dropped > -1:
+                if enm.bonus_dropped > -1:
                     enm.drop_particles(7, 0)
-                    self._game.drop_bonus(enm.x, enm.y, enm._bonus_dropped)
-                elif enm._bonus_dropped == -1:
+                    self._game.drop_bonus(enm.x, enm.y, enm.bonus_dropped)
+                elif enm.bonus_dropped == -1:
                     if self._game.deaths_count % 3 == 0:
                         enm.drop_particles(10, 0)
                         self._game.drop_bonus(enm.x, enm.y, self._game.bonus_list[self._game.next_bonus])
@@ -179,7 +179,7 @@ class ECLRunner(object):
                     enm.drop_particles(4, 0)
 
                 if death_flags == 0:
-                    enm._removed = True
+                    enm.removed = True
                     return
 
                 if death_flags == 1:
@@ -214,7 +214,7 @@ class ECLRunner(object):
 
     def run_iteration(self):
         # First, if enemy is dead, return
-        if self._enemy._removed:
+        if self._enemy.removed:
             return False
 
         # Then, check for callbacks
@@ -309,7 +309,7 @@ class ECLRunner(object):
     @instruction(1)
     def destroy(self, arg):
         #TODO: arg?
-        self._enemy._removed = True
+        self._enemy.removed = True
 
 
     @instruction(2)
@@ -1103,17 +1103,17 @@ class ECLRunner(object):
 
     @instruction(128)
     def interrupt(self, event):
-        self._enemy._anmrunner.interrupt(event)
+        self._enemy.anmrunner.interrupt(event)
 
 
     @instruction(129)
     def interrupt_aux(self, number, event):
-        self._enemy.aux_anm[number]._anmrunner.interrupt(event)
+        self._enemy.aux_anm[number].anmrunner.interrupt(event)
 
 
     @instruction(132)
     def set_visible(self, value):
-        self._enemy._visible = not bool(value)
+        self._enemy.visible = not bool(value)
 
 
     @instruction(131)

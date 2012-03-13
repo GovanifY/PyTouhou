@@ -80,8 +80,8 @@ cdef class GameRenderer(Renderer):
             self.setup_camera(0, 0, 1)
 
             glDisable(GL_FOG)
-            self.render_elements(chain(*(enemy.objects() for enemy in game.enemies if enemy._visible)))
-            self.render_elements(enemy for enemy in game.enemies if enemy._visible)
+            self.render_elements(chain(*(enemy.objects() for enemy in game.enemies if enemy.visible)))
+            self.render_elements(enemy for enemy in game.enemies if enemy.visible)
             self.render_elements(game.effects)
             self.render_elements(chain(game.players_bullets,
                                        game.lasers_sprites(),

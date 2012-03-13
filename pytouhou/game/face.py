@@ -18,12 +18,12 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Face(object):
-    __slots__ = ('_anm_wrapper', '_sprite', '_anmrunner', 'side', 'x', 'y')
+    __slots__ = ('_anm_wrapper', 'sprite', 'anmrunner', 'side', 'x', 'y')
 
     def __init__(self, anm_wrapper, effect, side):
         self._anm_wrapper = anm_wrapper
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(anm_wrapper, side * 2, self._sprite)
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(anm_wrapper, side * 2, self.sprite)
         self.side = side
         self.load(0)
         self.animate(effect)
@@ -31,17 +31,18 @@ class Face(object):
         #FIXME: the same as game.effect.
         self.x = -32
         self.y = -16
-        self._sprite.allow_dest_offset = True
+        self.sprite.allow_dest_offset = True
 
 
     def animate(self, effect):
-        self._anmrunner.interrupt(effect)
+        self.anmrunner.interrupt(effect)
 
 
     def load(self, index):
-        self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(self.side * 8 + index)
-        self._anmrunner.run_frame()
+        self.sprite.anm, self.sprite.texcoords = self._anm_wrapper.get_sprite(self.side * 8 + index)
+        self.anmrunner.run_frame()
 
 
     def update(self):
-        self._anmrunner.run_frame()
+        self.anmrunner.run_frame()
+

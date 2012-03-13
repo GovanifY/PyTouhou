@@ -122,19 +122,19 @@ class ANMRenderer(pyglet.window.Window, Renderer):
             if modifiers & pyglet.window.key.MOD_SHIFT:
                 interrupt += 12
             if not self.sprites:
-                self._anmrunner.interrupt(interrupt)
+                self.anmrunner.interrupt(interrupt)
 
 
     def load(self, index=None):
         if index is None:
             index = self.num
-        self._sprite = Sprite()
+        self.sprite = Sprite()
         if self.sprites:
-            self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(index)
+            self.sprite.anm, self.sprite.texcoords = self._anm_wrapper.get_sprite(index)
             print('Loaded sprite %d' % index)
         else:
-            self._anmrunner = ANMRunner(self._anm_wrapper, index, self._sprite)
-            print('Loading anim %d, handled events: %r' % (index, self._anmrunner.script.interrupts.keys()))
+            self.anmrunner = ANMRunner(self._anm_wrapper, index, self.sprite)
+            print('Loading anim %d, handled events: %r' % (index, self.anmrunner.script.interrupts.keys()))
         self.num = index
 
 
@@ -169,13 +169,13 @@ class ANMRenderer(pyglet.window.Window, Renderer):
 
     def update(self):
         if not self.sprites:
-             self._anmrunner.run_frame()
+             self.anmrunner.run_frame()
 
         if self.force_allow_dest_offset:
-            self._sprite.allow_dest_offset = True
+            self.sprite.allow_dest_offset = True
 
         glClearColor(*self.clear_color)
         glClear(GL_COLOR_BUFFER_BIT)
-        if not self._sprite._removed:
+        if not self.sprite.removed:
             self.render_elements([self])
 

@@ -48,9 +48,9 @@ class PlayerState(object):
 
 class Player(object):
     def __init__(self, state, game, anm_wrapper):
-        self._sprite = None
-        self._anmrunner = None
         self._game = game
+        self.sprite = None
+        self.anmrunner = None
         self.anm_wrapper = anm_wrapper
 
         self.speeds = (self.sht.horizontal_vertical_speed,
@@ -86,9 +86,9 @@ class Player(object):
 
 
     def set_anim(self, index):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(self.anm_wrapper, index, self._sprite)
-        self._anmrunner.run_frame()
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(self.anm_wrapper, index, self.sprite)
+        self.anmrunner.run_frame()
 
 
     def collide(self):
@@ -193,11 +193,11 @@ class Player(object):
 
                 m = self.state.invulnerable_time % 8
                 if m == 0:
-                    self._sprite.color = (255, 255, 255)
-                    self._sprite._changed = True
+                    self.sprite.color = (255, 255, 255)
+                    self.sprite.changed = True
                 elif m == 2:
-                    self._sprite.color = (64, 64, 64)
-                    self._sprite._changed = True
+                    self.sprite.color = (64, 64, 64)
+                    self.sprite.changed = True
 
             if keystate & 1 and self.fire_time == 0:
                 self.fire_time = 30
@@ -224,31 +224,31 @@ class Player(object):
                                                    self._game.prng.rand_double() * 192 - 64))
 
             elif time == 7:
-                self._sprite.mirrored = False
-                self._sprite.blendfunc = 0
-                self._sprite.rescale = 0.75, 1.5
-                self._sprite.fade(26, 96, lambda x: x)
-                self._sprite.scale_in(26, 0.00, 2.5, lambda x: x)
+                self.sprite.mirrored = False
+                self.sprite.blendfunc = 0
+                self.sprite.rescale = 0.75, 1.5
+                self.sprite.fade(26, 96, lambda x: x)
+                self.sprite.scale_in(26, 0.00, 2.5, lambda x: x)
 
             elif time == 32:
                 self.state.x = float(self._game.width) / 2. #TODO
                 self.state.y = float(self._game.width) #TODO
                 self.direction = None
 
-                self._sprite = Sprite()
-                self._anmrunner = ANMRunner(self.anm_wrapper, 0, self._sprite)
-                self._sprite.alpha = 128
-                self._sprite.rescale = 0.0, 2.5
-                self._sprite.fade(30, 255, lambda x: x)
-                self._sprite.blendfunc = 1
-                self._sprite.scale_in(30, 1., 1., lambda x: x)
-                self._anmrunner.run_frame()
+                self.sprite = Sprite()
+                self.anmrunner = ANMRunner(self.anm_wrapper, 0, self.sprite)
+                self.sprite.alpha = 128
+                self.sprite.rescale = 0.0, 2.5
+                self.sprite.fade(30, 255, lambda x: x)
+                self.sprite.blendfunc = 1
+                self.sprite.scale_in(30, 1., 1., lambda x: x)
+                self.anmrunner.run_frame()
 
             elif time == 61: # respawned
                 self.state.touchable = True
                 self.state.invulnerable_time = 240
-                self._sprite.blendfunc = 0
-                self._sprite._changed = True
+                self.sprite.blendfunc = 0
+                self.sprite.changed = True
 
             if time > 30:
                 for bullet in self._game.bullets:
@@ -259,5 +259,5 @@ class Player(object):
             if time > 90: # start the bullet hell again
                 self.death_time = 0
 
-        self._anmrunner.run_frame()
+        self.anmrunner.run_frame()
 

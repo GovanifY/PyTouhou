@@ -17,7 +17,7 @@ from pytouhou.utils.interpolator import Interpolator
 
 
 class Sprite(object):
-    __slots__ = ('anm', '_removed', '_changed', 'width_override', 'height_override',
+    __slots__ = ('anm', 'removed', 'changed', 'width_override', 'height_override',
                  'angle', 'force_rotation', 'scale_interpolator', 'fade_interpolator',
                  'offset_interpolator', 'automatic_orientation', 'blendfunc',
                  'texcoords', 'dest_offset', 'allow_dest_offset', 'texoffsets',
@@ -26,8 +26,8 @@ class Sprite(object):
                  'color', 'alpha', 'visible', '_rendering_data')
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
-        self._removed = False
-        self._changed = True
+        self.removed = False
+        self.changed = True
         self.visible = True
 
         self.width_override = width_override
@@ -82,5 +82,5 @@ class Sprite(object):
         if (self.angle != angle_base or self.force_rotation != force_rotation):
             self.angle = angle_base
             self.force_rotation = force_rotation
-            self._changed = True
+            self.changed = True
 

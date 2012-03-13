@@ -25,7 +25,8 @@ cdef class Bullet(object):
     cdef public unsigned int _state, flags, frame, sprite_idx_offset
     cdef public double dx, dy, angle, speed #TODO
     cdef public object player_bullet, target
-    cdef public object _game, _sprite, _anmrunner, _removed, _bullet_type, _was_visible
+    cdef public object _game, _bullet_type
+    cdef public object sprite, anmrunner, removed, was_visible
     cdef public object attributes, damage, hitbox_half_size, speed_interpolator, grazed
     cdef public object x, y #TODO
 
@@ -33,12 +34,12 @@ cdef class Bullet(object):
                        angle, speed, attributes, flags, target, game,
                        player_bullet=False, damage=0, hitbox=None):
         self._game = game
-        self._sprite = None
-        self._anmrunner = None
-        self._removed = False
         self._bullet_type = bullet_type
-        self._was_visible = True
         self._state = LAUNCHING
+        self.sprite = None
+        self.anmrunner = None
+        self.removed = False
+        self.was_visible = True
 
         if hitbox:
             self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)
@@ -76,22 +77,22 @@ cdef class Bullet(object):
                 index = bullet_type.launch_anim8_index
                 launch_mult = bullet_type.launch_anim_penalties[2]
             self.dx, self.dy = self.dx * launch_mult, self.dy * launch_mult
-            self._sprite = Sprite()
-            self._anmrunner = ANMRunner(bullet_type.anm_wrapper,
-                                        index, self._sprite,
+            self.sprite = Sprite()
+            self.anmrunner = ANMRunner(bullet_type.anm_wrapper,
+                                        index, self.sprite,
                                         bullet_type.launch_anim_offsets[sprite_idx_offset])
-            self._anmrunner.run_frame()
+            self.anmrunner.run_frame()
         else:
             self.launch()
 
         if self.player_bullet:
-            self._sprite.angle = angle - pi
+            self.sprite.angle = angle - pi
         else:
-            self._sprite.angle = angle
+            self.sprite.angle = angle
 
 
     cpdef is_visible(Bullet self, screen_width, screen_height):
-        tx, ty, tw, th = self._sprite.texcoords
+        tx, ty, tw, th = self.sprite.texcoords
         x, y = self.x, self.y
 
         max_x = tw / 2.
@@ -110,14 +111,14 @@ cdef class Bullet(object):
             self.sprite_idx_offset = sprite_idx_offset
 
         bt = self._bullet_type
-        self._sprite = Sprite()
+        self.sprite = Sprite()
         if self.player_bullet:
-            self._sprite.angle = self.angle - pi
+            self.sprite.angle = self.angle - pi
         else:
-            self._sprite.angle = self.angle
-        self._anmrunner = ANMRunner(bt.anm_wrapper, bt.anim_index,
-                                    self._sprite, self.sprite_idx_offset)
-        self._anmrunner.run_frame()
+            self.sprite.angle = self.angle
+        self.anmrunner = ANMRunner(bt.anm_wrapper, bt.anim_index,
+                                   self.sprite, self.sprite_idx_offset)
+        self.anmrunner.run_frame()
 
 
     def launch(Bullet self):
@@ -137,14 +138,14 @@ cdef class Bullet(object):
     def cancel(Bullet self):
         # Cancel animation
         bt = self._bullet_type
-        self._sprite = Sprite()
+        self.sprite = Sprite()
         if self.player_bullet:
-            self._sprite.angle = self.angle - pi
+            self.sprite.angle = self.angle - pi
         else:
-            self._sprite.angle = self.angle
-        self._anmrunner = ANMRunner(bt.anm_wrapper, bt.cancel_anim_index,
-                                    self._sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
-        self._anmrunner.run_frame()
+            self.sprite.angle = self.angle
+        self.anmrunner = ANMRunner(bt.anm_wrapper, bt.cancel_anim_index,
+                                   self.sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
+        self.anmrunner.run_frame()
         self.dx, self.dy = self.dx / 2., self.dy / 2.
 
         # Change update method
@@ -159,14 +160,14 @@ cdef class Bullet(object):
 
 
     def update(Bullet self):
-        if self._anmrunner is not None and not self._anmrunner.run_frame():
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
             if self._state == LAUNCHING:
                 #TODO: check if it doesn't skip a frame
                 self.launch()
             elif self._state == CANCELLED:
-                self._removed = True
+                self.removed = True
             else:
-                self._anmrunner = None
+                self.anmrunner = None
 
         if self._state == LAUNCHING:
             pass
@@ -184,9 +185,9 @@ cdef class Bullet(object):
             self.dx += cos(angle) * length
             self.dy += sin(angle) * length
             self.speed = (self.dx ** 2 + self.dy ** 2) ** 0.5
-            self.angle = self._sprite.angle = atan2(self.dy, self.dx)
-            if self._sprite.automatic_orientation:
-                self._sprite._changed = True
+            self.angle = self.sprite.angle = atan2(self.dy, self.dx)
+            if self.sprite.automatic_orientation:
+                self.sprite.changed = True
             if self.frame == self.attributes[0]: #TODO: include last frame, or not?
                 self.flags &= ~16
         elif self.flags & 32:
@@ -197,9 +198,9 @@ cdef class Bullet(object):
             self.angle += angular_speed
             self.dx = cos(self.angle) * self.speed
             self.dy = sin(self.angle) * self.speed
-            self._sprite.angle = self.angle
-            if self._sprite.automatic_orientation:
-                self._sprite._changed = True
+            self.sprite.angle = self.angle
+            if self.sprite.automatic_orientation:
+                self.sprite.changed = True
             if self.frame == self.attributes[0]:
                 self.flags &= ~32
         elif self.flags & 448:
@@ -222,9 +223,9 @@ cdef class Bullet(object):
 
                     self.dx = cos(self.angle) * self.speed
                     self.dy = sin(self.angle) * self.speed
-                    self._sprite.angle = self.angle
-                    if self._sprite.automatic_orientation:
-                        self._sprite._changed = True
+                    self.sprite.angle = self.angle
+                    if self.sprite.automatic_orientation:
+                        self.sprite.changed = True
 
                 if count >= 0:
                     self.speed_interpolator = Interpolator((self.speed,), self.frame,
@@ -249,22 +250,22 @@ cdef class Bullet(object):
 
         # Filter out-of-screen bullets and handle special flags
         if self.flags & 448:
-            self._was_visible = False
+            self.was_visible = False
         elif self.is_visible(self._game.width, self._game.height):
-            self._was_visible = True
-        elif self._was_visible:
-            self._removed = True
+            self.was_visible = True
+        elif self.was_visible:
+            self.removed = True
             if self.flags & (1024 | 2048) and self.attributes[0] > 0:
                 # Bounce!
                 if self.x < 0 or self.x > self._game.width:
                     self.angle = pi - self.angle
-                    self._removed = False
+                    self.removed = False
                 if self.y < 0 or ((self.flags & 1024) and self.y > self._game.height):
                     self.angle = -self.angle
-                    self._removed = False
-                self._sprite.angle = self.angle
-                if self._sprite.automatic_orientation:
-                    self._sprite._changed = True
+                    self.removed = False
+                self.sprite.angle = self.angle
+                if self.sprite.automatic_orientation:
+                    self.sprite.changed = True
                 self.dx = cos(self.angle) * self.speed
                 self.dy = sin(self.angle) * self.speed
                 self.attributes[0] -= 1

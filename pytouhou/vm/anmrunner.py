@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 class ANMRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_anm_wrapper', '_sprite', '_running',
+    __slots__ = ('_anm_wrapper', '_sprite', 'running',
                  'sprite_index_offset',
                  'script', 'instruction_pointer', 'frame',
                  'waiting')
@@ -32,7 +32,7 @@ class ANMRunner(object):
     def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
         self._anm_wrapper = anm_wrapper
         self._sprite = sprite
-        self._running = True
+        self.running = True
         self.waiting = False
 
         anm, self.script = anm_wrapper.get_script(script_id)
@@ -56,12 +56,12 @@ class ANMRunner(object):
 
 
     def run_frame(self):
-        if not self._running:
+        if not self.running:
             return False
 
         sprite = self._sprite
 
-        while self._running and not self.waiting:
+        while self.running and not self.waiting:
             frame, opcode, args = self.script[self.instruction_pointer]
 
             if frame > self.frame:
@@ -76,7 +76,7 @@ class ANMRunner(object):
                     logger.warn('unhandled opcode %d (args: %r)', opcode, args)
                 else:
                     callback(self, *args)
-                    sprite._changed = True
+                    sprite.changed = True
 
         if not self.waiting:
             self.frame += 1
@@ -88,36 +88,36 @@ class ANMRunner(object):
             ax, ay, az = sprite.rotations_3d
             sax, say, saz = sprite.rotations_speed_3d
             sprite.rotations_3d = ax + sax, ay + say, az + saz
-            sprite._changed = True
+            sprite.changed = True
 
         if sprite.scale_speed != (0., 0.):
             rx, ry = sprite.rescale
             rsx, rsy = sprite.scale_speed
             sprite.rescale = rx + rsx, ry + rsy
-            sprite._changed = True
+            sprite.changed = True
 
         if sprite.fade_interpolator:
             sprite.fade_interpolator.update(sprite.frame)
             sprite.alpha = int(sprite.fade_interpolator.values[0])
-            sprite._changed = True
+            sprite.changed = True
 
         if sprite.scale_interpolator:
             sprite.scale_interpolator.update(sprite.frame)
             sprite.rescale = sprite.scale_interpolator.values
-            sprite._changed = True
+            sprite.changed = True
 
         if sprite.offset_interpolator:
             sprite.offset_interpolator.update(sprite.frame)
             sprite.dest_offset = sprite.offset_interpolator.values
-            sprite._changed = True
+            sprite.changed = True
 
-        return self._running
+        return self.running
 
 
     @instruction(0)
     def remove(self):
-        self._sprite._removed = True
-        self._running = False
+        self._sprite.removed = True
+        self.running = False
 
 
     @instruction(1)
@@ -185,7 +185,7 @@ class ANMRunner(object):
 
     @instruction(15)
     def keep_still(self):
-        self._running = False
+        self.running = False
 
     @instruction(16)
     def load_random_sprite(self, min_idx, amp):

@@ -22,35 +22,37 @@ from math import pi
 
 class Effect(object):
     def __init__(self, pos, index, anm_wrapper):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(anm_wrapper, index, self._sprite)
-        self._anmrunner.run_frame()
-        self._removed = False
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(anm_wrapper, index, self.sprite)
+        self.anmrunner.run_frame()
+        self.removed = False
 
         self.x, self.y = pos
 
 
     def update(self):
-        if self._anmrunner and not self._anmrunner.run_frame():
-            self._anmrunner = None
+        if self.anmrunner and not self.anmrunner.run_frame():
+            self.anmrunner = None
 
-        if self._sprite:
-            if self._sprite._removed:
-                self._sprite = None
+        if self.sprite:
+            if self.sprite.removed:
+                self.sprite = None
+
 
 
 class Particle(object):
     def __init__(self, start_pos, index, anm_wrapper, size, amp, game):
-        self._sprite = Sprite()
-        self._sprite.anm, self._sprite.texcoords = anm_wrapper.get_sprite(index)
         self._game = game
-        self._removed = False
+
+        self.sprite = Sprite()
+        self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
+        self.removed = False
 
         self.x, self.y = start_pos
         self.frame = 0
-        self._sprite.alpha = 128
-        self._sprite.blendfunc = 1
-        self._sprite.rescale = (size, size)
+        self.sprite.alpha = 128
+        self.sprite.blendfunc = 1
+        self.sprite.rescale = (size, size)
 
         self.pos_interpolator = None
         self.scale_interpolator = None
@@ -65,9 +67,9 @@ class Particle(object):
 
         self.pos_interpolator = Interpolator((self.x, self.y), 0,
                                              end_pos, 24, formula=(lambda x: 2. * x - x ** 2))
-        self.scale_interpolator = Interpolator(self._sprite.rescale, 0,
+        self.scale_interpolator = Interpolator(self.sprite.rescale, 0,
                                                (0., 0.), 24)
-        self.rotations_interpolator = Interpolator(self._sprite.rotations_3d, 0,
+        self.rotations_interpolator = Interpolator(self.sprite.rotations_3d, 0,
                                                    (0., 0., 2*pi), 24)
 
 
@@ -80,14 +82,15 @@ class Particle(object):
             self.x, self.y = self.pos_interpolator.values
 
             self.scale_interpolator.update(self.frame)
-            self._sprite.rescale = self.scale_interpolator.values
+            self.sprite.rescale = self.scale_interpolator.values
 
             self.rotations_interpolator.update(self.frame)
-            self._sprite.rotations_3d = self.rotations_interpolator.values
+            self.sprite.rotations_3d = self.rotations_interpolator.values
 
-            self._sprite._changed = True
+            self.sprite.changed = True
 
         if self.frame == 24:
-            self._removed = True
+            self.removed = True
 
         self.frame += 1
+

@@ -20,19 +20,19 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 class Glyph(object):
     def __init__(self, sprite, pos):
-        self._sprite = sprite
-        self._removed = False
+        self.sprite = sprite
+        self.removed = False
 
         self.x, self.y = pos
 
 
 class Text(object):
     def __init__(self, pos, text, front_wrapper, ascii_wrapper):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(front_wrapper, 22, self._sprite)
-        self._anmrunner.run_frame()
-        self._removed = False
-        self._changed = True
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(front_wrapper, 22, self.sprite)
+        self.anmrunner.run_frame()
+        self.removed = False
+        self.changed = True
 
         self.text = ''
         self.glyphes = []
@@ -63,16 +63,16 @@ class Text(object):
             self.glyphes[:] = self.glyphes[:len(text)]
 
         for glyph, character in zip(self.glyphes, text):
-            glyph._sprite.anm, glyph._sprite.texcoords = self.ascii_wrapper.get_sprite(ord(character) - 21)
-            glyph._sprite._changed = True
+            glyph.sprite.anm, glyph.sprite.texcoords = self.ascii_wrapper.get_sprite(ord(character) - 21)
+            glyph.sprite.changed = True
 
         self.text = text
-        self._changed = True
+        self.changed = True
 
 
     def update(self):
-        if self._changed:
-            if self._anmrunner and not self._anmrunner.run_frame():
-                self._anmrunner = None
-            self._changed = False
+        if self.changed:
+            if self.anmrunner and not self.anmrunner.run_frame():
+                self.anmrunner = None
+            self.changed = False
 

@@ -18,13 +18,13 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Orb(object):
-    __slots__ = ('_sprite', '_anmrunner', 'offset_x', 'offset_y', 'player_state',
+    __slots__ = ('sprite', 'anmrunner', 'offset_x', 'offset_y', 'player_state',
                  'fire')
 
     def __init__(self, anm_wrapper, index, player_state, fire_func):
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(anm_wrapper, index, self._sprite)
-        self._anmrunner.run_frame()
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(anm_wrapper, index, self.sprite)
+        self.anmrunner.run_frame()
 
         self.offset_x = 0
         self.offset_y = 0
@@ -44,4 +44,5 @@ class Orb(object):
 
 
     def update(self):
-        self._anmrunner.run_frame()
+        self.anmrunner.run_frame()
+

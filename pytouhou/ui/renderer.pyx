@@ -50,7 +50,7 @@ cdef class Renderer:
             if nb_vertices >= MAX_ELEMENTS - 4:
                 break
 
-            sprite = element._sprite
+            sprite = element.sprite
             if sprite and sprite.visible:
                 ox, oy = element.x, element.y
                 key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)

@@ -21,8 +21,8 @@ from pytouhou.utils.interpolator import Interpolator
 class Item(object):
     def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
         self._game = game
-        self._sprite = item_type.sprite
-        self._removed = False
+        self.sprite = item_type.sprite
+        self.removed = False
         self._type = _type
         self._item_type = item_type
 
@@ -45,7 +45,7 @@ class Item(object):
                 self.speed_interpolator = Interpolator((-2.,), 0,
                                                        (0.,), 60)
 
-        self._sprite.angle = angle
+        self.sprite.angle = angle
 
 
     def autocollect(self, player):
@@ -115,7 +115,7 @@ class Item(object):
             #TODO: display the score.
             player_state.score += score
 
-        self._removed = True
+        self.removed = True
 
 
     def update(self):

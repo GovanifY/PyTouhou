@@ -24,10 +24,10 @@ STARTING, STARTED, STOPPING = range(3)
 class LaserLaunchAnim(object):
     def __init__(self, laser, anm_wrapper, index):
         self._laser = laser
-        self._sprite = Sprite()
-        self._sprite.anm, self._sprite.texcoords = anm_wrapper.get_sprite(index)
-        self._sprite.blendfunc = 1
-        self._removed = False
+        self.sprite = Sprite()
+        self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
+        self.sprite.blendfunc = 1
+        self.removed = False
         self.x, self.y = 0, 0
 
 
@@ -41,11 +41,11 @@ class LaserLaunchAnim(object):
         self.y = laser.base_pos[1] + offset * dy
 
         scale = laser.width / 10. - (offset - laser.start_offset)
-        self._sprite.rescale = (scale, scale)
-        self._sprite._changed = True
+        self.sprite.rescale = (scale, scale)
+        self.sprite.changed = True
 
-        if laser._removed or scale <= 0.:
-            self._removed = True
+        if laser.removed or scale <= 0.:
+            self.removed = True
 
 
 
@@ -60,11 +60,11 @@ class Laser(object):
                                       laser_type.launch_anim_offsets[sprite_idx_offset]
                                       + laser_type.launch_sprite_idx)
         self._game.effects.append(launch_anim)
-        self._sprite = None
-        self._anmrunner = None
-        self._removed = False
         self._laser_type = laser_type
         self.state = STARTING
+        self.sprite = None
+        self.anmrunner = None
+        self.removed = False
 
         #TODO: hitbox
 
@@ -93,11 +93,11 @@ class Laser(object):
             self.sprite_idx_offset = sprite_idx_offset
 
         lt = self._laser_type
-        self._sprite = Sprite()
-        self._sprite.angle = self.angle
-        self._anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
-                                    self._sprite, self.sprite_idx_offset)
-        self._anmrunner.run_frame()
+        self.sprite = Sprite()
+        self.sprite.angle = self.angle
+        self.anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
+                                   self.sprite, self.sprite_idx_offset)
+        self.anmrunner.run_frame()
 
 
     def _check_collision(self, point, border_size):
@@ -158,8 +158,8 @@ class Laser(object):
 
 
     def update(self):
-        if self._anmrunner is not None and not self._anmrunner.run_frame():
-            self._anmrunner = None
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
+            self.anmrunner = None
 
         self.end_offset += self.speed
 
@@ -178,17 +178,17 @@ class Laser(object):
         if self.state == STOPPING:
             if self.frame == self.stop_duration:
                 width = 0.
-                self._removed = True
+                self.removed = True
             else:
                 width = self.width * (1. - float(self.frame) / self.stop_duration) #TODO
 
         offset = self.end_offset - length / 2.
         self.x, self.y = self.base_pos[0] + offset * cos(self.angle), self.base_pos[1] + offset * sin(self.angle)
-        self._sprite.width_override = width or 0.01 #TODO
-        self._sprite.height_override = length or 0.01 #TODO
+        self.sprite.width_override = width or 0.01 #TODO
+        self.sprite.height_override = length or 0.01 #TODO
 
-        self._sprite.update_orientation(pi/2. - self.angle, True)
-        self._sprite._changed = True #TODO
+        self.sprite.update_orientation(pi/2. - self.angle, True)
+        self.sprite.changed = True #TODO
 
         self.frame += 1
 
@@ -196,9 +196,9 @@ class Laser(object):
 class PlayerLaser(object):
     def __init__(self, laser_type, sprite_idx_offset, hitbox, damage,
                  angle, offset, duration, origin):
-        self._sprite = None
-        self._anmrunner = None
-        self._removed = False
+        self.sprite = None
+        self.anmrunner = None
+        self.removed = False
         self._laser_type = laser_type
         self.origin = origin
 
@@ -230,28 +230,28 @@ class PlayerLaser(object):
             self.sprite_idx_offset = sprite_idx_offset
 
         lt = self._laser_type
-        self._sprite = Sprite()
-        self._anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
-                                    self._sprite, self.sprite_idx_offset)
-        #self._sprite.blendfunc = 1 #XXX
-        self._anmrunner.run_frame()
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
+                                   self.sprite, self.sprite_idx_offset)
+        #self.sprite.blendfunc = 1 #XXX
+        self.anmrunner.run_frame()
 
 
     def cancel(self):
-        self._anmrunner.interrupt(1)
+        self.anmrunner.interrupt(1)
 
 
     def update(self):
-        if self._anmrunner is not None and not self._anmrunner.run_frame():
-            self._anmrunner = None
-            self._removed = True
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
+            self.anmrunner = None
+            self.removed = True
 
         length = self.origin.y
         if self.frame == self.duration:
             self.cancel()
 
-        self._sprite.height_override = length or 0.01 #TODO
-        self._sprite._changed = True #TODO
+        self.sprite.height_override = length or 0.01 #TODO
+        self.sprite.changed = True #TODO
 
         self.frame += 1
 

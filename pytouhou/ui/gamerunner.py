@@ -168,7 +168,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         gluOrtho2D(0., float(self.width), float(self.height), 0.)
         glViewport(0, 0, self.width, self.height)
 
-        items = [item for item in interface.items if item._anmrunner and item._anmrunner._running]
+        items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]
         labels = interface.labels
         if items:
             # Force rendering of labels
@@ -178,7 +178,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         else:
             self.render_elements(chain(*(label.objects()
                                             for label in labels.itervalues()
-                                                if label._changed)))
+                                                if label.changed)))
         for label in interface.labels.itervalues():
-            label._changed = False
+            label.changed = False
 

@@ -106,7 +106,7 @@ class Game(object):
 
     def enable_effect(self):
         self.effect = Effect((-32., -16.), 0, self.effect_anm_wrapper) #TODO: find why this offset is necessary.
-        self.effect._sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
+        self.effect.sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
 
 
     def disable_effect(self):
@@ -168,11 +168,11 @@ class Game(object):
             self.modify_difficulty(+100)
 
         # 2. Filter out destroyed enemies
-        self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
-        self.effects = [effect for effect in self.effects if not effect._removed]
-        self.bullets = [bullet for bullet in self.bullets if not bullet._removed]
-        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet._removed]
-        self.items = [item for item in self.items if not item._removed]
+        self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
+        self.effects = [effect for effect in self.effects if not effect.removed]
+        self.bullets = [bullet for bullet in self.bullets if not bullet.removed]
+        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet.removed]
+        self.items = [item for item in self.items if not item.removed]
 
 
         # 3. Let's play!
@@ -327,27 +327,27 @@ class Game(object):
         # Filter out non-visible enemies
         for enemy in self.enemies:
             if enemy.is_visible(self.width, self.height):
-                enemy._was_visible = True
-            elif enemy._was_visible:
+                enemy.was_visible = True
+            elif enemy.was_visible:
                 # Filter out-of-screen enemy
-                enemy._removed = True
+                enemy.removed = True
 
-        self.enemies = [enemy for enemy in self.enemies if not enemy._removed]
+        self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
 
         # Filter out-of-scren bullets
         self.bullets = [bullet for bullet in self.bullets
-                            if not bullet._removed]
+                            if not bullet.removed]
         self.players_bullets = [bullet for bullet in self.players_bullets
-                            if not bullet._removed]
+                            if not bullet.removed]
         for i, laser in enumerate(self.players_lasers):
-            if laser and laser._removed:
+            if laser and laser.removed:
                 self.players_lasers[i] = None
         self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
-                            if not bullet._removed]
-        self.effects = [effect for effect in self.effects if not effect._removed]
+                            if not bullet.removed]
+        self.effects = [effect for effect in self.effects if not effect.removed]
 
         # Filter “timed-out” lasers
-        self.lasers = [laser for laser in self.lasers if not laser._removed]
+        self.lasers = [laser for laser in self.lasers if not laser.removed]
 
         # Filter out-of-scren items
         items = []
@@ -359,6 +359,6 @@ class Game(object):
         self.items = items
 
         # Disable boss mode if it is dead/it has timeout
-        if self.boss and self.boss._enemy._removed:
+        if self.boss and self.boss._enemy.removed:
             self.boss = None
 
