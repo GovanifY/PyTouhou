@@ -108,13 +108,10 @@ class ECLMainRunner(object):
     @instruction(10)
     def resume_ecl(self, sub, instr_type, unk1, unk2):
         boss = self._game.boss
-        enemy = boss._enemy
         self._game.msg_wait = False
-        if enemy.boss_callback:
-            boss.frame = 0
-            boss.sub = enemy.boss_callback
-            boss.instruction_pointer = 0
-            enemy.boss_callback = None
+        if boss._enemy.boss_callback > -1:
+            boss.switch_to_sub(boss._enemy.boss_callback)
+            boss._enemy.boss_callback = -1
         else:
             raise Exception #TODO
 
@@ -142,9 +139,7 @@ class ECLRunner(object):
                           0., 0., 0., 0.,
                           0,  0,  0,  0]
         self.comparison_reg = 0
-        self.sub = sub
-        self.frame = 0
-        self.instruction_pointer = 0
+        self.switch_to_sub(sub)
 
         self.stack = []
 
@@ -839,9 +834,7 @@ class ECLRunner(object):
             elif proc._enemy.death_callback > 0:
                 #TODO: check
                 #TODO: refactor
-                proc.frame = 0
-                proc.instruction_pointer = 0
-                proc.sub = proc._enemy.death_callback
+                self.switch_to_sub(proc._enemy.death_callback)
                 proc._enemy.death_callback = -1
 
 

@@ -53,7 +53,7 @@ class Enemy(object):
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
         self.death_callback = -1
-        self.boss_callback = None
+        self.boss_callback = -1
         self.low_life_callback = -1
         self.low_life_trigger = None
         self.timeout = -1
