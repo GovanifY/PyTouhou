@@ -23,8 +23,6 @@ from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
 from pytouhou.game.text import Text
 
-from math import pi
-
 
 SQ2 = 2. ** 0.5 / 2.
 

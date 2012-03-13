@@ -23,10 +23,7 @@ replay file is sufficient to unfold a full game.
 from struct import unpack
 from io import BytesIO
 
-from pytouhou.utils.random import Random
-from pytouhou.utils.helpers import read_string
-
-from pytouhou.utils.helpers import get_logger
+from pytouhou.utils.helpers import read_string, get_logger
 
 logger = get_logger(__name__)
 

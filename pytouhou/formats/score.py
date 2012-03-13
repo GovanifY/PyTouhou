@@ -13,7 +13,7 @@
 ##
 
 
-from struct import pack, unpack, calcsize, Struct
+from struct import pack, unpack, Struct
 from collections import namedtuple
 from io import BytesIO
 

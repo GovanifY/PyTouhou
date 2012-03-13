@@ -12,8 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-from itertools import chain
-
 from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner

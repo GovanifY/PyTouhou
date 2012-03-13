@@ -138,12 +138,8 @@ class SHT(object):
         pe_file = PEFile(file)
         data_section = [section for section in pe_file.sections
                             if section.Name.startswith('.data')][0]
-        text_section = [section for section in pe_file.sections
-                            if section.Name.startswith('.text')][0]
         data_va = pe_file.image_base + data_section.VirtualAddress
         data_size = data_section.SizeOfRawData
-        text_va = pe_file.image_base + text_section.VirtualAddress
-        text_size = text_section.SizeOfRawData
 
         possible_character_records = list(cls.find_character_defs(pe_file))
         if not possible_character_records:
