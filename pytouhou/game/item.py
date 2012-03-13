@@ -21,10 +21,10 @@ from pytouhou.utils.interpolator import Interpolator
 class Item(object):
     def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
         self._game = game
+        self._item_type = item_type
         self.sprite = item_type.sprite
         self.removed = False
         self._type = _type
-        self._item_type = item_type
 
         self.frame = 0
         self.x, self.y = start_pos

@@ -27,13 +27,13 @@ class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_ecl', '_game', 'processes', 'frame',
                  'instruction_pointer',
-                 'time_stopped')
+                 'boss_wait')
 
     def __init__(self, ecl, game):
         self._ecl = ecl
         self._game = game
         self.frame = 0
-        self.time_stopped = False
+        self.boss_wait = False
 
         self.processes = []
 
@@ -42,7 +42,7 @@ class ECLMainRunner(object):
 
     def run_iter(self):
         if not self._game.boss:
-            self.time_stopped = False
+            self.boss_wait = False
 
         while True:
             try:
@@ -51,7 +51,7 @@ class ECLMainRunner(object):
                 break
 
             # The msg_wait instruction stops the reading of the ECL, not just the frame incrementation.
-            if frame > self.frame or self._game.msg_wait or self.time_stopped:
+            if frame > self.frame or self._game.msg_wait or self.boss_wait:
                 break
             else:
                 self.instruction_pointer += 1
@@ -67,7 +67,7 @@ class ECLMainRunner(object):
         self.processes[:] = (process for process in self.processes
                                                 if process.run_iteration())
 
-        if not (self._game.msg_wait or self.time_stopped):
+        if not (self._game.msg_wait or self.boss_wait):
             self.frame += 1
 
 
@@ -120,8 +120,8 @@ class ECLMainRunner(object):
 
 
     @instruction(12)
-    def stop_time(self, sub, instr_type):
-        self.time_stopped = True
+    def wait_for_boss_death(self, sub, instr_type):
+        self.boss_wait = True
 
 
 
@@ -808,7 +808,7 @@ class ECLRunner(object):
         #TODO: make the enemies more resistants (and find how).
         self._game.change_bullets_into_star_items()
         self._game.spellcard = (number, name)
-        self._game.enable_effect()
+        self._game.enable_spellcard_effect()
 
 
     @instruction(94)
@@ -818,7 +818,7 @@ class ECLRunner(object):
         if self._game.spellcard:
             self._game.change_bullets_into_star_items()
         self._game.spellcard = None
-        self._game.disable_effect()
+        self._game.disable_spellcard_effect()
 
 
     @instruction(95)

@@ -70,8 +70,8 @@ class Game(object):
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runner = ECLMainRunner(ecl, self)
 
-        self.effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
-        self.effect = None
+        self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
+        self.spellcard_effect = None
 
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
@@ -102,13 +102,14 @@ class Game(object):
             self.difficulty = self.difficulty_max
 
 
-    def enable_effect(self):
-        self.effect = Effect((-32., -16.), 0, self.effect_anm_wrapper) #TODO: find why this offset is necessary.
-        self.effect.sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
+    def enable_spellcard_effect(self):
+        self.spellcard_effect = Effect((-32., -16.), 0,
+                                       self.spellcard_effect_anm_wrapper) #TODO: find why this offset is necessary.
+        self.spellcard_effect.sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
 
 
-    def disable_effect(self):
-        self.effect = None
+    def disable_spellcard_effect(self):
+        self.spellcard_effect = None
 
 
     def drop_bonus(self, x, y, _type, end_pos=None):
@@ -178,7 +179,7 @@ class Game(object):
         # We have to mimic this functionnality to be replay-compatible with the official game.
 
         # Pri 6 is background
-        self.update_effect() #TODO: Pri unknown
+        self.update_background() #TODO: Pri unknown
         if self.msg_runner:
             self.update_msg(keystate) # Pri ?
             keystate &= ~3 # Remove the ability to attack (keystates 1 and 2).
@@ -196,11 +197,12 @@ class Game(object):
         self.frame += 1
 
 
-    def update_effect(self):
+    def update_background(self):
         if self.time_stop:
             return None
-        if self.effect is not None:
-            self.effect.update()
+        if self.spellcard_effect is not None:
+            self.spellcard_effect.update()
+        #TODO: update the actual background here?
 
 
     def update_enemies(self):

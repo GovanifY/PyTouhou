@@ -45,11 +45,11 @@ cdef class GameRenderer(Renderer):
         game = self.game
         texture_manager = self.texture_manager
 
-        if game is not None and game.effect is not None:
+        if game is not None and game.spellcard_effect is not None:
             self.setup_camera(0, 0, 1)
 
             glDisable(GL_FOG)
-            self.render_elements([game.effect])
+            self.render_elements([game.spellcard_effect])
             glEnable(GL_FOG)
         elif back is not None:
             fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
