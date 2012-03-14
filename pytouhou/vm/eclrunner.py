@@ -1059,7 +1059,6 @@ class ECLRunner(object):
                                           0, 0, 0, offset=(ox, oy))
                 else:
                     self._enemy.fire(offset=(ox, oy))
-
         elif function == 8: # Remilia’s magic
             bullet_attributes = [70, 1, 1, 1, 1, 0., 0., 0., 0.7, 0]
             n = 0
@@ -1071,6 +1070,16 @@ class ECLRunner(object):
                 self._enemy.fire(launch_pos=(bullet.x, bullet.y),
                                  bullet_attributes=bullet_attributes)
             self._setval(-10004, n)
+        elif function == 11:
+            self._game.new_effect((self._enemy.x, self._enemy.y), 17)
+            self._game.prng.rand_double() #TODO: what is it for?
+            for bullet in self._game.bullets: #TODO Bullet order is WRONG
+                if bullet._bullet_type.anim_index < 5 and bullet.speed == 0.:
+                    bullet.flags = 16 #TODO: check
+                    angle = pi + self._game.prng.rand_double() * 2. * pi
+                    bullet.attributes[4:6] = [0.01, angle] #TODO: check
+                    bullet.attributes[0] = -1 #TODO: check
+                    bullet.set_anim(sprite_idx_offset=1) #TODO: check
         elif function == 13:
             if self._enemy.bullet_attributes is None:
                 return
