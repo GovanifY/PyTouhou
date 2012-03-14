@@ -211,7 +211,7 @@ cdef class Bullet(object):
                 count = count - 1
 
                 if self.frame != 0:
-                    self.speed = speed
+                    self.speed = self.speed if speed < -900 else speed
 
                     if self.flags & 64:
                         self.angle += angle
@@ -239,9 +239,9 @@ cdef class Bullet(object):
 
         if self.speed_interpolator:
             self.speed_interpolator.update(self.frame)
-            self.speed, = self.speed_interpolator.values
-            self.dx = cos(self.angle) * self.speed
-            self.dy = sin(self.angle) * self.speed
+            speed, = self.speed_interpolator.values
+            self.dx = cos(self.angle) * speed
+            self.dy = sin(self.angle) * speed
 
         self.x += self.dx
         self.y += self.dy
