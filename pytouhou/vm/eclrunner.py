@@ -1063,7 +1063,7 @@ class ECLRunner(object):
             bullet_attributes = [70, 1, 1, 1, 1, 0., 0., 0., 0.7, 0]
             n = 0
             for bullet in self._game.bullets:
-                if bullet._bullet_type.anim_index < 5:
+                if bullet._bullet_type.type_id < 5:
                     continue
                 n += 1
                 bullet_attributes[8] = bullet.angle
@@ -1074,7 +1074,7 @@ class ECLRunner(object):
             self._game.new_effect((self._enemy.x, self._enemy.y), 17)
             self._game.prng.rand_double() #TODO: what is it for?
             for bullet in self._game.bullets: #TODO Bullet order is WRONG
-                if bullet._bullet_type.anim_index < 5 and bullet.speed == 0.:
+                if bullet._bullet_type.type_id < 5 and bullet.speed == 0.:
                     bullet.flags = 16 #TODO: check
                     angle = pi + self._game.prng.rand_double() * 2. * pi
                     bullet.attributes[4:6] = [0.01, angle] #TODO: check
