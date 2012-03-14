@@ -168,8 +168,9 @@ class Enemy(object):
     def new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
                   start_offset, end_offset, max_length, width,
                   start_duration, duration, end_duration,
-                  grazing_delay, grazing_extra_duration, unknown):
-        ox, oy = self.bullet_launch_offset
+                  grazing_delay, grazing_extra_duration, unknown,
+                  offset=None):
+        ox, oy = offset or self.bullet_launch_offset
         launch_pos = self.x + ox, self.y + oy
         if variant == 86:
             angle += self.get_player_angle(self.select_player(), launch_pos)

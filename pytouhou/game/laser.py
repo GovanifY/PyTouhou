@@ -40,7 +40,7 @@ class LaserLaunchAnim(object):
         self.x = laser.base_pos[0] + offset * dx
         self.y = laser.base_pos[1] + offset * dy
 
-        scale = laser.width / 10. - (offset - laser.start_offset)
+        scale = laser.width / 10. - (offset - laser.start_offset) #TODO: check
         self.sprite.rescale = (scale, scale)
         self.sprite.changed = True
 

@@ -1019,6 +1019,47 @@ class ECLRunner(object):
                 self._game.time_stop = True
             else:
                 self._game.time_stop = False
+        elif function == 7: # Remilia’s laser webs
+            base_angle = self._game.prng.rand_double() * 2 * pi
+            for i in xrange(16):
+                delta = [+pi / 4., -pi / 4.][i % 2]
+                ox, oy = self._enemy.bullet_launch_offset
+                length = 32. #TODO: check
+
+                # Inner circle
+                angle = base_angle + i * pi / 8.
+                ox, oy = ox + cos(angle) * length, oy + sin(angle) * length
+                length = 112. #TODO: check
+                if arg == 0:
+                    self._enemy.new_laser(85, 1, 1, angle, 0., 0., length, length, 30.,
+                                          100, 80, 15, #TODO: check
+                                          0, 0, 0, offset=(ox, oy))
+                else:
+                    self._enemy.fire(offset=(ox, oy))
+
+                # Middle circle
+                ox, oy = ox + cos(angle) * length, oy + sin(angle) * length
+                angle += delta
+
+                if arg == 0:
+                    self._enemy.new_laser(85, 1, 1, angle, 0., 0., length, length, 30.,
+                                          100, 80, 15, #TODO: check
+                                          0, 0, 0, offset=(ox, oy))
+                else:
+                    self._enemy.fire(offset=(ox, oy))
+
+                # Outer circle
+                ox, oy = ox + cos(angle) * length, oy + sin(angle) * length
+                angle += delta
+                length = 400. #TODO: check
+
+                if arg == 0:
+                    self._enemy.new_laser(85, 1, 1, angle, 0., 0., length, length, 30.,
+                                          100, 80, 15, #TODO: check
+                                          0, 0, 0, offset=(ox, oy))
+                else:
+                    self._enemy.fire(offset=(ox, oy))
+
         elif function == 8: # Remilia’s magic
             bullet_attributes = [70, 1, 1, 1, 1, 0., 0., 0., 0.7, 0]
             n = 0
