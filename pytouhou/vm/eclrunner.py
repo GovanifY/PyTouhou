@@ -13,7 +13,7 @@
 ##
 
 
-from math import atan2, cos, sin, pi
+from math import atan2, cos, sin, pi, hypot
 
 from pytouhou.utils.helpers import get_logger
 
@@ -1070,6 +1070,18 @@ class ECLRunner(object):
                 self._enemy.fire(launch_pos=(bullet.x, bullet.y),
                                  bullet_attributes=bullet_attributes)
             self._setval(-10004, n)
+        elif function == 9:
+            self._game.new_effect((self._enemy.x, self._enemy.y), 17)
+            base_angle = pi + 2. * self._game.prng.rand_double() * pi
+            for bullet in self._game.bullets:
+                if bullet._bullet_type.type_id < 5 and bullet.speed == 0.:
+                    bullet.flags = 16 #TODO: check
+                    distance = hypot(bullet.x - self._enemy.x, bullet.y - self._enemy.y)
+                    angle = base_angle
+                    angle += distance /80. #TODO: This is most probably wrong
+                    bullet.attributes[4:6] = [0.01, angle] #TODO: check
+                    bullet.attributes[0] = -1 #TODO: check
+                    bullet.set_anim(sprite_idx_offset=1) #TODO: check
         elif function == 11:
             self._game.new_effect((self._enemy.x, self._enemy.y), 17)
             self._game.prng.rand_double() #TODO: what is it for?
