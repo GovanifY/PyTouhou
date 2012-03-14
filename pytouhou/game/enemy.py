@@ -137,8 +137,6 @@ class Enemy(object):
 
         if type_ in (67, 69, 71):
             launch_angle += self.get_player_angle(player, launch_pos)
-        if type_ in (69, 70, 71, 74):
-            angle = 2. * pi / bullets_per_shot
         if type_ == 71 and bullets_per_shot % 2 or type_ in (69, 70) and not bullets_per_shot % 2:
             launch_angle += pi / bullets_per_shot
         if type_ != 75:
@@ -150,6 +148,8 @@ class Enemy(object):
         for shot_nb in range(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
             bullet_angle = launch_angle
+            if type_ in (69, 70, 71, 74):
+                launch_angle += angle
             for bullet_nb in range(bullets_per_shot):
                 if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                     break
@@ -162,7 +162,11 @@ class Enemy(object):
                                       bullet_angle, shot_speed,
                                       self.extended_bullet_attributes,
                                       flags, player, self._game))
-                bullet_angle += angle
+
+                if type_ in (69, 70, 71, 74):
+                    bullet_angle += 2. * pi / bullets_per_shot
+                else:
+                    bullet_angle += angle
 
 
     def new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
