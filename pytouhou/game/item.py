@@ -14,21 +14,42 @@
 
 
 from math import cos, sin, atan2, pi
+from copy import copy
 
 from pytouhou.utils.interpolator import Interpolator
+
+
+class Indicator(object):
+    def __init__(self, item):
+        self._item = item
+
+        self.sprite = copy(item._item_type.indicator_sprite)
+        self.removed = False
+
+        self.frame = 0
+        self.x = self._item.x
+        self.y = self.sprite.texcoords[2] / 2.
+
+
+    def update(self):
+        #TODO: alpha
+        self.x = self._item.x
+        self.frame += 1
+
 
 
 class Item(object):
     def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
         self._game = game
+        self._type = _type
         self._item_type = item_type
         self.sprite = item_type.sprite
         self.removed = False
-        self._type = _type
 
         self.frame = 0
         self.x, self.y = start_pos
         self.angle = angle
+        self.indicator = None
 
         if player:
             self.autocollect(player)
@@ -136,6 +157,15 @@ class Item(object):
             dx, dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
             self.x += dx
             self.y += dy
+
+        offscreen = self.y < -(self.sprite.texcoords[2] / 2.)
+        if offscreen:
+            self.indicator = self.indicator or Indicator(self)
+        else:
+            self.indicator = None
+
+        if self.indicator:
+            self.indicator.update()
 
         self.frame += 1
 

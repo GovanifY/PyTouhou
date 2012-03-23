@@ -88,7 +88,9 @@ cdef class GameRenderer(Renderer):
                                        game.players,
                                        game.msg_sprites(),
                                        *(player.objects() for player in game.players)))
-            self.render_elements(chain(game.bullets, game.lasers, game.cancelled_bullets, game.items))
+            self.render_elements(chain(game.bullets, game.lasers,
+                                       game.cancelled_bullets, game.items,
+                                       (item.indicator for item in game.items if item.indicator)))
             #TODO: display item indicators
             glEnable(GL_FOG)
 
