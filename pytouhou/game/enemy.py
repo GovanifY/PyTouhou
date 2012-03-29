@@ -28,6 +28,7 @@ class Enemy(object):
         self._anm_wrapper = anm_wrapper
         self._type = _type
 
+        self.process = None
         self.sprite = None
         self.anmrunner = None
         self.removed = False
@@ -340,6 +341,9 @@ class Enemy(object):
 
 
     def update(self):
+        if self.process:
+            self.process.run_iteration()
+
         x, y = self.x, self.y
 
         if self.update_mode == 1:

@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_game', 'processes', 'frame',
+    __slots__ = ('_ecl', '_game', 'frame',
                  'instruction_pointer',
                  'boss_wait')
 
@@ -34,8 +34,6 @@ class ECLMainRunner(object):
         self._game = game
         self.frame = 0
         self.boss_wait = False
-
-        self.processes = []
 
         self.instruction_pointer = 0
 
@@ -64,9 +62,6 @@ class ECLMainRunner(object):
                 else:
                     callback(self, sub, instr_type, *args)
 
-        self.processes[:] = (process for process in self.processes
-                                                if process.run_iteration())
-
         if not (self._game.msg_wait or self.boss_wait):
             self.frame += 1
 
@@ -79,10 +74,10 @@ class ECLMainRunner(object):
                 y = self._game.prng.rand_double() * 416
             if z < -990: #102h.exe@0x411881
                 z = self._game.prng.rand_double() * 800
-        enemy = self._game.new_enemy((x, y, z), life, instr_type, bonus_dropped, die_score)
-        process = ECLRunner(self._ecl, sub, enemy, self._game)
-        self.processes.append(process)
-        process.run_iteration()
+        enemy = self._game.new_enemy((x, y, z), life, instr_type,
+                                     bonus_dropped, die_score)
+        enemy.process = ECLRunner(self._ecl, sub, enemy, self._game) #TODO
+        enemy.process.run_iteration()
 
 
     @instruction(0)
@@ -126,13 +121,16 @@ class ECLMainRunner(object):
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_ecl', '_enemy', '_game', 'variables', 'sub', 'frame',
-                 'instruction_pointer', 'comparison_reg', 'stack')
+                 'instruction_pointer', 'comparison_reg', 'stack',
+                 'running')
 
     def __init__(self, ecl, sub, enemy, game):
         # Things not supposed to change
         self._ecl = ecl
         self._enemy = enemy
         self._game = game
+
+        self.running = True
 
         # Things supposed to change (and be put in the stack)
         self.variables = [0,  0,  0,  0,
@@ -145,6 +143,7 @@ class ECLRunner(object):
 
 
     def switch_to_sub(self, sub):
+        self.running = True
         self.frame = 0
         self.sub = sub
         self.instruction_pointer = 0
@@ -207,20 +206,15 @@ class ECLRunner(object):
             else:
                 raise Exception('What the hell, man!')
 
+
     def run_iteration(self):
-        # First, if enemy is dead, return
-        if self._enemy.removed:
-            return False
-
-        # Then, check for callbacks
-        self.handle_callbacks()
-
-        # Now, process script
-        while True:
+        # Process script
+        while self.running:
             try:
                 frame, instr_type, rank_mask, param_mask, args = self._ecl.subs[self.sub][self.instruction_pointer]
             except IndexError:
-                return False
+                self.running = False
+                break
 
             if frame > self.frame:
                 break
@@ -240,7 +234,9 @@ class ECLRunner(object):
                     logger.debug('executed opcode %d (args: %r)', instr_type, args)
 
         self.frame += 1
-        return True
+
+        # Handle callbacks
+        self.handle_callbacks()
 
 
     def _getval(self, value):
@@ -826,16 +822,15 @@ class ECLRunner(object):
 
     @instruction(96)
     def kill_enemies(self):
-        for proc in self._game.ecl_runner.processes:
-            if proc._enemy.boss:
+        for enemy in self._game.enemies:
+            if enemy.boss:
                 pass # Bosses are immune to 96
-            elif proc._enemy.touchable:
-                proc._enemy.life = 0
-            elif proc._enemy.death_callback > 0:
+            elif enemy.touchable:
+                enemy.life = 0
+            elif enemy.death_callback > 0:
                 #TODO: check
-                #TODO: refactor
-                self.switch_to_sub(proc._enemy.death_callback)
-                proc._enemy.death_callback = -1
+                enemy.process.switch_to_sub(enemy.death_callback)
+                enemy.death_callback = -1
 
 
     @instruction(97)

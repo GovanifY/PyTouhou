@@ -163,10 +163,12 @@ class Game(object):
     def run_iter(self, keystate):
         # 1. VMs.
         self.ecl_runner.run_iter()
+
+        # 2. Modify difficulty
         if self.frame % (32*60) == (32*60): #TODO: check if that is really that frame.
             self.modify_difficulty(+100)
 
-        # 2. Filter out destroyed enemies
+        # 3. Filter out destroyed enemies
         self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
         self.effects = [effect for effect in self.effects if not effect.removed]
         self.bullets = [bullet for bullet in self.bullets if not bullet.removed]
@@ -174,7 +176,7 @@ class Game(object):
         self.items = [item for item in self.items if not item.removed]
 
 
-        # 3. Let's play!
+        # 4. Let's play!
         # In the original game, updates are done in prioritized functions called "chains"
         # We have to mimic this functionnality to be replay-compatible with the official game.
 
@@ -191,7 +193,7 @@ class Game(object):
             laser.update()
         self.interface.update() # Pri 12
 
-        # 4. Cleaning
+        # 5. Clean up
         self.cleanup()
 
         self.frame += 1
