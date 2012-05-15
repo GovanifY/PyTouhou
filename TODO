@@ -1,0 +1,52 @@
+Engine
+- homing bullets
+- MSG texts
+- boss OSD
+- music
+- bombs
+- vm END
+- score display
+- stage change in story mode
+- update score.dat and disallow the launch of locked stages
+
+- Cirno’s last spell, killed before even starting it
+- Meiling’s rainbow in normal, doesn’t look like it should
+- Meiling’s blue/red thing, should be directed toward the player?
+- slowdowns with the three maid fairies just before Patchouli
+- Patchouli’s spellcard background
+- Patchouli’s [MarisaB] yellow bullets change direction too abruptly
+- Patchouli’s red bullets don’t “explode” in four
+- Patchouli’s yellow big bullets too quick (?) and star bonus outside of the screen
+- Sakuya’s knife manipulation during time freeze
+- look at the the last spellcard of Remi
+- huge slowdowns with the spamming fairies of extra
+- Patchouli’s books are too agressive
+- Flandre’s QED is impossible
+
+ECL
+- fix 77 interval
+- 118 and 102
+- 121
+ * 12
+ * 14
+- 122
+ * 2, for Meiling, meaning and implementation
+ * 5, implementation
+ * 6, implementation
+ * 10, meaning and implementation
+ * 15, implementation
+- 125
+- 127
+- 130
+- 133
+- 134
+- 135
+
+ANM
+- 31
+
+MSG
+- 0
+- 12
+- 14
+- fix the end
