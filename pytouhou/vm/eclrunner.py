@@ -149,64 +149,6 @@ class ECLRunner(object):
         self.instruction_pointer = 0
 
 
-    def handle_callbacks(self):
-        #TODO: implement missing callbacks and clean up!
-        enm = self._enemy
-        if enm.life <= 0 and enm.touchable:
-            death_flags = enm.death_flags & 7
-
-            enm.die_anim()
-
-            if death_flags < 4:
-                if enm.bonus_dropped > -1:
-                    enm.drop_particles(7, 0)
-                    self._game.drop_bonus(enm.x, enm.y, enm.bonus_dropped)
-                elif enm.bonus_dropped == -1:
-                    if self._game.deaths_count % 3 == 0:
-                        enm.drop_particles(10, 0)
-                        self._game.drop_bonus(enm.x, enm.y, self._game.bonus_list[self._game.next_bonus])
-                        self._game.next_bonus = (self._game.next_bonus + 1) % 32
-                    else:
-                        enm.drop_particles(4, 0)
-                    self._game.deaths_count += 1
-                else:
-                    enm.drop_particles(4, 0)
-
-                if death_flags == 0:
-                    enm.removed = True
-                    return
-
-                if death_flags == 1:
-                    enm.touchable = False
-                elif death_flags == 2:
-                    pass # Just that?
-                elif death_flags == 3:
-                    #TODO: disable boss mode
-                    enm.damageable = False
-                    enm.life = 1
-                    enm.death_flags = 0
-
-            if death_flags != 0 and enm.death_callback > -1:
-                self.switch_to_sub(enm.death_callback)
-                enm.death_callback = -1
-        elif enm.life <= enm.low_life_trigger and enm.low_life_callback > -1:
-            self.switch_to_sub(enm.low_life_callback)
-            enm.low_life_callback = -1
-        elif enm.timeout != -1 and enm.frame == enm.timeout:
-            enm.frame = 0
-            if enm.timeout_callback > -1:
-                self.switch_to_sub(enm.timeout_callback)
-                enm.timeout_callback = -1
-            elif enm.touchable:
-                enm.life = 0
-            elif enm.death_callback > -1:
-                self.switch_to_sub(enm.death_callback)
-                enm.death_callback = -1
-                enm.timeout = -1 #TODO: check
-            else:
-                raise Exception('What the hell, man!')
-
-
     def run_iteration(self):
         # Process script
         while self.running:
@@ -234,9 +176,6 @@ class ECLRunner(object):
                     logger.debug('executed opcode %d (args: %r)', instr_type, args)
 
         self.frame += 1
-
-        # Handle callbacks
-        self.handle_callbacks()
 
 
     def _getval(self, value):

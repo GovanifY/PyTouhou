@@ -340,9 +340,67 @@ class Enemy(object):
         self.life -= damages
 
 
+    def handle_callbacks(self):
+        #TODO: implement missing callbacks and clean up!
+        if self.life <= 0 and self.touchable:
+            death_flags = self.death_flags & 7
+
+            self.die_anim()
+
+            if death_flags < 4:
+                if self.bonus_dropped > -1:
+                    self.drop_particles(7, 0)
+                    self._game.drop_bonus(self.x, self.y, self.bonus_dropped)
+                elif self.bonus_dropped == -1:
+                    if self._game.deaths_count % 3 == 0:
+                        self.drop_particles(10, 0)
+                        self._game.drop_bonus(self.x, self.y, self._game.bonus_list[self._game.next_bonus])
+                        self._game.next_bonus = (self._game.next_bonus + 1) % 32
+                    else:
+                        self.drop_particles(4, 0)
+                    self._game.deaths_count += 1
+                else:
+                    self.drop_particles(4, 0)
+
+                if death_flags == 0:
+                    self.removed = True
+                    return
+
+                if death_flags == 1:
+                    self.touchable = False
+                elif death_flags == 2:
+                    pass # Just that?
+                elif death_flags == 3:
+                    #TODO: disable boss mode
+                    self.damageable = False
+                    self.life = 1
+                    self.death_flags = 0
+
+            if death_flags != 0 and self.death_callback > -1:
+                self.process.switch_to_sub(self.death_callback)
+                self.death_callback = -1
+        elif self.life <= self.low_life_trigger and self.low_life_callback > -1:
+            self.process.switch_to_sub(self.low_life_callback)
+            self.low_life_callback = -1
+        elif self.timeout != -1 and self.frame == self.timeout:
+            self.frame = 0
+            if self.timeout_callback > -1:
+                self.process.switch_to_sub(self.timeout_callback)
+                self.timeout_callback = -1
+            elif self.touchable:
+                self.life = 0
+            elif self.death_callback > -1:
+                self.process.switch_to_sub(self.death_callback)
+                self.death_callback = -1
+                self.timeout = -1 #TODO: check
+            else:
+                raise Exception('What the hell, man!')
+
+
     def update(self):
         if self.process:
             self.process.run_iteration()
+            self.handle_callbacks()
 
         x, y = self.x, self.y
 
