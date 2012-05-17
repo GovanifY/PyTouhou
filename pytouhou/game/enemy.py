@@ -35,7 +35,7 @@ class Enemy(object):
         self.visible = True
         self.was_visible = False
         self.bonus_dropped = bonus_dropped
-        self.die_score = die_score #TODO: use it
+        self.die_score = die_score
 
         self.frame = 0
 
@@ -346,6 +346,9 @@ class Enemy(object):
             death_flags = self.death_flags & 7
 
             self.die_anim()
+
+            #TODO: verify if the score is added with all the different flags.
+            self._game.players[0].state.score += self.die_score #TODO: better distribution amongst the players.
 
             if death_flags < 4:
                 if self.bonus_dropped > -1:
