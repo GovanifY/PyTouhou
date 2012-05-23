@@ -350,6 +350,10 @@ class Enemy(object):
             #TODO: verify if the score is added with all the different flags.
             self._game.players[0].state.score += self.die_score #TODO: better distribution amongst the players.
 
+            #TODO: verify if that should really be there.
+            if self.boss:
+                self._game.change_bullets_into_bonus()
+
             if death_flags < 4:
                 if self.bonus_dropped > -1:
                     self.drop_particles(7, 0)

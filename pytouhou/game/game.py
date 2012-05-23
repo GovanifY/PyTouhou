@@ -141,6 +141,19 @@ class Game(object):
         self.bullets = []
 
 
+    def change_bullets_into_bonus(self):
+        player = self.players[0] #TODO
+        score = 0
+        bonus = 2000
+        for bullet in self.bullets:
+            #TODO: display the labels.
+            score += bonus
+            bonus += 10
+        self.bullets = []
+        player.state.score += score
+        #TODO: display the final bonus score.
+
+
     def new_effect(self, pos, anim, anm_wrapper=None):
         self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
 

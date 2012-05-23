@@ -745,7 +745,7 @@ class ECLRunner(object):
     def end_spellcard(self):
         #TODO: return everything back to normal
         #TODO: give the spellcard bonus.
-        if self._game.spellcard:
+        if self._game.spellcard is not None:
             self._game.change_bullets_into_star_items()
         self._game.spellcard = None
         self._game.disable_spellcard_effect()
