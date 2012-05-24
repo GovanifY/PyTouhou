@@ -116,7 +116,7 @@ class EoSDGame(Game):
 
 
 
-class EoSDInterface(Game):
+class EoSDInterface(object):
     def __init__(self, states, resource_loader):
         self.states = states
         front = resource_loader.get_anm_wrapper(('front.anm',))
@@ -137,15 +137,15 @@ class EoSDInterface(Game):
             item.sprite.allow_dest_offset = True #XXX
 
         self.labels = {
-            'highscore': Text((500, 58), '0', front, ascii_wrapper),
-            'score': Text((500, 82), '0', front, ascii_wrapper),
-            'player': Text((500, 122), 'star star', front, ascii_wrapper),
-            'bombs': Text((500, 146), 'star star', front, ascii_wrapper),
-            'power': Text((500, 186), '0', front, ascii_wrapper),
-            'graze': Text((500, 206), '0', front, ascii_wrapper),
-            'points': Text((500, 226), '0', front, ascii_wrapper),
-            'framerate': Text((512, 464), '', front, ascii_wrapper),
-            'debug?': Text((0, 464), '', front, ascii_wrapper),
+            'highscore': Text((500, 58), ascii_wrapper, front, text='0'),
+            'score': Text((500, 82), ascii_wrapper, front, text='0'),
+            'player': Text((500, 122), ascii_wrapper, front, text='TODO'),
+            'bombs': Text((500, 146), ascii_wrapper, front, text='TODO'),
+            'power': Text((500, 186), ascii_wrapper, front, text='0'),
+            'graze': Text((500, 206), ascii_wrapper, front, text='0'),
+            'points': Text((500, 226), ascii_wrapper, front, text='0'),
+            'framerate': Text((512, 464), ascii_wrapper, front),
+            'debug?': Text((0, 464), ascii_wrapper, front),
         }
 
 

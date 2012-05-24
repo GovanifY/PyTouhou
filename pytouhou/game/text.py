@@ -27,10 +27,8 @@ class Glyph(object):
 
 
 class Text(object):
-    def __init__(self, pos, text, front_wrapper, ascii_wrapper):
+    def __init__(self, pos, ascii_wrapper=None, front_wrapper=None, text=''):
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(front_wrapper, 22, self.sprite)
-        self.anmrunner.run_frame()
         self.removed = False
         self.changed = True
 
@@ -40,12 +38,16 @@ class Text(object):
         self.front_wrapper = front_wrapper
         self.ascii_wrapper = ascii_wrapper
 
+        if front_wrapper:
+            self.anmrunner = ANMRunner(front_wrapper, 22, self.sprite)
+            self.anmrunner.run_frame()
+
         self.x, self.y = pos
         self.set_text(text)
 
 
     def objects(self):
-        return self.glyphes + [self]
+        return self.glyphes + ([self] if self.front_wrapper else [])
 
 
     def set_text(self, text):
