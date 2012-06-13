@@ -43,12 +43,13 @@ def main(path, stage_num, rank, character, replay, data):
     resource_loader = Loader(path)
 
     resource_loader.scan_archives(data)
-    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
-    game = EoSDGame(resource_loader, [PlayerState(character=character, power=default_power)], stage_num, rank, 16,
-                    prng=prng)
 
     # Load stage data
     stage = resource_loader.get_stage('stage%d.std' % stage_num)
+
+    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
+    game = EoSDGame(resource_loader, [PlayerState(character=character, power=default_power)], stage_num, rank, 16,
+                    prng=prng, bgms=stage.bgms)
 
     background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
     background = Background(stage, background_anm_wrapper)
@@ -62,6 +63,7 @@ pathsep = os.path.pathsep
 default_data = (pathsep.join(('CM.DAT', 'th06*_CM.DAT', '*CM.DAT', '*cm.dat')),
                 pathsep.join(('ST.DAT', 'th6*ST.DAT', '*ST.DAT', '*st.dat')),
                 pathsep.join(('IN.DAT', 'th6*IN.DAT', '*IN.DAT', '*in.dat')),
+                pathsep.join(('MD.DAT', 'th6*MD.DAT', '*MD.DAT', '*md.dat')),
                 pathsep.join(('102h.exe', '102*.exe', '東方紅魔郷.exe', '*.exe')))
 
 

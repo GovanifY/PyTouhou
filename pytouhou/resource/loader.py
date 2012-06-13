@@ -24,6 +24,7 @@ from pytouhou.formats.anm0 import ANM0
 from pytouhou.formats.msg import MSG
 from pytouhou.formats.sht import SHT
 from pytouhou.formats.exe import SHT as EoSDSHT, InvalidExeException
+from pytouhou.formats.music import Track
 
 
 from pytouhou.resource.anmwrapper import AnmWrapper
@@ -106,6 +107,7 @@ class Loader(object):
         self.instanced_stages = {}
         self.instanced_msgs = {}
         self.instanced_shts = {}
+        self.instanced_tracks = {}
 
 
     def scan_archives(self, paths_lists):
@@ -182,6 +184,14 @@ class Loader(object):
             except InvalidExeException:
                 pass
         logger.error("Required game exe not found!")
+
+
+    def get_track(self, name):
+        posname = name.replace('bgm/', '').replace('.mid', '.pos')
+        if name not in self.instanced_tracks:
+            file = self.get_file(posname)
+            self.instanced_tracks[name] = Track.read(file) #TODO: modular
+        return self.instanced_tracks[name]
 
 
     def get_anm_wrapper(self, names, offsets=None):

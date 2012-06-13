@@ -97,7 +97,8 @@ class Stage(object):
         bgm_c_path = read_string(file, 128, 'ascii')
         bgm_d_path = read_string(file, 128, 'ascii')
 
-        stage.bgms = [(bgm_a, bgm_a_path), (bgm_b, bgm_b_path), (bgm_c, bgm_c_path), (bgm_d, bgm_d_path)] #TODO: handle ' '
+        stage.bgms = [None if bgm[0] == u' ' else bgm
+            for bgm in ((bgm_a, bgm_a_path), (bgm_b, bgm_b_path), (bgm_c, bgm_c_path), (bgm_d, bgm_d_path))]
 
         # Read model definitions
         offsets = unpack('<%s' % ('I' * nb_models), file.read(4 * nb_models))

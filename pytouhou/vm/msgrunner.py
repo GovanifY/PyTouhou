@@ -128,6 +128,11 @@ class MSGRunner(object):
         self._game.msg_wait = False
 
 
+    @instruction(7)
+    def change_music(self, track):
+        self._game.change_music(track)
+
+
     @instruction(10)
     def freeze(self):
         self.frozen = True
