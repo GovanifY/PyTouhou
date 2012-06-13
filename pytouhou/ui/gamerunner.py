@@ -178,16 +178,17 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         glViewport(0, 0, self.width, self.height)
 
         items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]
-        labels = interface.labels
+        labels = interface.labels.values()
+
         if items:
-            # Force rendering of labels
+            # Redraw all the interface
             self.render_elements(items)
-            self.render_elements(chain(*(label.objects()
-                                            for label in labels.itervalues())))
         else:
-            self.render_elements(chain(*(label.objects()
-                                            for label in labels.itervalues()
-                                                if label.changed)))
-        for label in interface.labels.itervalues():
+            # Redraw only changed labels
+            labels = [label for label in labels if label.changed]
+
+        self.render_elements(labels)
+        self.render_elements(chain(*(label.objects() for label in labels)))
+        for label in labels:
             label.changed = False
 

@@ -21,7 +21,7 @@ from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
-from pytouhou.game.text import Text
+from pytouhou.game.text import Text, Counter
 
 from os.path import join
 from pytouhou.ui.music import InfiniteWaveSource
@@ -139,8 +139,8 @@ class EoSDInterface(object):
         self.labels = {
             'highscore': Text((500, 58), ascii_wrapper, front, text='0'),
             'score': Text((500, 82), ascii_wrapper, front, text='0'),
-            'player': Text((500, 122), ascii_wrapper, front, text='TODO'),
-            'bombs': Text((500, 146), ascii_wrapper, front, text='TODO'),
+            'player': Counter((500, 122), front, front, script=16, value=0),
+            'bombs': Counter((500, 146), front, front, script=17, value=0),
             'power': Text((500, 186), ascii_wrapper, front, text='0'),
             'graze': Text((500, 206), ascii_wrapper, front, text='0'),
             'points': Text((500, 226), ascii_wrapper, front, text='0'),
@@ -161,6 +161,8 @@ class EoSDInterface(object):
         self.labels['power'].set_text('%d' % player_state.power)
         self.labels['graze'].set_text('%d' % player_state.graze)
         self.labels['points'].set_text('%d' % player_state.points)
+        self.labels['player'].set_value(player_state.lives)
+        self.labels['bombs'].set_value(player_state.bombs)
 
 
 
