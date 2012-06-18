@@ -31,13 +31,13 @@ class InfiniteWaveSource(WaveSource):
 
 
     def _get_audio_data(self, bytes):
-        if bytes % self.audio_format.bytes_per_sample != 0:
-            bytes -= bytes % self.audio_format.bytes_per_sample
+        bytes -= bytes % self.audio_format.bytes_per_sample
 
+        data = b''
         length = bytes
         while True:
             size = min(length, self._end - self._offset)
-            data = self._file.read(size)
+            data += self._file.read(size)
             if size == length:
                 break
 
