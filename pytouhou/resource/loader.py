@@ -25,6 +25,7 @@ from pytouhou.formats.msg import MSG
 from pytouhou.formats.sht import SHT
 from pytouhou.formats.exe import SHT as EoSDSHT, InvalidExeException
 from pytouhou.formats.music import Track
+from pytouhou.formats.fmt import FMT
 
 
 from pytouhou.resource.anmwrapper import AnmWrapper
@@ -108,6 +109,7 @@ class Loader(object):
         self.instanced_msgs = {}
         self.instanced_shts = {}
         self.instanced_tracks = {}
+        self.instanced_fmts = {}
 
 
     def scan_archives(self, paths_lists):
@@ -192,6 +194,13 @@ class Loader(object):
             file = self.get_file(posname)
             self.instanced_tracks[name] = Track.read(file) #TODO: modular
         return self.instanced_tracks[name]
+
+
+    def get_fmt(self, name):
+        if name not in self.instanced_fmts:
+            file = self.get_file(name)
+            self.instanced_fmts[name] = FMT.read(file) #TODO: modular
+        return self.instanced_fmts[name]
 
 
     def get_anm_wrapper(self, names, offsets=None):

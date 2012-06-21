@@ -13,7 +13,7 @@
 ##
 
 
-from pyglet.media import AudioData
+from pyglet.media import AudioData, AudioFormat
 from pyglet.media.riff import WaveSource
 
 
@@ -51,3 +51,29 @@ class InfiniteWaveSource(WaveSource):
         duration = float(bytes) / self.audio_format.bytes_per_second
 
         return AudioData(data, bytes, timestamp, duration)
+
+
+    def seek(self, timestamp):
+        raise NotImplementedError('irrelevant')
+
+
+class ZwavSource(InfiniteWaveSource):
+    def __init__(self, filename, format, file=None):
+        if file is None:
+            file = open(filename, 'rb')
+
+        self._file = file
+
+        assert b'ZWAV' == self._file.read(4)
+
+        self.audio_format = AudioFormat(
+            channels=format.wChannels,
+            sample_size=format.wBitsPerSample,
+            sample_rate=format.dwSamplesPerSec)
+
+        self._start_offset = 0
+        self._offset = format.intro
+
+        self._file.seek(self._offset)
+        self._start = format.intro + format.start
+        self._end = format.intro + format.duration
