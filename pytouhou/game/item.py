@@ -78,6 +78,8 @@ class Item(object):
         player_state = player.state
         old_power = player_state.power
         score = 0
+        label = None
+        color = 'white'
 
         if self._type == 0 or self._type == 2: # power or big power
             if old_power < 128:
@@ -86,6 +88,12 @@ class Item(object):
                 player_state.power += (1 if self._type == 0 else 8)
                 if player_state.power > 128:
                     player_state.power = 128
+                for level in (8, 16, 32, 48, 64, 96):
+                    if old_power < level and player_state.power >= level:
+                        label = self._game.new_label((self.x, self.y), ':') # Actually a “PowerUp” character.
+                        color = 'blue'
+                        label.set_color(color)
+                        labeled = True
             else:
                 bonus = player_state.power_bonus + (1 if self._type == 0 else 8)
                 if bonus > 30:
@@ -98,6 +106,7 @@ class Item(object):
                     score = (bonus - 17) * 1000
                 elif bonus == 30:
                     score = 51200
+                    color = 'yellow'
                 player_state.power_bonus = bonus
             self._game.modify_difficulty(+1)
 
@@ -107,6 +116,7 @@ class Item(object):
             if player_state.y < poc:
                 score = 100000
                 self._game.modify_difficulty(+30)
+                color = 'yellow'
             else:
                 #score =  #TODO: find the formula.
                 self._game.modify_difficulty(+3)
@@ -133,8 +143,11 @@ class Item(object):
             self._game.change_bullets_into_star_items()
 
         if score > 0:
-            #TODO: display the score.
             player_state.score += score
+            if not label:
+                label = self._game.new_label((self.x, self.y), str(score))
+                if color != 'white':
+                    label.set_color(color)
 
         self.removed = True
 

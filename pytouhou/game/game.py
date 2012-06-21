@@ -21,6 +21,7 @@ from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 from pytouhou.game.effect import Effect
 from pytouhou.game.effect import Particle
+from pytouhou.game.text import Text
 
 
 
@@ -46,6 +47,7 @@ class Game(object):
         self.players_bullets = []
         self.players_lasers = [None, None]
         self.items = []
+        self.labels = []
         self.interface = interface
 
         self.stage = stage
@@ -72,6 +74,9 @@ class Game(object):
 
         self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
         self.spellcard_effect = None
+
+        #TODO: better place?
+        self.ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
 
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
@@ -154,7 +159,7 @@ class Game(object):
         score = 0
         bonus = 2000
         for bullet in self.bullets:
-            #TODO: display the labels.
+            label = self.new_label((bullet.x, bullet.y), str(bonus))
             score += bonus
             bonus += 10
         self.bullets = []
@@ -179,6 +184,13 @@ class Game(object):
     def new_msg(self, sub):
         self.msg_runner = MSGRunner(self.msg, sub, self)
         self.msg_runner.run_iteration()
+
+
+    def new_label(self, pos, text):
+        label = Text(pos, self.ascii_wrapper, text=text, xspacing=8, shift=48)
+        label.set_timeout(60)
+        self.labels.append(label)
+        return label
 
 
     def run_iter(self, keystate):
@@ -213,6 +225,8 @@ class Game(object):
         for laser in self.lasers: #TODO: what priority is it?
             laser.update()
         self.interface.update() # Pri 12
+        for label in self.labels: #TODO: what priority is it?
+            label.update()
 
         # 5. Clean up
         self.cleanup()
@@ -380,6 +394,8 @@ class Game(object):
             else:
                 self.modify_difficulty(-3)
         self.items = items
+
+        self.labels = [label for label in self.labels if not label.removed]
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._enemy.removed:

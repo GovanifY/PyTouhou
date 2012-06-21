@@ -90,7 +90,7 @@ cdef class GameRenderer(Renderer):
                                        *(player.objects() for player in game.players)))
             self.render_elements(chain(game.bullets, game.lasers,
                                        game.cancelled_bullets, game.items,
-                                       (item.indicator for item in game.items if item.indicator)))
-            #TODO: display item indicators
+                                       (item.indicator for item in game.items if item.indicator),
+				       *(label.objects() for label in game.labels)))
             glEnable(GL_FOG)
 

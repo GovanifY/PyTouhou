@@ -31,6 +31,7 @@ class Widget(object):
         self.sprite = None
         self.removed = False
         self.changed = True
+        self.anmrunner = None
 
         # Set up the backround sprite
         self.back_wrapper = back_wrapper
@@ -87,9 +88,10 @@ class GlyphCollection(Widget):
 
 
 class Text(GlyphCollection):
-    def __init__(self, pos, ascii_wrapper, back_wrapper=None, text=''):
-        GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper)
+    def __init__(self, pos, ascii_wrapper, back_wrapper=None, text='', xspacing=14, shift=21):
+        GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper, xspacing=xspacing)
         self.text = ''
+        self.shift = shift
 
         self.set_text(text)
 
@@ -98,9 +100,30 @@ class Text(GlyphCollection):
         if text == self.text:
             return
 
-        self.set_sprites([ord(c) - 21 for c in text])
+        self.set_sprites([ord(c) - self.shift for c in text])
         self.text = text
         self.changed = True
+
+
+    def set_color(self, color):
+        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0), 'blue': (192, 192, 255)}
+        for glyph in self.glyphes:
+            glyph.sprite.color = colors[color]
+
+
+    def timeout_update(self):
+        GlyphCollection.update(self)
+        if self.timeout % 2:
+            for glyph in self.glyphes:
+                glyph.y -= 1
+        self.timeout -= 1
+        if self.timeout == 0:
+            self.removed = True
+
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+        self.update = self.timeout_update
 
 
 
