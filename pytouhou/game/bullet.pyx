@@ -126,6 +126,7 @@ cdef class Bullet(object):
         self.frame = 0
         self.set_anim()
         self.dx, self.dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
+
         if self.flags & 1:
             self.speed_interpolator = Interpolator((self.speed + 5.,), 0,
                                                    (self.speed,), 16)
@@ -133,6 +134,7 @@ cdef class Bullet(object):
 
     def collide(Bullet self):
         self.cancel()
+        self._game.new_particle((self.x, self.y), 1, 3., 256) #TODO: find the real size.
 
 
     def cancel(Bullet self):

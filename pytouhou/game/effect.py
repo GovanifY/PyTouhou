@@ -57,6 +57,7 @@ class Particle(object):
         self.pos_interpolator = None
         self.scale_interpolator = None
         self.rotations_interpolator = None
+        self.alpha_interpolator = None
 
         self.amp = amp
 
@@ -71,6 +72,8 @@ class Particle(object):
                                                (0., 0.), 24)
         self.rotations_interpolator = Interpolator(self.sprite.rotations_3d, 0,
                                                    (0., 0., 2*pi), 24)
+        self.alpha_interpolator = Interpolator((self.sprite.alpha,), 0,
+                                               (0.,), 24)
 
 
     def update(self):
@@ -86,6 +89,9 @@ class Particle(object):
 
             self.rotations_interpolator.update(self.frame)
             self.sprite.rotations_3d = self.rotations_interpolator.values
+
+            self.alpha_interpolator.update(self.frame)
+            self.sprite.alpha, = self.alpha_interpolator.values
 
             self.sprite.changed = True
 

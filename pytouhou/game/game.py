@@ -259,6 +259,10 @@ class Game(object):
     def update_players(self, keystate):
         if self.time_stop:
             return None
+
+        for bullet in self.players_bullets:
+            bullet.update()
+
         for player in self.players:
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
             if player.state.x < 8.:
@@ -269,9 +273,6 @@ class Game(object):
                 player.state.y = 16.
             if player.state.y > self.height - 16:
                 player.state.y = self.height -16
-
-        for bullet in self.players_bullets:
-            bullet.update()
 
         #XXX: Why 78910? Is it really the right value?
         player.state.effective_score = min(player.state.effective_score + 78910,

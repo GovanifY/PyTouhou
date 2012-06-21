@@ -32,11 +32,13 @@ class Level(object):
     def __init__(self):
         self.score = 0
         self.random_seed = 0
+        self.point_items = 0
 
         self.power = 0
         self.lives = 2
         self.bombs = 3
         self.difficulty = 16
+        self.unknown = 0
         self.keys = []
 
 
@@ -85,7 +87,7 @@ class T6RP(object):
             if checksum != (sum(ord(c) for c in data) + 0x3f000318 + replay.key) & 0xffffffff:
                 raise Exception #TODO
 
-        replay.unknown3 = unpack('<B', file.read(1))
+        replay.unknown3, = unpack('<B', file.read(1))
         replay.date = file.read(9) #read_string(file, 9, 'ascii')
         replay.name = file.read(9) #read_string(file, 9, 'ascii').rstrip()
         replay.unknown4, replay.score, replay.unknown5, replay.slowdown, replay.unknown6 = unpack('<HIIfI', file.read(18))
@@ -100,8 +102,8 @@ class T6RP(object):
             replay.levels[i] = level
 
             file.seek(offset)
-            (level.score, level.random_seed, level.unknown1, level.power,
-             level.lives, level.bombs, level.difficulty, level.unknown2) = unpack('<IHHBbbBI', file.read(16))
+            (level.score, level.random_seed, level.point_items, level.power,
+             level.lives, level.bombs, level.difficulty, level.unknown) = unpack('<IHHBbbBI', file.read(16))
 
             while True:
                 time, keys, unknown = unpack('<IHH', file.read(8))

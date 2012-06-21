@@ -2,7 +2,6 @@ Engine
 - homing bullets
 - MSG texts
 - boss OSD
-- music
 - bombs
 - vm END
 - score display
@@ -21,7 +20,9 @@ Engine
 - look at the the last spellcard of Remi
 - huge slowdowns with the spamming fairies of extra
 - Patchouli’s books are too agressive
+- Flandre’s And Then Will There Be None? is done two times
 - Flandre’s QED is impossible
+- Patchouli replaces Flandre in the last MSG
 
 ECL
 - fix 77 interval
@@ -50,3 +51,6 @@ MSG
 - 12
 - 14
 - fix the end
+
+Ideas
+- make a cache for the labels, to speed up the spellcard bonus

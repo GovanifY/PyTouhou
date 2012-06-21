@@ -192,10 +192,10 @@ class Player(object):
                 self.state.invulnerable_time -= 1
 
                 m = self.state.invulnerable_time % 8
-                if m == 0:
+                if m == 7 or self.state.invulnerable_time == 0:
                     self.sprite.color = (255, 255, 255)
                     self.sprite.changed = True
-                elif m == 2:
+                elif m == 1:
                     self.sprite.color = (64, 64, 64)
                     self.sprite.changed = True
 

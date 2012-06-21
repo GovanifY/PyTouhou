@@ -210,13 +210,11 @@ class Enemy(object):
 
 
     def drop_particles(self, number, color):
-        #TODO: white particles are only used in stage 3 to 6,
-        # in other stages they are blue.
         if color == 0:
             if self._game.stage in [1, 2, 7]:
                 color = 3
         for i in range(number):
-            self._game.new_particle((self.x, self.y), color, 4., 256) #TODO: find the real size.
+            self._game.new_particle((self.x, self.y), color, 3., 256) #TODO: find the real size.
 
 
     def set_aux_anm(self, number, script):
@@ -291,7 +289,6 @@ class Enemy(object):
                 bullet.collide()
                 if self.damageable:
                     damages += bullet.damage
-                self.drop_particles(1, 1)
 
         # Check for enemy-laser collisions
         for laser in self._game.players_lasers:
@@ -306,7 +303,7 @@ class Enemy(object):
                     or ly < ey1):
                 if self.damageable:
                     damages += laser.damage
-                self.drop_particles(1, 1)
+                self.drop_particles(1, 1) #TODO: don’t call each frame.
 
         # Check for enemy-player collisions
         ex1, ex2 = ex - ehalf_size_x * 2. / 3., ex + ehalf_size_x * 2. / 3.
@@ -407,7 +404,6 @@ class Enemy(object):
     def update(self):
         if self.process:
             self.process.run_iteration()
-            self.handle_callbacks()
 
         x, y = self.x, self.y
 
@@ -480,6 +476,8 @@ class Enemy(object):
             if anm:
                 anm.x, anm.y = self.x, self.y
                 anm.update()
+
+        self.handle_callbacks()
 
         self.frame += 1
 
