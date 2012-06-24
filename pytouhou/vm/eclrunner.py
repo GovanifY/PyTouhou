@@ -647,7 +647,7 @@ class ECLRunner(object):
 
     @instruction(77)
     def set_bullet_interval_ex(self, value):
-        self._enemy.set_bullet_launch_interval(value, self._game.prng.rand_double()) #TODO: check
+        self._enemy.set_bullet_launch_interval(value, self._game.prng.rand_uint32())
 
 
     @instruction(78)

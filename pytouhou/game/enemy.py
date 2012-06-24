@@ -109,12 +109,13 @@ class Enemy(object):
             self.fire()
 
 
-    def set_bullet_launch_interval(self, value, start=0.):
+    def set_bullet_launch_interval(self, value, start=0):
         # Apply difficulty-specific modifiers:
-        value *= 1. - .4 * (self._game.difficulty - 16.) / 32.
+        #TODO: check every value possible! Look around 102h.exe@0x408720
+        value -= value * (self._game.difficulty - 16) // 80
 
-        self.bullet_launch_interval = int(value)
-        self.bullet_launch_timer = int(value * start)
+        self.bullet_launch_interval = value
+        self.bullet_launch_timer = start % value if value else 0
 
 
     def fire(self, offset=None, bullet_attributes=None, launch_pos=None):
