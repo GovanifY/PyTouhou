@@ -36,13 +36,16 @@ logger = get_logger(__name__)
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None, replay=None):
+    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60):
         GameRenderer.__init__(self, resource_loader, game, background)
 
+        config = pyglet.gl.Config(double_buffer=double_buffer)
         width, height = (game.interface.width, game.interface.height) if game else (None, None)
         pyglet.window.Window.__init__(self, width=width, height=height,
-                                      caption='PyTouhou', resizable=False)
+                                      caption='PyTouhou', resizable=False,
+                                      config=config)
 
+        self.fps_limit = fps_limit
         self.replay_level = None
 
         if game:
@@ -89,8 +92,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.game.music.queue(bgm)
         self.game.music.play()
 
-        # Use our own loop to ensure 60 (for now, 120) fps
-        pyglet.clock.set_fps_limit(120)
+        if self.fps_limit > 0:
+            pyglet.clock.set_fps_limit(self.fps_limit)
         while not self.has_exit:
             pyglet.clock.tick()
             self.dispatch_events()
