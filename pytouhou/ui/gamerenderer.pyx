@@ -29,7 +29,10 @@ cdef class GameRenderer(Renderer):
 
     def __init__(self, resource_loader, game=None, background=None):
         Renderer.__init__(self, resource_loader)
+        self.load_game(game, background)
 
+
+    cpdef load_game(self, game=None, background=None):
         self.game = game
         self.background = background
 
