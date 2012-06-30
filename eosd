@@ -29,7 +29,27 @@ from pytouhou.utils.random import Random
 from pytouhou.vm.msgrunner import NextStage
 
 
-def main(path, data, stage_num, rank, character, replay):
+class EoSDGameBossRush(EoSDGame):
+    def run_iter(self, keystate):
+        for i in range(16):
+            EoSDGame.run_iter(self, keystate if i == 0 else 0)
+            if (self.msg_wait or self.enemies or self.items
+                or self.lasers or self.bullets or self.cancelled_bullets):
+                break
+
+    def cleanup(self):
+        if not (self.boss or self.msg_wait or self.ecl_runner.boss_wait):
+            self.enemies = [enemy for enemy in self.enemies
+                                if enemy.boss_callback != -1 or enemy.frame > 1]
+            self.lasers = [laser for laser in self.lasers if laser.frame > 1]
+            self.bullets = [bullet for bullet in self.bullets if bullet.frame > 1]
+            self.players_lasers = [(laser if laser and laser.frame > 1 else None) for laser in self.players_lasers]
+            self.players_bullets = [bullet for bullet in self.players_bullets if bullet.frame > 1]
+        EoSDGame.cleanup(self)
+
+
+
+def main(path, data, stage_num, rank, character, replay, boss_rush):
     resource_loader = Loader(path)
     resource_loader.scan_archives(data)
 
@@ -48,6 +68,8 @@ def main(path, data, stage_num, rank, character, replay):
     difficulty = 16
     default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
     states = [PlayerState(character=character, power=default_power)]
+
+    game_class = EoSDGameBossRush if boss_rush else EoSDGame
 
     runner = GameRunner(resource_loader)
     while True:
@@ -74,7 +96,7 @@ def main(path, data, stage_num, rank, character, replay):
         # Load stage data
         stage = resource_loader.get_stage('stage%d.std' % stage_num)
 
-        game = EoSDGame(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms)
+        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms)
 
         background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
         background = Background(stage, background_anm_wrapper)
@@ -86,7 +108,7 @@ def main(path, data, stage_num, rank, character, replay):
             break
         except NextStage:
             game.music.pause()
-            if not story or stage_num == 6:
+            if not story or stage_num == (7 if boss_rush else 6):
                 break
             stage_num += 1
             states = [player.state.copy() for player in game.players] # if player.state.lives >= 0]
@@ -108,7 +130,8 @@ parser.add_argument('-s', '--stage', metavar='STAGE', type=int, default=None, he
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
+parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
 
 args = parser.parse_args()
 
-main(args.path, tuple(args.data), args.stage, args.rank, args.character, args.replay)
+main(args.path, tuple(args.data), args.stage, args.rank, args.character, args.replay, args.boss_rush)

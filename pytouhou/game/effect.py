@@ -37,6 +37,7 @@ class Effect(object):
         if self.sprite:
             if self.sprite.removed:
                 self.sprite = None
+                self.removed = True
 
 
 

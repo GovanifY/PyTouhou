@@ -22,6 +22,7 @@ class Background(object):
     def __init__(self, stage, anm_wrapper):
         self.stage = stage
         self.anm_wrapper = anm_wrapper
+        self.last_frame = -1
 
         self.models = []
         self.object_instances = []
@@ -61,7 +62,7 @@ class Background(object):
 
     def update(self, frame):
         for frame_num, message_type, args in self.stage.script:
-            if frame_num == frame:
+            if self.last_frame < frame_num <= frame:
                 if message_type == 0:
                     self.position_interpolator.set_interpolation_start(frame_num, args)
                 elif message_type == 1:
@@ -78,11 +79,14 @@ class Background(object):
                 self.position_interpolator.set_interpolation_end(frame_num, args)
                 break
 
-        for anm_runner in tuple(self.anm_runners):
-            if not anm_runner.run_frame():
-                self.anm_runners.remove(anm_runner)
+        for i in range(frame - self.last_frame):
+            for anm_runner in tuple(self.anm_runners):
+                if not anm_runner.run_frame():
+                    self.anm_runners.remove(anm_runner)
 
         self.position2_interpolator.update(frame)
         self.fog_interpolator.update(frame)
         self.position_interpolator.update(frame)
+
+        self.last_frame = frame
 
