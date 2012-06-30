@@ -21,6 +21,10 @@ from pytouhou.game.face import Face
 logger = get_logger(__name__)
 
 
+class NextStage(Exception):
+    pass
+
+
 class MSGRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_msg', '_game', 'frame', 'sleep_time', 'allow_skip',
@@ -136,6 +140,11 @@ class MSGRunner(object):
     @instruction(10)
     def freeze(self):
         self.frozen = True
+
+
+    @instruction(11)
+    def next_stage(self):
+        raise NextStage
 
 
     @instruction(13)

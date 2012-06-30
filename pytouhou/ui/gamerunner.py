@@ -44,7 +44,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                                       caption='PyTouhou', resizable=False)
 
         self.replay_level = None
-        self.load_game(game, background, replay)
+
+        if game:
+            self.load_game(game, background, replay)
 
         self.clock = pyglet.clock.get_default()
 
@@ -142,7 +144,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     keystate |= 128
                 if self.keys[pyglet.window.key.LCTRL]:
                     keystate |= 256
-                self.game.run_iter(keystate)
             else:
                 keystate = 0
                 for frame, _keystate, unknown in self.replay_level.keys:
@@ -151,7 +152,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     else:
                         keystate = _keystate
 
-                self.game.run_iter(keystate)
+            self.game.run_iter(keystate)
 
 
     def render_game(self):

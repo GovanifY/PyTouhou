@@ -46,6 +46,11 @@ class PlayerState(object):
         self.power_bonus = 0 # Never goes over 30.
 
 
+    def copy(self):
+        return PlayerState(self.character, self.score,
+                           self.power, self.lives, self.bombs)
+
+
 class Player(object):
     def __init__(self, state, game, anm_wrapper):
         self._game = game

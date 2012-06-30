@@ -25,38 +25,71 @@ from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDGame
 from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP
+from pytouhou.utils.random import Random
+from pytouhou.vm.msgrunner import NextStage
 
 
-def main(path, stage_num, rank, character, replay, data):
+def main(path, data, stage_num, rank, character, replay):
+    resource_loader = Loader(path)
+    resource_loader.scan_archives(data)
+
+    if stage_num is None:
+        story = True
+        stage_num = 1
+    else:
+        story = False
+
     if replay:
         with open(replay, 'rb') as file:
             replay = T6RP.read(file)
         rank = replay.rank
         character = replay.character
-        if not replay.levels[stage_num-1]:
-            raise Exception
-        from pytouhou.utils.random import Random
-        prng = Random(replay.levels[stage_num-1].random_seed)
-    else:
-        prng = None
 
-    resource_loader = Loader(path)
-
-    resource_loader.scan_archives(data)
-
-    # Load stage data
-    stage = resource_loader.get_stage('stage%d.std' % stage_num)
-
+    difficulty = 16
     default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
-    game = EoSDGame(resource_loader, [PlayerState(character=character, power=default_power)], stage_num, rank, 16,
-                    prng=prng, bgms=stage.bgms)
+    states = [PlayerState(character=character, power=default_power)]
 
-    background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
-    background = Background(stage, background_anm_wrapper)
+    runner = GameRunner(resource_loader)
+    while True:
+        if replay:
+            level = replay.levels[stage_num - 1]
+            if not level:
+                raise Exception
 
-    # Main loop
-    runner = GameRunner(resource_loader, game, background, replay=replay)
-    runner.start()
+            prng = Random(level.random_seed)
+
+            #TODO: apply the replay to the other players.
+            #TODO: see if the stored score is used or if it’s the one from the previous stage.
+            if stage_num != 1 and stage_num - 2 in replay.levels:
+                previous_level = replay.levels[stage_num - 1]
+                states[0].score = previous_level.score
+                states[0].effective_score = previous_level.score
+            states[0].power = level.power
+            states[0].lives = level.lives
+            states[0].bombs = level.bombs
+            difficulty = level.difficulty
+        else:
+            prng = None
+
+        # Load stage data
+        stage = resource_loader.get_stage('stage%d.std' % stage_num)
+
+        game = EoSDGame(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms)
+
+        background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
+        background = Background(stage, background_anm_wrapper)
+
+        # Main loop
+        runner.load_game(game, background, replay)
+        try:
+            runner.start()
+            break
+        except NextStage:
+            game.music.pause()
+            if not story or stage_num == 6:
+                break
+            stage_num += 1
+            states = [player.state.copy() for player in game.players] # if player.state.lives >= 0]
 
 
 pathsep = os.path.pathsep
@@ -71,11 +104,11 @@ parser = argparse.ArgumentParser(description='Libre reimplementation of the Touh
 
 parser.add_argument('data', metavar='DAT', default=default_data, nargs='*', help='Game’s data files')
 parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
-parser.add_argument('-s', '--stage', metavar='STAGE', type=int, required=True, help='Stage, 1 to 7 (Extra).')
+parser.add_argument('-s', '--stage', metavar='STAGE', type=int, default=None, help='Stage, 1 to 7 (Extra).')
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
 
 args = parser.parse_args()
 
-main(args.path, args.stage, args.rank, args.character, args.replay, tuple(args.data))
+main(args.path, tuple(args.data), args.stage, args.rank, args.character, args.replay)
