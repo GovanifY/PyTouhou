@@ -22,7 +22,7 @@ from pytouhou.game.sprite import Sprite
 LAUNCHING, LAUNCHED, CANCELLED = range(3)
 
 cdef class Bullet(object):
-    cdef public unsigned int _state, flags, frame, sprite_idx_offset
+    cdef public unsigned int state, flags, frame, sprite_idx_offset
     cdef public double dx, dy, angle, speed #TODO
     cdef public object player_bullet, target
     cdef public object _game, _bullet_type
@@ -35,7 +35,7 @@ cdef class Bullet(object):
                        player_bullet=False, damage=0, hitbox=None):
         self._game = game
         self._bullet_type = bullet_type
-        self._state = LAUNCHING
+        self.state = LAUNCHING
         self.sprite = None
         self.anmrunner = None
         self.removed = False
@@ -122,7 +122,7 @@ cdef class Bullet(object):
 
 
     def launch(Bullet self):
-        self._state = LAUNCHED
+        self.state = LAUNCHED
         self.frame = 0
         self.set_anim()
         self.dx, self.dy = cos(self.angle) * self.speed, sin(self.angle) * self.speed
@@ -151,7 +151,7 @@ cdef class Bullet(object):
         self.dx, self.dy = self.dx / 2., self.dy / 2.
 
         # Change update method
-        self._state = CANCELLED
+        self.state = CANCELLED
 
         # Do not use this one for collisions anymore
         if self.player_bullet:
@@ -163,17 +163,17 @@ cdef class Bullet(object):
 
     def update(Bullet self):
         if self.anmrunner is not None and not self.anmrunner.run_frame():
-            if self._state == LAUNCHING:
+            if self.state == LAUNCHING:
                 #TODO: check if it doesn't skip a frame
                 self.launch()
-            elif self._state == CANCELLED:
+            elif self.state == CANCELLED:
                 self.removed = True
             else:
                 self.anmrunner = None
 
-        if self._state == LAUNCHING:
+        if self.state == LAUNCHING:
             pass
-        elif self._state == CANCELLED:
+        elif self.state == CANCELLED:
             pass
         elif self.flags & 1:
             # Initial speed burst

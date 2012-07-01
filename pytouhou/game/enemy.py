@@ -20,6 +20,7 @@ from pytouhou.game.bullet import Bullet
 from pytouhou.game.laser import Laser
 from pytouhou.game.effect import Effect
 from math import cos, sin, atan2, pi
+from pytouhou.game.bullet import LAUNCHED
 
 
 class Enemy(object):
@@ -280,6 +281,8 @@ class Enemy(object):
 
         # Check for enemy-bullet collisions
         for bullet in self._game.players_bullets:
+            if bullet.state != LAUNCHED:
+                continue
             half_size = bullet.hitbox_half_size
             bx, by = bullet.x, bullet.y
             bx1, bx2 = bx - half_size[0], bx + half_size[0]

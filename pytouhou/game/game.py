@@ -12,11 +12,14 @@
 ## GNU General Public License for more details.
 ##
 
+from itertools import chain
+
 from pytouhou.utils.random import Random
 
 from pytouhou.vm.eclrunner import ECLMainRunner
 from pytouhou.vm.msgrunner import MSGRunner
 
+from pytouhou.game.bullet import LAUNCHED, CANCELLED
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 from pytouhou.game.effect import Effect
@@ -140,6 +143,13 @@ class Game(object):
         for item in self.items:
             if not item.player:
                 item.autocollect(player)
+
+
+    def cancel_bullets(self):
+        for bullet in self.bullets:
+            bullet.cancel()
+        for laser in self.lasers:
+            laser.cancel()
 
 
     def change_bullets_into_star_items(self):
@@ -325,6 +335,9 @@ class Game(object):
                     self.new_particle((px, py), 0, .8, 192) #TODO
 
             for bullet in self.bullets:
+                if bullet.state != LAUNCHED:
+                    continue
+
                 half_size = bullet.hitbox_half_size
                 bx, by = bullet.x, bullet.y
                 bx1, bx2 = bx - half_size[0], bx + half_size[0]
@@ -372,16 +385,19 @@ class Game(object):
 
         self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
 
+        # Update cancelled bullets
+        self.cancelled_bullets = [b for b in chain(self.cancelled_bullets,
+                                                   self.bullets,
+                                                   self.players_bullets)
+                                    if b.state == CANCELLED and not b.removed]
         # Filter out-of-scren bullets
         self.bullets = [bullet for bullet in self.bullets
-                            if not bullet.removed]
+                            if not bullet.removed and bullet.state != CANCELLED]
         self.players_bullets = [bullet for bullet in self.players_bullets
-                            if not bullet.removed]
+                            if not bullet.removed and bullet.state != CANCELLED]
         for i, laser in enumerate(self.players_lasers):
             if laser and laser.removed:
                 self.players_lasers[i] = None
-        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets
-                            if not bullet.removed]
         self.effects = [effect for effect in self.effects if not effect.removed]
 
         # Filter “timed-out” lasers
