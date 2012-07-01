@@ -28,7 +28,7 @@ class NextStage(Exception):
 class MSGRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_msg', '_game', 'frame', 'sleep_time', 'allow_skip',
-                 'frozen', 'faces', 'ended', 'instruction_pointer')
+                 'skipping', 'frozen', 'faces', 'ended', 'instruction_pointer')
 
     def __init__(self, msg, script, game):
         self._msg = msg.msgs[script + 10 * (game.players[0].state.character // 2)]
@@ -36,6 +36,7 @@ class MSGRunner(object):
         self.frame = 0
         self.sleep_time = 0
         self.allow_skip = True
+        self.skipping = False
         self.frozen = False
 
         self.faces = [None, None]
@@ -117,7 +118,8 @@ class MSGRunner(object):
 
     @instruction(4)
     def pause(self, duration):
-        self.sleep_time = duration
+        if not (self.skipping and self.allow_skip):
+            self.sleep_time = duration
 
 
     @instruction(5)

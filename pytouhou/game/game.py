@@ -258,10 +258,9 @@ class Game(object):
 
 
     def update_msg(self, keystate):
-        if keystate & 1 and not self.last_keystate & 1:
+        if any((keystate & k and not self.last_keystate & k) for k in (1, 256)):
             self.msg_runner.skip()
-        if keystate & 256 and self.msg_runner.allow_skip:
-            self.msg_runner.skip()
+        self.msg_runner.skipping = bool(keystate & 256)
         self.last_keystate = keystate
         self.msg_runner.run_iteration()
 
