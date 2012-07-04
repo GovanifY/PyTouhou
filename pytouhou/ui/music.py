@@ -15,7 +15,7 @@
 
 from os.path import join
 
-from pyglet.media import AudioData, AudioFormat, Player
+from pyglet.media import AudioData, AudioFormat, StaticSource, Player
 from pyglet.media.riff import WaveSource
 
 
@@ -110,5 +110,39 @@ class MusicPlayer(object):
             self.player.next()
         if bgm:
             self.player.queue(bgm)
+        self.player.play()
+
+
+class SFXPlayer(object):
+    def __init__(self, loader):
+        self.loader = loader
+        self.sounds = {}
+
+        self.player = Player()
+        self.player.volume = .5
+
+        #'powerup.wav', 'graze.wav', 'timeout.wav', 'extend.wav', 'kira02.wav', 'kira01.wav',
+        #'kira00.wav', 'item00.wav', 'damage00.wav', 'nep00.wav', 'enep01.wav', 'lazer01.wav',
+        #'lazer00.wav', 'cat00.wav', 'gun00.wav', 'select00.wav', 'cancel00.wav', 'ok00.wav',
+        #'tan02.wav', 'tan01.wav', 'tan00.wav', 'power1.wav', 'power0.wav', 'pldead00.wav',
+        #'enep00.wav', 'plst00.wav')}
+
+
+    def __getitem__(self, name):
+        if not name in self.sounds:
+            self.sounds[name] = self.load_sound(name)
+        return self.sounds[name]
+
+
+    def load_sound(self, name):
+        file = self.loader.get_file(name)
+        return StaticSource(WaveSource(name, file))
+
+    def play(self, name):
+        sound = self[name]
+        if self.player.playing:
+            self.player.next()
+        if sound:
+            self.player.queue(sound)
         self.player.play()
 

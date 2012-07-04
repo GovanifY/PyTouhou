@@ -90,6 +90,26 @@ class Enemy(object):
         return [anm for anm in self.aux_anm if anm]
 
 
+    def play_sound(self, index):
+        name = {
+            5: 'power0',
+            6: 'power1',
+            7: 'tan00',
+            8: 'tan01',
+            9: 'tan02',
+            14: 'cat00',
+            16: 'lazer00',
+            17: 'lazer01',
+            18: 'enep01',
+            22: 'tan00', #XXX
+            24: 'tan02', #XXX
+            25: 'kira00',
+            26: 'kira01',
+            27: 'kira02'
+        }[index]
+        self._game.enemy_sfx.play('%s.wav' % name)
+
+
     def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
                               bullets_per_shot, number_of_shots, speed, speed2,
                               launch_angle, angle, flags):

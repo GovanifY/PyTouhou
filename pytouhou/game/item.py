@@ -80,6 +80,7 @@ class Item(object):
         score = 0
         label = None
         color = 'white'
+        player.play_sound('item00')
 
         if self._type == 0 or self._type == 2: # power or big power
             if old_power < 128:
@@ -134,6 +135,7 @@ class Item(object):
             if player_state.lives < 8:
                 player_state.lives += 1
             self._game.modify_difficulty(+200)
+            player.play_sound('extend')
 
         elif self._type == 6: # star
             score = 500

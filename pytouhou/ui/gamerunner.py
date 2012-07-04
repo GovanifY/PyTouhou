@@ -28,7 +28,7 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
 from pytouhou.utils.helpers import get_logger
 
 from .gamerenderer import GameRenderer
-from .music import MusicPlayer
+from .music import MusicPlayer, SFXPlayer
 
 
 logger = get_logger(__name__)
@@ -69,6 +69,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
         game.music = MusicPlayer(game.resource_loader, bgms)
         game.music.play(0)
+
+        game.player_sfx = SFXPlayer(game.resource_loader)
+        game.enemy_sfx = SFXPlayer(game.resource_loader)
 
 
     def start(self, width=None, height=None):

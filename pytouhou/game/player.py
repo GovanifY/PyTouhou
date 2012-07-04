@@ -97,11 +97,16 @@ class Player(object):
         self.anmrunner.run_frame()
 
 
+    def play_sound(self, name):
+        self._game.player_sfx.play('%s.wav' % name)
+
+
     def collide(self):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
             self._game.new_effect((self.state.x, self.state.y), 17)
             self._game.modify_difficulty(-1600)
+            self.play_sound('pldead00')
             for i in range(16):
                 self._game.new_particle((self.state.x, self.state.y), 2, 4., 256) #TODO: find the real size and range.
 
@@ -121,6 +126,9 @@ class Player(object):
         bullets = self._game.players_bullets
         lasers = self._game.players_lasers
         nb_bullets_max = self._game.nb_bullets_max
+
+        if self.fire_time % 5 == 0:
+            self.play_sound('plst00')
 
         for shot in sht.shots[power]:
             origin = self.orbs[shot.orb - 1] if shot.orb else self.state

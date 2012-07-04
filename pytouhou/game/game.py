@@ -328,6 +328,7 @@ class Game(object):
                 elif laser.check_grazing((px, py)):
                     player.state.graze += 1 #TODO
                     player.state.score += 500 #TODO
+                    player.play_sound('graze')
                     self.modify_difficulty(+6) #TODO
                     self.new_particle((px, py), 0, .8, 192) #TODO
 
@@ -351,6 +352,7 @@ class Game(object):
                     bullet.grazed = True
                     player.state.graze += 1
                     player.state.score += 500 # found experimentally
+                    player.play_sound('graze')
                     self.modify_difficulty(+6)
                     self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at

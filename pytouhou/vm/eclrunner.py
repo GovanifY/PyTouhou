@@ -830,6 +830,11 @@ class ECLRunner(object):
         self._enemy.damageable = bool(damageable & 1)
 
 
+    @instruction(106)
+    def play_sound(self, index):
+        self._enemy.play_sound(index)
+
+
     @instruction(107)
     def set_death_flags(self, death_flags):
         self._enemy.death_flags = death_flags
