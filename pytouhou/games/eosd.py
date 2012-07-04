@@ -23,9 +23,6 @@ from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
 from pytouhou.game.text import Text, Counter
 
-from os.path import join
-from pytouhou.ui.music import InfiniteWaveSource
-
 
 SQ2 = 2. ** 0.5 / 2.
 
@@ -33,7 +30,7 @@ SQ2 = 2. ** 0.5 / 2.
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
                  bullet_types=None, laser_types=None, item_types=None,
-                 nb_bullets_max=640, width=384, height=448, prng=None, bgms=None, continues=0):
+                 nb_bullets_max=640, width=384, height=448, prng=None, continues=0):
 
         if not bullet_types:
             etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
@@ -95,20 +92,6 @@ class EoSDGame(Game):
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
         interface = EoSDInterface(player_states, resource_loader)
-
-        self.bgms = []
-        for bgm in bgms:
-            if not bgm:
-                self.bgms.append(None)
-                continue
-            posname = bgm[1].replace('bgm/', '').replace('.mid', '.pos')
-            track = resource_loader.get_track(posname)
-            wavname = join(resource_loader.game_dir, bgm[1].replace('.mid', '.wav'))
-            try:
-                source = InfiniteWaveSource(wavname, track.start, track.end)
-            except IOError:
-                source = None
-            self.bgms.append(source)
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,

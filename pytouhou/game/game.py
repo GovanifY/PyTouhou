@@ -116,14 +116,6 @@ class Game(object):
             self.difficulty = self.difficulty_max
 
 
-    def change_music(self, track):
-        #TODO: don’t crash if the track has already be played.
-        bgm = self.bgms[track]
-        if bgm:
-            self.music.queue(bgm)
-            self.music.next()
-
-
     def enable_spellcard_effect(self):
         self.spellcard_effect = Effect((-32., -16.), 0,
                                        self.spellcard_effect_anm_wrapper) #TODO: find why this offset is necessary.

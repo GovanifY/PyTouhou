@@ -13,7 +13,9 @@
 ##
 
 
-from pyglet.media import AudioData, AudioFormat
+from os.path import join
+
+from pyglet.media import AudioData, AudioFormat, Player
 from pyglet.media.riff import WaveSource
 
 
@@ -77,3 +79,32 @@ class ZwavSource(InfiniteWaveSource):
         self._file.seek(self._offset)
         self._start = format.intro + format.start
         self._end = format.intro + format.duration
+
+
+class MusicPlayer(object):
+    def __init__(self, resource_loader, bgms):
+        self.bgms = []
+        for bgm in bgms:
+            if not bgm:
+                self.bgms.append(None)
+                continue
+            posname = bgm[1].replace('bgm/', '').replace('.mid', '.pos')
+            track = resource_loader.get_track(posname)
+            wavname = join(resource_loader.game_dir, bgm[1].replace('.mid', '.wav'))
+            try:
+                source = InfiniteWaveSource(wavname, track.start, track.end)
+            except IOError:
+                source = None
+            self.bgms.append(source)
+
+        self.player = Player()
+
+
+    def play(self, index):
+        bgm = self.bgms[index]
+        if self.player.playing:
+            self.player.next()
+        if bgm:
+            self.player.queue(bgm)
+        self.player.play()
+

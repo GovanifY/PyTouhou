@@ -112,13 +112,13 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         # Load stage data
         stage = resource_loader.get_stage('stage%d.std' % stage_num)
 
-        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms, continues=continues)
+        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues)
 
         background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
         background = Background(stage, background_anm_wrapper)
 
         # Main loop
-        runner.load_game(game, background, replay)
+        runner.load_game(game, background, stage.bgms, replay)
         try:
             runner.start()
             break

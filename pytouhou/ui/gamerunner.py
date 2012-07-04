@@ -25,11 +25,10 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
                        GL_SCISSOR_TEST)
 
-from pyglet.media import Player as MusicPlayer
-
 from pytouhou.utils.helpers import get_logger
 
 from .gamerenderer import GameRenderer
+from .music import MusicPlayer
 
 
 logger = get_logger(__name__)
@@ -54,7 +53,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         self.clock = pyglet.clock.get_default()
 
 
-    def load_game(self, game=None, background=None, replay=None):
+    def load_game(self, game=None, background=None, bgms=None, replay=None):
         GameRenderer.load_game(self, game, background)
         self.replay_level = None
         if not replay or not replay.levels[game.stage-1]:
@@ -63,10 +62,13 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         else:
             self.keys = 0
             self.replay_level = replay.levels[game.stage-1]
-            self.game.players[0].state.lives = self.replay_level.lives
-            self.game.players[0].state.power = self.replay_level.power
-            self.game.players[0].state.bombs = self.replay_level.bombs
-            self.game.difficulty = self.replay_level.difficulty
+            game.players[0].state.lives = self.replay_level.lives
+            game.players[0].state.power = self.replay_level.power
+            game.players[0].state.bombs = self.replay_level.bombs
+            game.difficulty = self.replay_level.difficulty
+
+        game.music = MusicPlayer(game.resource_loader, bgms)
+        game.music.play(0)
 
 
     def start(self, width=None, height=None):
@@ -84,13 +86,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-
-        # Initialize sound
-        self.game.music = MusicPlayer()
-        bgm = self.game.bgms[0]
-        if bgm:
-            self.game.music.queue(bgm)
-        self.game.music.play()
 
         if self.fps_limit > 0:
             pyglet.clock.set_fps_limit(self.fps_limit)

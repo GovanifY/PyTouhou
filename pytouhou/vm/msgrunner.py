@@ -136,7 +136,7 @@ class MSGRunner(object):
 
     @instruction(7)
     def change_music(self, track):
-        self._game.change_music(track)
+        self._game.music.play(track)
 
 
     @instruction(10)
