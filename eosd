@@ -35,6 +35,10 @@ class EoSDGameBossRush(EoSDGame):
     def run_iter(self, keystate):
         for i in range(20):
             EoSDGame.run_iter(self, (keystate | 256) if i == 0 else 0)
+            if not self.enemies and self.frame % 90 == 0:
+                for player in self.players:
+                    if player.state.power < 128:
+                        player.state.power += 1
             if (self.enemies or self.items
                 or self.lasers or self.bullets or self.cancelled_bullets):
                 break
