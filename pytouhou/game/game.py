@@ -28,10 +28,15 @@ from pytouhou.game.text import Text
 
 
 
+class GameOver(Exception):
+    pass
+
+
 class Game(object):
     def __init__(self, resource_loader, players, stage, rank, difficulty,
                  bullet_types, laser_types, item_types,
-                 nb_bullets_max=None, width=384, height=448, prng=None, interface=None):
+                 nb_bullets_max=None, width=384, height=448, prng=None,
+                 interface=None, continues=0):
         self.resource_loader = resource_loader
 
         self.width, self.height = width, height
@@ -53,6 +58,7 @@ class Game(object):
         self.labels = []
         self.interface = interface
 
+        self.continues = continues
         self.stage = stage
         self.rank = rank
         self.difficulty = difficulty

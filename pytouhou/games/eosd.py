@@ -33,7 +33,7 @@ SQ2 = 2. ** 0.5 / 2.
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
                  bullet_types=None, laser_types=None, item_types=None,
-                 nb_bullets_max=640, width=384, height=448, prng=None, bgms=None):
+                 nb_bullets_max=640, width=384, height=448, prng=None, bgms=None, continues=0):
 
         if not bullet_types:
             etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
@@ -112,7 +112,7 @@ class EoSDGame(Game):
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,
-                      width, height, prng, interface)
+                      width, height, prng, interface, continues)
 
 
 

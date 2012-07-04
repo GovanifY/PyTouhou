@@ -19,6 +19,7 @@ from pytouhou.game.bullettype import BulletType
 from pytouhou.game.bullet import Bullet
 from pytouhou.game.lasertype import LaserType
 from pytouhou.game.laser import PlayerLaser
+from pytouhou.game.game import GameOver
 
 from math import pi
 
@@ -214,19 +215,38 @@ class Player(object):
             time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
                 self.state.touchable = False
-                self.state.lives -= 1
                 if self.state.power > 16:
                     self.state.power -= 16
                 else:
                     self.state.power = 0
 
-                self._game.drop_bonus(self.state.x, self.state.y, 2,
-                                      end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
-                                               self._game.prng.rand_double() * 192 - 64))        # @0x41f3
-                for i in range(5):
-                    self._game.drop_bonus(self.state.x, self.state.y, 0,
-                                          end_pos=(self._game.prng.rand_double() * 288 + 48,
-                                                   self._game.prng.rand_double() * 192 - 64))
+                self.state.lives -= 1
+                if self.state.lives < 0:
+                    #TODO: display a menu to ask the players if they want to continue.
+                    self._game.continues -= 1
+                    if self._game.continues < 0:
+                        raise GameOver
+
+                    for i in range(5):
+                        self._game.drop_bonus(self.state.x, self.state.y, 4,
+                                              end_pos=(self._game.prng.rand_double() * 288 + 48,
+                                                       self._game.prng.rand_double() * 192 - 64))
+                    self.state.score = 0
+                    self.state.effective_score = 0
+                    self.state.lives = 2 #TODO: use the right default.
+                    self.state.bombs = 3 #TODO: use the right default.
+                    self.state.power = 0
+
+                    self.state.graze = 0
+                    self.state.points = 0
+                else:
+                    self._game.drop_bonus(self.state.x, self.state.y, 2,
+                                          end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
+                                                   self._game.prng.rand_double() * 192 - 64))        # @0x41f3
+                    for i in range(5):
+                        self._game.drop_bonus(self.state.x, self.state.y, 0,
+                                              end_pos=(self._game.prng.rand_double() * 288 + 48,
+                                                       self._game.prng.rand_double() * 192 - 64))
 
             elif time == 7:
                 self.sprite.mirrored = False

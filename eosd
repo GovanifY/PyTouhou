@@ -24,6 +24,7 @@ from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
 from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDGame
+from pytouhou.game.game import GameOver
 from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP
 from pytouhou.utils.random import Random
@@ -50,7 +51,7 @@ class EoSDGameBossRush(EoSDGame):
 
 
 
-def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, single_buffer):
+def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, single_buffer, debug):
     resource_loader = Loader(path)
 
     try:
@@ -62,8 +63,13 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
     if stage_num is None:
         story = True
         stage_num = 1
+        continues = 3
     else:
         story = False
+        continues = 0
+
+    if debug:
+        continues = float('inf')
 
     if replay:
         with open(replay, 'rb') as file:
@@ -102,7 +108,7 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         # Load stage data
         stage = resource_loader.get_stage('stage%d.std' % stage_num)
 
-        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms)
+        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, bgms=stage.bgms, continues=continues)
 
         background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
         background = Background(stage, background_anm_wrapper)
@@ -118,6 +124,9 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
                 break
             stage_num += 1
             states = [player.state.copy() for player in game.players] # if player.state.lives >= 0]
+        except GameOver:
+            print('Game over')
+            break
 
 
 pathsep = os.path.pathsep
@@ -139,8 +148,10 @@ parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
 parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
 parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
 parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
+parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
 
 args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
-     args.replay, args.boss_rush, args.fps_limit, args.single_buffer)
+     args.replay, args.boss_rush, args.fps_limit, args.single_buffer,
+     args.debug)
