@@ -139,6 +139,7 @@ class EoSDInterface(object):
         self.boss_items = [
             Effect((0, 0), 19, front), # Enemy
             Gauge((100, 24), front), # Gauge
+            Gauge((100, 24), front), # Spellcard gauge
         ]
         for item in self.boss_items:
             item.sprite.allow_dest_offset = True #XXX
@@ -146,6 +147,11 @@ class EoSDInterface(object):
 
     def set_boss_life(self):
         self.boss_items[1].maximum = self.game.boss._enemy.life
+        self.boss_items[2].maximum = self.game.boss._enemy.life
+
+
+    def set_spell_life(self):
+        self.boss_items[2].set_value(self.game.boss._enemy.low_life_trigger)
 
 
     def update(self):
@@ -168,6 +174,11 @@ class EoSDInterface(object):
 
             life_gauge = self.boss_items[1]
             life_gauge.set_value(boss.life)
+
+            spell_gauge = self.boss_items[2]
+            spell_gauge.sprite.color = (255, 192, 192)
+            if boss.life < spell_gauge.value:
+                spell_gauge.set_value(boss.life)
 
             for item in self.boss_items:
                 item.update()

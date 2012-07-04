@@ -875,6 +875,7 @@ class ECLRunner(object):
         # During those frames, the ECL doesn't seem to be executed.
         # However, the ECL isn't directly paused by this instruction itself.
         self._enemy.low_life_trigger = value
+        self._game.interface.set_spell_life()
 
 
     @instruction(114)

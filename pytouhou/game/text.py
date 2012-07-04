@@ -151,7 +151,7 @@ class Counter(GlyphCollection):
 
 
 class Gauge(object):
-    def __init__(self, pos, anm_wrapper, max_length=280, maximum=1, value=0.):
+    def __init__(self, pos, anm_wrapper, max_length=280, maximum=1, value=0):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm_wrapper, 21, self.sprite)
         self.anmrunner.run_frame()
@@ -172,6 +172,11 @@ class Gauge(object):
 
 
     def update(self):
+        #XXX
+        if self.value == 0:
+            self.sprite.visible = False
+        else:
+            self.sprite.visible = True
         if self.anmrunner and not self.anmrunner.run_frame():
             self.anmrunner = None
 
