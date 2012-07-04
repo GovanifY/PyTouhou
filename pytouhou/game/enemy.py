@@ -42,7 +42,6 @@ class Enemy(object):
 
         self.x, self.y, self.z = pos
         self.life = 1 if life < 0 else life
-        self.max_life = life
         self.touchable = True
         self.collidable = True
         self.damageable = True

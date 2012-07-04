@@ -149,3 +149,30 @@ class Counter(GlyphCollection):
         self.changed = True
 
 
+
+class Gauge(object):
+    def __init__(self, pos, anm_wrapper, max_length=280, maximum=1, value=0.):
+        self.sprite = Sprite()
+        self.anmrunner = ANMRunner(anm_wrapper, 21, self.sprite)
+        self.anmrunner.run_frame()
+        self.removed = False
+        self.sprite.corner_relative_placement = True #TODO: perhaps not right
+
+        self.x, self.y = pos
+        self.max_length = max_length
+        self.maximum = maximum
+
+        self.set_value(value)
+
+
+    def set_value(self, value):
+        self.value = value
+        self.sprite.width_override = self.max_length * value / self.maximum
+        self.sprite.changed = True #TODO
+
+
+    def update(self):
+        if self.anmrunner and not self.anmrunner.run_frame():
+            self.anmrunner = None
+
+

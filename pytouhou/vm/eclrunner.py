@@ -804,6 +804,7 @@ class ECLRunner(object):
         if value == 0:
             self._enemy.boss = True
             self._game.boss = self
+            self._game.interface.set_boss_life()
         elif value == -1:
             self._enemy.boss = False
             self._game.boss = None
@@ -856,6 +857,7 @@ class ECLRunner(object):
     @instruction(111)
     def set_life(self, value):
         self._enemy.life = value
+        self._game.interface.set_boss_life()
 
 
     @instruction(112)

@@ -21,7 +21,7 @@ from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
-from pytouhou.game.text import Text, Counter
+from pytouhou.game.text import Text, Counter, Gauge
 
 
 SQ2 = 2. ** 0.5 / 2.
@@ -138,12 +138,14 @@ class EoSDInterface(object):
 
         self.boss_items = [
             Effect((0, 0), 19, front), # Enemy
-            # Gauge
+            Gauge((100, 24), front), # Gauge
         ]
         for item in self.boss_items:
             item.sprite.allow_dest_offset = True #XXX
 
-        self.front = front #XXX
+
+    def set_boss_life(self):
+        self.boss_items[1].maximum = self.game.boss._enemy.life
 
 
     def update(self):
@@ -163,6 +165,10 @@ class EoSDInterface(object):
 
         if self.game.boss:
             boss = self.game.boss._enemy
+
+            life_gauge = self.boss_items[1]
+            life_gauge.set_value(boss.life)
+
             for item in self.boss_items:
                 item.update()
 
