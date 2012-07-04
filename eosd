@@ -15,6 +15,7 @@
 
 import argparse
 import os
+import sys
 
 import pyximport
 pyximport.install()
@@ -51,7 +52,12 @@ class EoSDGameBossRush(EoSDGame):
 
 def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, single_buffer):
     resource_loader = Loader(path)
-    resource_loader.scan_archives(data)
+
+    try:
+        resource_loader.scan_archives(data)
+    except IOError:
+        sys.stderr.write('Some data files were not found, did you forget the -p option?\n')
+        exit(1)
 
     if stage_num is None:
         story = True

@@ -120,6 +120,8 @@ class Loader(object):
                         path = os.path.join(self.game_dir, path)
                     yield glob(path)
             paths = list(chain(*_expand_paths()))
+            if not paths:
+                raise IOError
             path = paths[0]
             if os.path.splitext(path)[1] == '.exe':
                 self.exe_files.extend(paths)
