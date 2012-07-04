@@ -100,6 +100,10 @@ class MusicPlayer(object):
         self.player = Player()
 
 
+    def pause(self):
+        self.player.pause()
+
+
     def play(self, index):
         bgm = self.bgms[index]
         if self.player.playing:
