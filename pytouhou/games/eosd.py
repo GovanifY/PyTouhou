@@ -91,7 +91,7 @@ class EoSDGame(Game):
         characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
-        interface = EoSDInterface(player_states, resource_loader)
+        interface = EoSDInterface(self, resource_loader)
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,
@@ -100,8 +100,8 @@ class EoSDGame(Game):
 
 
 class EoSDInterface(object):
-    def __init__(self, states, resource_loader):
-        self.states = states
+    def __init__(self, game, resource_loader):
+        self.game = game
         front = resource_loader.get_anm_wrapper(('front.anm',))
         ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
 
@@ -129,14 +129,28 @@ class EoSDInterface(object):
             'points': Text((500, 226), ascii_wrapper, front, text='0'),
             'framerate': Text((512, 464), ascii_wrapper, front),
             'debug?': Text((0, 464), ascii_wrapper, front),
+
+            # Only when there is a boss.
+            'boss_lives': Text((80, 16), ascii_wrapper),
+            'timeout': Text((384, 16), ascii_wrapper),
         }
+        self.labels['boss_lives'].set_color('yellow')
+
+        self.boss_items = [
+            Effect((0, 0), 19, front), # Enemy
+            # Gauge
+        ]
+        for item in self.boss_items:
+            item.sprite.allow_dest_offset = True #XXX
+
+        self.front = front #XXX
 
 
     def update(self):
         for elem in self.items:
             elem.update()
 
-        player_state = self.states[0]
+        player_state = self.game.players[0].state
 
         self.highscore = max(self.highscore, player_state.effective_score)
         self.labels['highscore'].set_text('%09d' % self.highscore)
@@ -146,6 +160,27 @@ class EoSDInterface(object):
         self.labels['points'].set_text('%d' % player_state.points)
         self.labels['player'].set_value(player_state.lives)
         self.labels['bombs'].set_value(player_state.bombs)
+
+        if self.game.boss:
+            boss = self.game.boss._enemy
+            for item in self.boss_items:
+                item.update()
+
+            self.labels['boss_lives'].set_text('%d' % boss.remaining_lives)
+            self.labels['boss_lives'].changed = True
+
+            timeout = (boss.timeout - boss.frame) // 60
+            timeout_label = self.labels['timeout']
+            if timeout >= 20:
+                timeout_label.set_color('blue')
+            elif timeout >= 10:
+                timeout_label.set_color('darkblue')
+            elif timeout >= 5:
+                timeout_label.set_color('purple')
+            else:
+                timeout_label.set_color('red')
+            timeout_label.set_text('%02d' % (timeout if timeout >= 0 else 0))
+            timeout_label.changed = True
 
 
 

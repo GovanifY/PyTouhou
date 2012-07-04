@@ -395,11 +395,14 @@ class Enemy(object):
                     return
 
                 if death_flags == 1:
+                    self.boss = False #TODO: really?
+                    self._game.boss = None
                     self.touchable = False
                 elif death_flags == 2:
                     pass # Just that?
                 elif death_flags == 3:
-                    #TODO: disable boss mode
+                    self.boss = False #TODO: really?
+                    self._game.boss = None
                     self.damageable = False
                     self.life = 1
                     self.death_flags = 0

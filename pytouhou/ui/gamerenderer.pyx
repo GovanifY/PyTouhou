@@ -95,6 +95,6 @@ cdef class GameRenderer(Renderer):
             self.render_elements(chain(game.bullets, game.lasers,
                                        game.cancelled_bullets, game.items,
                                        (item.indicator for item in game.items if item.indicator),
-				       *(label.objects() for label in game.labels)))
+                                       *(label.objects() for label in game.labels)))
             glEnable(GL_FOG)
 

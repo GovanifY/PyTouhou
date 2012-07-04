@@ -106,7 +106,8 @@ class Text(GlyphCollection):
 
 
     def set_color(self, color):
-        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0), 'blue': (192, 192, 255)}
+        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0), 'blue': (192, 192, 255), 'darkblue': (160, 128, 255), 'purple': (224, 128, 255), 'red': (255, 64, 0)}
+        self.ref_sprite.color = colors[color]
         for glyph in self.glyphes:
             glyph.sprite.color = colors[color]
 
