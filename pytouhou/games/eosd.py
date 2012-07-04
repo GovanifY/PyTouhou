@@ -151,7 +151,7 @@ class EoSDInterface(object):
 
 
     def set_spell_life(self):
-        self.boss_items[2].set_value(self.game.boss._enemy.low_life_trigger)
+        self.boss_items[2].set_value(self.game.boss._enemy.low_life_trigger if self.game.boss else 0)
 
 
     def update(self):
