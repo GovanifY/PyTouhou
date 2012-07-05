@@ -146,8 +146,8 @@ class EoSDInterface(object):
 
 
     def set_boss_life(self):
-        self.boss_items[1].maximum = self.game.boss._enemy.life
-        self.boss_items[2].maximum = self.game.boss._enemy.life
+        self.boss_items[1].maximum = self.game.boss._enemy.life or 1
+        self.boss_items[2].maximum = self.game.boss._enemy.life or 1
 
 
     def set_spell_life(self):
@@ -169,7 +169,7 @@ class EoSDInterface(object):
         self.labels['player'].set_value(player_state.lives)
         self.labels['bombs'].set_value(player_state.bombs)
 
-        if self.game.boss:
+        if self.game.boss and self.game.boss._enemy.remaining_lives != -1:
             boss = self.game.boss._enemy
 
             life_gauge = self.boss_items[1]
