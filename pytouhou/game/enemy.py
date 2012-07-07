@@ -363,6 +363,8 @@ class Enemy(object):
     def handle_callbacks(self):
         #TODO: implement missing callbacks and clean up!
         if self.life <= 0 and self.touchable:
+            self.timeout = -1 #TODO: not really true, the timeout is frozen
+            self.timeout_callback = -1
             death_flags = self.death_flags & 7
 
             self.die_anim()
@@ -412,17 +414,24 @@ class Enemy(object):
         elif self.life <= self.low_life_trigger and self.low_life_callback > -1:
             self.process.switch_to_sub(self.low_life_callback)
             self.low_life_callback = -1
+            self.low_life_trigger = -1
+            self.timeout_callback = -1
         elif self.timeout != -1 and self.frame == self.timeout:
-            self.frame = 0
+            self.timeout = -1
+
+            if self.low_life_trigger > 0:
+                self.life = self.low_life_trigger
+                self.low_life_trigger = -1
+
             if self.timeout_callback > -1:
                 self.process.switch_to_sub(self.timeout_callback)
                 self.timeout_callback = -1
-            elif self.touchable:
-                self.life = 0
+            #TODO: this is only done under certain (unknown) conditions!
+            # but it shouldn't hurt anyway, as the only option left is to crash!
             elif self.death_callback > -1:
                 self.process.switch_to_sub(self.death_callback)
+                self.timeout_callback = -1
                 self.death_callback = -1
-                self.timeout = -1 #TODO: check
             else:
                 raise Exception('What the hell, man!')
 
