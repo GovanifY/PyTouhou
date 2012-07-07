@@ -186,7 +186,7 @@ class EoSDInterface(object):
             self.labels['boss_lives'].set_text('%d' % boss.remaining_lives)
             self.labels['boss_lives'].changed = True
 
-            timeout = (boss.timeout - boss.frame) // 60
+            timeout = min((boss.timeout - boss.frame) // 60, 99)
             timeout_label = self.labels['timeout']
             if timeout >= 20:
                 timeout_label.set_color('blue')
