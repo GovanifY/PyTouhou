@@ -761,15 +761,7 @@ class ECLRunner(object):
 
     @instruction(96)
     def kill_enemies(self):
-        for enemy in self._game.enemies:
-            if enemy.boss:
-                pass # Bosses are immune to 96
-            elif enemy.touchable:
-                enemy.life = 0
-            elif enemy.death_callback > 0:
-                #TODO: check
-                enemy.process.switch_to_sub(enemy.death_callback)
-                enemy.death_callback = -1
+        self.game.kill_enemies()
 
 
     @instruction(97)

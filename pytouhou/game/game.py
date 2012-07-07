@@ -175,6 +175,18 @@ class Game(object):
         #TODO: display the final bonus score.
 
 
+    def kill_enemies(self):
+        for enemy in self.enemies:
+            if enemy.boss:
+                pass # Bosses are immune to 96
+            elif enemy.touchable:
+                enemy.life = 0
+            elif enemy.death_callback > 0:
+                #TODO: check
+                enemy.process.switch_to_sub(enemy.death_callback)
+                enemy.death_callback = -1
+
+
     def new_effect(self, pos, anim, anm_wrapper=None):
         self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
 

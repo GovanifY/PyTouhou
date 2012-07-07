@@ -420,6 +420,8 @@ class Enemy(object):
             self.timeout_callback = -1
         elif self.timeout != -1 and self.frame == self.timeout:
             self.timeout = -1
+            self._game.kill_enemies()
+            self._game.cancel_bullets()
 
             if self.low_life_trigger > 0:
                 self.life = self.low_life_trigger
