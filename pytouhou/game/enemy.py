@@ -59,7 +59,7 @@ class Enemy(object):
         self.low_life_trigger = None
         self.timeout = -1
         self.timeout_callback = -1
-        self.remaining_lives = -1
+        self.remaining_lives = 0
 
         self.automatic_orientation = False
 

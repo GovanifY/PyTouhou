@@ -169,7 +169,7 @@ class EoSDInterface(object):
         self.labels['player'].set_value(player_state.lives)
         self.labels['bombs'].set_value(player_state.bombs)
 
-        if self.game.boss and self.game.boss._enemy.remaining_lives != -1:
+        if self.game.boss:
             boss = self.game.boss._enemy
 
             life_gauge = self.boss_items[1]
