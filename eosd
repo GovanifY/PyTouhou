@@ -52,6 +52,9 @@ class EoSDGameBossRush(EoSDGame):
             self.enemies = [enemy for enemy in self.enemies
                                 if enemy.boss_callback != -1 or enemy.frame > 1]
             self.lasers = [laser for laser in self.lasers if laser.frame > 1]
+            self.effects = [effect for effect in self.effects
+                            if not hasattr(effect, '_laser')
+                            or effect._laser in self.lasers]
             self.bullets = [bullet for bullet in self.bullets if bullet.frame > 1]
         EoSDGame.cleanup(self)
 
