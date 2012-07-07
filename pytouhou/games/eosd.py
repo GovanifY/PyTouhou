@@ -146,6 +146,8 @@ class EoSDInterface(object):
 
 
     def set_boss_life(self):
+        if not self.game.boss:
+            return
         self.boss_items[1].maximum = self.game.boss._enemy.life or 1
         self.boss_items[2].maximum = self.game.boss._enemy.life or 1
 
