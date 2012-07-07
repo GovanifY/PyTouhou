@@ -150,15 +150,7 @@ cdef class Bullet(object):
         self.anmrunner.run_frame()
         self.dx, self.dy = self.dx / 2., self.dy / 2.
 
-        # Change update method
         self.state = CANCELLED
-
-        # Do not use this one for collisions anymore
-        if self.player_bullet:
-            self._game.players_bullets.remove(self)
-        else:
-            self._game.bullets.remove(self)
-        self._game.cancelled_bullets.append(self)
 
 
     def update(Bullet self):
