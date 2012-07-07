@@ -126,7 +126,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             if not self.replay_level:
                 #TODO: allow user settings
                 keystate = 0
-                if self.keys[pyglet.window.key.W]:
+                if self.keys[pyglet.window.key.W] or self.keys[pyglet.window.key.Z]:
                     keystate |= 1
                 if self.keys[pyglet.window.key.X]:
                     keystate |= 2
