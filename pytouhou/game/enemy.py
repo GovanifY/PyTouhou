@@ -419,6 +419,7 @@ class Enemy(object):
             self.low_life_trigger = -1
             self.timeout_callback = -1
         elif self.timeout != -1 and self.frame == self.timeout:
+            self.frame = 0
             self.timeout = -1
             self._game.kill_enemies()
             self._game.cancel_bullets()
@@ -433,9 +434,7 @@ class Enemy(object):
             #TODO: this is only done under certain (unknown) conditions!
             # but it shouldn't hurt anyway, as the only option left is to crash!
             elif self.death_callback > -1:
-                self.process.switch_to_sub(self.death_callback)
-                self.timeout_callback = -1
-                self.death_callback = -1
+                self.life = 0 #TODO: do this next frame? Bypass self.touchable?
             else:
                 raise Exception('What the hell, man!')
 
