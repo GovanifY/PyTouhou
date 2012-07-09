@@ -22,7 +22,7 @@ cpdef bytes decompress(object bitstream,
                        unsigned int length_size=4,
                        unsigned int minimum_match_length=3):
     cdef unsigned int i, ptr, dictionary_head, offset, length
-    cdef unsigned char flag, byte, *out_data, *dictionary
+    cdef unsigned char byte, *out_data, *dictionary
     cdef bytes _out_data
 
     out_data = <unsigned char*> malloc(size)
@@ -30,8 +30,7 @@ cpdef bytes decompress(object bitstream,
     dictionary_head, ptr = 1, 0
 
     while ptr < size:
-        flag = bitstream.read_bit()
-        if flag:
+        if bitstream.read_bit():
             # The `flag` bit is set, indicating the upcoming chunk of data is a literal
             # Add it to the uncompressed file, and store it in the dictionary
             byte = bitstream.read(8)

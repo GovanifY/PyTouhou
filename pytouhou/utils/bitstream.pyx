@@ -13,9 +13,10 @@
 ##
 
 cdef class BitStream:
-    cdef public io
-    cdef public int bits
-    cdef public unsigned char byte
+    cdef public object io
+    cdef unsigned int bits
+    cdef unsigned char byte
+    cdef bytes bytes
 
 
     def __init__(BitStream self, io):
@@ -48,19 +49,27 @@ cdef class BitStream:
 
     cpdef unsigned char read_bit(BitStream self):
         if not self.bits:
-            self.byte = ord(self.io.read(1))
+            self.bytes = self.io.read(1)
+            self.byte = (<unsigned char*> self.bytes)[0]
             self.bits = 8
         self.bits -= 1
         return (self.byte >> self.bits) & 0x01
 
 
-    cpdef unsigned int read(BitStream self, int nb_bits):
-        cdef unsigned int value = 0
-        cdef int i
+    cpdef unsigned int read(BitStream self, unsigned int nb_bits):
+        cdef unsigned int value = 0, read = 0
+        cdef unsigned int nb_bits2 = nb_bits
 
-        for i in range(nb_bits - 1, -1, -1):
-            value |= self.read_bit() << i
-        return value
+        while nb_bits2:
+            if not self.bits:
+                self.bytes = self.io.read(1)
+                self.byte = (<unsigned char*> self.bytes)[0]
+                self.bits = 8
+            read = self.bits if nb_bits2 > self.bits else nb_bits2
+            nb_bits2 -= read
+            self.bits -= read
+            value |= (self.byte >> self.bits) << nb_bits2
+        return value & ((1 << nb_bits) - 1)
 
 
     cpdef write_bit(BitStream self, bit):

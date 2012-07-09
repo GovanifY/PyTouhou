@@ -141,11 +141,10 @@ class SHT(object):
         data_va = pe_file.image_base + data_section.VirtualAddress
         data_size = data_section.SizeOfRawData
 
-        possible_character_records = list(cls.find_character_defs(pe_file))
-        if not possible_character_records:
+        try:
+            character_records_va = next(cls.find_character_defs(pe_file))
+        except StopIteration:
             raise InvalidExeException
-
-        character_records_va = possible_character_records[0]
 
         characters = []
         shots_offsets = {}
