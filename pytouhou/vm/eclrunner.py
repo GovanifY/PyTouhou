@@ -761,7 +761,7 @@ class ECLRunner(object):
 
     @instruction(96)
     def kill_enemies(self):
-        self.game.kill_enemies()
+        self._game.kill_enemies()
 
 
     @instruction(97)
