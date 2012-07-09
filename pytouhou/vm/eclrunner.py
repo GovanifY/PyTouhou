@@ -172,10 +172,14 @@ class ECLRunner(object):
                 try:
                     callback = self._handlers[instr_type]
                 except KeyError:
-                    logger.warn('unhandled opcode %d (args: %r)', instr_type, args)
+                    logger.warn('[%d %r - %04d] unhandled opcode %d (args: %r)',
+                                id(self), [self.sub] + [e[0] for e in self.stack],
+                                self.frame, instr_type, args)
                 else:
+                    logger.debug('[%d %r - %04d] ins_%d%r', id(self),
+                                 [self.sub] + [e[0] for e in self.stack],
+                                 self.frame, instr_type, args)
                     callback(self, *args)
-                    logger.debug('executed opcode %d (args: %r)', instr_type, args)
 
         self.frame += 1
 
