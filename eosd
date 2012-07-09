@@ -16,6 +16,7 @@
 import argparse
 import os
 import sys
+import logging
 
 import pyximport
 pyximport.install()
@@ -78,6 +79,7 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         continues = 0
 
     if debug:
+        logging.basicConfig(level=logging.DEBUG)
         continues = float('inf')
 
     if replay:
