@@ -1097,12 +1097,12 @@ class ECLRunner(object):
         self._enemy.aux_anm[number].anmrunner.interrupt(event)
 
 
-    @instruction(132)
-    def set_visible(self, value):
-        self._enemy.visible = not bool(value)
-
-
     @instruction(131)
     def set_difficulty_coeffs(self, speed_a, speed_b, nb_a, nb_b, shots_a, shots_b):
         self._enemy.difficulty_coeffs = (speed_a, speed_b, nb_a, nb_b, shots_a, shots_b)
+
+
+    @instruction(132)
+    def set_invisible(self, value):
+        self._enemy.visible = not bool(value)
 
