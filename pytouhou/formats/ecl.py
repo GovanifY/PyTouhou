@@ -149,7 +149,7 @@ class ECL(object):
                      130: ('i', None),
                      131: ('ffiiii', 'set_difficulty_coeffs'),
                      132: ('i', 'set_invisible'),
-                     133: ('', None),
+                     133: ('', 'copy_callbacks?'),
                      134: ('', None),
                      135: ('i', 'enable_spellcard_bonus')} #TODO
 

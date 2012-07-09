@@ -1106,3 +1106,8 @@ class ECLRunner(object):
     def set_invisible(self, value):
         self._enemy.visible = not bool(value)
 
+
+    @instruction(133)
+    def copy_callbacks(self):
+        self._enemy.timeout_callback = self._enemy.death_callback
+
