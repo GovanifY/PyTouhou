@@ -142,7 +142,9 @@ class ECLRunner(object):
         self.stack = []
 
 
-    def switch_to_sub(self, sub):
+    def switch_to_sub(self, sub, preserve_stack=False):
+        if not preserve_stack:
+            self.stack = []
         self.running = True
         self.frame = 0
         self.sub = sub
@@ -407,7 +409,7 @@ class ECLRunner(object):
                            list(self.variables), self.comparison_reg))
         self.variables[0] = param1
         self.variables[4] = param2
-        self.switch_to_sub(sub)
+        self.switch_to_sub(sub, preserve_stack=True)
 
 
     @instruction(36)
