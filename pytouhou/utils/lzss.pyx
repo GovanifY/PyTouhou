@@ -22,11 +22,12 @@ cpdef bytes decompress(object bitstream,
                        unsigned int length_size=4,
                        unsigned int minimum_match_length=3):
     cdef unsigned int i, ptr, dictionary_head, offset, length
-    cdef unsigned char byte, *out_data, *dictionary
+    cdef unsigned char byte
+    cdef char *out_data, *dictionary
     cdef bytes _out_data
 
-    out_data = <unsigned char*> malloc(size)
-    dictionary = <unsigned char*> calloc(dictionary_size, 1)
+    out_data = <char*> malloc(size)
+    dictionary = <char*> calloc(dictionary_size, 1)
     dictionary_head, ptr = 1, 0
 
     while ptr < size:
@@ -42,13 +43,15 @@ cpdef bytes decompress(object bitstream,
             # The `flag` bit is not set, the upcoming chunk is a (offset, length) tuple
             offset = bitstream.read(offset_size)
             length = bitstream.read(length_size) + minimum_match_length
+            if ptr + length > size:
+                raise Exception
             if offset == 0 and length == 0:
                 break
             for i in range(offset, offset + length):
-                out_data[ptr % size] = dictionary[i % dictionary_size]
-                ptr += 1
+                out_data[ptr] = dictionary[i % dictionary_size]
                 dictionary[dictionary_head] = dictionary[i % dictionary_size]
                 dictionary_head = (dictionary_head + 1) % dictionary_size
+                ptr += 1
 
     _out_data = out_data[:size]
     free(out_data)
