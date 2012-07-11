@@ -19,6 +19,11 @@ from pyglet.media import AudioData, AudioFormat, StaticSource, Player
 from pyglet.media.riff import WaveSource
 
 
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
+
+
 class InfiniteWaveSource(WaveSource):
     def __init__(self, filename, start, end, file=None):
         WaveSource.__init__(self, filename, file)
@@ -89,7 +94,12 @@ class MusicPlayer(object):
                 self.bgms.append(None)
                 continue
             posname = bgm[1].replace('bgm/', '').replace('.mid', '.pos')
-            track = resource_loader.get_track(posname)
+            try:
+                track = resource_loader.get_track(posname)
+            except KeyError:
+                self.bgms.append(None)
+                logger.warn('Music description not found: %s', posname)
+                continue
             wavname = join(resource_loader.game_dir, bgm[1].replace('.mid', '.wav'))
             try:
                 source = InfiniteWaveSource(wavname, track.start, track.end)
