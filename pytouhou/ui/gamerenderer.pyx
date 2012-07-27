@@ -17,6 +17,8 @@ from itertools import chain
 
 from pyglet.gl import *
 
+from pytouhou.utils.matrix import Matrix
+
 from .renderer cimport Renderer
 from .background cimport get_background_rendering_data
 
@@ -49,13 +51,25 @@ cdef class GameRenderer(Renderer):
         game = self.game
         texture_manager = self.texture_manager
 
-        if game is not None and game.spellcard_effect is not None:
-            self.setup_camera(0, 0, 1)
+        if self.use_fixed_pipeline:
+            glMatrixMode(GL_PROJECTION)
+            glLoadIdentity()
 
-            glDisable(GL_FOG)
+        if game is not None and game.spellcard_effect is not None:
+            if self.use_fixed_pipeline:
+                glMatrixMode(GL_MODELVIEW)
+                glLoadMatrixf(self.game_mvp.get_c_data())
+                glDisable(GL_FOG)
+            else:
+                self.game_shader.bind()
+                self.game_shader.uniform_matrixf('mvp', self.game_mvp.get_c_data())
+
             self.render_elements([game.spellcard_effect])
-            glEnable(GL_FOG)
         elif back is not None:
+            if self.use_fixed_pipeline:
+                glEnable(GL_FOG)
+            else:
+                self.background_shader.bind()
             fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values
@@ -65,8 +79,18 @@ cdef class GameRenderer(Renderer):
             glFogf(GL_FOG_END,  fog_end)
             glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
 
-            self.setup_camera(dx, dy, dz)
-            glTranslatef(-x, -y, -z)
+            model = Matrix()
+            model.data[3] = [-x, -y, -z, 1]
+            view = self.setup_camera(dx, dy, dz)
+            model_view = model * view
+            model_view_projection = model * view * self.proj
+
+            if self.use_fixed_pipeline:
+                glMatrixMode(GL_MODELVIEW)
+                glLoadMatrixf(model_view_projection.get_c_data())
+            else:
+                self.background_shader.uniform_matrixf('model_view', model_view.get_c_data())
+                self.background_shader.uniform_matrixf('projection', self.proj.get_c_data())
 
             glEnable(GL_DEPTH_TEST)
             for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in get_background_rendering_data(back):
@@ -81,9 +105,14 @@ cdef class GameRenderer(Renderer):
             glClear(GL_COLOR_BUFFER_BIT)
 
         if game is not None:
-            self.setup_camera(0, 0, 1)
+            if self.use_fixed_pipeline:
+                glMatrixMode(GL_MODELVIEW)
+                glLoadMatrixf(self.game_mvp.get_c_data())
+                glDisable(GL_FOG)
+            else:
+                self.game_shader.bind()
+                self.game_shader.uniform_matrixf('mvp', self.game_mvp.get_c_data())
 
-            glDisable(GL_FOG)
             self.render_elements(chain(*(enemy.objects() for enemy in game.enemies if enemy.visible)))
             self.render_elements(enemy for enemy in game.enemies if enemy.visible)
             self.render_elements(game.effects)
@@ -96,5 +125,4 @@ cdef class GameRenderer(Renderer):
                                        game.cancelled_bullets, game.items,
                                        (item.indicator for item in game.items if item.indicator),
                                        *(label.objects() for label in game.labels)))
-            glEnable(GL_FOG)
 

@@ -18,7 +18,7 @@ from itertools import chain
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        glHint, glEnableClientState, glViewport, glScissor,
-                       gluPerspective, gluOrtho2D,
+                       glLoadMatrixf,
                        GL_MODELVIEW, GL_PROJECTION,
                        GL_TEXTURE_2D, GL_BLEND, GL_FOG,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
@@ -26,16 +26,18 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        GL_SCISSOR_TEST)
 
 from pytouhou.utils.helpers import get_logger
+from pytouhou.utils.matrix import Matrix
 
 from .gamerenderer import GameRenderer
 from .music import MusicPlayer, SFXPlayer
+from .shaders.eosd import GameShader, BackgroundShader
 
 
 logger = get_logger(__name__)
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60):
+    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False):
         GameRenderer.__init__(self, resource_loader, game, background)
 
         config = pyglet.gl.Config(double_buffer=double_buffer)
@@ -45,7 +47,13 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                                       config=config)
 
         self.fps_limit = fps_limit
+        self.use_fixed_pipeline = fixed_pipeline
         self.replay_level = None
+
+        if not self.use_fixed_pipeline:
+            self.game_shader = GameShader()
+            self.background_shader = BackgroundShader()
+            self.interface_shader = self.game_shader
 
         if game:
             self.load_game(game, background, replay)
@@ -83,12 +91,17 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         # Initialize OpenGL
         glEnable(GL_BLEND)
         glEnable(GL_TEXTURE_2D)
-        glEnable(GL_FOG)
         glHint(GL_FOG_HINT, GL_NICEST)
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+        self.proj = self.perspective(30, float(self.game.width) / float(self.game.height),
+                                     101010101./2010101., 101010101./10101.)
+        game_view = self.setup_camera(0, 0, 1)
+        self.game_mvp = game_view * self.proj
+        self.interface_mvp = self.ortho_2d(0., float(self.width), float(self.height), 0.)
 
         if self.fps_limit > 0:
             pyglet.clock.set_fps_limit(self.fps_limit)
@@ -163,10 +176,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         glViewport(x, y, self.game.width, self.game.height)
         glScissor(x, y, self.game.width, self.game.height)
         glEnable(GL_SCISSOR_TEST)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(30, float(self.game.width) / float(self.game.height),
-                       101010101./2010101., 101010101./10101.)
 
         GameRenderer.render(self)
 
@@ -174,15 +183,16 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
 
     def render_interface(self):
-        # Interface
         interface = self.game.interface
         interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_fps())
 
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        gluOrtho2D(0., float(self.width), float(self.height), 0.)
+        if self.use_fixed_pipeline:
+            glMatrixMode(GL_MODELVIEW)
+            glLoadMatrixf(self.interface_mvp.get_c_data())
+            glDisable(GL_FOG)
+        else:
+            self.interface_shader.bind()
+            self.interface_shader.uniform_matrixf('mvp', self.interface_mvp.get_c_data())
         glViewport(0, 0, self.width, self.height)
 
         items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]

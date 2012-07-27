@@ -13,11 +13,32 @@
 ##
 
 from libc.math cimport sin, cos
+from ctypes import c_float
 
 
 cdef class Matrix:
     def __init__(Matrix self, data=None):
-        self.data = data or [[0] * 4 for i in xrange(4)]
+        self.data = data or [[1, 0, 0, 0],
+                             [0, 1, 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1]]
+
+
+    def __getitem__(Matrix self, key):
+        return self.data[key]
+
+
+    def __mul__(Matrix self, Matrix other):
+        out = Matrix()
+        for i in xrange(4):
+            for j in xrange(4):
+                out[i][j] = sum(self[i][k] * other[k][j] for k in xrange(4))
+        return out
+
+
+    def get_c_data(Matrix self):
+        data = sum(self.data, [])
+        return (c_float * 16)(*data)
 
 
     cpdef flip(Matrix self):
