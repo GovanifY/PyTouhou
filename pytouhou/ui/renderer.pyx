@@ -71,7 +71,7 @@ cdef class Renderer:
 
                 # Add indices
                 index = nb_vertices
-                rec.extend((index, index + 1, index + 2, index + 3))
+                rec.extend((index, index + 1, index + 2, index + 2, index + 3, index))
 
                 nb_vertices += 4
 
@@ -84,7 +84,7 @@ cdef class Renderer:
             indices = pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key].id)
-            glDrawElements(GL_QUADS, nb_indices, GL_UNSIGNED_SHORT, indices)
+            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, indices)
 
 
     cpdef ortho_2d(self, left, right, bottom, top):
