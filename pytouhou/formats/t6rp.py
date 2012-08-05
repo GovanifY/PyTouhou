@@ -43,6 +43,17 @@ class Level(object):
         self.keys = []
 
 
+    def iter_keystates(self):
+        counter = 0
+        previous = 0
+        for frame, keystate, unknown in self.keys:
+            while frame >= counter:
+                yield previous
+                counter += 1
+            previous = keystate
+
+
+
 class T6RP(object):
     def __init__(self):
         self.version = 0x102

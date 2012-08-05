@@ -68,8 +68,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.keys = pyglet.window.key.KeyStateHandler()
             self.push_handlers(self.keys)
         else:
-            self.keys = 0
             self.replay_level = replay.levels[game.stage-1]
+            self.keys = self.replay_level.iter_keystates()
             game.players[0].state.lives = self.replay_level.lives
             game.players[0].state.power = self.replay_level.power
             game.players[0].state.bombs = self.replay_level.bombs
@@ -161,12 +161,10 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                 if self.keys[pyglet.window.key.LCTRL]:
                     keystate |= 256
             else:
-                keystate = 0
-                for frame, _keystate, unknown in self.replay_level.keys:
-                    if self.game.frame < frame:
-                        break
-                    else:
-                        keystate = _keystate
+                try:
+                    keystate = self.keys.next()
+                except StopIteration:
+                    keystate = 0
 
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)
