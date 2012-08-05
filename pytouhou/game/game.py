@@ -14,8 +14,6 @@
 
 from itertools import chain
 
-from pytouhou.utils.random import Random
-
 from pytouhou.vm.eclrunner import ECLMainRunner
 from pytouhou.vm.msgrunner import MSGRunner
 
@@ -72,7 +70,7 @@ class Game(object):
         self.msg_wait = False
         self.bonus_list = [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0,
                            1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 2]
-        self.prng = prng or Random()
+        self.prng = prng
         self.frame = 0
 
         self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,

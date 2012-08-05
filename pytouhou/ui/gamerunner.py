@@ -61,7 +61,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         self.clock = pyglet.clock.get_default()
 
 
-    def load_game(self, game=None, background=None, bgms=None, replay=None):
+    def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
         GameRenderer.load_game(self, game, background)
         self.replay_level = None
         if not replay or not replay.levels[game.stage-1]:
@@ -74,6 +74,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             game.players[0].state.power = self.replay_level.power
             game.players[0].state.bombs = self.replay_level.bombs
             game.difficulty = self.replay_level.difficulty
+
+        self.save_keystates = save_keystates
 
         game.music = MusicPlayer(game.resource_loader, bgms)
         game.music.play(0)
@@ -165,6 +167,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                         break
                     else:
                         keystate = _keystate
+
+            if self.save_keystates is not None:
+                self.save_keystates.append(keystate)
 
             self.game.run_iter(keystate)
 

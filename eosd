@@ -27,7 +27,7 @@ from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDGame
 from pytouhou.game.game import GameOver
 from pytouhou.game.player import PlayerState
-from pytouhou.formats.t6rp import T6RP
+from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
 from pytouhou.vm.msgrunner import NextStage
 
@@ -62,7 +62,9 @@ class EoSDGameBossRush(EoSDGame):
 
 
 
-def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, single_buffer, debug, fixed_pipeline):
+def main(path, data, stage_num, rank, character, replay, save_filename,
+         boss_rush, fps_limit, single_buffer, debug, fixed_pipeline):
+
     resource_loader = Loader(path)
 
     try:
@@ -89,6 +91,12 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         rank = replay.rank
         character = replay.character
 
+    save_keystates = None
+    if save_filename:
+        save_replay = T6RP()
+        save_replay.rank = rank
+        save_replay.character = character
+
     difficulty = 16
     default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
     states = [PlayerState(character=character, power=default_power)]
@@ -110,12 +118,25 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
                 previous_level = replay.levels[stage_num - 1]
                 states[0].score = previous_level.score
                 states[0].effective_score = previous_level.score
+            states[0].point_items = level.point_items
             states[0].power = level.power
             states[0].lives = level.lives
             states[0].bombs = level.bombs
             difficulty = level.difficulty
         else:
-            prng = None
+            prng = Random()
+
+        if save_filename:
+            if not replay:
+                save_replay.levels[stage_num - 1] = level = Level()
+                level.score = states[0].score
+                level.random_seed = prng.seed
+                level.point_items = states[0].points
+                level.power = states[0].power
+                level.lives = states[0].lives
+                level.bombs = states[0].bombs
+                level.difficulty = difficulty
+            save_keystates = []
 
         # Load stage data
         stage = resource_loader.get_stage('stage%d.std' % stage_num)
@@ -126,7 +147,7 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         background = Background(stage, background_anm_wrapper)
 
         # Main loop
-        runner.load_game(game, background, stage.bgms, replay)
+        runner.load_game(game, background, stage.bgms, replay, save_keystates)
         try:
             runner.start()
             break
@@ -139,6 +160,17 @@ def main(path, data, stage_num, rank, character, replay, boss_rush, fps_limit, s
         except GameOver:
             print('Game over')
             break
+        finally:
+            if save_filename:
+                last_key = -1
+                for time, key in enumerate(save_keystates):
+                    if key != last_key:
+                        level.keys.append((time, key, 0))
+                    last_key = key
+
+    if save_filename:
+        with open(save_filename, 'wb+') as file:
+            save_replay.write(file)
 
 
 pathsep = os.path.pathsep
@@ -157,6 +189,7 @@ parser.add_argument('-s', '--stage', metavar='STAGE', type=int, default=None, he
 parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
+parser.add_argument('--save-replay', metavar='REPLAY', help='Save the upcoming game into a replay file')
 parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
 parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
 parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
@@ -166,5 +199,5 @@ parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed
 args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
-     args.replay, args.boss_rush, args.fps_limit, args.single_buffer,
-     args.debug, args.fixed_pipeline)
+     args.replay, args.save_replay, args.boss_rush, args.fps_limit,
+     args.single_buffer, args.debug, args.fixed_pipeline)

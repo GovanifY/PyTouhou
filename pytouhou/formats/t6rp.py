@@ -20,8 +20,9 @@ a game of EoSD. Since the EoSD engine is entirely deterministic, a small
 replay file is sufficient to unfold a full game.
 """
 
-from struct import unpack
+from struct import unpack, pack
 from io import BytesIO
+from time import strftime
 
 from pytouhou.utils.helpers import read_string, get_logger
 
@@ -47,7 +48,17 @@ class T6RP(object):
         self.version = 0x102
         self.character = 0
         self.rank = 0
+        self.unknown1 = 0
+        self.unknown2 = 0
         self.key = 0
+        self.unknown3 = 0
+        self.date = strftime('%d/%m/%y')
+        self.name = 'PyTouhou'
+        self.unknown4 = 0
+        self.score = 0
+        self.unknown5 = 0
+        self.slowdown = 0.
+        self.unknown6 = 0
         self.levels = [None] * 7
 
 
@@ -84,8 +95,9 @@ class T6RP(object):
         if verify:
             data = file.read()
             file.seek(15)
-            if checksum != (sum(ord(c) for c in data) + 0x3f000318 + replay.key) & 0xffffffff:
-                raise Exception #TODO
+            real_sum = (sum(ord(c) for c in data) + 0x3f000318 + replay.key) & 0xffffffff
+            if checksum != real_sum:
+                raise Exception('Checksum mismatch: %d ≠ %d.' % (checksum, real_sum))
 
         replay.unknown3, = unpack('<B', file.read(1))
         replay.date = file.read(9) #read_string(file, 9, 'ascii')
@@ -114,3 +126,64 @@ class T6RP(object):
                 level.keys.append((time, keys, unknown))
 
         return replay
+
+
+    def write(self, file, encrypt=True):
+        if encrypt:
+            encrypted_file = file
+            file = BytesIO()
+
+        file.write(b'T6RP')
+        file.write(pack('<HBB', self.version, self.character, self.rank))
+
+        checksum_offset = file.tell()
+        file.seek(4, 1) # For checksum
+        file.write(pack('<BBB', self.unknown1, self.unknown2, self.key))
+
+        file.write(pack('<B', self.unknown3))
+
+        #TODO: find a more elegant method.
+        n = 9 - len(self.date)
+        file.write(self.date)
+        file.write('\0' * n)
+        n = 9 - len(self.name)
+        file.write(self.name)
+        file.write('\0' * n)
+
+        file.write(pack('<HIIfI', self.unknown4, self.score, self.unknown5, self.slowdown, self.unknown6))
+
+        stages_offsets_offset = file.tell()
+        file.seek(7*4, 1) # Skip the stages offsets.
+
+        stages_offsets = []
+        for level in self.levels:
+            if not level:
+                stages_offsets.append(0)
+                continue
+
+            stages_offsets.append(file.tell())
+            file.write(pack('<IHHBbbBI', level.score, level.random_seed,
+                            level.point_items, level.power, level.lives,
+                            level.bombs, level.difficulty, level.unknown))
+
+            for time, keys, unknown in level.keys:
+                file.write(pack('<IHH', time, keys, unknown))
+
+            file.write(pack('<IHH', 9999999, 0, 0))
+
+        file.seek(stages_offsets_offset)
+        file.write(pack('<7I', *stages_offsets))
+
+        # Write checksum
+        file.seek(15)
+        data = file.read()
+        checksum = (sum(ord(c) for c in data) + 0x3f000318 + self.key) & 0xffffffff
+        file.seek(checksum_offset)
+        file.write(pack('<I', checksum))
+
+        # Encrypt
+        if encrypt:
+            file.seek(0)
+            encrypted_file.write(file.read(15))
+            encrypted_file.write(b''.join(chr((ord(c) + self.key + 7*i) & 0xff) for i, c in enumerate(file.read())))
+
