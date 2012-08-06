@@ -49,7 +49,8 @@ class EoSDGameBossRush(EoSDGame):
 
 
     def cleanup(self):
-        if not (self.boss or self.msg_wait or self.ecl_runner.boss_wait):
+        boss_wait = any(ecl_runner.boss_wait for ecl_runner in self.ecl_runners)
+        if not (self.boss or self.msg_wait or boss_wait):
             self.enemies = [enemy for enemy in self.enemies
                                 if enemy.boss_callback != -1 or enemy.frame > 1]
             self.lasers = [laser for laser in self.lasers if laser.frame > 1]

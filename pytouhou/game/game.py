@@ -79,7 +79,7 @@ class Game(object):
                                                                  'stg%denm2.anm' % stage))
         self.etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
-        self.ecl_runner = ECLMainRunner(ecl, self)
+        self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
 
         self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
         self.spellcard_effect = None
@@ -215,7 +215,8 @@ class Game(object):
 
     def run_iter(self, keystate):
         # 1. VMs.
-        self.ecl_runner.run_iter()
+        for runner in self.ecl_runners:
+            runner.run_iter()
 
         # 2. Modify difficulty
         if self.frame % (32*60) == (32*60): #TODO: check if that is really that frame.

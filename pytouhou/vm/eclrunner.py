@@ -25,12 +25,13 @@ logger = get_logger(__name__)
 
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_game', 'frame',
+    __slots__ = ('_main', '_subs', '_game', 'frame',
                  'instruction_pointer',
                  'boss_wait')
 
-    def __init__(self, ecl, game):
-        self._ecl = ecl
+    def __init__(self, main, subs, game):
+        self._main = main
+        self._subs = subs
         self._game = game
         self.frame = 0
         self.boss_wait = False
@@ -44,7 +45,7 @@ class ECLMainRunner(object):
 
         while True:
             try:
-                frame, sub, instr_type, args = self._ecl.main[self.instruction_pointer]
+                frame, sub, instr_type, args = self._main[self.instruction_pointer]
             except IndexError:
                 break
 
@@ -76,7 +77,7 @@ class ECLMainRunner(object):
                 z = self._game.prng.rand_double() * 800
         enemy = self._game.new_enemy((x, y, z), life, instr_type,
                                      bonus_dropped, die_score)
-        enemy.process = ECLRunner(self._ecl, sub, enemy, self._game) #TODO
+        enemy.process = ECLRunner(self._subs, sub, enemy, self._game, self._pop_enemy) #TODO
         enemy.process.run_iteration()
 
 
@@ -120,15 +121,16 @@ class ECLMainRunner(object):
 
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_ecl', '_enemy', '_game', 'variables', 'sub', 'frame',
+    __slots__ = ('_subs', '_enemy', '_game', '_pop_enemy', 'variables', 'sub', 'frame',
                  'instruction_pointer', 'comparison_reg', 'stack',
                  'running')
 
-    def __init__(self, ecl, sub, enemy, game):
+    def __init__(self, subs, sub, enemy, game, pop_enemy):
         # Things not supposed to change
-        self._ecl = ecl
+        self._subs = subs
         self._enemy = enemy
         self._game = game
+        self._pop_enemy = pop_enemy
 
         self.running = True
 
@@ -155,7 +157,7 @@ class ECLRunner(object):
         # Process script
         while self.running:
             try:
-                frame, instr_type, rank_mask, param_mask, args = self._ecl.subs[self.sub][self.instruction_pointer]
+                frame, instr_type, rank_mask, param_mask, args = self._subs[self.sub][self.instruction_pointer]
             except IndexError:
                 self.running = False
                 break
@@ -759,10 +761,10 @@ class ECLRunner(object):
 
     @instruction(95)
     def pop_enemy(self, sub, x, y, z, life, bonus_dropped, die_score):
-        self._game.ecl_runner._pop_enemy(sub, 0, self._getval(x),
-                                                 self._getval(y),
-                                                 self._getval(z),
-                                                 life, bonus_dropped, die_score)
+        self._pop_enemy(sub, 0, self._getval(x),
+                                self._getval(y),
+                                self._getval(z),
+                                life, bonus_dropped, die_score)
 
 
     @instruction(96)

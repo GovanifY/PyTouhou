@@ -37,7 +37,7 @@ class ECL(object):
     enemy waves, triggering dialogs and level completion.
 
     Instance variables:
-    main -- list of instructions describing waves and triggering dialogs
+    mains -- list of lists of instructions describing waves and triggering dialogs
     subs -- list of subroutines
     """
 
@@ -162,28 +162,32 @@ class ECL(object):
                           10: ('II', 'resume_ecl'),
                           12: ('', 'stop_time')}
 
+    _parameters = {6: {'main_count': 1,
+                       'nb_main_offsets': 3,
+                       'jumps_list': {2: 1, 3: 1, 29: 1, 30: 1, 31: 1, 32: 1, 33: 1, 34: 1}}}
+
 
     def __init__(self):
-        self.main = []
-        self.subs = [[]]
+        self.mains = []
+        self.subs = []
 
 
     @classmethod
-    def read(cls, file):
+    def read(cls, file, version=6):
         """Read an ECL file.
 
         Raise an exception if the file is invalid.
         Return a ECL instance otherwise.
         """
 
-        sub_count, main_offset = unpack('<II', file.read(8))
-        if file.read(8) != b'\x00\x00\x00\x00\x00\x00\x00\x00':
-            raise Exception #TODO
+        parameters = cls._parameters[version]
+
+        sub_count, main_count = unpack('<HH', file.read(4))
+
+        main_offsets = unpack('<%dI' % parameters['nb_main_offsets'], file.read(4 * parameters['nb_main_offsets']))
         sub_offsets = unpack('<%dI' % sub_count, file.read(4 * sub_count))
 
         ecl = cls()
-        ecl.subs = []
-        ecl.main = []
 
         # Read subs
         for sub_offset in sub_offsets:
@@ -222,38 +226,43 @@ class ECL(object):
             # keep trace of where the jump is supposed to end up.
             for instr_offset, (i, instr) in zip(instruction_offsets, enumerate(ecl.subs[-1])):
                 time, opcode, rank_mask, param_mask, args = instr
-                if opcode in (2, 29, 30, 31, 32, 33, 34): # relative_jump
-                    frame, relative_offset = args
-                    args = frame, instruction_offsets.index(instr_offset + relative_offset)
-                elif opcode == 3: # relative_jump_ex
-                    frame, relative_offset, counter_id = args
-                    args = frame, instruction_offsets.index(instr_offset + relative_offset), counter_id
-                ecl.subs[-1][i] = time, opcode, rank_mask, param_mask, args
+                if opcode in parameters['jumps_list']:
+                    num = parameters['jumps_list'][opcode]
+                    args = list(args)
+                    args[num] = instruction_offsets.index(instr_offset + args[num])
+                    ecl.subs[-1][i] = time, opcode, rank_mask, param_mask, tuple(args)
 
 
         # Read main
-        file.seek(main_offset)
-        while True:
-            time, = unpack('<H', file.read(2))
-            if time == 0xffff:
+        for main_offset in main_offsets:
+            if main_offset == 0:
                 break
 
-            sub, opcode, size = unpack('<HHH', file.read(6))
-            data = file.read(size - 8)
+            file.seek(main_offset)
+            ecl.mains.append([])
+            while True:
+                time, sub = unpack('<HH', file.read(4))
+                if time == 0xffff and sub == 4:
+                    break
 
-            if opcode in cls._main_instructions:
-                args = unpack('<%s' % cls._main_instructions[opcode][0], data)
-            else:
-                args = (data,)
-                logger.warn('unknown main opcode %d', opcode)
+                opcode, size = unpack('<HH', file.read(4))
+                data = file.read(size - 8)
 
-            ecl.main.append((time, sub, opcode, args))
+                if opcode in cls._main_instructions:
+                    args = unpack('<%s' % cls._main_instructions[opcode][0], data)
+                else:
+                    args = (data,)
+                    logger.warn('unknown main opcode %d', opcode)
+
+                ecl.mains[-1].append((time, sub, opcode, args))
 
         return ecl
 
 
-    def write(self, file):
+    def write(self, file, version=6):
         """Write to an ECL file."""
+
+        parameters = self._parameters[version]
 
         sub_count = len(self.subs)
         sub_offsets = []
@@ -286,15 +295,10 @@ class ECL(object):
             #TODO: clean up this mess
             for instruction, data, offset in zip(sub, instruction_datas, instruction_offsets):
                 time, opcode, rank_mask, param_mask, args = instruction
-                if opcode in (2, 29, 30, 31, 32, 33, 34): # relative_jump
-                    frame, index = args
-                    args = frame, instruction_offsets[index] - offset
-                    format = '<IHHHH%s' % self._instructions[opcode][0]
-                    size = calcsize(format)
-                    data = pack(format, time, opcode, size, rank_mask, param_mask, *args)
-                elif opcode == 3: # relative_jump_ex
-                    frame, index, counter_id = args
-                    args = frame, instruction_offsets[index] - offset, counter_id
+                if opcode in parameters['jumps_list']:
+                    num = parameters['jumps_list'][opcode]
+                    args = list(args)
+                    args[num] = instruction_offsets[args[num]] - offset
                     format = '<IHHHH%s' % self._instructions[opcode][0]
                     size = calcsize(format)
                     data = pack(format, time, opcode, size, rank_mask, param_mask, *args)
@@ -302,15 +306,17 @@ class ECL(object):
             file.write(b'\xff' * 6 + b'\x0c\x00\x00\xff\xff\x00')
 
         # Write main
-        main_offset = file.tell()
-        for time, sub, opcode, args in self.main:
-            format = '<HHHH%s' % self._main_instructions[opcode][0]
-            size = calcsize(format)
+        main_offsets = [0] * parameters['nb_main_offsets']
+        for i, main in enumerate(self.mains):
+            main_offsets[i] = file.tell()
+            for time, sub, opcode, args in main:
+                format = '<HHHH%s' % self._main_instructions[opcode][0]
+                size = calcsize(format)
 
-            file.write(pack(format, time, sub, opcode, size, *args))
-        file.write(b'\xff\xff\x04\x00')
+                file.write(pack(format, time, sub, opcode, size, *args))
+            file.write(b'\xff\xff\x04\x00')
 
         # Patch header
         file.seek(0)
-        file.write(pack('<IIII%dI' % sub_count, sub_count, main_offset, 0, 0, *sub_offsets))
+        file.write(pack('<I%dI%dI' % (parameters['nb_main_offsets'], sub_count), sub_count, *(main_offsets + sub_offsets)))
 
