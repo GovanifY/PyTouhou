@@ -63,7 +63,8 @@ class EoSDGameBossRush(EoSDGame):
 
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
-         boss_rush, fps_limit, single_buffer, debug, fixed_pipeline):
+         boss_rush, fps_limit, single_buffer, debug, fixed_pipeline,
+         display_background):
 
     resource_loader = Loader(path)
 
@@ -143,8 +144,11 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
         game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues)
 
-        background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
-        background = Background(stage, background_anm_wrapper)
+        if display_background:
+            background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
+            background = Background(stage, background_anm_wrapper)
+        else:
+            background = None
 
         # Main loop
         runner.load_game(game, background, stage.bgms, replay, save_keystates)
@@ -195,9 +199,10 @@ parser.add_argument('--single-buffer', action='store_true', help='Disable double
 parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
 parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
+parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
 
 args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
      args.replay, args.save_replay, args.boss_rush, args.fps_limit,
-     args.single_buffer, args.debug, args.fixed_pipeline)
+     args.single_buffer, args.debug, args.fixed_pipeline, args.no_background)
