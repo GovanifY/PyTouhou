@@ -24,14 +24,14 @@ logger = get_logger(__name__)
 class ANMRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_anm_wrapper', '_sprite', 'running',
-                 'sprite_index_offset',
-                 'script', 'instruction_pointer', 'frame',
-                 'waiting')
+                 'sprite_index_offset', 'script', 'instruction_pointer',
+                 'frame', 'waiting', 'handlers')
 
 
     def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
         self._anm_wrapper = anm_wrapper
         self._sprite = sprite
+        self.handlers = self._handlers[6]
         self.running = True
         self.waiting = False
 
@@ -71,7 +71,7 @@ class ANMRunner(object):
 
             if frame == self.frame:
                 try:
-                    callback = self._handlers[opcode]
+                    callback = self.handlers[opcode]
                 except KeyError:
                     logger.warn('unhandled opcode %d (args: %r)', opcode, args)
                 else:

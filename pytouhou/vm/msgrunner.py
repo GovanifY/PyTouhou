@@ -28,11 +28,13 @@ class NextStage(Exception):
 class MSGRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_msg', '_game', 'frame', 'sleep_time', 'allow_skip',
-                 'skipping', 'frozen', 'faces', 'ended', 'instruction_pointer')
+                 'skipping', 'frozen', 'faces', 'ended', 'instruction_pointer',
+                 'handlers')
 
     def __init__(self, msg, script, game):
         self._msg = msg.msgs[script + 10 * (game.players[0].state.character // 2)]
         self._game = game
+        self.handlers = self._handlers[6]
         self.frame = 0
         self.sleep_time = 0
         self.allow_skip = True
@@ -68,7 +70,7 @@ class MSGRunner(object):
 
             if frame == self.frame:
                 try:
-                    callback = self._handlers[instr_type]
+                    callback = self.handlers[instr_type]
                 except KeyError:
                     logger.warn('unhandled msg opcode %d (args: %r)', instr_type, args)
                 else:

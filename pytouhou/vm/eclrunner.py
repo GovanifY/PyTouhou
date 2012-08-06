@@ -26,13 +26,13 @@ logger = get_logger(__name__)
 class ECLMainRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_main', '_subs', '_game', 'frame',
-                 'instruction_pointer',
-                 'boss_wait')
+                 'instruction_pointer', 'boss_wait', 'handlers')
 
     def __init__(self, main, subs, game):
         self._main = main
         self._subs = subs
         self._game = game
+        self.handlers = self._handlers[6]
         self.frame = 0
         self.boss_wait = False
 
@@ -57,7 +57,7 @@ class ECLMainRunner(object):
 
             if frame == self.frame:
                 try:
-                    callback = self._handlers[instr_type]
+                    callback = self.handlers[instr_type]
                 except KeyError:
                     logger.warn('unhandled main opcode %d (args: %r)', instr_type, args)
                 else:
@@ -121,9 +121,9 @@ class ECLMainRunner(object):
 
 class ECLRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_subs', '_enemy', '_game', '_pop_enemy', 'variables', 'sub', 'frame',
-                 'instruction_pointer', 'comparison_reg', 'stack',
-                 'running')
+    __slots__ = ('_subs', '_enemy', '_game', '_pop_enemy', 'variables', 'sub',
+                 'frame', 'instruction_pointer', 'comparison_reg', 'stack',
+                 'running', 'handlers')
 
     def __init__(self, subs, sub, enemy, game, pop_enemy):
         # Things not supposed to change
@@ -131,6 +131,7 @@ class ECLRunner(object):
         self._enemy = enemy
         self._game = game
         self._pop_enemy = pop_enemy
+        self.handlers = self._handlers[6]
 
         self.running = True
 
@@ -172,7 +173,7 @@ class ECLRunner(object):
 
             if frame == self.frame:
                 try:
-                    callback = self._handlers[instr_type]
+                    callback = self.handlers[instr_type]
                 except KeyError:
                     logger.warn('[%d %r - %04d] unhandled opcode %d (args: %r)',
                                 id(self), [self.sub] + [e[0] for e in self.stack],

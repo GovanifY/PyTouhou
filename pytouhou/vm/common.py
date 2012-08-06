@@ -17,22 +17,19 @@ class MetaRegistry(type):
     def __new__(mcs, name, bases, classdict):
         instruction_handlers = {}
         for item in classdict.itervalues():
-            try:
-                instruction_ids = item._instruction_ids
-            except AttributeError:
-                pass
-            else:
-                for id_ in instruction_ids:
-                    instruction_handlers[id_] = item
+            if hasattr(item, '_instruction_ids'):
+                for version, instruction_ids in item._instruction_ids.iteritems():
+                    for id_ in instruction_ids:
+                        instruction_handlers.setdefault(version, {})[id_] = item
         classdict['_handlers'] = instruction_handlers
         return type.__new__(mcs, name, bases, classdict)
 
 
 
-def instruction(instruction_id):
+def instruction(instruction_id, version=6):
     def _decorator(func):
         if not hasattr(func, '_instruction_ids'):
-            func._instruction_ids = set()
-        func._instruction_ids.add(instruction_id)
+            func._instruction_ids = {}
+        func._instruction_ids.setdefault(version, set()).add(instruction_id)
         return func
     return _decorator
