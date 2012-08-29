@@ -23,6 +23,8 @@ Almost everything rendered in the game is described by an ANM0 file.
 from struct import pack, unpack
 from pytouhou.utils.helpers import read_string, get_logger
 
+from pytouhou.formats import WrongFormatError
+
 
 logger = get_logger(__name__)
 
@@ -84,9 +86,8 @@ class ANM0(object):
         first_name_offset, unused, secondary_name_offset = unpack('<III', file.read(12))
         version, unknown2, thtxoffset, hasdata, nextoffset, zero2 = unpack('<IIIIII', file.read(24))
         if version != 0:
-            raise Exception #TODO
-        if (zero1, zero2) != (0, 0):
-            raise Exception #TODO
+            raise WrongFormatError(version)
+        assert (zero1, zero2) == (0, 0)
 
         sprite_offsets = [unpack('<I', file.read(4))[0] for i in range(nb_sprites)]
         script_offsets = [unpack('<II', file.read(8)) for i in range(nb_scripts)]

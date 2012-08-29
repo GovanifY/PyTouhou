@@ -32,7 +32,7 @@ class InfiniteWaveSource(WaveSource):
         self._end = self.audio_format.bytes_per_sample * end
 
         if self._end > self._max_offset:
-            raise Exception #TODO
+            raise Exception('Music ends after the end of the file.')
 
         self._duration = None
 

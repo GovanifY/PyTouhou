@@ -28,6 +28,8 @@ import pytouhou.utils.lzss as lzss
 
 from pytouhou.utils.helpers import get_logger
 
+from pytouhou.formats import WrongFormatError
+
 logger = get_logger(__name__)
 
 
@@ -101,7 +103,7 @@ class PBG3(object):
 
         magic = file.read(4)
         if magic != b'PBG3':
-            raise Exception #TODO
+            raise WrongFormatError(magic)
 
         bitstream = PBG3BitStream(file)
         entries = {}

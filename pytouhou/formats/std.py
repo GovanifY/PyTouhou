@@ -81,9 +81,8 @@ class Stage(object):
         stage = Stage()
 
         nb_models, nb_faces = unpack('<HH', file.read(4))
-        object_instances_offset, script_offset = unpack('<II', file.read(8))
-        if file.read(4) != b'\x00\x00\x00\x00':
-            raise Exception #TODO
+        object_instances_offset, script_offset, zero = unpack('<III', file.read(12))
+        assert zero == 0
 
         stage.name = read_string(file, 128, 'shift_jis')
 
@@ -116,8 +115,7 @@ class Stage(object):
                 unknown, size = unpack('<HH', file.read(4))
                 if unknown == 0xffff:
                     break
-                if size != 0x1c:
-                    raise Exception #TODO
+                assert size == 0x1c
                 script_index, x, y, z, width, height = unpack('<Hxxfffff', file.read(24))
                 model.quads.append((script_index, x, y, z, width, height))
             stage.models.append(model)
@@ -129,19 +127,17 @@ class Stage(object):
             obj_id, unknown, x, y, z = unpack('<HHfff', file.read(16))
             if (obj_id, unknown) == (0xffff, 0xffff):
                 break
-            if unknown != 256:
-                raise Exception #TODO
+            assert unknown == 256 #TODO: really?
             stage.object_instances.append((obj_id, x, y, z))
 
 
-        # Read other funny things (script)
+        # Read the script
         file.seek(script_offset)
         while True:
             frame, opcode, size = unpack('<IHH', file.read(8))
             if (frame, opcode, size) == (0xffffffff, 0xffff, 0xffff):
                 break
-            if size != 0x0c:
-                raise Exception #TODO
+            assert size == 0x0c
             data = file.read(size)
             if opcode in cls._instructions:
                 args = unpack('<%s' % cls._instructions[opcode][0], data)

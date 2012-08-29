@@ -85,8 +85,8 @@ class T6RP(object):
         verify -- whether or not to verify the file's checksum (default True)
         """
 
-        if file.read(4) != b'T6RP':
-            raise Exception
+        magic = file.read(4)
+        assert magic == b'T6RP'
 
         replay = cls()
 
@@ -108,7 +108,7 @@ class T6RP(object):
             file.seek(15)
             real_sum = (sum(ord(c) for c in data) + 0x3f000318 + replay.key) & 0xffffffff
             if checksum != real_sum:
-                raise Exception('Checksum mismatch: %d ≠ %d.' % (checksum, real_sum))
+                raise ChecksumError(checksum, real_sum)
 
         replay.unknown3, = unpack('<B', file.read(1))
         replay.date = file.read(9) #read_string(file, 9, 'ascii')

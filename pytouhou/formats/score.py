@@ -17,6 +17,8 @@ from struct import pack, unpack, Struct
 from collections import namedtuple
 from io import BytesIO
 
+from pytouhou.formats import ChecksumError
+
 
 class TH6Score(object):
     entry_types = {
@@ -78,8 +80,9 @@ class TH6Score(object):
         # Verify checksum
         if verify:
             #TODO: is there more to it?
-            if checksum != sum(ord(c) for c in file.read()) & 0xFFFF:
-                raise Exception
+            real_sum = sum(ord(c) for c in file.read()) & 0xFFFF
+            if checksum != real_sum:
+                raise ChecksumError(checksum, real_sum)
             file.seek(4)
 
         # Read second-part header
