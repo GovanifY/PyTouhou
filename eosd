@@ -63,8 +63,8 @@ class EoSDGameBossRush(EoSDGame):
 
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
-         boss_rush, fps_limit, single_buffer, debug, fixed_pipeline,
-         display_background):
+         skip_replay, boss_rush, fps_limit, single_buffer, debug,
+         fixed_pipeline, display_background):
 
     resource_loader = Loader(path)
 
@@ -104,7 +104,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
     game_class = EoSDGameBossRush if boss_rush else EoSDGame
 
-    runner = GameRunner(resource_loader, fps_limit=fps_limit, double_buffer=(not single_buffer), fixed_pipeline=fixed_pipeline)
+    runner = GameRunner(resource_loader, fps_limit=fps_limit, double_buffer=(not single_buffer), fixed_pipeline=fixed_pipeline, skip=skip_replay)
     while True:
         if replay:
             level = replay.levels[stage_num - 1]
@@ -194,6 +194,7 @@ parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='R
 parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
 parser.add_argument('--save-replay', metavar='REPLAY', help='Save the upcoming game into a replay file')
+parser.add_argument('--skip-replay', action='store_true', help='Skip the replay and start to play when it’s finished')
 parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
 parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
 parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
@@ -204,5 +205,6 @@ parser.add_argument('--no-background', action='store_false', help='Disable backg
 args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
-     args.replay, args.save_replay, args.boss_rush, args.fps_limit,
-     args.single_buffer, args.debug, args.fixed_pipeline, args.no_background)
+     args.replay, args.save_replay, args.skip_replay, args.boss_rush,
+     args.fps_limit, args.single_buffer, args.debug, args.fixed_pipeline,
+     args.no_background)

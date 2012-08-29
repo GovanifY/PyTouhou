@@ -37,7 +37,7 @@ logger = get_logger(__name__)
 
 
 class GameRunner(pyglet.window.Window, GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False):
+    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False, skip=False):
         GameRenderer.__init__(self, resource_loader, game, background)
 
         config = pyglet.gl.Config(double_buffer=double_buffer)
@@ -49,6 +49,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
         self.replay_level = None
+        self.skip = skip
 
         if not self.use_fixed_pipeline:
             self.game_shader = GameShader()
@@ -63,13 +64,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
         GameRenderer.load_game(self, game, background)
-        self.replay_level = None
-        if not replay or not replay.levels[game.stage-1]:
-            self.keys = pyglet.window.key.KeyStateHandler()
-            self.push_handlers(self.keys)
-        else:
-            self.replay_level = replay.levels[game.stage-1]
-            self.keys = self.replay_level.iter_keystates()
+        self.set_input(replay)
+        if replay and replay.levels[game.stage - 1]:
             game.players[0].state.lives = self.replay_level.lives
             game.players[0].state.power = self.replay_level.power
             game.players[0].state.bombs = self.replay_level.bombs
@@ -82,6 +78,16 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
         game.player_sfx = SFXPlayer(game.resource_loader)
         game.enemy_sfx = SFXPlayer(game.resource_loader)
+
+
+    def set_input(self, replay=None):
+        if not replay or not replay.levels[self.game.stage-1]:
+            self.keys = pyglet.window.key.KeyStateHandler()
+            self.push_handlers(self.keys)
+            self.replay_level = None
+        else:
+            self.replay_level = replay.levels[self.game.stage-1]
+            self.keys = self.replay_level.iter_keystates()
 
 
     def start(self, width=None, height=None):
@@ -108,12 +114,15 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         if self.fps_limit > 0:
             pyglet.clock.set_fps_limit(self.fps_limit)
         while not self.has_exit:
-            pyglet.clock.tick()
-            self.dispatch_events()
-            self.update()
-            self.render_game()
-            self.render_interface()
-            self.flip()
+            if not self.skip:
+                pyglet.clock.tick()
+                self.dispatch_events()
+                self.update()
+                self.render_game()
+                self.render_interface()
+                self.flip()
+            else:
+                self.update()
 
 
     def _event_text_symbol(self, ev):
@@ -165,6 +174,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     keystate = self.keys.next()
                 except StopIteration:
                     keystate = 0
+                    if self.skip:
+                        self.set_input()
+                        self.skip = False
 
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)
