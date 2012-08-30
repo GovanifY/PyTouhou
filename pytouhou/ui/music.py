@@ -124,35 +124,43 @@ class MusicPlayer(object):
 
 
 class SFXPlayer(object):
-    def __init__(self, loader):
+    def __init__(self, loader, volume=.42):
         self.loader = loader
+        self.players = {}
         self.sounds = {}
-
-        self.player = Player()
-        self.player.volume = .5
-
-        #'powerup.wav', 'graze.wav', 'timeout.wav', 'extend.wav', 'kira02.wav', 'kira01.wav',
-        #'kira00.wav', 'item00.wav', 'damage00.wav', 'nep00.wav', 'enep01.wav', 'lazer01.wav',
-        #'lazer00.wav', 'cat00.wav', 'gun00.wav', 'select00.wav', 'cancel00.wav', 'ok00.wav',
-        #'tan02.wav', 'tan01.wav', 'tan00.wav', 'power1.wav', 'power0.wav', 'pldead00.wav',
-        #'enep00.wav', 'plst00.wav')}
+        self.volume = volume
 
 
-    def __getitem__(self, name):
-        if not name in self.sounds:
-            self.sounds[name] = self.load_sound(name)
+    def get_player(self, name):
+        if name not in self.players:
+            self.players[name] = Player()
+            self.players[name].volume = self.volume
+        return self.players[name]
+
+
+    def get_sound(self, name):
+        if name not in self.sounds:
+            wave_file = self.loader.get_file(name)
+            self.sounds[name] = StaticSource(WaveSource(name, wave_file))
         return self.sounds[name]
 
 
-    def load_sound(self, name):
-        file = self.loader.get_file(name)
-        return StaticSource(WaveSource(name, file))
+    def play(self, name, volume=None):
+        sound = self.get_sound(name)
+        player = self.get_player(name)
+        if volume:
+            player.volume = volume
+        if player.playing:
+            player.next()
+        if sound:
+            player.queue(sound)
+        player.play()
+
+
+class NullPlayer(object):
+    def __init__(self, loader=None, bgms=None):
+        pass
+
 
     def play(self, name):
-        sound = self[name]
-        if self.player.playing:
-            self.player.next()
-        if sound:
-            self.player.queue(sound)
-        self.player.play()
-
+        pass

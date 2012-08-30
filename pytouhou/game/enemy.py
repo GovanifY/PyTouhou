@@ -106,7 +106,7 @@ class Enemy(object):
             26: 'kira01',
             27: 'kira02'
         }[index]
-        self._game.enemy_sfx.play('%s.wav' % name)
+        self._game.sfx_player.play('%s.wav' % name)
 
 
     def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
@@ -228,6 +228,7 @@ class Enemy(object):
     def die_anim(self):
         anim = {0: 3, 1: 4, 2: 5}[self.death_anim % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
         self._game.new_effect((self.x, self.y), anim)
+        self._game.sfx_player.play('enep00.wav')
 
 
     def drop_particles(self, number, color):
@@ -312,6 +313,7 @@ class Enemy(object):
                 bullet.collide()
                 if self.damageable:
                     damages += bullet.damage
+                self._game.sfx_player.play('damage00.wav')
 
         # Check for enemy-laser collisions
         for laser in self._game.players_lasers:
@@ -326,6 +328,7 @@ class Enemy(object):
                     or ly < ey1):
                 if self.damageable:
                     damages += laser.damage
+                self._game.sfx_player.play('damage00.wav')
                 self.drop_particles(1, 1) #TODO: don’t call each frame.
 
         # Check for enemy-player collisions

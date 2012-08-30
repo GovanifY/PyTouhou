@@ -29,7 +29,7 @@ from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.matrix import Matrix
 
 from .gamerenderer import GameRenderer
-from .music import MusicPlayer, SFXPlayer
+from .music import MusicPlayer, SFXPlayer, NullPlayer
 from .shaders.eosd import GameShader, BackgroundShader
 
 
@@ -75,9 +75,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
         game.music = MusicPlayer(game.resource_loader, bgms)
         game.music.play(0)
-
-        game.player_sfx = SFXPlayer(game.resource_loader)
-        game.enemy_sfx = SFXPlayer(game.resource_loader)
+        game.sfx_player = SFXPlayer(game.resource_loader) if not self.skip else NullPlayer()
 
 
     def set_input(self, replay=None):
@@ -177,6 +175,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                     if self.skip:
                         self.set_input()
                         self.skip = False
+                        self.game.sfx_player = SFXPlayer(self.game.resource_loader)
 
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)

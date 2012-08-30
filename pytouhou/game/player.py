@@ -98,7 +98,7 @@ class Player(object):
 
 
     def play_sound(self, name):
-        self._game.player_sfx.play('%s.wav' % name)
+        self._game.sfx_player.play('%s.wav' % name)
 
 
     def collide(self):
