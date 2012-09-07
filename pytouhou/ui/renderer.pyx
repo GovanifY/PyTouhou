@@ -20,7 +20,11 @@ import ctypes
 
 from struct import pack
 
-from pyglet.gl import *
+from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
+                       glBlendFunc, glBindTexture, glDrawElements,
+                       GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT,
+                       GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
+                       GL_TEXTURE_2D, GL_TRIANGLES)
 
 from .sprite cimport get_sprite_rendering_data
 from .texture cimport TextureManager

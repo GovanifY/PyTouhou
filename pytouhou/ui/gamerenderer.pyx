@@ -15,7 +15,16 @@
 
 from itertools import chain
 
-from pyglet.gl import *
+from pyglet.gl import (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf,
+                       glDisable, glEnable, glFogi, glFogf, glFogfv,
+                       glBlendFunc, glBindTexture, glVertexPointer,
+                       glTexCoordPointer, glColorPointer, glDrawArrays,
+                       GL_DEPTH_BUFFER_BIT, GL_PROJECTION, GL_MODELVIEW,
+                       GL_FOG, GL_FOG_MODE, GL_LINEAR, GL_FOG_START,
+                       GL_FOG_END, GL_FOG_COLOR, GL_DEPTH_TEST, GL_SRC_ALPHA,
+                       GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D,
+                       GL_UNSIGNED_BYTE, GL_FLOAT, GL_QUADS,
+                       GL_COLOR_BUFFER_BIT, GLfloat)
 
 from pytouhou.utils.matrix import Matrix
 
