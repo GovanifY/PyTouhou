@@ -18,7 +18,7 @@ import traceback
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
                        glHint, glEnableClientState, glViewport,
-                       gluPerspective, GL_PROJECTION,
+                       glLoadMatrixf, GL_PROJECTION, GL_MODELVIEW,
                        GL_TEXTURE_2D, GL_BLEND,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
@@ -67,12 +67,14 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         # Switch to game projection
+        proj = self.perspective(30, float(self.width) / float(self.height),
+                                101010101./2010101., 101010101./10101.)
         glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(30, float(self.width) / float(self.height),
-                       101010101./2010101., 101010101./10101.)
+        glLoadMatrixf(proj.get_c_data())
 
-        self.setup_camera(0, 0, 1)
+        view = self.setup_camera(0, 0, 1)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadMatrixf(view.get_c_data())
 
         # Use our own loop to ensure 60 fps
         pyglet.clock.set_fps_limit(60)
