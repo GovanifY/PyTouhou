@@ -197,6 +197,15 @@ class Player(object):
             self.state.x += dx
             self.state.y += dy
 
+            if self.state.x < 8.:
+                self.state.x = 8.
+            if self.state.x > self._game.width - 8:
+                self.state.x = self._game.width - 8.
+            if self.state.y < 16.:
+                self.state.y = 16.
+            if self.state.y > self._game.height - 16:
+                self.state.y = self._game.height -16.
+
             if not self.state.focused and keystate & 4:
                 self.start_focusing()
             elif self.state.focused and not keystate & 4:

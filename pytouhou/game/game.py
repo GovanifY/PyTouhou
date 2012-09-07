@@ -283,14 +283,6 @@ class Game(object):
 
         for player in self.players:
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
-            if player.state.x < 8.:
-                player.state.x = 8.
-            if player.state.x > self.width - 8:
-                player.state.x = self.width - 8
-            if player.state.y < 16.:
-                player.state.y = 16.
-            if player.state.y > self.height - 16:
-                player.state.y = self.height -16
 
         #XXX: Why 78910? Is it really the right value?
         player.state.effective_score = min(player.state.effective_score + 78910,
