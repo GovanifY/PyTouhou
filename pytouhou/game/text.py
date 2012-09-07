@@ -27,7 +27,7 @@ class Glyph(object):
 
 
 class Widget(object):
-    def __init__(self, pos, back_wrapper=None):
+    def __init__(self, pos, back_wrapper=None, back_script=22):
         self.sprite = None
         self.removed = False
         self.changed = True
@@ -37,7 +37,7 @@ class Widget(object):
         self.back_wrapper = back_wrapper
         if back_wrapper:
             self.sprite = Sprite()
-            self.anmrunner = ANMRunner(back_wrapper, 22, self.sprite)
+            self.anmrunner = ANMRunner(back_wrapper, back_script, self.sprite)
             self.anmrunner.run_frame()
 
         self.x, self.y = pos
@@ -51,8 +51,9 @@ class Widget(object):
 
 
 class GlyphCollection(Widget):
-    def __init__(self, pos, anm_wrapper, back_wrapper=None, ref_script=0, xspacing=14):
-        Widget.__init__(self, pos, back_wrapper)
+    def __init__(self, pos, anm_wrapper, back_wrapper=None, ref_script=0,
+                 xspacing=14, back_script=22):
+        Widget.__init__(self, pos, back_wrapper, back_script)
 
         self.ref_sprite = Sprite()
         self.anm_wrapper = anm_wrapper
@@ -74,7 +75,7 @@ class GlyphCollection(Widget):
         if length > current_length:
             self.glyphes.extend(Glyph(copy(self.ref_sprite),
                                       (self.x + self.xspacing * i, self.y))
-                                        for i in range(current_length, length))
+                                for i in range(current_length, length))
         elif length < current_length:
             self.glyphes[:] = self.glyphes[:length]
 
@@ -88,8 +89,10 @@ class GlyphCollection(Widget):
 
 
 class Text(GlyphCollection):
-    def __init__(self, pos, ascii_wrapper, back_wrapper=None, text='', xspacing=14, shift=21):
-        GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper, xspacing=xspacing)
+    def __init__(self, pos, ascii_wrapper, back_wrapper=None, text='',
+                 xspacing=14, shift=21, back_script=22):
+        GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper,
+                                 xspacing=xspacing, back_script=back_script)
         self.text = ''
         self.shift = shift
 
@@ -106,7 +109,9 @@ class Text(GlyphCollection):
 
 
     def set_color(self, color):
-        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0), 'blue': (192, 192, 255), 'darkblue': (160, 128, 255), 'purple': (224, 128, 255), 'red': (255, 64, 0)}
+        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0),
+                  'blue': (192, 192, 255), 'darkblue': (160, 128, 255),
+                  'purple': (224, 128, 255), 'red': (255, 64, 0)}
         self.ref_sprite.color = colors[color]
         for glyph in self.glyphes:
             glyph.sprite.color = colors[color]
@@ -129,10 +134,11 @@ class Text(GlyphCollection):
 
 
 class Counter(GlyphCollection):
-    def __init__(self, pos, anm_wrapper, back_wrapper=None, script=0, xspacing=16, value=0):
-        GlyphCollection.__init__(self, pos,
-                                 anm_wrapper, back_wrapper=back_wrapper,
-                                 ref_script=script, xspacing=xspacing)
+    def __init__(self, pos, anm_wrapper, back_wrapper=None, script=0,
+                 xspacing=16, value=0, back_script=22):
+        GlyphCollection.__init__(self, pos, anm_wrapper,
+                                 back_wrapper=back_wrapper, ref_script=script,
+                                 xspacing=xspacing, back_script=back_script)
 
         self.value = value
         self.set_value(value)
