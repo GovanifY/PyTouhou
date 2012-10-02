@@ -28,6 +28,7 @@ class LaserLaunchAnim(object):
         self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
         self.sprite.blendfunc = 1
         self.removed = False
+        self.objects = [self]
         self.x, self.y = 0, 0
 
 
@@ -65,6 +66,7 @@ class Laser(object):
         self.sprite = None
         self.anmrunner = None
         self.removed = False
+        self.objects = [self]
 
         #TODO: hitbox
 
@@ -201,6 +203,7 @@ class PlayerLaser(object):
         self.removed = False
         self._laser_type = laser_type
         self.origin = origin
+        self.objects = [self]
 
         self.hitbox_half_size = hitbox[0] / 2., hitbox[1] / 2.
 

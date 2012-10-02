@@ -154,6 +154,13 @@ class Item(object):
         self.removed = True
 
 
+    @property
+    def objects(self):
+        if self.indicator:
+            return [self.indicator]
+        return [self]
+
+
     def update(self):
         if self.frame == 60:
             self.speed_interpolator = Interpolator((0.,), 60,

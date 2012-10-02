@@ -122,16 +122,13 @@ cdef class GameRenderer(Renderer):
                 self.game_shader.bind()
                 self.game_shader.uniform_matrixf('mvp', self.game_mvp.get_c_data())
 
-            self.render_elements(chain(*(enemy.objects() for enemy in game.enemies if enemy.visible)))
             self.render_elements(enemy for enemy in game.enemies if enemy.visible)
             self.render_elements(game.effects)
             self.render_elements(chain(game.players_bullets,
                                        game.lasers_sprites(),
                                        game.players,
-                                       game.msg_sprites(),
-                                       *(player.objects() for player in game.players)))
+                                       game.msg_sprites()))
             self.render_elements(chain(game.bullets, game.lasers,
                                        game.cancelled_bullets, game.items,
-                                       (item.indicator for item in game.items if item.indicator),
-                                       *(label.objects() for label in game.labels)))
+                                       game.labels))
 

@@ -18,7 +18,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Face(object):
-    __slots__ = ('_anm_wrapper', 'sprite', 'anmrunner', 'side', 'x', 'y')
+    __slots__ = ('_anm_wrapper', 'sprite', 'anmrunner', 'side', 'x', 'y', 'objects')
 
     def __init__(self, anm_wrapper, effect, side):
         self._anm_wrapper = anm_wrapper
@@ -27,6 +27,7 @@ class Face(object):
         self.side = side
         self.load(0)
         self.animate(effect)
+        self.objects = [self]
 
         #FIXME: the same as game.effect.
         self.x = -32

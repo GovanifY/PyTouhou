@@ -14,7 +14,6 @@
 
 import pyglet
 import traceback
-from itertools import chain
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        glHint, glEnableClientState, glViewport, glScissor,
@@ -223,7 +222,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.render_elements(interface.boss_items)
 
         self.render_elements(labels)
-        self.render_elements(chain(*(label.objects() for label in labels)))
         for label in labels:
             label.changed = False
 

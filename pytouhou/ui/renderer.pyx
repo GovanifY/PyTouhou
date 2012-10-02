@@ -15,6 +15,7 @@
 from libc.stdlib cimport malloc, free
 from libc.math cimport tan
 from math import radians
+from itertools import chain
 
 import ctypes
 
@@ -54,7 +55,8 @@ cdef class Renderer:
 
         indices_by_texture = {}
 
-        for element in elements:
+        objects = chain(*[element.objects for element in elements])
+        for element in objects:
             if nb_vertices >= MAX_ELEMENTS - 4:
                 break
 

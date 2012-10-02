@@ -49,6 +49,7 @@ class ANMRenderer(pyglet.window.Window, Renderer):
         self.force_allow_dest_offset = False
         self.index_items()
         self.load(index)
+        self.objects = [self]
 
         self.x = width / 2
         self.y = height / 2

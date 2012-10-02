@@ -87,10 +87,6 @@ class Player(object):
         return self.state.y
 
 
-    def objects(self):
-        return []
-
-
     def set_anim(self, index):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self.anm_wrapper, index, self.sprite)

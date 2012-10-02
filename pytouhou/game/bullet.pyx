@@ -26,7 +26,7 @@ cdef class Bullet(object):
     cdef public double dx, dy, angle, speed #TODO
     cdef public object player_bullet, target
     cdef public object _game, _bullet_type
-    cdef public object sprite, anmrunner, removed, was_visible
+    cdef public object sprite, anmrunner, removed, was_visible, objects
     cdef public object attributes, damage, hitbox_half_size, speed_interpolator, grazed
     cdef public object x, y #TODO
 
@@ -40,6 +40,7 @@ cdef class Bullet(object):
         self.anmrunner = None
         self.removed = False
         self.was_visible = True
+        self.objects = [self]
 
         if hitbox:
             self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)

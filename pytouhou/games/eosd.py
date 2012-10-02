@@ -243,8 +243,9 @@ class EoSDPlayer(Player):
         self.state.focused = False
 
 
+    @property
     def objects(self):
-        return self.orbs if self.state.power >= 8 else []
+        return [self] + (self.orbs if self.state.power >= 8 else [])
 
 
     def update(self, keystate):

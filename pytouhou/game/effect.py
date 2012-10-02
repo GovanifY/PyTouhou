@@ -26,6 +26,7 @@ class Effect(object):
         self.anmrunner = ANMRunner(anm_wrapper, index, self.sprite)
         self.anmrunner.run_frame()
         self.removed = False
+        self.objects = [self]
 
         self.x, self.y = pos
 
@@ -48,6 +49,7 @@ class Particle(object):
         self.sprite = Sprite()
         self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
         self.removed = False
+        self.objects = [self]
 
         self.x, self.y = start_pos
         self.frame = 0

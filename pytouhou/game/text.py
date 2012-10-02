@@ -66,10 +66,6 @@ class GlyphCollection(Widget):
         self.ref_sprite.corner_relative_placement = True #TODO: perhaps not right
 
 
-    def objects(self):
-        return self.glyphes
-
-
     def set_length(self, length):
         current_length = len(self.glyphes)
         if length > current_length:
@@ -97,6 +93,11 @@ class Text(GlyphCollection):
         self.shift = shift
 
         self.set_text(text)
+
+
+    @property
+    def objects(self):
+        return self.glyphes + [self]
 
 
     def set_text(self, text):
@@ -144,6 +145,11 @@ class Counter(GlyphCollection):
         self.set_value(value)
 
 
+    @property
+    def objects(self):
+        return [self] + self.glyphes
+
+
     def set_value(self, value):
         if value < 0:
             value = 0
@@ -163,6 +169,7 @@ class Gauge(object):
         self.anmrunner.run_frame()
         self.removed = False
         self.sprite.corner_relative_placement = True #TODO: perhaps not right
+        self.objects = [self]
 
         self.x, self.y = pos
         self.max_length = max_length

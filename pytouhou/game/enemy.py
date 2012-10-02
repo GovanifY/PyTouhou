@@ -85,8 +85,9 @@ class Enemy(object):
         self.aux_anm = 8 * [None]
 
 
+    @property
     def objects(self):
-        return [anm for anm in self.aux_anm if anm]
+        return [self] + [anm for anm in self.aux_anm if anm]
 
 
     def play_sound(self, index):
