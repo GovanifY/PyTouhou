@@ -71,7 +71,8 @@ class ZwavSource(InfiniteWaveSource):
 
         self._file = file
 
-        assert b'ZWAV' == self._file.read(4)
+        magic = self._file.read(4)
+        assert b'ZWAV' == magic
 
         self.audio_format = AudioFormat(
             channels=format.wChannels,

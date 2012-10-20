@@ -61,7 +61,8 @@ class FMT(list):
             assert track.wFormatTag == 1 # We don’t support non-PCM formats
             assert track.dwAvgBytesPerSec == track.dwSamplesPerSec * track.wBlockAlign
             assert track.wBlockAlign == track.wChannels * track.wBitsPerSample // 8
-            assert b'\00\00\00\00' == file.read(4)
+            zero = file.read(4)
+            assert b'\00\00\00\00' == zero
 
             self.append(track)
 

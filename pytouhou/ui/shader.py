@@ -12,10 +12,11 @@ from pyglet.gl import (glCreateProgram, glCreateShader, GL_VERTEX_SHADER,
                        GL_FRAGMENT_SHADER, glShaderSource, glCompileShader,
                        glGetShaderiv, GL_COMPILE_STATUS, GL_INFO_LOG_LENGTH,
                        glGetShaderInfoLog, glAttachShader, glLinkProgram,
-                       glGetProgramiv, GL_LINK_STATUS, glUseProgram,
-                       glGetUniformLocation, glUniform1f, glUniform2f,
-                       glUniform3f, glUniform4f, glUniform1i, glUniform2i,
-                       glUniform3i, glUniform4i, glUniformMatrix4fv)
+                       glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS,
+                       glUseProgram, glGetUniformLocation, glUniform1f,
+                       glUniform2f, glUniform3f, glUniform4f, glUniform1i,
+                       glUniform2i, glUniform3i, glUniform4i,
+                       glUniformMatrix4fv)
 
 from ctypes import (c_char, c_char_p, c_int, POINTER, byref, cast,
                     create_string_buffer)

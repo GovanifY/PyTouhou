@@ -25,6 +25,7 @@ from io import BytesIO
 from time import strftime
 
 from pytouhou.utils.helpers import read_string, get_logger
+from pytouhou.formats import ChecksumError
 
 logger = get_logger(__name__)
 
