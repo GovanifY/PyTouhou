@@ -218,6 +218,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             # Redraw only changed labels
             labels = [label for label in labels if label.changed]
 
+        self.render_elements(interface.level_start)
+
         if self.game.boss:
             self.render_elements(interface.boss_items)
 

@@ -91,6 +91,7 @@ class EoSDGame(Game):
         characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
 
+        self.stage = stage #XXX
         interface = EoSDInterface(self, resource_loader)
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
@@ -118,6 +119,11 @@ class EoSDInterface(object):
                       [Effect((0, 0), i, front) for i in range(5) + range(9, 16)])
         for item in self.items:
             item.sprite.allow_dest_offset = True #XXX
+
+        self.level_start = [Text((176, 200), ascii_wrapper, text='STAGE %d' % game.stage)] #TODO: find the exact location.
+        self.level_start[0].set_timeout(240, effect=60, start=120)
+        self.level_start[0].set_color('yellow')
+        #TODO: use the system text for the stage name, and the song name.
 
         self.labels = {
             'highscore': Text((500, 58), ascii_wrapper, front, text='0'),
@@ -159,6 +165,11 @@ class EoSDInterface(object):
     def update(self):
         for elem in self.items:
             elem.update()
+
+        for elem in self.level_start:
+            elem.update()
+            if elem.removed: #XXX
+                self.level_start = []
 
         player_state = self.game.players[0].state
 

@@ -16,6 +16,7 @@ from copy import copy
 
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.utils.interpolator import Interpolator
 
 
 class Glyph(object):
@@ -32,6 +33,7 @@ class Widget(object):
         self.removed = False
         self.changed = True
         self.anmrunner = None
+        self.frame = 0
 
         # Set up the backround sprite
         self.back_wrapper = back_wrapper
@@ -43,6 +45,7 @@ class Widget(object):
         self.x, self.y = pos
 
     def update(self):
+        self.frame += 1
         if self.changed:
             if self.anmrunner and not self.anmrunner.run_frame():
                 self.anmrunner = None
@@ -118,19 +121,50 @@ class Text(GlyphCollection):
             glyph.sprite.color = colors[color]
 
 
-    def timeout_update(self):
+    def move_timeout_update(self):
         GlyphCollection.update(self)
-        if self.timeout % 2:
+        if self.frame % 2:
             for glyph in self.glyphes:
                 glyph.y -= 1
-        self.timeout -= 1
-        if self.timeout == 0:
+        if self.frame == self.timeout:
             self.removed = True
 
 
-    def set_timeout(self, timeout):
-        self.timeout = timeout
-        self.update = self.timeout_update
+    def fadeout_timeout_update(self):
+        GlyphCollection.update(self)
+        if self.frame >= self.start:
+            if self.frame == self.start:
+                self.fade(self.effect, 255, lambda x: x)
+            elif self.frame == self.timeout - self.effect:
+                self.fade(self.effect, 0, lambda x: x)
+            if self.fade_interpolator:
+                self.fade_interpolator.update(self.frame)
+                self.alpha = int(self.fade_interpolator.values[0])
+                for glyph in self.glyphes:
+                    glyph.sprite.alpha = self.alpha
+                    glyph.sprite.changed = True
+        if self.frame == self.timeout:
+            self.removed = True
+
+
+    def fade(self, duration, alpha, formula):
+        self.fade_interpolator = Interpolator((self.alpha,), self.frame,
+                                              (alpha,), self.frame + duration,
+                                              formula)
+
+
+    def set_timeout(self, timeout, effect=None, start=0):
+        if effect == None: #XXX
+            self.update = self.move_timeout_update
+            self.timeout = timeout + start
+        else:
+            self.alpha = 0
+            for glyph in self.glyphes:
+                glyph.sprite.alpha = 0
+            self.update = self.fadeout_timeout_update
+            self.effect = effect
+            self.start = start
+            self.timeout = timeout + start
 
 
 
