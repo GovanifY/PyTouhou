@@ -232,6 +232,9 @@ class Player(object):
                     self.state.power -= 16
                 else:
                     self.state.power = 0
+                for laser in self._game.players_lasers:
+                    if laser:
+                        laser.cancel()
 
                 self.state.lives -= 1
                 if self.state.lives < 0:
