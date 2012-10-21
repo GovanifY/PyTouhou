@@ -135,7 +135,7 @@ cdef class Bullet(object):
 
     def collide(Bullet self):
         self.cancel()
-        self._game.new_particle((self.x, self.y), 1, 3., 256) #TODO: find the real size.
+        self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
     def cancel(Bullet self):

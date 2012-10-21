@@ -236,8 +236,9 @@ class Enemy(object):
         if color == 0:
             if self._game.stage in [1, 2, 7]:
                 color = 3
+        color += 9
         for i in range(number):
-            self._game.new_particle((self.x, self.y), color, 3., 256) #TODO: find the real size.
+            self._game.new_particle((self.x, self.y), color, 256) #TODO: find the real size.
 
 
     def set_aux_anm(self, number, script):

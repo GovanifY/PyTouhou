@@ -20,8 +20,7 @@ from pytouhou.vm.msgrunner import MSGRunner
 from pytouhou.game.bullet import LAUNCHED, CANCELLED
 from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
-from pytouhou.game.effect import Effect
-from pytouhou.game.effect import Particle
+from pytouhou.game.effect import Effect, Particle
 from pytouhou.game.text import Text
 
 
@@ -185,12 +184,16 @@ class Game(object):
                 enemy.death_callback = -1
 
 
-    def new_effect(self, pos, anim, anm_wrapper=None):
-        self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
+    def new_effect(self, pos, anim, anm_wrapper=None, number=1):
+        number = min(number, self.nb_bullets_max - len(self.effects))
+        for i in xrange(number):
+            self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
 
 
-    def new_particle(self, pos, color, size, amp):
-        self.effects.append(Particle(pos, 7 + 4 * color + self.prng.rand_uint16() % 4, self.etama4, size, amp, self))
+    def new_particle(self, pos, anim, amp, number=1, reverse=False, duration=24):
+        number = min(number, self.nb_bullets_max - len(self.effects))
+        for i in xrange(number):
+            self.effects.append(Particle(pos, anim, self.etama4, amp, self, reverse=reverse, duration=duration))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
@@ -333,7 +336,7 @@ class Game(object):
                     player.state.score += 500 #TODO
                     player.play_sound('graze')
                     self.modify_difficulty(+6) #TODO
-                    self.new_particle((px, py), 0, .8, 192) #TODO
+                    self.new_particle((px, py), 9, 192) #TODO
 
             for bullet in self.bullets:
                 if bullet.state != LAUNCHED:
@@ -357,7 +360,7 @@ class Game(object):
                     player.state.score += 500 # found experimentally
                     player.play_sound('graze')
                     self.modify_difficulty(+6)
-                    self.new_particle((px, py), 0, .8, 192) #TODO: find the real size and range.
+                    self.new_particle((px, py), 9, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
 

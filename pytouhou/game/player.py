@@ -104,7 +104,7 @@ class Player(object):
             self._game.modify_difficulty(-1600)
             self.play_sound('pldead00')
             for i in range(16):
-                self._game.new_particle((self.state.x, self.state.y), 2, 4., 256) #TODO: find the real size and range.
+                self._game.new_particle((self.state.x, self.state.y), 11, 256) #TODO: find the real size and range.
 
 
     def start_focusing(self):

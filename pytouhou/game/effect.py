@@ -16,7 +16,6 @@
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.utils.interpolator import Interpolator
-from math import pi
 
 
 
@@ -42,64 +41,30 @@ class Effect(object):
 
 
 
-class Particle(object):
-    def __init__(self, start_pos, index, anm_wrapper, size, amp, game):
-        self._game = game
+class Particle(Effect):
+    def __init__(self, pos, index, anm_wrapper, amp, game, reverse=False, duration=24):
+        Effect.__init__(self, pos, index, anm_wrapper)
 
-        self.sprite = Sprite()
-        self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
-        self.removed = False
-        self.objects = [self]
-
-        self.x, self.y = start_pos
         self.frame = 0
-        self.sprite.alpha = 128
-        self.sprite.blendfunc = 1
-        self.sprite.rescale = (size, size)
+        self.duration = duration
 
-        self.pos_interpolator = None
-        self.scale_interpolator = None
-        self.rotations_interpolator = None
-        self.alpha_interpolator = None
+        random_pos = (self.x + amp * game.prng.rand_double() - amp / 2,
+                      self.y + amp * game.prng.rand_double() - amp / 2)
 
-        self.amp = amp
-
-
-    def set_end_pos(self, amp):
-        end_pos = (self.x + amp * self._game.prng.rand_double() - amp/2,
-                   self.y + amp * self._game.prng.rand_double() - amp/2)
-
-        self.pos_interpolator = Interpolator((self.x, self.y), 0,
-                                             end_pos, 24, formula=(lambda x: 2. * x - x ** 2))
-        self.scale_interpolator = Interpolator(self.sprite.rescale, 0,
-                                               (0., 0.), 24)
-        self.rotations_interpolator = Interpolator(self.sprite.rotations_3d, 0,
-                                                   (0., 0., 2*pi), 24)
-        self.alpha_interpolator = Interpolator((self.sprite.alpha,), 0,
-                                               (0.,), 24)
+        if not reverse:
+            self.pos_interpolator = Interpolator((self.x, self.y), 0,
+                                                 random_pos, duration, formula=(lambda x: 2. * x - x ** 2))
+        else:
+            self.pos_interpolator = Interpolator(random_pos, 0,
+                                                 (self.x, self.y), duration, formula=(lambda x: 2. * x - x ** 2))
+            self.x, self.y = random_pos
 
 
     def update(self):
-        if self.frame == 0:
-            self.set_end_pos(self.amp)
+        Effect.update(self)
 
-        if self.pos_interpolator:
-            self.pos_interpolator.update(self.frame)
-            self.x, self.y = self.pos_interpolator.values
-
-            self.scale_interpolator.update(self.frame)
-            self.sprite.rescale = self.scale_interpolator.values
-
-            self.rotations_interpolator.update(self.frame)
-            self.sprite.rotations_3d = self.rotations_interpolator.values
-
-            self.alpha_interpolator.update(self.frame)
-            self.sprite.alpha, = self.alpha_interpolator.values
-
-            self.sprite.changed = True
-
-        if self.frame == 24:
-            self.removed = True
+        self.pos_interpolator.update(self.frame)
+        self.x, self.y = self.pos_interpolator.values
 
         self.frame += 1
 
