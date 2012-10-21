@@ -134,7 +134,7 @@ class ECL(object):
                      115: ('i', 'set_timeout'),
                      116: ('i', 'set_timeout_callback'),
                      117: ('i', 'set_touchable'),
-                     118: ('iihh', None),
+                     118: ('iIbbbb', 'drop_particles'),
                      119: ('i', 'drop_bonus'),
                      120: ('i', 'set_automatic_orientation'),
                      121: ('ii', 'call_special_function'),

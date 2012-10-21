@@ -904,6 +904,33 @@ class ECLRunner(object):
         self._enemy.touchable = bool(value)
 
 
+    @instruction(118)
+    def drop_particles(self, anim, number, a, b, c, d):
+        #TODO: find the utility of the other values.
+
+        if number == 0 or number > 640: #TODO: remove that hardcoded 640, and verify it.
+            number = 640
+
+        if anim == -1:
+            return
+        if 0 <= anim <= 2:
+            self._game.new_effect((self._enemy.x, self._enemy.y), anim + 3, number=number)
+        elif anim == 3:
+            self._game.new_particle((self._enemy.x, self._enemy.y), 6, 256, number=number) #TODO: make it go back a bit at the end.
+        elif 4 <= anim <= 15:
+            self._game.new_particle((self._enemy.x, self._enemy.y), anim + 5, 192, number=number)
+        elif anim == 16:
+            self._game.new_effect((self._enemy.x, self._enemy.y), 0, self._game.spellcard_effect_anm_wrapper, number=number)
+        elif anim == 17:
+            self._game.new_particle((self._enemy.x, self._enemy.y), anim - 10, 640, number=number, reverse=True, duration=60)
+        elif anim == 18:
+            self._game.new_particle((self._enemy.x, self._enemy.y), anim - 10, 640, number=number, reverse=True, duration=240)
+        elif anim == 19:
+            self._game.new_effect((self._enemy.x, self._enemy.y), anim - 10, number=number)
+        else:
+            raise Exception #TODO
+
+
     @instruction(119)
     def drop_some_bonus(self, number):
         if self._enemy.select_player().state.power < 128:
