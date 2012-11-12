@@ -50,10 +50,10 @@ class SHT(object):
         #self.unknown1 = None
         #self.bombs = 0.
         #self.unknown2 = None
-        self.hitbox = 4.
-        self.graze_hitbox = 42.
+        self.hitbox = 2.
+        self.graze_hitbox = 21.
         self.autocollection_speed = 8.
-        self.item_hitbox = 38.
+        self.item_hitbox = 19.
         # No percentage_of_cherry_loss_on_die
         self.point_of_collection = 128 #TODO: find the real default.
         self.horizontal_vertical_speed = 0.

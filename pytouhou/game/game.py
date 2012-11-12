@@ -319,11 +319,11 @@ class Game(object):
                 continue
 
             px, py = player.x, player.y
-            phalf_size = player.hitbox_half_size
+            phalf_size = player.sht.hitbox
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
 
-            ghalf_size = player.graze_hitbox_half_size
+            ghalf_size = player.sht.graze_hitbox
             gx1, gx2 = px - ghalf_size, px + ghalf_size
             gy1, gy2 = py - ghalf_size, py + ghalf_size
 
@@ -342,10 +342,10 @@ class Game(object):
                 if bullet.state != LAUNCHED:
                     continue
 
-                half_size = bullet.hitbox_half_size
+                bhalf_width, bhalf_height = bullet.hitbox
                 bx, by = bullet.x, bullet.y
-                bx1, bx2 = bx - half_size[0], bx + half_size[0]
-                by1, by2 = by - half_size[1], by + half_size[1]
+                bx1, bx2 = bx - bhalf_width, bx + bhalf_width
+                by1, by2 = by - bhalf_height, by + bhalf_height
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
@@ -368,11 +368,11 @@ class Game(object):
             if py < 128 and player.state.power >= 128: #TODO: check py.
                 self.autocollect(player)
 
-            half_size = player.sht.item_hitbox / 2.
+            ihalf_size = player.sht.item_hitbox
             for item in self.items:
                 bx, by = item.x, item.y
-                bx1, bx2 = bx - half_size, bx + half_size
-                by1, by2 = by - half_size, by + half_size
+                bx1, bx2 = bx - ihalf_size, bx + ihalf_size
+                by1, by2 = by - ihalf_size, by + ihalf_size
 
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):

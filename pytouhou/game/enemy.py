@@ -305,7 +305,7 @@ class Enemy(object):
         for bullet in self._game.players_bullets:
             if bullet.state != LAUNCHED:
                 continue
-            half_size = bullet.hitbox_half_size
+            half_size = bullet.hitbox
             bx, by = bullet.x, bullet.y
             bx1, bx2 = bx - half_size[0], bx + half_size[0]
             by1, by2 = by - half_size[1], by + half_size[1]
@@ -322,7 +322,7 @@ class Enemy(object):
             if not laser:
                 continue
 
-            half_size = laser.hitbox_half_size
+            half_size = laser.hitbox
             lx, ly = laser.x, laser.y * 2.
             lx1, lx2 = lx - half_size[0], lx + half_size[0]
 
@@ -339,7 +339,7 @@ class Enemy(object):
         if self.collidable:
             for player in self._game.players:
                 px, py = player.x, player.y
-                phalf_size = player.hitbox_half_size
+                phalf_size = player.sht.hitbox
                 px1, px2 = px - phalf_size, px + phalf_size
                 py1, py2 = py - phalf_size, py + phalf_size
 

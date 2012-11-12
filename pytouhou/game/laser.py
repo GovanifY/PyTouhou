@@ -205,7 +205,7 @@ class PlayerLaser(object):
         self.origin = origin
         self.objects = [self]
 
-        self.hitbox_half_size = hitbox[0] / 2., hitbox[1] / 2.
+        self.hitbox = hitbox[0], hitbox[1]
 
         self.frame = 0
         self.duration = duration

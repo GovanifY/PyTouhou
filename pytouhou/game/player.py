@@ -64,9 +64,6 @@ class Player(object):
                        self.sht.horizontal_vertical_focused_speed,
                        self.sht.diagonal_focused_speed)
 
-        self.hitbox_half_size = self.sht.hitbox / 2.
-        self.graze_hitbox_half_size = self.sht.graze_hitbox / 2.
-
         self.fire_time = 0
 
         self.state = state

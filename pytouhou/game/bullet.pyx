@@ -27,7 +27,7 @@ cdef class Bullet(object):
     cdef public object player_bullet, target
     cdef public object _game, _bullet_type
     cdef public object sprite, anmrunner, removed, was_visible, objects
-    cdef public object attributes, damage, hitbox_half_size, speed_interpolator, grazed
+    cdef public object attributes, damage, hitbox, speed_interpolator, grazed
     cdef public object x, y #TODO
 
     def __init__(self, pos, bullet_type, sprite_idx_offset,
@@ -43,9 +43,9 @@ cdef class Bullet(object):
         self.objects = [self]
 
         if hitbox:
-            self.hitbox_half_size = (hitbox[0] / 2., hitbox[1] / 2.)
+            self.hitbox = (hitbox[0], hitbox[1])
         else:
-            self.hitbox_half_size = (bullet_type.hitbox_size / 2., bullet_type.hitbox_size / 2.)
+            self.hitbox = (bullet_type.hitbox_size, bullet_type.hitbox_size)
 
         self.speed_interpolator = None
         self.frame = 0
