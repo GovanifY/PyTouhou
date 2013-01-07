@@ -28,15 +28,13 @@ from pyglet.gl import (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf,
 
 from pytouhou.utils.matrix import Matrix
 
-from .renderer cimport Renderer
-from .background cimport get_background_rendering_data
+from .renderer import Renderer
+from .background import get_background_rendering_data
 
 
 
-cdef class GameRenderer(Renderer):
-    cdef public game
-    cdef public background
-
+class GameRenderer(Renderer):
+    __slots__ = ('game', 'background')
 
     def __init__(self, resource_loader, game=None, background=None):
         Renderer.__init__(self, resource_loader)
@@ -44,7 +42,7 @@ cdef class GameRenderer(Renderer):
             self.load_game(game, background)
 
 
-    cpdef load_game(self, game=None, background=None):
+    def load_game(self, game=None, background=None):
         self.game = game
         self.background = background
 
