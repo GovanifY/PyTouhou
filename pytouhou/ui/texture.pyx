@@ -44,8 +44,7 @@ cdef class TextureManager:
 
 
     def load_texture(self, key):
-        cdef bytes data, alpha_data
-        cdef char *new_data
+        cdef char *image, *alpha, *new_data
         cdef unsigned int i, width, height, pixels
 
         first_name, secondary_name = key
@@ -58,16 +57,19 @@ cdef class TextureManager:
 
             width, height = image_file.width, image_file.height
             pixels = width * height
-            data = image_file.get_data('RGB', width * 3)
+
+            image_data = image_file.get_data('RGB', width * 3)
             alpha_data = alpha_file.get_data('RGB', width * 3)
+            image = <char *>image_data
+            alpha = <char *>alpha_data
 
             # TODO: further optimizations
             new_data = <char *>malloc(pixels * 4)
             for i in range(pixels):
-                new_data[i*4] = (<char *>data)[i*3]
-                new_data[i*4+1] = (<char *>data)[i*3+1]
-                new_data[i*4+2] = (<char *>data)[i*3+2]
-                new_data[i*4+3] = (<char *>alpha_data)[i*3]
+                new_data[i*4] = image[i*3]
+                new_data[i*4+1] = image[i*3+1]
+                new_data[i*4+2] = image[i*3+2]
+                new_data[i*4+3] = alpha[i*3]
             image_file = pyglet.image.ImageData(width, height, 'RGBA', new_data[:(pixels * 4)])
             free(new_data)
 
