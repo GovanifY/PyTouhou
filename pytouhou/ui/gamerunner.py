@@ -17,7 +17,7 @@ import traceback
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        glHint, glEnableClientState, glViewport, glScissor,
-                       glLoadMatrixf,
+                       glLoadMatrixf, glGenBuffers, glDeleteBuffers,
                        GL_MODELVIEW, GL_PROJECTION,
                        GL_TEXTURE_2D, GL_BLEND, GL_FOG,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
@@ -30,6 +30,8 @@ from pytouhou.utils.matrix import Matrix
 from .gamerenderer import GameRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 from .shaders.eosd import GameShader, BackgroundShader
+
+from ctypes import c_uint, byref
 
 
 logger = get_logger(__name__)
@@ -54,6 +56,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.game_shader = GameShader()
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
+
+            self.vbo = c_uint(0)
 
         if game:
             self.load_game(game, background, replay)
@@ -102,6 +106,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             glEnableClientState(GL_COLOR_ARRAY)
             glEnableClientState(GL_VERTEX_ARRAY)
             glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        else:
+            glGenBuffers(1, byref(self.vbo))
 
         self.proj = self.perspective(30, float(self.game.width) / float(self.game.height),
                                      101010101./2010101., 101010101./10101.)
@@ -121,6 +127,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                 self.flip()
             else:
                 self.update()
+
+        if not self.use_fixed_pipeline:
+            glDeleteBuffers(1, byref(self.vbo))
 
 
     def _event_text_symbol(self, ev):

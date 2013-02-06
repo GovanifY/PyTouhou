@@ -24,9 +24,10 @@ from struct import pack
 from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
                        glVertexAttribPointer, glEnableVertexAttribArray,
                        glBlendFunc, glBindTexture, glDrawElements,
-                       GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT,
-                       GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
-                       GL_TEXTURE_2D, GL_TRIANGLES)
+                       glBindBuffer, glBufferData, GL_ARRAY_BUFFER,
+                       GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT,
+                       GL_INT, GL_FLOAT, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                       GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES)
 
 from .sprite cimport get_sprite_rendering_data
 from .texture cimport TextureManager
@@ -87,11 +88,15 @@ cdef class Renderer:
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
         else:
-            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
+            glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+            glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), <long> &self.vertex_buffer[0], GL_DYNAMIC_DRAW)
+
+            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), 0)
             glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), 12)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), 20)
             glEnableVertexAttribArray(2)
 
         for (texture_key, blendfunc), indices in indices_by_texture.items():
@@ -100,6 +105,9 @@ cdef class Renderer:
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key])
             glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, indices)
+
+        if not self.use_fixed_pipeline:
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
     cpdef ortho_2d(self, left, right, bottom, top):
