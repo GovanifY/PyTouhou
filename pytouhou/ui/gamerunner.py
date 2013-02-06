@@ -36,6 +36,53 @@ from ctypes import c_uint, byref
 logger = get_logger(__name__)
 
 
+class Clock(object):
+    def __init__(self, fps=None):
+        self._target_fps = 0
+        self._ref_tick = 0
+        self._ref_frame = 0
+        self._fps_tick = 0
+        self._fps_frame = 0
+        self._rate = 0
+        self.set_target_fps(fps)
+
+
+    def set_target_fps(self, fps):
+        self._target_fps = fps
+        self._ref_tick = 0
+        self._fps_tick = 0
+
+
+    def get_fps(self):
+        return self._rate
+
+
+    def tick(self):
+        current = sdl.get_ticks()
+
+        if not self._ref_tick:
+            self._ref_tick = current
+            self._ref_frame = 0
+
+        if self._fps_frame >= (self._target_fps or 60):
+            self._rate = self._fps_frame * 1000. / (current - self._fps_tick)
+            self._fps_tick = current
+            self._fps_frame = 0
+
+        self._ref_frame += 1
+        self._fps_frame += 1
+
+        target_tick = self._ref_tick
+        if self._target_fps:
+            target_tick += int(self._ref_frame * 1000 / self._target_fps)
+
+        if current <= target_tick:
+            sdl.delay(target_tick - current)
+        else:
+            self._ref_tick = current
+            self._ref_frame = 0
+
+
 class GameRunner(GameRenderer):
     def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False, skip=False):
         GameRenderer.__init__(self, resource_loader, game, background)
@@ -72,7 +119,7 @@ class GameRunner(GameRenderer):
         if game:
             self.load_game(game, background, replay)
 
-        #self.clock = pyglet.clock.get_default()
+        self.clock = Clock(self.fps_limit)
 
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
@@ -125,14 +172,13 @@ class GameRunner(GameRenderer):
         self.game_mvp = game_view * self.proj
         self.interface_mvp = ortho_2d(0., float(self.width), float(self.height), 0.)
 
-        #if self.fps_limit > 0:
-        #    pyglet.clock.set_fps_limit(self.fps_limit)
         while not self.has_exit:
             if not self.skip:
                 self.update()
                 self.render_game()
                 self.render_interface()
                 self.win.gl_swap_window()
+                self.clock.tick()
             else:
                 self.update()
 
@@ -208,7 +254,7 @@ class GameRunner(GameRenderer):
 
     def render_interface(self):
         interface = self.game.interface
-        #interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_ticks())
+        interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_fps())
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)

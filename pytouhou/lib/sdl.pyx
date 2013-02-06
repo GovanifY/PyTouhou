@@ -94,3 +94,11 @@ def get_keyboard_state():
     cdef const Uint8 *state
     state = SDL_GetKeyboardState(&numkeys)
     return tuple([k is not False for k in state[:numkeys]])
+
+
+def get_ticks():
+    return SDL_GetTicks()
+
+
+def delay(Uint32 ms):
+    SDL_Delay(ms)

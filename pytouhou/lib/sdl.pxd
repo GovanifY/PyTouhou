@@ -86,3 +86,8 @@ cdef extern from "SDL_events.h":
 
 cdef extern from "SDL_keyboard.h":
     const Uint8 *SDL_GetKeyboardState(int *numkeys)
+
+
+cdef extern from "SDL_timer.h":
+    Uint32 SDL_GetTicks()
+    void SDL_Delay(Uint32 ms)
