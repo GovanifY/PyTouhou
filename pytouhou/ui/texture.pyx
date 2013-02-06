@@ -15,9 +15,16 @@
 from libc.stdlib cimport malloc, free
 
 import pyglet
-from pyglet.gl import (glTexParameteri,
-                       GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+from pyglet.gl import (glTexParameteri, GL_TEXTURE_MIN_FILTER,
+                       GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_BGRA, GL_RGBA,
+                       GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+                       GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV,
+                       glGenTextures, glBindTexture, glTexImage2D,
+                       GL_TEXTURE_2D)
+from ctypes import c_uint, byref
 import os
+
+from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 
 
 cdef class TextureManager:
@@ -33,32 +40,24 @@ cdef class TextureManager:
 
 
     def preload(self, anm_wrapper):
-        try:
-            anms = anm_wrapper.anm_files
-        except AttributeError:
-            anms = anm_wrapper
-
-        for anm in anms:
-            key = anm.first_name, anm.secondary_name
-            texture = self[key]
+        for anm in anm_wrapper:
+            anm.texture = self.load_png_texture(anm.first_name, anm.secondary_name)
 
 
-    def load_texture(self, key):
+    def load_png_texture(self, first_name, secondary_name):
         cdef char *image, *alpha, *new_data
         cdef unsigned int i, width, height, pixels
 
-        first_name, secondary_name = key
-
         image_file = pyglet.image.load(first_name, file=self.loader.get_file(os.path.basename(first_name)))
+        width, height = image_file.width, image_file.height
+        image_data = image_file.get_data('RGB', width * 3)
 
         if secondary_name:
             alpha_file = pyglet.image.load(secondary_name, file=self.loader.get_file(os.path.basename(secondary_name)))
             assert (image_file.width, image_file.height) == (alpha_file.width, image_file.height)
 
-            width, height = image_file.width, image_file.height
             pixels = width * height
 
-            image_data = image_file.get_data('RGB', width * 3)
             alpha_data = alpha_file.get_data('RGB', width * 3)
             image = <char *>image_data
             alpha = <char *>alpha_data
@@ -70,13 +69,56 @@ cdef class TextureManager:
                 new_data[i*4+1] = image[i*3+1]
                 new_data[i*4+2] = image[i*3+2]
                 new_data[i*4+3] = alpha[i*3]
-            image_file = pyglet.image.ImageData(width, height, 'RGBA', new_data[:(pixels * 4)])
+            data = new_data[:(pixels * 4)]
             free(new_data)
+            return Texture(width, height, -4, data)
 
-        texture = image_file.get_texture()
+        return Texture(width, height, -3, image_data)
 
-        glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 
-        return texture
+    def load_texture(self, key):
+        if not isinstance(key, Texture):
+            first_name, secondary_name = key
+            key = self.load_png_texture(first_name, secondary_name)
 
+        if key.fmt == 1:
+            format_ = GL_BGRA
+            type_ = GL_UNSIGNED_BYTE
+            composants = GL_RGBA
+        elif key.fmt == 3:
+            format_ = GL_RGB
+            type_ = GL_UNSIGNED_SHORT_5_6_5
+            composants = GL_RGB
+        elif key.fmt == 5:
+            format_ = GL_BGRA
+            type_ = GL_UNSIGNED_SHORT_4_4_4_4_REV
+            composants = GL_RGBA
+        elif key.fmt == 7:
+            format_ = GL_LUMINANCE
+            type_ = GL_UNSIGNED_BYTE
+            composants = GL_LUMINANCE
+        elif key.fmt == -3: #XXX: non-standard, remove it!
+            format_ = GL_RGB
+            type_ = GL_UNSIGNED_BYTE
+            composants = GL_RGB
+        elif key.fmt == -4: #XXX: non-standard
+            format_ = GL_RGBA
+            type_ = GL_UNSIGNED_BYTE
+            composants = GL_RGBA
+        else:
+            raise Exception('Unknown texture type')
+
+        id_ = c_uint()
+        glGenTextures(1, byref(id_))
+        glBindTexture(GL_TEXTURE_2D, id_.value)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     composants,
+                     key.width, key.height,
+                     0,
+                     format_, type_,
+                     key.data)
+
+        return id_.value

@@ -102,7 +102,7 @@ class GameRenderer(Renderer):
             glEnable(GL_DEPTH_TEST)
             for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in get_background_rendering_data(back):
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key].id)
+                glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
                 glVertexPointer(3, GL_FLOAT, 0, vertices)
                 glTexCoordPointer(2, GL_FLOAT, 0, uvs)
                 glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)

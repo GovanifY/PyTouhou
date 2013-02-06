@@ -89,7 +89,7 @@ cdef class Renderer:
             nb_indices = len(indices)
             indices = pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-            glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key].id)
+            glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key])
             glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, indices)
 
 
