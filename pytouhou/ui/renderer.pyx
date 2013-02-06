@@ -82,19 +82,19 @@ cdef class Renderer:
 
                 nb_vertices += 4
 
-        for (texture_key, blendfunc), indices in indices_by_texture.items():
-            if self.use_fixed_pipeline:
-                glVertexPointer(3, GL_INT, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
-                glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
-                glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
-            else:
-                glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
-                glEnableVertexAttribArray(0)
-                glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
-                glEnableVertexAttribArray(1)
-                glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
-                glEnableVertexAttribArray(2)
+        if self.use_fixed_pipeline:
+            glVertexPointer(3, GL_INT, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
+            glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+        else:
+            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+            glEnableVertexAttribArray(2)
 
+        for (texture_key, blendfunc), indices in indices_by_texture.items():
             nb_indices = len(indices)
             indices = pack(str(nb_indices) + 'H', *indices)
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
