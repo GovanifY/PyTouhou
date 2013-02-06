@@ -95,12 +95,13 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
         # Initialize OpenGL
         glEnable(GL_BLEND)
-        glEnable(GL_TEXTURE_2D)
-        glHint(GL_FOG_HINT, GL_NICEST)
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-        glEnableClientState(GL_COLOR_ARRAY)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        if self.use_fixed_pipeline:
+            glEnable(GL_TEXTURE_2D)
+            glHint(GL_FOG_HINT, GL_NICEST)
+            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+            glEnableClientState(GL_COLOR_ARRAY)
+            glEnableClientState(GL_VERTEX_ARRAY)
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         self.proj = self.perspective(30, float(self.game.width) / float(self.game.height),
                                      101010101./2010101., 101010101./10101.)

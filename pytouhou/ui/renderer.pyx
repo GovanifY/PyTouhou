@@ -22,6 +22,7 @@ import ctypes
 from struct import pack
 
 from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
+                       glVertexAttribPointer, glEnableVertexAttribArray,
                        glBlendFunc, glBindTexture, glDrawElements,
                        GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT,
                        GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE,
@@ -82,9 +83,17 @@ cdef class Renderer:
                 nb_vertices += 4
 
         for (texture_key, blendfunc), indices in indices_by_texture.items():
-            glVertexPointer(3, GL_INT, 24, <long> &self.vertex_buffer[0].x)
-            glTexCoordPointer(2, GL_FLOAT, 24, <long> &self.vertex_buffer[0].u)
-            glColorPointer(4, GL_UNSIGNED_BYTE, 24, <long> &self.vertex_buffer[0].r)
+            if self.use_fixed_pipeline:
+                glVertexPointer(3, GL_INT, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
+                glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
+                glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+            else:
+                glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
+                glEnableVertexAttribArray(1)
+                glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+                glEnableVertexAttribArray(2)
 
             nb_indices = len(indices)
             indices = pack(str(nb_indices) + 'H', *indices)

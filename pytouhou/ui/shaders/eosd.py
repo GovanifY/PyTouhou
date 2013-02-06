@@ -21,22 +21,32 @@ class GameShader(Shader):
         Shader.__init__(self, ['''
             #version 120
 
+            attribute vec3 in_position;
+            attribute vec2 in_texcoord;
+            attribute vec4 in_color;
+
             uniform mat4 mvp;
+
+            varying vec2 texcoord;
+            varying vec4 color;
 
             void main()
             {
-                gl_Position = mvp * gl_Vertex;
-                gl_FrontColor = gl_Color;
-                gl_TexCoord[0] = gl_MultiTexCoord0;
+                gl_Position = mvp * vec4(in_position, 1.0);
+                texcoord = in_texcoord;
+                color = in_color;
             }
-        '''], [ '''
+        '''], ['''
             #version 120
+
+            varying vec2 texcoord;
+            varying vec4 color;
 
             uniform sampler2D color_map;
 
             void main()
             {
-                gl_FragColor = texture2D(color_map, gl_TexCoord[0].st) * gl_Color;
+                gl_FragColor = texture2D(color_map, texcoord) * color;
             }
         '''])
 
@@ -46,33 +56,41 @@ class BackgroundShader(Shader):
         Shader.__init__(self, ['''
             #version 120
 
+            attribute vec3 in_position;
+            attribute vec2 in_texcoord;
+            attribute vec4 in_color;
+
             uniform mat4 model_view;
             uniform mat4 projection;
 
+            varying vec2 texcoord;
+            varying vec4 color;
             varying float fog_density;
 
             void main()
             {
-                gl_Position = model_view * gl_Vertex;
-                gl_FrontColor = gl_Color;
-                gl_TexCoord[0] = gl_MultiTexCoord0;
+                vec4 position = model_view * vec4(in_position, 1.0);
+                texcoord = in_texcoord;
+                color = in_color;
 
-                float fog_position = -gl_Position.z / gl_Position.w;
+                float fog_position = -position.z / position.w;
                 fog_density = clamp((gl_Fog.end - fog_position) * gl_Fog.scale, 0.0f, 1.0f);
 
-                gl_Position = projection * gl_Position;
+                gl_Position = projection * position;
             }
-        '''], [ '''
+        '''], ['''
             #version 120
+
+            varying vec2 texcoord;
+            varying vec4 color;
+            varying float fog_density;
 
             uniform sampler2D color_map;
 
-            varying float fog_density;
-
             void main()
             {
-                vec4 color = texture2D(color_map, gl_TexCoord[0].st) * gl_Color;
-                gl_FragColor = mix(gl_Fog.color, color, fog_density);
-                gl_FragColor.w = color.w;
+                vec4 temp_color = texture2D(color_map, texcoord) * color;
+                gl_FragColor = mix(gl_Fog.color, temp_color, fog_density);
+                gl_FragColor.a = temp_color.a;
             }
         '''])

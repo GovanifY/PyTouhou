@@ -16,7 +16,7 @@ from pyglet.gl import (glCreateProgram, glCreateShader, GL_VERTEX_SHADER,
                        glUseProgram, glGetUniformLocation, glUniform1f,
                        glUniform2f, glUniform3f, glUniform4f, glUniform1i,
                        glUniform2i, glUniform3i, glUniform4i,
-                       glUniformMatrix4fv)
+                       glUniformMatrix4fv, glBindAttribLocation)
 
 from ctypes import (c_char, c_char_p, c_int, POINTER, byref, cast,
                     create_string_buffer)
@@ -42,6 +42,11 @@ class Shader(object):
         self.createShader(vert, GL_VERTEX_SHADER)
         # create the fragment shader
         self.createShader(frag, GL_FRAGMENT_SHADER)
+
+        #TODO: put those elsewhere.
+        glBindAttribLocation(self.handle, 0, 'in_position')
+        glBindAttribLocation(self.handle, 1, 'in_texcoord')
+        glBindAttribLocation(self.handle, 2, 'in_color')
 
         # attempt to link the program
         self.link()

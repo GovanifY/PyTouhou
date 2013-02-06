@@ -19,6 +19,7 @@ from pyglet.gl import (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf,
                        glDisable, glEnable, glFogi, glFogf, glFogfv,
                        glBlendFunc, glBindTexture, glVertexPointer,
                        glTexCoordPointer, glColorPointer, glDrawArrays,
+                       glVertexAttribPointer, glEnableVertexAttribArray,
                        GL_DEPTH_BUFFER_BIT, GL_PROJECTION, GL_MODELVIEW,
                        GL_FOG, GL_FOG_MODE, GL_LINEAR, GL_FOG_START,
                        GL_FOG_END, GL_FOG_COLOR, GL_DEPTH_TEST, GL_SRC_ALPHA,
@@ -89,13 +90,13 @@ class GameRenderer(Renderer):
             model = Matrix()
             model.data[3] = [-x, -y, -z, 1]
             view = self.setup_camera(dx, dy, dz)
-            model_view = model * view
-            model_view_projection = model * view * self.proj
 
             if self.use_fixed_pipeline:
+                model_view_projection = model * view * self.proj
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(model_view_projection.get_c_data())
             else:
+                model_view = model * view
                 self.background_shader.uniform_matrixf('model_view', model_view.get_c_data())
                 self.background_shader.uniform_matrixf('projection', self.proj.get_c_data())
 
@@ -103,9 +104,17 @@ class GameRenderer(Renderer):
             for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in get_background_rendering_data(back):
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
                 glBindTexture(GL_TEXTURE_2D, texture_manager[texture_key])
-                glVertexPointer(3, GL_FLOAT, 0, vertices)
-                glTexCoordPointer(2, GL_FLOAT, 0, uvs)
-                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+                if self.use_fixed_pipeline:
+                    glVertexPointer(3, GL_FLOAT, 0, vertices)
+                    glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+                    glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+                else:
+                    glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vertices)
+                    glEnableVertexAttribArray(0)
+                    glVertexAttribPointer(1, 2, GL_FLOAT, False, 0, uvs)
+                    glEnableVertexAttribArray(1)
+                    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, 0, colors)
+                    glEnableVertexAttribArray(2)
                 glDrawArrays(GL_QUADS, 0, nb_vertices)
             glDisable(GL_DEPTH_TEST)
         else:
