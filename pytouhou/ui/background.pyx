@@ -36,11 +36,11 @@ cpdef object get_background_rendering_data(object background):
     for ox, oy, oz, model_id, model in background.object_instances:
         for ox2, oy2, oz2, width_override, height_override, sprite in model:
             #TODO: view frustum culling
-            key, (vertices2, uvs2, colors2) = get_sprite_rendering_data(sprite)
+            key, (vertices2, (left, right, bottom, top), colors2) = get_sprite_rendering_data(sprite)
             vertices.extend([(x + ox + ox2, y + oy + oy2, z + oz + oz2)
                                 for x, y, z in vertices2])
-            uvs.extend(uvs2)
-            colors.extend(colors2)
+            uvs.extend((left, bottom, right, bottom, right, top, left, top))
+            colors.extend(colors2 * 4)
 
     nb_vertices = len(vertices)
     vertices_s = pack(str(3 * nb_vertices) + 'f', *chain(*vertices))

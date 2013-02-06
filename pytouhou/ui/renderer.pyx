@@ -70,12 +70,12 @@ cdef class Renderer:
 
                 # Pack data in buffer
                 (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
-                r1, g1, b1, a1, r2, g2, b2, a2, r3, g3, b3, a3, r4, g4, b4, a4 = colors
-                u1, v1, u2, v2, u3, v3, u4, v4 = uvs
-                self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, u1, v1, r1, g1, b1, a1)
-                self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, u2, v2, r2, g2, b2, a2)
-                self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, u3, v3, r3, g3, b3, a3)
-                self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, u4, v4, r4, g4, b4, a4)
+                left, right, bottom, top = uvs
+                r, g, b, a = colors
+                self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, left, bottom, r, g, b, a)
+                self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, right, bottom, r, g, b, a)
+                self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, right, top, r, g, b, a)
+                self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, left, top, r, g, b, a)
 
                 # Add indices
                 index = nb_vertices
