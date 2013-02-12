@@ -27,9 +27,11 @@ from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
                        glBindBuffer, glBufferData, GL_ARRAY_BUFFER,
                        GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT,
                        GL_INT, GL_FLOAT, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                       GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES)
+                       GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
+                       glEnable, glDisable, GL_DEPTH_TEST, glDrawArrays, GL_QUADS)
 
 from .sprite cimport get_sprite_rendering_data
+from .background import get_background_rendering_data
 from .texture cimport TextureManager
 from pytouhou.utils.matrix cimport Matrix
 from pytouhou.utils.vector import Vector, normalize, cross, dot
@@ -108,6 +110,26 @@ cdef class Renderer:
 
         if not self.use_fixed_pipeline:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    cpdef render_background(self, back):
+        glEnable(GL_DEPTH_TEST)
+        for (texture_key, blendfunc), (nb_vertices, vertices, uvs, colors) in get_background_rendering_data(back):
+            if self.use_fixed_pipeline:
+                glVertexPointer(3, GL_FLOAT, 0, vertices)
+                glTexCoordPointer(2, GL_FLOAT, 0, uvs)
+                glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
+            else:
+                glVertexAttribPointer(0, 3, GL_FLOAT, False, 0, vertices)
+                glEnableVertexAttribArray(0)
+                glVertexAttribPointer(1, 2, GL_FLOAT, False, 0, uvs)
+                glEnableVertexAttribArray(1)
+                glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, 0, colors)
+                glEnableVertexAttribArray(2)
+            glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
+            glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key])
+            glDrawArrays(GL_QUADS, 0, nb_vertices)
+        glDisable(GL_DEPTH_TEST)
 
 
     cpdef ortho_2d(self, left, right, bottom, top):

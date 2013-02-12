@@ -9,6 +9,7 @@ cdef class Renderer:
     cdef Vertex *vertex_buffer
 
     cpdef render_elements(self, elements)
+    cpdef render_background(self, back)
     cpdef ortho_2d(self, left, right, bottom, top)
     cpdef look_at(self, eye, center, up)
     cpdef perspective(self, fovy, aspect, zNear, zFar)
