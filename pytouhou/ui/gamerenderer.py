@@ -43,6 +43,7 @@ class GameRenderer(Renderer):
         if game:
             # Preload textures
             self.texture_manager.preload(game.resource_loader.instanced_anms.values())
+            self.prerender_background(background)
 
 
     def render(self):
@@ -66,33 +67,33 @@ class GameRenderer(Renderer):
 
             self.render_elements([game.spellcard_effect])
         elif back is not None:
-            if self.use_fixed_pipeline:
-                glEnable(GL_FOG)
-            else:
-                self.background_shader.bind()
-            fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values
+            fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
+
+            model = Matrix()
+            model.data[3] = [-x, -y, -z, 1]
+            view = self.setup_camera(dx, dy, dz)
 
             glFogi(GL_FOG_MODE, GL_LINEAR)
             glFogf(GL_FOG_START, fog_start)
             glFogf(GL_FOG_END,  fog_end)
             glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
 
-            model = Matrix()
-            model.data[3] = [-x, -y, -z, 1]
-            view = self.setup_camera(dx, dy, dz)
-
             if self.use_fixed_pipeline:
+                glEnable(GL_FOG)
+
                 model_view_projection = model * view * self.proj
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(model_view_projection.get_c_data())
             else:
+                self.background_shader.bind()
+
                 model_view = model * view
                 self.background_shader.uniform_matrixf('model_view', model_view.get_c_data())
                 self.background_shader.uniform_matrixf('projection', self.proj.get_c_data())
 
-            self.render_background(back)
+            self.render_background()
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 

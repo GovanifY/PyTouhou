@@ -1,1 +1,0 @@
-cpdef object get_background_rendering_data(object background)

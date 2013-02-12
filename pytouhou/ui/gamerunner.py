@@ -57,7 +57,9 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
 
-            self.vbo = c_uint(0)
+            vbo_array = (c_uint * 2)()
+            glGenBuffers(2, vbo_array)
+            self.vbo, self.back_vbo = vbo_array
 
         if game:
             self.load_game(game, background, replay)
@@ -106,8 +108,6 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             glEnableClientState(GL_COLOR_ARRAY)
             glEnableClientState(GL_VERTEX_ARRAY)
             glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        else:
-            glGenBuffers(1, byref(self.vbo))
 
         self.proj = self.perspective(30, float(self.game.width) / float(self.game.height),
                                      101010101./2010101., 101010101./10101.)
@@ -129,7 +129,8 @@ class GameRunner(pyglet.window.Window, GameRenderer):
                 self.update()
 
         if not self.use_fixed_pipeline:
-            glDeleteBuffers(1, byref(self.vbo))
+            vbo_array = (c_uint * 2)(self.vbo, self.back_vbo)
+            glDeleteBuffers(2, vbo_array)
 
 
     def _event_text_symbol(self, ev):
