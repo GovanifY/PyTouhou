@@ -60,37 +60,33 @@ class BackgroundShader(Shader):
             attribute vec2 in_texcoord;
             attribute vec4 in_color;
 
-            uniform mat4 model_view;
-            uniform mat4 projection;
+            uniform mat4 mvp;
 
             varying vec2 texcoord;
             varying vec4 color;
-            varying float fog_density;
 
             void main()
             {
-                vec4 position = model_view * vec4(in_position, 1.0);
+                gl_Position = mvp * vec4(in_position, 1.0);
                 texcoord = in_texcoord;
                 color = in_color;
-
-                float fog_position = -position.z / position.w;
-                fog_density = clamp((gl_Fog.end - fog_position) * gl_Fog.scale, 0.0f, 1.0f);
-
-                gl_Position = projection * position;
             }
         '''], ['''
             #version 120
 
             varying vec2 texcoord;
             varying vec4 color;
-            varying float fog_density;
 
             uniform sampler2D color_map;
+            uniform float fog_scale;
+            uniform float fog_end;
+            uniform vec4 fog_color;
 
             void main()
             {
                 vec4 temp_color = texture2D(color_map, texcoord) * color;
-                gl_FragColor = mix(gl_Fog.color, temp_color, fog_density);
-                gl_FragColor.a = temp_color.a;
+                float depth = gl_FragCoord.z / gl_FragCoord.w;
+                float fog_density = clamp((fog_end - depth) * fog_scale, 0.0f, 1.0f);
+                gl_FragColor = vec4(mix(fog_color, temp_color, fog_density).rgb, temp_color.a);
             }
         '''])

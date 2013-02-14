@@ -71,27 +71,37 @@ class GameRenderer(Renderer):
             dx, dy, dz = back.position2_interpolator.values
             fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
 
+            # Those two lines may come from the difference between Direct3D and
+            # OpenGL’s distance handling.  The first one seem to calculate fog
+            # from the eye, while the second does that starting from the near
+            # plane.
+            #TODO: investigate, and use a variable to keep the near plane
+            # distance at a single place.
+            fog_start -= 101010101./2010101.
+            fog_end -= 101010101./2010101.
+
             model = Matrix()
             model.data[3] = [-x, -y, -z, 1]
             view = self.setup_camera(dx, dy, dz)
-
-            glFogi(GL_FOG_MODE, GL_LINEAR)
-            glFogf(GL_FOG_START, fog_start)
-            glFogf(GL_FOG_END,  fog_end)
-            glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
+            model_view_projection = model * view * self.proj
+            mvp = model_view_projection.get_c_data()
 
             if self.use_fixed_pipeline:
-                glEnable(GL_FOG)
-
-                model_view_projection = model * view * self.proj
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(model_view_projection.get_c_data())
+                glLoadMatrixf(mvp)
+
+                glEnable(GL_FOG)
+                glFogi(GL_FOG_MODE, GL_LINEAR)
+                glFogf(GL_FOG_START, fog_start)
+                glFogf(GL_FOG_END,  fog_end)
+                glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
             else:
                 self.background_shader.bind()
+                self.background_shader.uniform_matrixf('mvp', mvp)
 
-                model_view = model * view
-                self.background_shader.uniform_matrixf('model_view', model_view.get_c_data())
-                self.background_shader.uniform_matrixf('projection', self.proj.get_c_data())
+                self.background_shader.uniformf('fog_scale', 1. / (fog_end - fog_start))
+                self.background_shader.uniformf('fog_end', fog_end)
+                self.background_shader.uniformf('fog_color', fog_r / 255., fog_g / 255., fog_b / 255., 1.)
 
             self.render_background()
         else:
