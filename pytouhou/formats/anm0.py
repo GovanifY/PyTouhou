@@ -61,7 +61,7 @@ class ANM0(object):
                      21: ('', 'wait'),
                      22: ('i', 'interrupt_label'),
                      23: ('', 'set_corner_relative_placement'),
-                     24: ('', None),
+                     24: ('', 'wait_ex'),
                      25: ('i', 'set_allow_offset'), #TODO: better name
                      26: ('i', 'set_automatic_orientation'),
                      27: ('f', 'shift_texture_x'),
@@ -72,6 +72,7 @@ class ANM0(object):
 
 
     def __init__(self):
+        self.version = 0
         self.size = (0, 0)
         self.first_name = None
         self.secondary_name = None
@@ -145,4 +146,3 @@ class ANM0(object):
                 self.scripts[i][j] = time, opcode, args
 
         return self
-
