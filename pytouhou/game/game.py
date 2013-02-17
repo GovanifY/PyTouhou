@@ -22,6 +22,7 @@ from pytouhou.game.enemy import Enemy
 from pytouhou.game.item import Item
 from pytouhou.game.effect import Effect, Particle
 from pytouhou.game.text import Text
+from pytouhou.game.face import Face
 
 
 
@@ -53,6 +54,7 @@ class Game(object):
         self.players_lasers = [None, None]
         self.items = []
         self.labels = []
+        self.faces = [None, None]
         self.interface = interface
 
         self.continues = continues
@@ -92,7 +94,7 @@ class Game(object):
 
 
     def msg_sprites(self):
-        return []
+        return [face for face in self.faces if face] if self.msg_runner and not self.msg_runner.ended else []
 
 
     def lasers_sprites(self):
@@ -214,6 +216,12 @@ class Game(object):
         return label
 
 
+    def new_face(self, side, effect):
+        face = Face(self.msg_anm_wrapper, effect, side)
+        self.faces[side] = face
+        return face
+
+
     def run_iter(self, keystate):
         # 1. VMs.
         for runner in self.ecl_runners:
@@ -249,6 +257,7 @@ class Game(object):
         self.interface.update() # Pri 12
         for label in self.labels: #TODO: what priority is it?
             label.update()
+        self.update_faces() # Pri XXX
 
         # 5. Clean up
         self.cleanup()
@@ -296,6 +305,12 @@ class Game(object):
     def update_effects(self):
         for effect in self.effects:
             effect.update()
+
+
+    def update_faces(self):
+        for face in self.faces:
+            if face:
+                face.update()
 
 
     def update_bullets(self):

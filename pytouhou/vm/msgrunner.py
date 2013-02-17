@@ -16,7 +16,6 @@
 from pytouhou.utils.helpers import get_logger
 
 from pytouhou.vm.common import MetaRegistry, instruction
-from pytouhou.game.face import Face
 
 logger = get_logger(__name__)
 
@@ -28,7 +27,7 @@ class NextStage(Exception):
 class MSGRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_msg', '_game', 'frame', 'sleep_time', 'allow_skip',
-                 'skipping', 'frozen', 'faces', 'ended', 'instruction_pointer',
+                 'skipping', 'frozen', 'ended', 'instruction_pointer',
                  'handlers')
 
     def __init__(self, msg, script, game):
@@ -40,16 +39,9 @@ class MSGRunner(object):
         self.allow_skip = True
         self.skipping = False
         self.frozen = False
-
-        self.faces = [None, None]
-        game.msg_sprites = self.objects
         self.ended = False
 
         self.instruction_pointer = 0
-
-
-    def objects(self):
-        return [face for face in self.faces if face] if not self.ended else []
 
 
     def run_iteration(self):
@@ -82,10 +74,6 @@ class MSGRunner(object):
             else:
                 self.frame += 1
 
-        for face in self.faces:
-            if face:
-                face.update()
-
         return True
 
 
@@ -108,12 +96,12 @@ class MSGRunner(object):
 
     @instruction(1)
     def enter(self, side, effect):
-        self.faces[side] = Face(self._game.msg_anm_wrapper, effect, side)
+        self._game.new_face(side, effect)
 
 
     @instruction(2)
     def change_face(self, side, index):
-        face = self.faces[side]
+        face = self._game.faces[side]
         if face:
             face.load(index)
 
@@ -126,7 +114,7 @@ class MSGRunner(object):
 
     @instruction(5)
     def animate(self, side, effect):
-        face = self.faces[side]
+        face = self._game.faces[side]
         if face:
             face.animate(effect)
 
