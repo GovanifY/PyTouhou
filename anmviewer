@@ -25,13 +25,13 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.ui.anmrenderer import ANMRenderer
 
 
-def main(path, data, name, script, sprites):
+def main(path, data, name, script, sprites, fixed_pipeline):
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name) for name in data)
 
     # Get out animation
     anm_wrapper = resource_loader.get_anm_wrapper(name.split(','))
-    anm = ANMRenderer(resource_loader, anm_wrapper, script, sprites)
+    anm = ANMRenderer(resource_loader, anm_wrapper, script, sprites, fixed_pipeline)
     anm.start()
 
 
@@ -42,7 +42,9 @@ parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game
 parser.add_argument('--anm', metavar='ANM', required=True, help='Select an ANM')
 parser.add_argument('--script', metavar='SCRIPT', type=int, default=0, help='First script to play')
 parser.add_argument('--sprites', action='store_true', default=False, help='Display sprites instead of scripts.')
+parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 
 args = parser.parse_args()
 
-main(args.path, tuple(args.data), args.anm, args.script, args.sprites)
+main(args.path, tuple(args.data), args.anm, args.script, args.sprites,
+     args.fixed_pipeline)

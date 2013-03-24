@@ -16,13 +16,14 @@
 import pyglet
 import traceback
 
-from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable,
+from pyglet.gl import (glMatrixMode, glEnable,
                        glHint, glEnableClientState, glViewport,
                        glLoadMatrixf, GL_PROJECTION, GL_MODELVIEW,
                        GL_TEXTURE_2D, GL_BLEND,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
-                       glClearColor, glClear, GL_COLOR_BUFFER_BIT)
+                       glClearColor, glClear, GL_COLOR_BUFFER_BIT,
+                       glGenBuffers)
 
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
@@ -30,18 +31,25 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.utils.helpers import get_logger
 
 from .renderer import Renderer
+from .shaders.eosd import GameShader
+
+from ctypes import c_uint
 
 
 logger = get_logger(__name__)
 
 
 class ANMRenderer(pyglet.window.Window, Renderer):
-    def __init__(self, resource_loader, anm_wrapper, index=0, sprites=False):
+    def __init__(self, resource_loader, anm_wrapper, index=0, sprites=False,
+                 fixed_pipeline=False):
         Renderer.__init__(self, resource_loader)
+        self.texture_manager.preload(resource_loader.instanced_anms.values())
 
         width, height = 384, 448
         pyglet.window.Window.__init__(self, width=width, height=height,
                                       caption='PyTouhou', resizable=False)
+
+        self.use_fixed_pipeline = fixed_pipeline
 
         self._anm_wrapper = anm_wrapper
         self.sprites = sprites
@@ -61,21 +69,34 @@ class ANMRenderer(pyglet.window.Window, Renderer):
 
         # Initialize OpenGL
         glEnable(GL_BLEND)
-        glEnable(GL_TEXTURE_2D)
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-        glEnableClientState(GL_COLOR_ARRAY)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        if self.use_fixed_pipeline:
+            glEnable(GL_TEXTURE_2D)
+            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+            glEnableClientState(GL_COLOR_ARRAY)
+            glEnableClientState(GL_VERTEX_ARRAY)
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         # Switch to game projection
         proj = self.perspective(30, float(self.width) / float(self.height),
                                 101010101./2010101., 101010101./10101.)
-        glMatrixMode(GL_PROJECTION)
-        glLoadMatrixf(proj.get_c_data())
-
         view = self.setup_camera(0, 0, 1)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadMatrixf(view.get_c_data())
+
+        if not self.use_fixed_pipeline:
+            shader = GameShader()
+
+            vbo_array = (c_uint * 1)()
+            glGenBuffers(1, vbo_array)
+            self.vbo, = vbo_array
+
+            mvp = view * proj
+            shader.bind()
+            shader.uniform_matrixf('mvp', mvp.get_c_data())
+        else:
+            glMatrixMode(GL_PROJECTION)
+            glLoadMatrixf(proj.get_c_data())
+
+            glMatrixMode(GL_MODELVIEW)
+            glLoadMatrixf(view.get_c_data())
 
         # Use our own loop to ensure 60 fps
         pyglet.clock.set_fps_limit(60)
