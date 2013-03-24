@@ -34,7 +34,7 @@ class Game(object):
     def __init__(self, resource_loader, players, stage, rank, difficulty,
                  bullet_types, laser_types, item_types,
                  nb_bullets_max=None, width=384, height=448, prng=None,
-                 interface=None, continues=0):
+                 interface=None, continues=0, hints=None):
         self.resource_loader = resource_loader
 
         self.width, self.height = width, height
@@ -56,6 +56,7 @@ class Game(object):
         self.labels = []
         self.faces = [None, None]
         self.interface = interface
+        self.hints = hints
 
         self.continues = continues
         self.stage = stage
@@ -166,7 +167,7 @@ class Game(object):
         score = 0
         bonus = 2000
         for bullet in self.bullets:
-            label = self.new_label((bullet.x, bullet.y), str(bonus))
+            self.new_label((bullet.x, bullet.y), str(bonus))
             score += bonus
             bonus += 10
         self.bullets = []
@@ -211,7 +212,20 @@ class Game(object):
 
     def new_label(self, pos, text):
         label = Text(pos, self.ascii_wrapper, text=text, xspacing=8, shift=48)
-        label.set_timeout(60)
+        label.set_timeout(60, effect='move')
+        self.labels.append(label)
+        return label
+
+
+    def new_hint(self, hint):
+        pos = hint['Pos']
+        #TODO: Scale
+
+        pos = pos[0] + 192, pos[1]
+        label = Text(pos, self.ascii_wrapper, text=hint['Text'], align=hint['Align'])
+        label.set_timeout(hint['Time'])
+        label.set_alpha(hint['Alpha'])
+        label.set_color(hint['Color'], text=False)
         self.labels.append(label)
         return label
 
@@ -255,6 +269,8 @@ class Game(object):
         for laser in self.lasers: #TODO: what priority is it?
             laser.update()
         self.interface.update() # Pri 12
+        if self.hints:
+            self.update_hints() # Not from this game, so unknown.
         for label in self.labels: #TODO: what priority is it?
             label.update()
         self.update_faces() # Pri XXX
@@ -305,6 +321,12 @@ class Game(object):
     def update_effects(self):
         for effect in self.effects:
             effect.update()
+
+
+    def update_hints(self):
+        for hint in self.hints:
+            if hint['Count'] == self.frame and hint['Base'] == 'start':
+                self.new_hint(hint)
 
 
     def update_faces(self):

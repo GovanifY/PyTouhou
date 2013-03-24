@@ -30,6 +30,7 @@ from pytouhou.game.player import PlayerState
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
 from pytouhou.vm.msgrunner import NextStage
+from pytouhou.formats.hint import Hint
 
 
 class EoSDGameBossRush(EoSDGame):
@@ -64,7 +65,7 @@ class EoSDGameBossRush(EoSDGame):
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, fps_limit, single_buffer, debug,
-         fixed_pipeline, display_background):
+         fixed_pipeline, display_background, hints):
 
     resource_loader = Loader(path)
 
@@ -97,6 +98,10 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
         save_replay = T6RP()
         save_replay.rank = rank
         save_replay.character = character
+
+    if hints:
+        with open(hints, 'rb') as file:
+            hints = Hint.read(file)
 
     difficulty = 16
     default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
@@ -139,10 +144,12 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
                 level.difficulty = difficulty
             save_keystates = []
 
+        hints_stage = hints.stages[stage_num - 1] if hints else None
+
         # Load stage data
         stage = resource_loader.get_stage('stage%d.std' % stage_num)
 
-        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues)
+        game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues, hints=hints_stage)
 
         if display_background:
             background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
@@ -201,10 +208,11 @@ parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Se
 parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
+parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 
 args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
      args.replay, args.save_replay, args.skip_replay, args.boss_rush,
      args.fps_limit, args.single_buffer, args.debug, args.fixed_pipeline,
-     args.no_background)
+     args.no_background, args.hints)

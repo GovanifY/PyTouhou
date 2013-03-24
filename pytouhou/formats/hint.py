@@ -76,6 +76,7 @@ class Hint(object):
         stage_mode = False
         tip_mode = False
         stage = None
+        tip = None
         hints = cls()
         stages = hints.stages
 

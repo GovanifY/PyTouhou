@@ -30,7 +30,8 @@ SQ2 = 2. ** 0.5 / 2.
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
                  bullet_types=None, laser_types=None, item_types=None,
-                 nb_bullets_max=640, width=384, height=448, prng=None, continues=0):
+                 nb_bullets_max=640, width=384, height=448, prng=None,
+                 continues=0, hints=None):
 
         if not bullet_types:
             etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
@@ -96,7 +97,7 @@ class EoSDGame(Game):
 
         Game.__init__(self, resource_loader, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,
-                      width, height, prng, interface, continues)
+                      width, height, prng, interface, continues, hints)
 
 
 
@@ -121,7 +122,7 @@ class EoSDInterface(object):
             item.sprite.allow_dest_offset = True #XXX
 
         self.level_start = [Text((176, 200), ascii_wrapper, text='STAGE %d' % game.stage)] #TODO: find the exact location.
-        self.level_start[0].set_timeout(240, effect=60, start=120)
+        self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
         self.level_start[0].set_color('yellow')
         #TODO: use the system text for the stage name, and the song name.
 

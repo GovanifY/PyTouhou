@@ -86,14 +86,38 @@ class GlyphCollection(Widget):
             glyph.sprite.changed = True
 
 
+    def set_color(self, color, text=True):
+        if text:
+            colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0),
+                      'blue': (192, 192, 255), 'darkblue': (160, 128, 255),
+                      'purple': (224, 128, 255), 'red': (255, 64, 0)}
+            color = colors[color]
+        self.ref_sprite.color = color
+        for glyph in self.glyphes:
+            glyph.sprite.color = color
+
+
+    def set_alpha(self, alpha):
+        self.ref_sprite.alpha = alpha
+        for glyph in self.glyphes:
+            glyph.sprite.alpha = alpha
+
+
 
 class Text(GlyphCollection):
     def __init__(self, pos, ascii_wrapper, back_wrapper=None, text='',
-                 xspacing=14, shift=21, back_script=22):
+                 xspacing=14, shift=21, back_script=22, align='left'):
         GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper,
                                  xspacing=xspacing, back_script=back_script)
         self.text = ''
         self.shift = shift
+
+        if align == 'center':
+            self.x -= xspacing * len(text) // 2
+        elif align == 'right':
+            self.x -= xspacing * len(text)
+        else:
+            assert align == 'left'
 
         self.set_text(text)
 
@@ -112,13 +136,10 @@ class Text(GlyphCollection):
         self.changed = True
 
 
-    def set_color(self, color):
-        colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0),
-                  'blue': (192, 192, 255), 'darkblue': (160, 128, 255),
-                  'purple': (224, 128, 255), 'red': (255, 64, 0)}
-        self.ref_sprite.color = colors[color]
-        for glyph in self.glyphes:
-            glyph.sprite.color = colors[color]
+    def timeout_update(self):
+        GlyphCollection.update(self)
+        if self.frame == self.timeout:
+            self.removed = True
 
 
     def move_timeout_update(self):
@@ -134,9 +155,9 @@ class Text(GlyphCollection):
         GlyphCollection.update(self)
         if self.frame >= self.start:
             if self.frame == self.start:
-                self.fade(self.effect, 255, lambda x: x)
-            elif self.frame == self.timeout - self.effect:
-                self.fade(self.effect, 0, lambda x: x)
+                self.fade(self.duration, 255, lambda x: x)
+            elif self.frame == self.timeout - self.duration:
+                self.fade(self.duration, 0, lambda x: x)
             if self.fade_interpolator:
                 self.fade_interpolator.update(self.frame)
                 self.alpha = int(self.fade_interpolator.values[0])
@@ -153,17 +174,20 @@ class Text(GlyphCollection):
                                               formula)
 
 
-    def set_timeout(self, timeout, effect=None, start=0):
-        if effect == None: #XXX
+    def set_timeout(self, timeout, effect=None, duration=0, start=0):
+        if effect == 'move':
             self.update = self.move_timeout_update
             self.timeout = timeout + start
-        else:
+        elif effect == 'fadeout':
             self.alpha = 0
             for glyph in self.glyphes:
                 glyph.sprite.alpha = 0
             self.update = self.fadeout_timeout_update
-            self.effect = effect
+            self.duration = duration
             self.start = start
+            self.timeout = timeout + start
+        else:
+            self.update = self.timeout_update
             self.timeout = timeout + start
 
 
