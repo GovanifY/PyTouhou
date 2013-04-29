@@ -43,6 +43,8 @@ class GameRenderer(Renderer):
         if game:
             # Preload textures
             self.texture_manager.preload(game.resource_loader.instanced_anms.values())
+
+        if background:
             self.prerender_background(background)
 
 
