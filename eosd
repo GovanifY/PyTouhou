@@ -65,7 +65,7 @@ class EoSDGameBossRush(EoSDGame):
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, fps_limit, single_buffer, debug,
-         fixed_pipeline, display_background, hints):
+         fixed_pipeline, display_background, display_particles, hints):
 
     resource_loader = Loader(path)
 
@@ -151,6 +151,11 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
         game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues, hints=hints_stage)
 
+        if not display_particles:
+            def new_particle(pos, anim, amp, number=1, reverse=False, duration=24):
+                pass
+            game.new_particle = new_particle
+
         if display_background:
             background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
             background = Background(stage, background_anm_wrapper)
@@ -208,6 +213,7 @@ parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Se
 parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
+parser.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
 parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 
 args = parser.parse_args()
@@ -215,4 +221,4 @@ args = parser.parse_args()
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
      args.replay, args.save_replay, args.skip_replay, args.boss_rush,
      args.fps_limit, args.single_buffer, args.debug, args.fixed_pipeline,
-     args.no_background, args.hints)
+     args.no_background, args.no_particles, args.hints)
