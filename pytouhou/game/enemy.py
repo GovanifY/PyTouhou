@@ -313,8 +313,7 @@ class Enemy(object):
             if not (bx2 < ex1 or bx1 > ex2
                     or by2 < ey1 or by1 > ey2):
                 bullet.collide()
-                if self.damageable:
-                    damages += bullet.damage
+                damages += bullet.damage
                 self._game.sfx_player.play('damage00.wav')
 
         # Check for enemy-laser collisions
@@ -328,8 +327,7 @@ class Enemy(object):
 
             if not (lx2 < ex1 or lx1 > ex2
                     or ly < ey1):
-                if self.damageable:
-                    damages += laser.damage
+                damages += laser.damage
                 self._game.sfx_player.play('damage00.wav')
                 self.drop_particles(1, 1) #TODO: don’t call each frame.
 
@@ -354,15 +352,16 @@ class Enemy(object):
         score = (damages // 5) * 10
         self._game.players[0].state.score += score #TODO: better distribution amongst the players.
 
-        if self._game.spellcard:
-            #TODO: there is a division by 3, somewhere... where is it?
-            if damages <= 7:
-                damages = 1 if damages else 0
-            else:
-                damages //= 7
+        if self.damageable:
+            if self._game.spellcard:
+                #TODO: there is a division by 3, somewhere... where is it?
+                if damages <= 7:
+                    damages = 1 if damages else 0
+                else:
+                    damages //= 7
 
-        # Apply damages
-        self.life -= damages
+            # Apply damages
+            self.life -= damages
 
 
     def handle_callbacks(self):
