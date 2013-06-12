@@ -103,13 +103,7 @@ class Loader(object):
         self.exe_files = []
         self.game_dir = game_dir
         self.known_files = {}
-        self.instanced_ecls = {}
-        self.instanced_anms = {}
-        self.instanced_stages = {}
-        self.instanced_msgs = {}
-        self.instanced_shts = {}
-        self.instanced_tracks = {}
-        self.instanced_fmts = {}
+        self.instanced_anms = {} #TODO: remove it someday.
 
 
     def scan_archives(self, paths_lists):
@@ -151,31 +145,23 @@ class Loader(object):
 
 
     def get_stage(self, name):
-        if name not in self.instanced_stages:
-            file = self.get_file(name)
-            self.instanced_stages[name] = Stage.read(file) #TODO: modular
-        return self.instanced_stages[name]
+        file = self.get_file(name)
+        return Stage.read(file) #TODO: modular
 
 
     def get_ecl(self, name):
-        if name not in self.instanced_ecls:
-            file = self.get_file(name)
-            self.instanced_ecls[name] = ECL.read(file) #TODO: modular
-        return self.instanced_ecls[name]
+        file = self.get_file(name)
+        return ECL.read(file) #TODO: modular
 
 
     def get_msg(self, name):
-        if name not in self.instanced_msgs:
-            file = self.get_file(name)
-            self.instanced_msgs[name] = MSG.read(file) #TODO: modular
-        return self.instanced_msgs[name]
+        file = self.get_file(name)
+        return MSG.read(file) #TODO: modular
 
 
     def get_sht(self, name):
-        if name not in self.instanced_shts:
-            file = self.get_file(name)
-            self.instanced_shts[name] = SHT.read(file) #TODO: modular
-        return self.instanced_shts[name]
+        file = self.get_file(name)
+        return SHT.read(file) #TODO: modular
 
 
     def get_eosd_characters(self):
@@ -192,17 +178,13 @@ class Loader(object):
 
     def get_track(self, name):
         posname = name.replace('bgm/', '').replace('.mid', '.pos')
-        if name not in self.instanced_tracks:
-            file = self.get_file(posname)
-            self.instanced_tracks[name] = Track.read(file) #TODO: modular
-        return self.instanced_tracks[name]
+        file = self.get_file(posname)
+        return Track.read(file) #TODO: modular
 
 
     def get_fmt(self, name):
-        if name not in self.instanced_fmts:
-            file = self.get_file(name)
-            self.instanced_fmts[name] = FMT.read(file) #TODO: modular
-        return self.instanced_fmts[name]
+        file = self.get_file(name)
+        return FMT.read(file) #TODO: modular
 
 
     def get_anm_wrapper(self, names, offsets=None):
