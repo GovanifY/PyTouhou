@@ -86,6 +86,9 @@ cdef class Renderer:
 
                 nb_vertices += 4
 
+        if nb_vertices == 0:
+            return
+
         if self.use_fixed_pipeline:
             glVertexPointer(3, GL_INT, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
