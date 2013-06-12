@@ -105,7 +105,7 @@ class EoSDInterface(object):
     def __init__(self, game, resource_loader):
         self.game = game
         front = resource_loader.get_anm_wrapper(('front.anm',))
-        ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
+        self.ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
 
         self.width = 640
         self.height = 480
@@ -121,25 +121,25 @@ class EoSDInterface(object):
         for item in self.items:
             item.sprite.allow_dest_offset = True #XXX
 
-        self.level_start = [Text((176, 200), ascii_wrapper, text='STAGE %d' % game.stage)] #TODO: find the exact location.
+        self.level_start = [Text((176, 200), self.ascii_wrapper, text='STAGE %d' % game.stage)] #TODO: find the exact location.
         self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
         self.level_start[0].set_color('yellow')
         #TODO: use the system text for the stage name, and the song name.
 
         self.labels = {
-            'highscore': Text((500, 58), ascii_wrapper, front, text='0'),
-            'score': Text((500, 82), ascii_wrapper, front, text='0'),
+            'highscore': Text((500, 58), self.ascii_wrapper, front, text='0'),
+            'score': Text((500, 82), self.ascii_wrapper, front, text='0'),
             'player': Counter((500, 122), front, front, script=16, value=0),
             'bombs': Counter((500, 146), front, front, script=17, value=0),
-            'power': Text((500, 186), ascii_wrapper, front, text='0'),
-            'graze': Text((500, 206), ascii_wrapper, front, text='0'),
-            'points': Text((500, 226), ascii_wrapper, front, text='0'),
-            'framerate': Text((512, 464), ascii_wrapper, front),
-            'debug?': Text((0, 464), ascii_wrapper, front),
+            'power': Text((500, 186), self.ascii_wrapper, front, text='0'),
+            'graze': Text((500, 206), self.ascii_wrapper, front, text='0'),
+            'points': Text((500, 226), self.ascii_wrapper, front, text='0'),
+            'framerate': Text((512, 464), self.ascii_wrapper, front),
+            'debug?': Text((0, 464), self.ascii_wrapper, front),
 
             # Only when there is a boss.
-            'boss_lives': Text((80, 16), ascii_wrapper),
-            'timeout': Text((384, 16), ascii_wrapper),
+            'boss_lives': Text((80, 16), self.ascii_wrapper),
+            'timeout': Text((384, 16), self.ascii_wrapper),
         }
         self.labels['boss_lives'].set_color('yellow')
 

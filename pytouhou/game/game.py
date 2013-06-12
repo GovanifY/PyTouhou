@@ -84,9 +84,6 @@ class Game(object):
         self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
         self.spellcard_effect = None
 
-        #TODO: better place?
-        self.ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
-
         # See 102h.exe@0x413220 if you think you're brave enough.
         self.deaths_count = self.prng.rand_uint16() % 3
         self.next_bonus = self.prng.rand_uint16() % 8
@@ -211,7 +208,7 @@ class Game(object):
 
 
     def new_label(self, pos, text):
-        label = Text(pos, self.ascii_wrapper, text=text, xspacing=8, shift=48)
+        label = Text(pos, self.interface.ascii_wrapper, text=text, xspacing=8, shift=48)
         label.set_timeout(60, effect='move')
         self.labels.append(label)
         return label
@@ -222,7 +219,7 @@ class Game(object):
         #TODO: Scale
 
         pos = pos[0] + 192, pos[1]
-        label = Text(pos, self.ascii_wrapper, text=hint['Text'], align=hint['Align'])
+        label = Text(pos, self.interface.ascii_wrapper, text=hint['Text'], align=hint['Align'])
         label.set_timeout(hint['Time'])
         label.set_alpha(hint['Alpha'])
         label.set_color(hint['Color'], text=False)
