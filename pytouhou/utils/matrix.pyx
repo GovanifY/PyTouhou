@@ -24,15 +24,14 @@ cdef class Matrix:
                              [0, 0, 0, 1]]
 
 
-    def __getitem__(Matrix self, key):
-        return self.data[key]
-
-
     def __mul__(Matrix self, Matrix other):
         out = Matrix()
+        d1 = self.data
+        d2 = other.data
+        d3 = out.data
         for i in xrange(4):
             for j in xrange(4):
-                out[i][j] = sum(self[i][k] * other[k][j] for k in xrange(4))
+                d3[i][j] = sum(d1[i][k] * d2[k][j] for k in xrange(4))
         return out
 
 

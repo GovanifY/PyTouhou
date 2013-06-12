@@ -176,11 +176,12 @@ cdef class Renderer:
 
     cpdef ortho_2d(self, left, right, bottom, top):
         mat = Matrix()
-        mat[0][0] = 2 / (right - left)
-        mat[1][1] = 2 / (top - bottom)
-        mat[2][2] = -1
-        mat[3][0] = -(right + left) / (right - left)
-        mat[3][1] = -(top + bottom) / (top - bottom)
+        data = mat.data
+        data[0][0] = 2 / (right - left)
+        data[1][1] = 2 / (top - bottom)
+        data[2][2] = -1
+        data[3][0] = -(right + left) / (right - left)
+        data[3][1] = -(top + bottom) / (top - bottom)
         return mat
 
 
@@ -207,12 +208,13 @@ cdef class Renderer:
         right = top * aspect
 
         mat = Matrix()
-        mat[0][0] = (2 * z_near) / (right - left)
-        mat[1][1] = (2 * z_near) / (top - bottom)
-        mat[2][2] = -(z_far + z_near) / (z_far - z_near)
-        mat[2][3] = -1
-        mat[3][2] = -(2 * z_far * z_near) / (z_far - z_near)
-        mat[3][3] = 0
+        data = mat.data
+        data[0][0] = (2 * z_near) / (right - left)
+        data[1][1] = (2 * z_near) / (top - bottom)
+        data[2][2] = -(z_far + z_near) / (z_far - z_near)
+        data[2][3] = -1
+        data[3][2] = -(2 * z_far * z_near) / (z_far - z_near)
+        data[3][3] = 0
         return mat
 
 
