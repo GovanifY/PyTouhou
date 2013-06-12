@@ -29,6 +29,7 @@ from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 
 from pytouhou.utils.helpers import get_logger
+from pytouhou.utils.maths import perspective, setup_camera
 
 from .renderer import Renderer
 from .shaders.eosd import GameShader
@@ -77,9 +78,9 @@ class ANMRenderer(pyglet.window.Window, Renderer):
             glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         # Switch to game projection
-        proj = self.perspective(30, float(self.width) / float(self.height),
-                                101010101./2010101., 101010101./10101.)
-        view = self.setup_camera(0, 0, 1)
+        proj = perspective(30, float(self.width) / float(self.height),
+                           101010101./2010101., 101010101./10101.)
+        view = setup_camera(0, 0, 1)
 
         if not self.use_fixed_pipeline:
             shader = GameShader()

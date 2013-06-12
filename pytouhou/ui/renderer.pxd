@@ -20,7 +20,3 @@ cdef class Renderer:
     cpdef render_elements(self, elements)
     cpdef render_background(self)
     cpdef prerender_background(self, background)
-    cpdef ortho_2d(self, left, right, bottom, top)
-    cpdef look_at(self, eye, center, up)
-    cpdef perspective(self, fovy, aspect, zNear, zFar)
-    cpdef setup_camera(self, dx, dy, dz)

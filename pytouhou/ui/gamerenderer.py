@@ -22,6 +22,7 @@ from pyglet.gl import (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf,
                        GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
 
 from pytouhou.utils.matrix import Matrix
+from pytouhou.utils.maths import setup_camera
 
 from .renderer import Renderer
 
@@ -84,7 +85,7 @@ class GameRenderer(Renderer):
 
             model = Matrix()
             model.data[3] = [-x, -y, -z, 1]
-            view = self.setup_camera(dx, dy, dz)
+            view = setup_camera(dx, dy, dz)
             model_view_projection = model * view * self.proj
             mvp = model_view_projection.get_c_data()
 

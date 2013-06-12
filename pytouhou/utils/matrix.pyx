@@ -95,4 +95,3 @@ cdef class Matrix:
         sin_a = sin(angle)
         d1[0], d1[1] = ([cos_a * d1[0][i] - sin_a * d1[1][i] for i in range(4)],
                         [sin_a * d1[0][i] + cos_a * d1[1][i] for i in range(4)])
-

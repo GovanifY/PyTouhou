@@ -25,7 +25,7 @@ from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        GL_SCISSOR_TEST)
 
 from pytouhou.utils.helpers import get_logger
-from pytouhou.utils.matrix import Matrix
+from pytouhou.utils.maths import perspective, setup_camera, ortho_2d
 
 from .gamerenderer import GameRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
@@ -109,11 +109,11 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             glEnableClientState(GL_VERTEX_ARRAY)
             glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
-        self.proj = self.perspective(30, float(self.game.width) / float(self.game.height),
-                                     101010101./2010101., 101010101./10101.)
-        game_view = self.setup_camera(0, 0, 1)
+        self.proj = perspective(30, float(self.game.width) / float(self.game.height),
+                                101010101./2010101., 101010101./10101.)
+        game_view = setup_camera(0, 0, 1)
         self.game_mvp = game_view * self.proj
-        self.interface_mvp = self.ortho_2d(0., float(self.width), float(self.height), 0.)
+        self.interface_mvp = ortho_2d(0., float(self.width), float(self.height), 0.)
 
         if self.fps_limit > 0:
             pyglet.clock.set_fps_limit(self.fps_limit)

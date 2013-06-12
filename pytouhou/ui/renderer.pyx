@@ -13,8 +13,6 @@
 ##
 
 from libc.stdlib cimport malloc, free, realloc
-from libc.math cimport tan
-from math import radians
 from itertools import chain
 
 import ctypes
@@ -32,8 +30,6 @@ from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
 
 from .sprite cimport get_sprite_rendering_data
 from .texture cimport TextureManager
-from pytouhou.utils.matrix cimport Matrix
-from pytouhou.utils.vector import Vector, normalize, cross, dot
 
 
 MAX_ELEMENTS = 640*4*3
@@ -172,58 +168,3 @@ cdef class Renderer:
             glBindBuffer(GL_ARRAY_BUFFER, self.back_vbo)
             glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(VertexFloat), <long> &self.background_vertex_buffer[0], GL_STATIC_DRAW)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-
-    cpdef ortho_2d(self, left, right, bottom, top):
-        mat = Matrix()
-        data = mat.data
-        data[0][0] = 2 / (right - left)
-        data[1][1] = 2 / (top - bottom)
-        data[2][2] = -1
-        data[3][0] = -(right + left) / (right - left)
-        data[3][1] = -(top + bottom) / (top - bottom)
-        return mat
-
-
-    cpdef look_at(self, eye, center, up):
-        eye = Vector(eye)
-        center = Vector(center)
-        up = Vector(up)
-
-        f = normalize(center - eye)
-        u = normalize(up)
-        s = normalize(cross(f, u))
-        u = cross(s, f)
-
-        return Matrix([[s[0], u[0], -f[0], 0],
-                       [s[1], u[1], -f[1], 0],
-                       [s[2], u[2], -f[2], 0],
-                       [-dot(s, eye), -dot(u, eye), dot(f, eye), 1]])
-
-
-    cpdef perspective(self, fovy, aspect, z_near, z_far):
-        top = tan(radians(fovy / 2)) * z_near
-        bottom = -top
-        left = -top * aspect
-        right = top * aspect
-
-        mat = Matrix()
-        data = mat.data
-        data[0][0] = (2 * z_near) / (right - left)
-        data[1][1] = (2 * z_near) / (top - bottom)
-        data[2][2] = -(z_far + z_near) / (z_far - z_near)
-        data[2][3] = -1
-        data[3][2] = -(2 * z_far * z_near) / (z_far - z_near)
-        data[3][3] = 0
-        return mat
-
-
-    cpdef setup_camera(self, dx, dy, dz):
-        # Some explanations on the magic constants:
-        # 192. = 384. / 2. = width / 2.
-        # 224. = 448. / 2. = height / 2.
-        # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
-        # This is so that objects on the (O, x, y) plane use pixel coordinates
-        return self.look_at((192., 224., - 835.979370 * dz),
-                            (192. + dx, 224. - dy, 0.), (0., -1., 0.))
-
