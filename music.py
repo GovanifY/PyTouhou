@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- encoding: utf-8 -*-
 ##
 ## Copyright (C) 2012 Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>

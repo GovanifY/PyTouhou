@@ -57,11 +57,11 @@ stg1enm2.anm: stg1enm2.script
 
 
 ecldata1.ecl: make_ecl.py
-	PYTHONPATH=../../ python make_ecl.py
+	PYTHONPATH=../../ python2 make_ecl.py
 
 
 stage1.std: make_stage.py
-	PYTHONPATH=../../ python make_stage.py
+	PYTHONPATH=../../ python2 make_stage.py
 
 
 msg1.dat: msg1.script
