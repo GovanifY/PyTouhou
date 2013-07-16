@@ -14,14 +14,30 @@
 
 from libc.math cimport sin, cos
 from ctypes import c_float
+from libc.stdlib cimport malloc, free
+
+
+cdef float* matrix_to_floats(Matrix self):
+    for i in xrange(4):
+        for j in xrange(4):
+            self.c_data[i*4+j] = self.data[i][j]
+    return self.c_data
 
 
 cdef class Matrix:
+    def __cinit__(self):
+        self.c_data = <float*>malloc(16 * sizeof(float))
+
+
     def __init__(self, data=None):
         self.data = data or [[1, 0, 0, 0],
                              [0, 1, 0, 0],
                              [0, 0, 1, 0],
                              [0, 0, 0, 1]]
+
+
+    def __dealloc__(self):
+        free(self.c_data)
 
 
     def __mul__(self, Matrix other):

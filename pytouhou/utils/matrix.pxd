@@ -1,5 +1,8 @@
+cdef float* matrix_to_floats(Matrix self)
+
 cdef class Matrix:
     cdef public list data
+    cdef float *c_data
 
     cpdef flip(self)
     cpdef scale(self, x, y, z)

@@ -12,17 +12,16 @@
 ## GNU General Public License for more details.
 ##
 
-from pyglet.gl import (glTexParameteri, GL_TEXTURE_MIN_FILTER,
-                       GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_BGRA, GL_RGBA,
-                       GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
-                       GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV,
-                       glGenTextures, glBindTexture, glTexImage2D,
-                       GL_TEXTURE_2D)
-from ctypes import c_uint, byref
-from pytouhou.lib.sdl import load_png, create_rgb_surface
-import os
+from pytouhou.lib.opengl cimport \
+         (glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER,
+          GL_LINEAR, GL_BGRA, GL_RGBA, GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
+          GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV,
+          glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint)
 
+from pytouhou.lib.sdl import load_png, create_rgb_surface
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
+
+import os
 
 
 cdef class TextureManager:
@@ -65,6 +64,8 @@ cdef class TextureManager:
 
 
     def load_texture(self, key):
+        cdef GLuint id_
+
         if not isinstance(key, Texture):
             first_name, secondary_name = key
             key = self.load_png_texture(first_name, secondary_name)
@@ -92,9 +93,8 @@ cdef class TextureManager:
         else:
             raise Exception('Unknown texture type')
 
-        id_ = c_uint()
-        glGenTextures(1, byref(id_))
-        glBindTexture(GL_TEXTURE_2D, id_.value)
+        glGenTextures(1, &id_)
+        glBindTexture(GL_TEXTURE_2D, id_)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
@@ -103,6 +103,6 @@ cdef class TextureManager:
                      key.width, key.height,
                      0,
                      format_, type_,
-                     key.data)
+                     <char*>key.data)
 
-        return id_.value
+        return id_

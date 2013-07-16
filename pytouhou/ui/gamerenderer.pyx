@@ -13,16 +13,18 @@
 ##
 
 
+from libc.stdlib cimport malloc, free
+
 from itertools import chain
 
-from pyglet.gl import (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf,
-                       glDisable, glEnable, glFogi, glFogf, glFogfv,
-                       GL_DEPTH_BUFFER_BIT, GL_PROJECTION, GL_MODELVIEW,
-                       GL_FOG, GL_FOG_MODE, GL_LINEAR, GL_FOG_START,
-                       GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
+from pytouhou.lib.opengl cimport \
+         (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf, glDisable,
+          glEnable, glFogi, glFogf, glFogfv, GL_DEPTH_BUFFER_BIT,
+          GL_PROJECTION, GL_MODELVIEW, GL_FOG, GL_FOG_MODE, GL_LINEAR,
+          GL_FOG_START, GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
 
-from pytouhou.utils.matrix import Matrix
-from pytouhou.utils.maths import setup_camera
+from pytouhou.utils.matrix cimport Matrix, matrix_to_floats
+from pytouhou.utils.maths cimport setup_camera
 
 from .renderer import Renderer
 
@@ -34,6 +36,8 @@ class GameRenderer(Renderer):
 
 
     def render(self):
+        cdef float* fog_data
+
         glClear(GL_DEPTH_BUFFER_BIT)
 
         back = self.background
@@ -46,7 +50,7 @@ class GameRenderer(Renderer):
         if game is not None and game.spellcard_effect is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(self.game_mvp.get_c_data())
+                glLoadMatrixf(matrix_to_floats(self.game_mvp))
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
@@ -72,16 +76,23 @@ class GameRenderer(Renderer):
             view = setup_camera(dx, dy, dz)
             model_view_projection = model * view * self.proj
             mvp = model_view_projection.get_c_data()
+            mvp_cython = matrix_to_floats(model_view_projection)
 
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(mvp)
+                glLoadMatrixf(mvp_cython)
 
                 glEnable(GL_FOG)
                 glFogi(GL_FOG_MODE, GL_LINEAR)
                 glFogf(GL_FOG_START, fog_start)
                 glFogf(GL_FOG_END,  fog_end)
-                glFogfv(GL_FOG_COLOR, (GLfloat * 4)(fog_r / 255., fog_g / 255., fog_b / 255., 1.))
+                fog_data = <float*>malloc(4 * sizeof(float))
+                fog_data[0] = fog_r / 255.
+                fog_data[1] = fog_g / 255.
+                fog_data[2] = fog_b / 255.
+                fog_data[3] = 1.
+                glFogfv(GL_FOG_COLOR, fog_data)
+                free(fog_data)
             else:
                 self.background_shader.bind()
                 self.background_shader.uniform_matrixf('mvp', mvp)
@@ -90,14 +101,14 @@ class GameRenderer(Renderer):
                 self.background_shader.uniformf('fog_end', fog_end)
                 self.background_shader.uniformf('fog_color', fog_r / 255., fog_g / 255., fog_b / 255., 1.)
 
-            self.render_background()
+            self.background_renderer.render_background()
         else:
             glClear(GL_COLOR_BUFFER_BIT)
 
         if game is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(self.game_mvp.get_c_data())
+                glLoadMatrixf(matrix_to_floats(self.game_mvp))
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()

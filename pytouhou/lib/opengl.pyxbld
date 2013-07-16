@@ -1,0 +1,30 @@
+# -*- encoding: utf-8 -*-
+##
+## Copyright (C) 2013 Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published
+## by the Free Software Foundation; version 3 only.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+
+""" Build instructions for the OpenGL module. """
+
+from distutils.extension import Extension
+from subprocess import check_output
+
+COMMAND = 'pkg-config'
+LIBRARIES = ['gl']
+
+def make_ext(modname, pyxfilename):
+    """ Compile and link with the corrects options. """
+    compile_args = check_output([COMMAND, '--cflags'] + LIBRARIES).split()
+    link_args = check_output([COMMAND, '--libs'] + LIBRARIES).split()
+    return Extension(name=modname,
+                     sources=[pyxfilename],
+                     extra_compile_args=compile_args,
+                     extra_link_args=link_args)

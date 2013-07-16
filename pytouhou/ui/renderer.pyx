@@ -12,21 +12,19 @@
 ## GNU General Public License for more details.
 ##
 
-from libc.stdlib cimport malloc, free, realloc
+from libc.stdlib cimport malloc, free
 from itertools import chain
-
-import ctypes
 
 from struct import pack
 
-from pyglet.gl import (glVertexPointer, glTexCoordPointer, glColorPointer,
-                       glVertexAttribPointer, glEnableVertexAttribArray,
-                       glBlendFunc, glBindTexture, glDrawElements,
-                       glBindBuffer, glBufferData, GL_ARRAY_BUFFER,
-                       GL_DYNAMIC_DRAW, GL_STATIC_DRAW, GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT,
-                       GL_INT, GL_FLOAT, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                       GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
-                       glEnable, glDisable, GL_DEPTH_TEST, glDrawArrays, GL_QUADS)
+from pytouhou.lib.opengl cimport \
+         (glVertexPointer, glTexCoordPointer, glColorPointer,
+          glVertexAttribPointer, glEnableVertexAttribArray, glBlendFunc,
+          glBindTexture, glDrawElements, glBindBuffer, glBufferData,
+          GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
+          GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT, GL_SRC_ALPHA,
+          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
+          glGenBuffers)
 
 from .sprite cimport get_sprite_rendering_data
 from .texture cimport TextureManager
@@ -39,20 +37,21 @@ cdef class Renderer:
     def __cinit__(self):
         # Allocate buffers
         self.vertex_buffer = <Vertex*> malloc(MAX_ELEMENTS * sizeof(Vertex))
-        self.background_vertex_buffer = <VertexFloat*> malloc(65536 * sizeof(Vertex))
 
 
     def __dealloc__(self):
         free(self.vertex_buffer)
-        free(self.background_vertex_buffer)
 
 
     def __init__(self, resource_loader):
         self.texture_manager = TextureManager(resource_loader)
 
+        if not self.use_fixed_pipeline:
+            glGenBuffers(1, &self.vbo)
+
 
     cpdef render_elements(self, elements):
-        cdef unsigned short nb_vertices = 0
+        cdef unsigned short nb_vertices = 0, nb_indices, *new_indices
 
         indices_by_texture = {}
 
@@ -86,85 +85,33 @@ cdef class Renderer:
             return
 
         if self.use_fixed_pipeline:
-            glVertexPointer(3, GL_INT, sizeof(Vertex), <long> &self.vertex_buffer[0].x)
-            glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), <long> &self.vertex_buffer[0].u)
-            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), <long> &self.vertex_buffer[0].r)
+            glVertexPointer(3, GL_INT, sizeof(Vertex), &self.vertex_buffer[0].x)
+            glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &self.vertex_buffer[0].r)
         else:
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-            glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), <long> &self.vertex_buffer[0], GL_DYNAMIC_DRAW)
+            glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), &self.vertex_buffer[0], GL_DYNAMIC_DRAW)
 
             #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), 0)
+            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
             glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), 12)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), 20)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
             glEnableVertexAttribArray(2)
 
         for (texture_key, blendfunc), indices in indices_by_texture.items():
+
+            #TODO: find a more elegent way.
             nb_indices = len(indices)
-            indices = pack(str(nb_indices) + 'H', *indices)
+            new_indices = <unsigned short*> malloc(nb_indices * sizeof(unsigned short))
+            for i in xrange(nb_indices):
+                new_indices[i] = indices[i]
+
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key])
-            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, indices)
+            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, new_indices)
+            free(new_indices)
 
         if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-
-    cpdef render_background(self):
-        if self.use_fixed_pipeline:
-            glVertexPointer(3, GL_FLOAT, sizeof(VertexFloat), <long> &self.background_vertex_buffer[0].x)
-            glTexCoordPointer(2, GL_FLOAT, sizeof(VertexFloat), <long> &self.background_vertex_buffer[0].u)
-            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(VertexFloat), <long> &self.background_vertex_buffer[0].r)
-        else:
-            glBindBuffer(GL_ARRAY_BUFFER, self.back_vbo)
-
-            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_FLOAT, False, sizeof(VertexFloat), 0)
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(VertexFloat), 12)
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(VertexFloat), 20)
-            glEnableVertexAttribArray(2)
-
-        glEnable(GL_DEPTH_TEST)
-        glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[self.blendfunc])
-        glBindTexture(GL_TEXTURE_2D, self.texture_manager[self.texture_key])
-        glDrawArrays(GL_QUADS, 0, self.nb_vertices)
-        glDisable(GL_DEPTH_TEST)
-
-        if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-
-    cpdef prerender_background(self, background):
-        cdef float ox, oy, oz, ox2, oy2, oz2
-        cdef unsigned short nb_vertices = 0
-        cdef VertexFloat* vertex_buffer
-
-        vertex_buffer = self.background_vertex_buffer
-
-        for ox, oy, oz, model_id, model in background.object_instances:
-            for ox2, oy2, oz2, width_override, height_override, sprite in model:
-                #TODO: view frustum culling
-                key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
-                (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
-                left, right, bottom, top = uvs
-                r, g, b, a = colors
-
-                vertex_buffer[nb_vertices] = VertexFloat(x1 + ox + ox2, y1 + oy + oy2, z1 + oz + oz2, left, bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+1] = VertexFloat(x2 + ox + ox2, y2 + oy + oy2, z2 + oz + oz2, right, bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+2] = VertexFloat(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, right, top, r, g, b, a)
-                vertex_buffer[nb_vertices+3] = VertexFloat(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, left, top, r, g, b, a)
-
-                nb_vertices += 4
-
-        self.texture_key, self.blendfunc = key
-        self.nb_vertices = nb_vertices
-        self.background_vertex_buffer = <VertexFloat*> realloc(vertex_buffer, nb_vertices * sizeof(VertexFloat))
-
-        if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, self.back_vbo)
-            glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(VertexFloat), <long> &self.background_vertex_buffer[0], GL_STATIC_DRAW)
             glBindBuffer(GL_ARRAY_BUFFER, 0)

@@ -14,18 +14,19 @@
 
 from pytouhou.lib import sdl
 
-from pyglet.gl import (glMatrixMode, glEnable, glDisable, glViewport,
-                       glScissor, glLoadMatrixf, glGenBuffers, glDeleteBuffers,
-                       GL_MODELVIEW, GL_PROJECTION, GL_FOG, GL_SCISSOR_TEST)
+from pytouhou.lib.opengl cimport \
+         (glMatrixMode, glEnable, glDisable, glViewport, glScissor,
+          glLoadMatrixf, glGenBuffers, glDeleteBuffers, GL_MODELVIEW,
+          GL_FOG, GL_SCISSOR_TEST)
 
 from pytouhou.utils.helpers import get_logger
-from pytouhou.utils.maths import perspective, setup_camera, ortho_2d
+from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
+from pytouhou.utils.matrix cimport matrix_to_floats
 
 from .gamerenderer import GameRenderer
+from .background import BackgroundRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 from .shaders.eosd import GameShader, BackgroundShader
-
-from ctypes import c_uint, byref
 
 
 logger = get_logger(__name__)
@@ -33,6 +34,8 @@ logger = get_logger(__name__)
 
 class GameRunner(GameRenderer):
     def __init__(self, window, resource_loader, replay=None, skip=False):
+        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
+
         GameRenderer.__init__(self, resource_loader)
 
         self.window = window
@@ -40,7 +43,6 @@ class GameRunner(GameRenderer):
         self.skip = skip
         self.keystate = 0
 
-        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
         self.width = window.width #XXX
         self.height = window.height #XXX
 
@@ -48,10 +50,6 @@ class GameRunner(GameRenderer):
             self.game_shader = GameShader()
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
-
-            vbo_array = (c_uint * 2)()
-            glGenBuffers(2, vbo_array)
-            self.vbo, self.back_vbo = vbo_array
 
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
@@ -61,7 +59,8 @@ class GameRunner(GameRenderer):
         self.texture_manager.preload(game.resource_loader.instanced_anms.values())
 
         if background:
-            self.prerender_background(background)
+            self.background_renderer = BackgroundRenderer(self.texture_manager, self.use_fixed_pipeline)
+            self.background_renderer.prerender(background)
 
         self.set_input(replay)
         if replay and replay.levels[game.stage - 1]:
@@ -177,10 +176,11 @@ class GameRunner(GameRenderer):
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf(self.interface_mvp.get_c_data())
+            glLoadMatrixf(matrix_to_floats(self.interface_mvp))
             glDisable(GL_FOG)
         else:
             self.interface_shader.bind()
+            #self.interface_shader.uniform_matrixf('mvp', matrix_to_floats(self.interface_mvp))
             self.interface_shader.uniform_matrixf('mvp', self.interface_mvp.get_c_data())
         glViewport(0, 0, self.width, self.height)
 

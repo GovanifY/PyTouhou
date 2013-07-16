@@ -15,10 +15,10 @@
 
 from pytouhou.lib import sdl
 
-from pyglet.gl import (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D,
-                       GL_BLEND, GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT,
-                       GL_NICEST, GL_COLOR_ARRAY, GL_VERTEX_ARRAY,
-                       GL_TEXTURE_COORD_ARRAY)
+from pytouhou.lib.opengl cimport \
+         (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
+          GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
+          GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
 
 class Clock(object):
