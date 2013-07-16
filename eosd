@@ -15,6 +15,39 @@
 
 import argparse
 import os
+
+
+pathsep = os.path.pathsep
+default_data = (pathsep.join(('CM.DAT', 'th06*_CM.DAT', '*CM.DAT', '*cm.dat')),
+                pathsep.join(('ST.DAT', 'th6*ST.DAT', '*ST.DAT', '*st.dat')),
+                pathsep.join(('IN.DAT', 'th6*IN.DAT', '*IN.DAT', '*in.dat')),
+                pathsep.join(('MD.DAT', 'th6*MD.DAT', '*MD.DAT', '*md.dat')),
+                pathsep.join(('102h.exe', '102*.exe', '東方紅魔郷.exe', '*.exe')))
+
+
+parser = argparse.ArgumentParser(description='Libre reimplementation of the Touhou 6 engine.')
+
+parser.add_argument('data', metavar='DAT', default=default_data, nargs='*', help='Game’s data files')
+parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
+parser.add_argument('-s', '--stage', metavar='STAGE', type=int, default=None, help='Stage, 1 to 7 (Extra).')
+parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
+parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
+parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
+parser.add_argument('--save-replay', metavar='REPLAY', help='Save the upcoming game into a replay file')
+parser.add_argument('--skip-replay', action='store_true', help='Skip the replay and start to play when it’s finished')
+parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
+parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
+parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
+parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
+parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
+parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
+parser.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
+parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
+parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
+
+args = parser.parse_args()
+
+
 import sys
 import logging
 
@@ -48,19 +81,17 @@ class EoSDGameBossRush(EoSDGame):
             if not skip:
                 break
 
-
     def cleanup(self):
         boss_wait = any(ecl_runner.boss_wait for ecl_runner in self.ecl_runners)
         if not (self.boss or self.msg_wait or boss_wait):
             self.enemies = [enemy for enemy in self.enemies
-                                if enemy.boss_callback != -1 or enemy.frame > 1]
+                            if enemy.boss_callback != -1 or enemy.frame > 1]
             self.lasers = [laser for laser in self.lasers if laser.frame > 1]
             self.effects = [effect for effect in self.effects
                             if not hasattr(effect, '_laser')
                             or effect._laser in self.lasers]
             self.bullets = [bullet for bullet in self.bullets if bullet.frame > 1]
         EoSDGame.cleanup(self)
-
 
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
@@ -177,7 +208,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
             if not story or stage_num == (7 if boss_rush else 6 if rank > 0 else 5):
                 break
             stage_num += 1
-            states = [player.state.copy() for player in game.players] # if player.state.lives >= 0]
+            states = [player.state.copy() for player in game.players]  # if player.state.lives >= 0]
         except GameOver:
             print('Game over')
             break
@@ -193,36 +224,6 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
         with open(save_filename, 'wb+') as file:
             save_replay.write(file)
 
-
-pathsep = os.path.pathsep
-default_data = (pathsep.join(('CM.DAT', 'th06*_CM.DAT', '*CM.DAT', '*cm.dat')),
-                pathsep.join(('ST.DAT', 'th6*ST.DAT', '*ST.DAT', '*st.dat')),
-                pathsep.join(('IN.DAT', 'th6*IN.DAT', '*IN.DAT', '*in.dat')),
-                pathsep.join(('MD.DAT', 'th6*MD.DAT', '*MD.DAT', '*md.dat')),
-                pathsep.join(('102h.exe', '102*.exe', '東方紅魔郷.exe', '*.exe')))
-
-
-parser = argparse.ArgumentParser(description='Libre reimplementation of the Touhou 6 engine.')
-
-parser.add_argument('data', metavar='DAT', default=default_data, nargs='*', help='Game’s data files')
-parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
-parser.add_argument('-s', '--stage', metavar='STAGE', type=int, default=None, help='Stage, 1 to 7 (Extra).')
-parser.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
-parser.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
-parser.add_argument('--replay', metavar='REPLAY', help='Select a replay')
-parser.add_argument('--save-replay', metavar='REPLAY', help='Save the upcoming game into a replay file')
-parser.add_argument('--skip-replay', action='store_true', help='Skip the replay and start to play when it’s finished')
-parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
-parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
-parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
-parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
-parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
-parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
-parser.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
-parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
-parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
-
-args = parser.parse_args()
 
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
      args.replay, args.save_replay, args.skip_replay, args.boss_rush,
