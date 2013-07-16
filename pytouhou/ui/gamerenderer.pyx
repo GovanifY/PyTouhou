@@ -12,9 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-
 from libc.stdlib cimport malloc, free
-
 from itertools import chain
 
 from pytouhou.lib.opengl cimport \
@@ -54,7 +52,7 @@ class GameRenderer(Renderer):
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
-                self.game_shader.uniform_matrixf('mvp', self.game_mvp.get_c_data())
+                self.game_shader.uniform_matrix('mvp', self.game_mvp)
 
             self.render_elements([game.spellcard_effect])
         elif back is not None:
@@ -74,18 +72,17 @@ class GameRenderer(Renderer):
             model = Matrix()
             model.data[3] = [-x, -y, -z, 1]
             view = setup_camera(dx, dy, dz)
-            model_view_projection = model * view * self.proj
-            mvp = model_view_projection.get_c_data()
-            mvp_cython = matrix_to_floats(model_view_projection)
+            mvp = model * view * self.proj
 
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(mvp_cython)
+                glLoadMatrixf(matrix_to_floats(mvp))
 
                 glEnable(GL_FOG)
                 glFogi(GL_FOG_MODE, GL_LINEAR)
                 glFogf(GL_FOG_START, fog_start)
                 glFogf(GL_FOG_END,  fog_end)
+
                 fog_data = <float*>malloc(4 * sizeof(float))
                 fog_data[0] = fog_r / 255.
                 fog_data[1] = fog_g / 255.
@@ -95,11 +92,11 @@ class GameRenderer(Renderer):
                 free(fog_data)
             else:
                 self.background_shader.bind()
-                self.background_shader.uniform_matrixf('mvp', mvp)
+                self.background_shader.uniform_matrix('mvp', mvp)
 
-                self.background_shader.uniformf('fog_scale', 1. / (fog_end - fog_start))
-                self.background_shader.uniformf('fog_end', fog_end)
-                self.background_shader.uniformf('fog_color', fog_r / 255., fog_g / 255., fog_b / 255., 1.)
+                self.background_shader.uniform_1('fog_scale', 1. / (fog_end - fog_start))
+                self.background_shader.uniform_1('fog_end', fog_end)
+                self.background_shader.uniform_4('fog_color', fog_r / 255., fog_g / 255., fog_b / 255., 1.)
 
             self.background_renderer.render_background()
         else:
@@ -112,7 +109,7 @@ class GameRenderer(Renderer):
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
-                self.game_shader.uniform_matrixf('mvp', self.game_mvp.get_c_data())
+                self.game_shader.uniform_matrix('mvp', self.game_mvp)
 
             self.render_elements(enemy for enemy in game.enemies if enemy.visible)
             self.render_elements(game.effects)

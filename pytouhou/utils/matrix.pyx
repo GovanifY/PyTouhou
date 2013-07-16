@@ -13,7 +13,6 @@
 ##
 
 from libc.math cimport sin, cos
-from ctypes import c_float
 from libc.stdlib cimport malloc, free
 
 
@@ -49,11 +48,6 @@ cdef class Matrix:
             for j in xrange(4):
                 d3[i][j] = sum(d1[i][k] * d2[k][j] for k in xrange(4))
         return out
-
-
-    def get_c_data(self):
-        data = sum(self.data, [])
-        return (c_float * 16)(*data)
 
 
     cpdef flip(self):

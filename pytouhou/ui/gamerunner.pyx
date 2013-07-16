@@ -180,8 +180,7 @@ class GameRunner(GameRenderer):
             glDisable(GL_FOG)
         else:
             self.interface_shader.bind()
-            #self.interface_shader.uniform_matrixf('mvp', matrix_to_floats(self.interface_mvp))
-            self.interface_shader.uniform_matrixf('mvp', self.interface_mvp.get_c_data())
+            self.interface_shader.uniform_matrix('mvp', self.interface_mvp)
         glViewport(0, 0, self.width, self.height)
 
         items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]
