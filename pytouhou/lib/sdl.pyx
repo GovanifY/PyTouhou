@@ -13,6 +13,7 @@
 ##
 
 INIT_VIDEO = SDL_INIT_VIDEO
+INIT_PNG = IMG_INIT_PNG
 
 GL_CONTEXT_MAJOR_VERSION = SDL_GL_CONTEXT_MAJOR_VERSION
 GL_CONTEXT_MINOR_VERSION = SDL_GL_CONTEXT_MINOR_VERSION
@@ -63,13 +64,55 @@ cdef class Window:
         SDL_GL_DeleteContext(self.context)
 
 
+cdef class Surface:
+    cdef SDL_Surface *surface
+
+    def __dealloc__(self):
+        if self.surface != NULL:
+            SDL_FreeSurface(self.surface)
+
+    property width:
+        def __get__(self):
+            return self.surface.w
+
+    property height:
+        def __get__(self):
+            return self.surface.h
+
+    property pixels:
+        def __get__(self):
+            return bytes(self.surface.pixels[:self.surface.w * self.surface.h * 4])
+
+    def blit(self, Surface other):
+        if SDL_BlitSurface(other.surface, NULL, self.surface, NULL) < 0:
+            raise SDLError(SDL_GetError())
+
+    def set_alpha(self, Surface alpha_surface):
+        nb_pixels = self.surface.w * self.surface.h
+        image = self.surface.pixels
+        alpha = alpha_surface.surface.pixels
+
+        for i in xrange(nb_pixels):
+            # Only use the red value, assume the others are equal.
+            image[3+4*i] = alpha[3*i]
+
+
 def init(Uint32 flags):
     if SDL_Init(flags) < 0:
         raise SDLError(SDL_GetError())
 
 
+def img_init(Uint32 flags):
+    if IMG_Init(flags) != flags:
+        raise SDLError(SDL_GetError())
+
+
 def quit():
     SDL_Quit()
+
+
+def img_quit():
+    IMG_Quit()
 
 
 def gl_set_attribute(SDL_GLattr attr, int value):
@@ -94,6 +137,25 @@ def get_keyboard_state():
     cdef const Uint8 *state
     state = SDL_GetKeyboardState(&numkeys)
     return tuple([k is not False for k in state[:numkeys]])
+
+
+def load_png(file_):
+    data = file_.read()
+    rwops = SDL_RWFromConstMem(<char*>data, len(data))
+    surface = Surface()
+    surface.surface = IMG_LoadPNG_RW(rwops)
+    SDL_RWclose(rwops)
+    if surface.surface == NULL:
+        raise SDLError(SDL_GetError())
+    return surface
+
+
+def create_rgb_surface(int width, int height, int depth, Uint32 rmask=0, Uint32 gmask=0, Uint32 bmask=0, Uint32 amask=0):
+    surface = Surface()
+    surface.surface = SDL_CreateRGBSurface(0, width, height, depth, rmask, gmask, bmask, amask)
+    if surface.surface == NULL:
+        raise SDLError(SDL_GetError())
+    return surface
 
 
 def get_ticks():

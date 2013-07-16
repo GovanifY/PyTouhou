@@ -88,6 +88,7 @@ class GameRunner(GameRenderer):
         GameRenderer.__init__(self, resource_loader, game, background)
 
         sdl.init(sdl.INIT_VIDEO)
+        sdl.img_init(sdl.INIT_PNG)
         sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
         sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
         sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
@@ -188,6 +189,7 @@ class GameRunner(GameRenderer):
 
         self.win.gl_delete_context()
         self.win.destroy_window()
+        sdl.img_quit()
         sdl.quit()
 
 

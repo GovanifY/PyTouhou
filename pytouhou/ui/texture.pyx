@@ -12,9 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-from libc.stdlib cimport malloc, free
-
-import pyglet
 from pyglet.gl import (glTexParameteri, GL_TEXTURE_MIN_FILTER,
                        GL_TEXTURE_MAG_FILTER, GL_LINEAR, GL_BGRA, GL_RGBA,
                        GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
@@ -22,6 +19,7 @@ from pyglet.gl import (glTexParameteri, GL_TEXTURE_MIN_FILTER,
                        glGenTextures, glBindTexture, glTexImage2D,
                        GL_TEXTURE_2D)
 from ctypes import c_uint, byref
+from pytouhou.lib.sdl import load_png, create_rgb_surface
 import os
 
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
@@ -45,35 +43,25 @@ cdef class TextureManager:
 
 
     def load_png_texture(self, first_name, secondary_name):
-        cdef char *image, *alpha, *new_data
-        cdef unsigned int i, width, height, pixels
-
-        image_file = pyglet.image.load(first_name, file=self.loader.get_file(os.path.basename(first_name)))
+        image_file = load_png(self.loader.get_file(os.path.basename(first_name)))
         width, height = image_file.width, image_file.height
-        image_data = image_file.get_data('RGB', width * 3)
+
+        # Support only 32 bits RGBA. Paletted surfaces are awful to work with.
+        #TODO: verify it doesn’t blow up on big-endian systems.
+        new_image = create_rgb_surface(width, height, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000)
+        new_image.blit(image_file)
 
         if secondary_name:
-            alpha_file = pyglet.image.load(secondary_name, file=self.loader.get_file(os.path.basename(secondary_name)))
-            assert (image_file.width, image_file.height) == (alpha_file.width, image_file.height)
+            alpha_file = load_png(self.loader.get_file(os.path.basename(secondary_name)))
+            assert (width == alpha_file.width and
+                    height == alpha_file.height)
 
-            pixels = width * height
+            new_alpha_file = create_rgb_surface(width, height, 24)
+            new_alpha_file.blit(alpha_file)
 
-            alpha_data = alpha_file.get_data('RGB', width * 3)
-            image = <char *>image_data
-            alpha = <char *>alpha_data
+            new_image.set_alpha(new_alpha_file)
 
-            # TODO: further optimizations
-            new_data = <char *>malloc(pixels * 4)
-            for i in range(pixels):
-                new_data[i*4] = image[i*3]
-                new_data[i*4+1] = image[i*3+1]
-                new_data[i*4+2] = image[i*3+2]
-                new_data[i*4+3] = alpha[i*3]
-            data = new_data[:(pixels * 4)]
-            free(new_data)
-            return Texture(width, height, -4, data)
-
-        return Texture(width, height, -3, image_data)
+        return Texture(width, height, -4, new_image.pixels)
 
 
     def load_texture(self, key):
@@ -97,10 +85,6 @@ cdef class TextureManager:
             format_ = GL_LUMINANCE
             type_ = GL_UNSIGNED_BYTE
             composants = GL_LUMINANCE
-        elif key.fmt == -3: #XXX: non-standard, remove it!
-            format_ = GL_RGB
-            type_ = GL_UNSIGNED_BYTE
-            composants = GL_RGB
         elif key.fmt == -4: #XXX: non-standard
             format_ = GL_RGBA
             type_ = GL_UNSIGNED_BYTE

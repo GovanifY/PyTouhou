@@ -61,8 +61,8 @@ cpdef object get_sprite_rendering_data(object sprite):
     tox, toy = sprite.texoffsets
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,
-           1. - (ty * y_1 + toy),
-           1. - ((ty + th) * y_1 + toy))
+           ty * y_1 + toy,
+           (ty + th) * y_1 + toy)
 
     (x1, x2 , x3, x4), (y1, y2, y3, y4), (z1, z2, z3, z4), _ = vertmat.data
 

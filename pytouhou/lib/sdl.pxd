@@ -91,3 +91,35 @@ cdef extern from "SDL_keyboard.h":
 cdef extern from "SDL_timer.h":
     Uint32 SDL_GetTicks()
     void SDL_Delay(Uint32 ms)
+
+
+cdef extern from "SDL_rect.h":
+    ctypedef struct SDL_Rect:
+        int x, y
+        int w, h
+
+
+cdef extern from "SDL_surface.h":
+    ctypedef struct SDL_Surface:
+        int w, h
+        unsigned char *pixels
+
+    void SDL_FreeSurface(SDL_Surface *surface)
+    int SDL_BlitSurface(SDL_Surface *src, const SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect)
+    SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+
+
+cdef extern from "SDL_rwops.h":
+    ctypedef struct SDL_RWops:
+        pass
+
+    SDL_RWops *SDL_RWFromConstMem(const void *mem, int size)
+    int SDL_RWclose(SDL_RWops *context)
+
+
+cdef extern from "SDL_image.h":
+    int IMG_INIT_PNG
+
+    int IMG_Init(int flags)
+    void IMG_Quit()
+    SDL_Surface *IMG_LoadPNG_RW(SDL_RWops *src)
