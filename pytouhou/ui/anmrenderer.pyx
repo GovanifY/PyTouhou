@@ -37,7 +37,7 @@ class ANMRenderer(Renderer):
         Renderer.__init__(self, resource_loader)
 
         self.window = window
-        self.texture_manager.preload(resource_loader.instanced_anms.values())
+        self.texture_manager.load(resource_loader.instanced_anms.values())
 
         self._anm_wrapper = anm_wrapper
         self.sprites = sprites

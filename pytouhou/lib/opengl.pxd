@@ -94,6 +94,7 @@ cdef extern from 'GL/gl.h':
     void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
 
     void glGenTextures(GLsizei n, GLuint *textures)
+    void glDeleteTextures(GLsizei n, const GLuint *textures)
     void glBindTexture(GLenum target, GLuint texture)
     void glTexParameteri(GLenum target, GLenum pname, GLint param)
     void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format_, GLenum type_, const GLvoid *data)

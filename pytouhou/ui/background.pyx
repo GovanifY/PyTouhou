@@ -35,8 +35,7 @@ cdef class BackgroundRenderer:
         free(self.vertex_buffer)
 
 
-    def __init__(self, texture_manager, use_fixed_pipeline):
-        self.texture_manager = texture_manager
+    def __init__(self, use_fixed_pipeline):
         self.use_fixed_pipeline = use_fixed_pipeline
 
         if not use_fixed_pipeline:
@@ -61,7 +60,7 @@ cdef class BackgroundRenderer:
 
         glEnable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[self.blendfunc])
-        glBindTexture(GL_TEXTURE_2D, self.texture_manager[self.texture_key])
+        glBindTexture(GL_TEXTURE_2D, self.texture)
         glDrawArrays(GL_QUADS, 0, self.nb_vertices)
         glDisable(GL_DEPTH_TEST)
 
@@ -91,7 +90,7 @@ cdef class BackgroundRenderer:
 
                 nb_vertices += 4
 
-        self.texture_key, self.blendfunc = key
+        self.texture, self.blendfunc = key
         self.nb_vertices = nb_vertices
         self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))
 

@@ -56,10 +56,10 @@ class GameRunner(GameRenderer):
         self.game = game
         self.background = background
 
-        self.texture_manager.preload(game.resource_loader.instanced_anms.values())
+        self.texture_manager.load(game.resource_loader.instanced_anms.values())
 
         if background:
-            self.background_renderer = BackgroundRenderer(self.texture_manager, self.use_fixed_pipeline)
+            self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
             self.background_renderer.prerender(background)
 
         self.set_input(replay)

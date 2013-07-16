@@ -1,3 +1,5 @@
+from pytouhou.lib.opengl cimport GLuint
+
 cdef struct Vertex:
     float x, y, z
     float u, v
@@ -5,8 +7,7 @@ cdef struct Vertex:
 
 
 cdef class BackgroundRenderer:
-    cdef public texture_manager
-    cdef object texture_key
+    cdef GLuint texture
     cdef unsigned short blendfunc, nb_vertices
     cdef Vertex *vertex_buffer
     cdef unsigned int use_fixed_pipeline, vbo

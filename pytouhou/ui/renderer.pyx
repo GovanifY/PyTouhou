@@ -27,7 +27,7 @@ from pytouhou.lib.opengl cimport \
           glGenBuffers)
 
 from .sprite cimport get_sprite_rendering_data
-from .texture cimport TextureManager
+from .texture import TextureManager
 
 
 MAX_ELEMENTS = 640*4*3
@@ -100,7 +100,7 @@ cdef class Renderer:
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
             glEnableVertexAttribArray(2)
 
-        for (texture_key, blendfunc), indices in indices_by_texture.items():
+        for (texture, blendfunc), indices in indices_by_texture.items():
 
             #TODO: find a more elegent way.
             nb_indices = len(indices)
@@ -109,7 +109,7 @@ cdef class Renderer:
                 new_indices[i] = indices[i]
 
             glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-            glBindTexture(GL_TEXTURE_2D, self.texture_manager[texture_key])
+            glBindTexture(GL_TEXTURE_2D, texture)
             glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, new_indices)
             free(new_indices)
 
