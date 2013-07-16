@@ -65,6 +65,9 @@ cdef class Window:
     def gl_delete_context(self):
         SDL_GL_DeleteContext(self.context)
 
+    def set_window_size(self, width, height):
+        SDL_SetWindowSize(self.window, width, height)
+
 
 cdef class Surface:
     cdef SDL_Surface *surface

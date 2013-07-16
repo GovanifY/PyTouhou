@@ -29,24 +29,8 @@ from .renderer import Renderer
 
 
 class GameRenderer(Renderer):
-    __slots__ = ('game', 'background')
-
-    def __init__(self, resource_loader, game=None, background=None):
+    def __init__(self, resource_loader):
         Renderer.__init__(self, resource_loader)
-        if game:
-            self.load_game(game, background)
-
-
-    def load_game(self, game=None, background=None):
-        self.game = game
-        self.background = background
-
-        if game:
-            # Preload textures
-            self.texture_manager.preload(game.resource_loader.instanced_anms.values())
-
-        if background:
-            self.prerender_background(background)
 
 
     def render(self):

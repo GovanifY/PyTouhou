@@ -54,6 +54,7 @@ import logging
 import pyximport
 pyximport.install()
 
+from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.game.background import Background
 from pytouhou.ui.gamerunner import GameRunner
@@ -107,6 +108,8 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
         sys.stderr.write('Some data files were not found, did you forget the -p option?\n')
         exit(1)
 
+    window = Window(double_buffer=(not single_buffer), fps_limit=fps_limit, fixed_pipeline=fixed_pipeline)
+
     if stage_num is None:
         story = True
         stage_num = 1
@@ -145,7 +148,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
     game_class = EoSDGameBossRush if boss_rush else EoSDGame
 
-    runner = GameRunner(resource_loader, fps_limit=fps_limit, double_buffer=(not single_buffer), fixed_pipeline=fixed_pipeline, skip=skip_replay)
+    runner = GameRunner(window, resource_loader, skip=skip_replay)
     while True:
         if replay:
             level = replay.levels[stage_num - 1]
@@ -200,8 +203,9 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
         # Main loop
         runner.load_game(game, background, stage.bgms, replay, save_keystates)
+        window.set_runner(runner)
         try:
-            runner.start()
+            window.run()
             break
         except NextStage:
             if not story or stage_num == (7 if boss_rush else 6 if rank > 0 else 5):

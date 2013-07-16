@@ -51,6 +51,8 @@ cdef extern from "SDL_video.h":
     void SDL_GL_DeleteContext(SDL_GLContext context)
     void SDL_DestroyWindow(SDL_Window *window)
 
+    void SDL_SetWindowSize(SDL_Window *window, int w, int h)
+
 
 cdef extern from "SDL_scancode.h":
     ctypedef enum SDL_Scancode:

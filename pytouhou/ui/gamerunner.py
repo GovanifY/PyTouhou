@@ -14,14 +14,9 @@
 
 from pytouhou.lib import sdl
 
-from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
-                       glHint, glEnableClientState, glViewport, glScissor,
-                       glLoadMatrixf, glGenBuffers, glDeleteBuffers,
-                       GL_MODELVIEW, GL_PROJECTION,
-                       GL_TEXTURE_2D, GL_BLEND, GL_FOG,
-                       GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
-                       GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
-                       GL_SCISSOR_TEST)
+from pyglet.gl import (glMatrixMode, glEnable, glDisable, glViewport,
+                       glScissor, glLoadMatrixf, glGenBuffers, glDeleteBuffers,
+                       GL_MODELVIEW, GL_PROJECTION, GL_FOG, GL_SCISSOR_TEST)
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.maths import perspective, setup_camera, ortho_2d
@@ -36,82 +31,18 @@ from ctypes import c_uint, byref
 logger = get_logger(__name__)
 
 
-class Clock(object):
-    def __init__(self, fps=None):
-        self._target_fps = 0
-        self._ref_tick = 0
-        self._ref_frame = 0
-        self._fps_tick = 0
-        self._fps_frame = 0
-        self._rate = 0
-        self.set_target_fps(fps)
-
-
-    def set_target_fps(self, fps):
-        self._target_fps = fps
-        self._ref_tick = 0
-        self._fps_tick = 0
-
-
-    def get_fps(self):
-        return self._rate
-
-
-    def tick(self):
-        current = sdl.get_ticks()
-
-        if not self._ref_tick:
-            self._ref_tick = current
-            self._ref_frame = 0
-
-        if self._fps_frame >= (self._target_fps or 60):
-            self._rate = self._fps_frame * 1000. / (current - self._fps_tick)
-            self._fps_tick = current
-            self._fps_frame = 0
-
-        self._ref_frame += 1
-        self._fps_frame += 1
-
-        target_tick = self._ref_tick
-        if self._target_fps:
-            target_tick += int(self._ref_frame * 1000 / self._target_fps)
-
-        if current <= target_tick:
-            sdl.delay(target_tick - current)
-        else:
-            self._ref_tick = current
-            self._ref_frame = 0
-
-
 class GameRunner(GameRenderer):
-    def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False, skip=False):
-        GameRenderer.__init__(self, resource_loader, game, background)
+    def __init__(self, window, resource_loader, replay=None, skip=False):
+        GameRenderer.__init__(self, resource_loader)
 
-        sdl.init(sdl.INIT_VIDEO)
-        sdl.img_init(sdl.INIT_PNG)
-        sdl.mix_init(0)
-
-        sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
-        sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
-        sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
-        sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
-
-        self.width, self.height = (game.interface.width, game.interface.height) if game else (640, 480)
-        self.win = sdl.Window('PyTouhou',
-                              sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
-                              self.width, self.height,
-                              sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN)
-        self.win.gl_create_context()
-
-        sdl.mix_open_audio(44100, sdl.DEFAULT_FORMAT, 2, 4096)
-        sdl.mix_allocate_channels(26) #TODO: make it dependent on the SFX number.
-
-        self.fps_limit = fps_limit
-        self.use_fixed_pipeline = fixed_pipeline
+        self.window = window
         self.replay_level = None
         self.skip = skip
-        self.has_exit = False
         self.keystate = 0
+
+        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
+        self.width = window.width #XXX
+        self.height = window.height #XXX
 
         if not self.use_fixed_pipeline:
             self.game_shader = GameShader()
@@ -122,14 +53,16 @@ class GameRunner(GameRenderer):
             glGenBuffers(2, vbo_array)
             self.vbo, self.back_vbo = vbo_array
 
-        if game:
-            self.load_game(game, background, replay)
-
-        self.clock = Clock(self.fps_limit)
-
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
-        GameRenderer.load_game(self, game, background)
+        self.game = game
+        self.background = background
+
+        self.texture_manager.preload(game.resource_loader.instanced_anms.values())
+
+        if background:
+            self.prerender_background(background)
+
         self.set_input(replay)
         if replay and replay.levels[game.stage - 1]:
             game.players[0].state.lives = self.replay_level.lives
@@ -152,25 +85,11 @@ class GameRunner(GameRenderer):
             self.keys = self.replay_level.iter_keystates()
 
 
-    def set_size(self, width, height):
-        self.win.set_window_size(width, height)
-
-
-    def start(self, width=None, height=None):
-        width = width or (self.game.interface.width if self.game else 640)
-        height = height or (self.game.interface.height if self.game else 480)
+    def start(self):
+        width = self.game.interface.width if self.game else 640
+        height = self.game.interface.height if self.game else 480
         if (width, height) != (self.width, self.height):
-            self.set_size(width, height)
-
-        # Initialize OpenGL
-        glEnable(GL_BLEND)
-        if self.use_fixed_pipeline:
-            glEnable(GL_TEXTURE_2D)
-            glHint(GL_FOG_HINT, GL_NICEST)
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-            glEnableClientState(GL_COLOR_ARRAY)
-            glEnableClientState(GL_VERTEX_ARRAY)
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+            self.window.set_size(width, height)
 
         self.proj = perspective(30, float(self.game.width) / float(self.game.height),
                                 101010101./2010101., 101010101./10101.)
@@ -178,26 +97,13 @@ class GameRunner(GameRenderer):
         self.game_mvp = game_view * self.proj
         self.interface_mvp = ortho_2d(0., float(self.width), float(self.height), 0.)
 
-        while not self.has_exit:
-            if not self.skip:
-                self.update()
-                self.render_game()
-                self.render_interface()
-                self.win.gl_swap_window()
-                self.clock.tick()
-            else:
-                self.update()
 
-        if not self.use_fixed_pipeline:
-            vbo_array = (c_uint * 2)(self.vbo, self.back_vbo)
-            glDeleteBuffers(2, vbo_array)
-
-        self.win.gl_delete_context()
-        self.win.destroy_window()
-        sdl.mix_close_audio()
-        sdl.mix_quit()
-        sdl.img_quit()
-        sdl.quit()
+    def finish(self):
+        #TODO: actually clean after buffers are not needed anymore.
+        #if not self.use_fixed_pipeline:
+        #    vbo_array = (c_uint * 2)(self.vbo, self.back_vbo)
+        #    glDeleteBuffers(2, vbo_array)
+        pass
 
 
     def update(self):
@@ -208,9 +114,9 @@ class GameRunner(GameRenderer):
             if type_ == sdl.KEYDOWN:
                 scancode = event[1]
                 if scancode == sdl.SCANCODE_ESCAPE:
-                    self.has_exit = True #TODO: implement the pause.
+                    return False #TODO: implement the pause.
             elif type_ == sdl.QUIT:
-                self.has_exit = True
+                return False
         if self.game:
             if not self.replay_level:
                 #TODO: allow user settings
@@ -246,6 +152,10 @@ class GameRunner(GameRenderer):
                 self.save_keystates.append(keystate)
 
             self.game.run_iter(keystate)
+        if not self.skip:
+            self.render_game()
+            self.render_interface()
+        return True
 
 
     def render_game(self):
@@ -263,7 +173,7 @@ class GameRunner(GameRenderer):
 
     def render_interface(self):
         interface = self.game.interface
-        interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_fps())
+        interface.labels['framerate'].set_text('%.2ffps' % self.window.clock.get_fps())
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)
