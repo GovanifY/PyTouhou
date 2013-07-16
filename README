@@ -15,6 +15,7 @@ Running:
     * Python2 (>= 2.6)
     * Cython
     * Pyglet
+    * SDL2
 
 
 Building sample data:
@@ -27,7 +28,7 @@ Documentation:
 
 The code should be sufficiently documented for anyone interested to learn how the EoSD engine work,
 but additional documentation is available at:
-http://linkmauve.fr/doc/touhou/
+http://pytouhou.linkmauve.fr/
 
 
 

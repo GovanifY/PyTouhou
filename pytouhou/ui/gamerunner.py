@@ -12,8 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-import pyglet
-import traceback
+from pytouhou.lib import sdl
 
 from pyglet.gl import (glMatrixMode, glLoadIdentity, glEnable, glDisable,
                        glHint, glEnableClientState, glViewport, glScissor,
@@ -37,20 +36,29 @@ from ctypes import c_uint, byref
 logger = get_logger(__name__)
 
 
-class GameRunner(pyglet.window.Window, GameRenderer):
+class GameRunner(GameRenderer):
     def __init__(self, resource_loader, game=None, background=None, replay=None, double_buffer=True, fps_limit=60, fixed_pipeline=False, skip=False):
         GameRenderer.__init__(self, resource_loader, game, background)
 
-        config = pyglet.gl.Config(double_buffer=double_buffer)
-        width, height = (game.interface.width, game.interface.height) if game else (None, None)
-        pyglet.window.Window.__init__(self, width=width, height=height,
-                                      caption='PyTouhou', resizable=False,
-                                      config=config)
+        sdl.init(sdl.INIT_VIDEO)
+        sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
+        sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
+        sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
+        sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
+
+        self.width, self.height = (game.interface.width, game.interface.height) if game else (640, 480)
+        self.win = sdl.Window('PyTouhou',
+                              sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+                              self.width, self.height,
+                              sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN)
+        self.win.gl_create_context()
 
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
         self.replay_level = None
         self.skip = skip
+        self.has_exit = False
+        self.keystate = 0
 
         if not self.use_fixed_pipeline:
             self.game_shader = GameShader()
@@ -64,7 +72,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         if game:
             self.load_game(game, background, replay)
 
-        self.clock = pyglet.clock.get_default()
+        #self.clock = pyglet.clock.get_default()
 
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
@@ -85,12 +93,14 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
     def set_input(self, replay=None):
         if not replay or not replay.levels[self.game.stage-1]:
-            self.keys = pyglet.window.key.KeyStateHandler()
-            self.push_handlers(self.keys)
             self.replay_level = None
         else:
             self.replay_level = replay.levels[self.game.stage-1]
             self.keys = self.replay_level.iter_keystates()
+
+
+    def set_size(self, width, height):
+        self.win.set_window_size(width, height)
 
 
     def start(self, width=None, height=None):
@@ -115,16 +125,14 @@ class GameRunner(pyglet.window.Window, GameRenderer):
         self.game_mvp = game_view * self.proj
         self.interface_mvp = ortho_2d(0., float(self.width), float(self.height), 0.)
 
-        if self.fps_limit > 0:
-            pyglet.clock.set_fps_limit(self.fps_limit)
+        #if self.fps_limit > 0:
+        #    pyglet.clock.set_fps_limit(self.fps_limit)
         while not self.has_exit:
             if not self.skip:
-                pyglet.clock.tick()
-                self.dispatch_events()
                 self.update()
                 self.render_game()
                 self.render_interface()
-                self.flip()
+                self.win.gl_swap_window()
             else:
                 self.update()
 
@@ -132,50 +140,42 @@ class GameRunner(pyglet.window.Window, GameRenderer):
             vbo_array = (c_uint * 2)(self.vbo, self.back_vbo)
             glDeleteBuffers(2, vbo_array)
 
-
-    def _event_text_symbol(self, ev):
-        # XXX: Ugly workaround to a pyglet bug on X11
-        #TODO: fix that bug in pyglet
-        try:
-            return pyglet.window.Window._event_text_symbol(self, ev)
-        except Exception as exc:
-            logger.warn('Pyglet error: %s', traceback.format_exc(exc))
-            return None, None
-
-
-    def on_key_press(self, symbol, modifiers):
-        if symbol == pyglet.window.key.ESCAPE:
-            self.has_exit = True
-        # XXX: Fullscreen will be enabled the day pyglet stops sucking
-        elif symbol == pyglet.window.key.F11:
-            self.set_fullscreen(not self.fullscreen)
+        self.win.gl_delete_context()
+        self.win.destroy_window()
+        sdl.quit()
 
 
     def update(self):
         if self.background:
             self.background.update(self.game.frame)
+        for event in sdl.poll_events():
+            type_ = event[0]
+            if type_ == sdl.KEYDOWN:
+                scancode = event[1]
+                if scancode == sdl.SCANCODE_ESCAPE:
+                    self.has_exit = True #TODO: implement the pause.
+            elif type_ == sdl.QUIT:
+                self.has_exit = True
         if self.game:
             if not self.replay_level:
                 #TODO: allow user settings
+                keys = sdl.get_keyboard_state()
                 keystate = 0
-                if self.keys[pyglet.window.key.W] or self.keys[pyglet.window.key.Z]:
+                if keys[sdl.SCANCODE_Z]:
                     keystate |= 1
-                if self.keys[pyglet.window.key.X]:
+                if keys[sdl.SCANCODE_X]:
                     keystate |= 2
-                #TODO: on some configurations, LSHIFT is Shift_L when pressed
-                # and ISO_Prev_Group when released, confusing the hell out of pyglet
-                # and leading to a always-on LSHIFT...
-                if self.keys[pyglet.window.key.LSHIFT]:
+                if keys[sdl.SCANCODE_LSHIFT]:
                     keystate |= 4
-                if self.keys[pyglet.window.key.UP]:
+                if keys[sdl.SCANCODE_UP]:
                     keystate |= 16
-                if self.keys[pyglet.window.key.DOWN]:
+                if keys[sdl.SCANCODE_DOWN]:
                     keystate |= 32
-                if self.keys[pyglet.window.key.LEFT]:
+                if keys[sdl.SCANCODE_LEFT]:
                     keystate |= 64
-                if self.keys[pyglet.window.key.RIGHT]:
+                if keys[sdl.SCANCODE_RIGHT]:
                     keystate |= 128
-                if self.keys[pyglet.window.key.LCTRL]:
+                if keys[sdl.SCANCODE_LCTRL]:
                     keystate |= 256
             else:
                 try:
@@ -208,7 +208,7 @@ class GameRunner(pyglet.window.Window, GameRenderer):
 
     def render_interface(self):
         interface = self.game.interface
-        interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_fps())
+        #interface.labels['framerate'].set_text('%.2ffps' % self.clock.get_ticks())
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)

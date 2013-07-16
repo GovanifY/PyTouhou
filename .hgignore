@@ -1,1 +1,8 @@
-.pyc
+\.pyc$
+\.pyxbldc$
+\.c$
+\.o$
+\.so$
+\.pyd$
+^build$
+^scripts$

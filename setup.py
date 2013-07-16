@@ -6,6 +6,7 @@ from distutils.extension import Extension
 from distutils.command.build_scripts import build_scripts
 from distutils.dep_util import newer
 from distutils import log
+from subprocess import check_output
 
 # Cython is needed
 try:
@@ -15,6 +16,9 @@ except ImportError:
           'copy from www.cython.org and install it')
     sys.exit(1)
 
+
+COMMAND = 'pkg-config'
+LIBRARIES = ['sdl2']
 
 packages = []
 extension_names = []
@@ -47,8 +51,16 @@ for directory, _, files in os.walk('pytouhou'):
         if filename.endswith('.pyx'):
             extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
             extension_names.append(extension_name)
+            if extension_name == 'pytouhou.lib.sdl':
+                compile_args = check_output([COMMAND, '--cflags'] + LIBRARIES).split()
+                link_args = check_output([COMMAND, '--libs'] + LIBRARIES).split()
+            else:
+                compile_args = None
+                link_args = None
             extensions.append(Extension(extension_name,
-                                        [os.path.join(directory, filename)]))
+                                        [os.path.join(directory, filename)],
+                                        extra_compile_args=compile_args,
+                                        extra_link_args=link_args))
 
 
 
