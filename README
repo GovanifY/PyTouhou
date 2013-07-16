@@ -16,7 +16,8 @@ Running:
     * Cython
     * A working OpenGL driver
     * SDL2
-    * SDL2_image, SDL2_mixer
+    * SDL2_image, SDL2_mixer, SDL2_ttf
+    * A TTF font file, placed as “font.ttf” in the game directory.
 
 
 Building sample data:

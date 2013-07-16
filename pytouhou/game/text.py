@@ -135,29 +135,24 @@ class Text(GlyphCollection):
 
 
     def move_timeout_update(self):
-        GlyphCollection.update(self)
         if self.frame % 2:
             for glyph in self.glyphes:
                 glyph.y -= 1
-        if self.frame == self.timeout:
-            self.removed = True
+        self.timeout_update()
 
 
     def fadeout_timeout_update(self):
-        GlyphCollection.update(self)
         if self.frame >= self.start:
             if self.frame == self.start:
                 self.fade(self.duration, 255, lambda x: x)
             elif self.frame == self.timeout - self.duration:
                 self.fade(self.duration, 0, lambda x: x)
-            if self.fade_interpolator:
-                self.fade_interpolator.update(self.frame)
-                self.alpha = int(self.fade_interpolator.values[0])
-                for glyph in self.glyphes:
-                    glyph.sprite.alpha = self.alpha
-                    glyph.sprite.changed = True
-        if self.frame == self.timeout:
-            self.removed = True
+            self.fade_interpolator.update(self.frame)
+            self.alpha = int(self.fade_interpolator.values[0])
+            for glyph in self.glyphes:
+                glyph.sprite.alpha = self.alpha
+                glyph.sprite.changed = True
+        self.timeout_update()
 
 
     def fade(self, duration, alpha, formula):
@@ -167,9 +162,9 @@ class Text(GlyphCollection):
 
 
     def set_timeout(self, timeout, effect=None, duration=0, start=0):
+        self.timeout = timeout + start
         if effect == 'move':
             self.update = self.move_timeout_update
-            self.timeout = timeout + start
         elif effect == 'fadeout':
             self.alpha = 0
             for glyph in self.glyphes:
@@ -177,10 +172,8 @@ class Text(GlyphCollection):
             self.update = self.fadeout_timeout_update
             self.duration = duration
             self.start = start
-            self.timeout = timeout + start
         else:
             self.update = self.timeout_update
-            self.timeout = timeout + start
 
 
 
@@ -236,3 +229,88 @@ class Gauge(Element):
             self.anmrunner = None
 
 
+
+class NativeText(object):
+    def __init__(self, pos, text, gradient=None, alpha=255, shadow=False, align='left'):
+        self.removed = False
+        self.x, self.y = pos
+        self.text = text
+        self.alpha = alpha
+        self.shadow = shadow
+        self.align = align
+        self.frame = 0
+
+        self.gradient = gradient or [(255, 255, 255), (255, 255, 255),
+                                     (128, 128, 255), (128, 128, 255)]
+
+        self.update = self.normal_update
+
+
+    def normal_update(self):
+        self.frame += 1
+
+
+    def timeout_update(self):
+        self.normal_update()
+        if self.frame == self.timeout:
+            self.removed = True
+
+
+    def move_timeout_update(self):
+        if self.frame % 2:
+            self.y -= 1
+        self.timeout_update()
+
+
+    def move_ex_timeout_update(self):
+        if self.frame >= self.start:
+            if self.frame == self.start:
+                self.move_in(self.duration, self.to[0], self.to[1], lambda x: x)
+            elif self.frame == self.timeout - self.duration:
+                self.move_in(self.duration, self.end[0], self.end[1], lambda x: x)
+            if self.offset_interpolator:
+                self.offset_interpolator.update(self.frame)
+                self.x, self.y = self.offset_interpolator.values
+        self.timeout_update()
+
+
+    def fadeout_timeout_update(self):
+        if self.frame >= self.start:
+            if self.frame == self.start:
+                self.fade(self.duration, 255, lambda x: x)
+            elif self.frame == self.timeout - self.duration:
+                self.fade(self.duration, 0, lambda x: x)
+            self.fade_interpolator.update(self.frame)
+            self.alpha = int(self.fade_interpolator.values[0])
+        self.timeout_update()
+
+
+    def fade(self, duration, alpha, formula):
+        self.fade_interpolator = Interpolator((self.alpha,), self.frame,
+                                              (alpha,), self.frame + duration,
+                                              formula)
+
+
+    def move_in(self, duration, x, y, formula):
+        self.offset_interpolator = Interpolator((self.x, self.y), self.frame,
+                                                (x, y), self.frame + duration,
+                                                formula)
+
+
+    def set_timeout(self, timeout, effect=None, duration=0, start=0, to=None, end=None):
+        self.timeout = timeout + start
+        if effect == 'move':
+            self.update = self.move_timeout_update
+        elif effect == 'move_ex':
+            self.update = self.move_ex_timeout_update
+            self.duration = duration
+            self.start = start
+            self.to = to
+            self.end = end
+        elif effect == 'fadeout':
+            self.alpha = 0
+            self.update = self.fadeout_timeout_update
+            self.duration = duration
+            self.start = start
+        else:
+            self.update = self.timeout_update

@@ -14,6 +14,7 @@
 
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
+from os.path import join
 
 from pytouhou.lib.opengl cimport \
          (glVertexPointer, glTexCoordPointer, glColorPointer,
@@ -24,9 +25,15 @@ from pytouhou.lib.opengl cimport \
           GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
           glGenBuffers)
 
+from pytouhou.lib.sdl import SDLError
+
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .texture import TextureManager
+from .texture import TextureManager, FontManager
+
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
 
 
 DEF MAX_ELEMENTS = 640*4*3
@@ -59,6 +66,12 @@ cdef class Renderer:
 
     def __init__(self, resource_loader):
         self.texture_manager = TextureManager(resource_loader, self)
+        font_name = join(resource_loader.game_dir, 'font.ttf')
+        try:
+            self.font_manager = FontManager(font_name, 16, self)
+        except SDLError:
+            self.font_manager = None
+            logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
 
         if not self.use_fixed_pipeline:
             glGenBuffers(1, &self.vbo)
@@ -149,3 +162,36 @@ cdef class Renderer:
 
         if not self.use_fixed_pipeline:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    cpdef render_quads(self, rects, colors, texture):
+        # There is nothing that batch more than two quads on the same texture, currently.
+        cdef Vertex buf[8]
+        cdef unsigned short indices[12]
+        indices[:] = [0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4]
+
+        length = len(rects)
+        assert length == len(colors)
+
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+
+        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+        glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
+        glEnableVertexAttribArray(2)
+
+        for i, r in enumerate(rects):
+            c1, c2, c3, c4 = colors[i]
+
+            buf[4*i] = Vertex(r.x, r.y, 0, 0, 0, c1.r, c1.g, c1.b, c1.a)
+            buf[4*i+1] = Vertex(r.x + r.w, r.y, 0, 1, 0, c2.r, c2.g, c2.b, c2.a)
+            buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
+            buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
+
+        glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)

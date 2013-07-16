@@ -19,7 +19,7 @@ from pytouhou.game.bullet cimport Bullet, LAUNCHED, CANCELLED
 from pytouhou.game.enemy cimport Enemy
 from pytouhou.game.item cimport Item
 from pytouhou.game.effect cimport Particle
-from pytouhou.game.text import Text
+from pytouhou.game.text import Text, NativeText
 from pytouhou.game.face import Face
 
 
@@ -46,6 +46,7 @@ cdef class Game:
         self.items = []
         self.labels = []
         self.faces = [None, None]
+        self.texts = [None, None, None, None]
         self.interface = interface
         self.hints = hints
 
@@ -209,6 +210,11 @@ cdef class Game:
         return label
 
 
+    def new_native_text(self, pos, text, align='left'):
+        label = NativeText(pos, text, shadow=True, align=align)
+        return label
+
+
     def new_hint(self, hint):
         pos = hint['Pos']
         #TODO: Scale
@@ -264,6 +270,12 @@ cdef class Game:
             self.update_hints() # Not from this game, so unknown.
         for label in self.labels: #TODO: what priority is it?
             label.update()
+        for text in self.texts: #TODO: what priority is it?
+            if text is not None:
+                text.update()
+        for text in self.native_texts: #TODO: what priority is it?
+            if text is not None:
+                text.update()
         self.update_faces() # Pri XXX
 
         # 5. Clean up
@@ -487,6 +499,11 @@ cdef class Game:
 
         self.effects = filter_removed(self.effects)
         self.labels = filter_removed(self.labels)
+        #self.native_texts = filter_removed(self.native_texts)
+
+        for i, text in enumerate(self.texts):
+            if text is not None and text.removed:
+                self.texts[i] = None
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._enemy.removed:

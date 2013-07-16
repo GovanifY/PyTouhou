@@ -21,7 +21,7 @@ from pytouhou.game.itemtype import ItemType
 from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
-from pytouhou.game.text import Text, Counter, Gauge
+from pytouhou.game.text import Text, Counter, Gauge, NativeText
 from pytouhou.game.background import Background
 
 from pytouhou.vm.eclrunner import ECLMainRunner
@@ -110,13 +110,14 @@ class EoSDGame(Game):
 
         players = [EoSDPlayer(state, self, resource_loader, common.characters[state.character]) for state in player_states]
 
-        common.interface.start_stage(self, stage)
-
         # Load stage data
         self.std = resource_loader.get_stage('stage%d.std' % stage)
 
         background_anm = resource_loader.get_single_anm('stg%dbg.anm' % stage)
         self.background = Background(self.std, background_anm)
+
+        common.interface.start_stage(self, stage)
+        self.native_texts = [common.interface.stage_name, common.interface.song_name]
 
         self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
 
@@ -183,10 +184,21 @@ class EoSDInterface(object):
             text = 'FINAL STAGE'
         elif stage == 7:
             text = 'EXTRA STAGE'
+
+        self.stage_name = NativeText((192, 200), unicode(game.std.name), shadow=True, align='center')
+        self.stage_name.set_timeout(240, effect='fadeout', duration=60, start=120)
+
+        self.set_song_name(game.std.bgms[0][0])
+
         self.level_start = [Text((16+384/2, 200), self.ascii_anm, text=text, align='center')] #TODO: find the exact location.
         self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
         self.level_start[0].set_color('yellow')
-        #TODO: use the system text for the stage name, and the song name.
+
+
+    def set_song_name(self, name):
+        #TODO: use the correct animation.
+        self.song_name = NativeText((384, 432), u'♪ ' + name, shadow=True, align='right')
+        self.song_name.set_timeout(240, effect='fadeout', duration=60, start=120)
 
 
     def set_boss_life(self):

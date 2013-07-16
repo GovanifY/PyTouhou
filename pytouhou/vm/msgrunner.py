@@ -85,6 +85,7 @@ class MSGRunner(object):
         self._game.msg_runner = None
         self._game.msg_wait = False
         self.ended = True
+        self._game.texts = [None] * 4 + self._game.texts[4:]
 
 
     @instruction(0)
@@ -104,6 +105,15 @@ class MSGRunner(object):
         face = self._game.faces[side]
         if face:
             face.load(index)
+
+
+    @instruction(3)
+    def display_text(self, side, index, text):
+        if index == 0:
+            self._game.texts[0] = None
+            self._game.texts[1] = None
+        self._game.texts[index] = self._game.new_native_text((64, 372 + index * 24), text)
+        self._game.texts[index].set_timeout(-1, effect='fadeout', duration=15)
 
 
     @instruction(4)
@@ -127,6 +137,12 @@ class MSGRunner(object):
     @instruction(7)
     def change_music(self, track):
         self._game.music.play(track)
+
+
+    @instruction(8)
+    def display_description(self, side, index, text):
+        assert side == 1  # It shouldn’t crash when it’s something else.
+        self._game.texts[2 + index] = self._game.new_native_text((336, 320 + index * 18), text, align='right')
 
 
     @instruction(10)

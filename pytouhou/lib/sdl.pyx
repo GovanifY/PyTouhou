@@ -116,6 +116,27 @@ cdef class Chunk:
         Mix_VolumeChunk(self.chunk, int(volume * 128))
 
 
+cdef class Font:
+    def __init__(self, const char *filename, int ptsize):
+        self.font = TTF_OpenFont(filename, ptsize)
+        if self.font == NULL:
+            raise SDLError(SDL_GetError())
+
+    def __dealloc__(self):
+        if self.font != NULL:
+            TTF_CloseFont(self.font)
+
+    cdef Surface render(self, unicode text):
+        cdef SDL_Color white
+        white = SDL_Color(255, 255, 255, 255)
+        surface = Surface()
+        string = text.encode('utf-8')
+        surface.surface = TTF_RenderUTF8_Blended(self.font, string, white)
+        if surface.surface == NULL:
+            raise SDLError(SDL_GetError())
+        return surface
+
+
 cdef void init(Uint32 flags) except *:
     if SDL_Init(flags) < 0:
         raise SDLError(SDL_GetError())
@@ -128,6 +149,11 @@ cdef void img_init(Uint32 flags) except *:
 
 cdef void mix_init(int flags) except *:
     if Mix_Init(flags) != flags:
+        raise SDLError(SDL_GetError())
+
+
+cdef void ttf_init() except *:
+    if TTF_Init() < 0:
         raise SDLError(SDL_GetError())
 
 
@@ -146,6 +172,10 @@ cdef void img_quit() nogil:
 
 cdef void mix_quit() nogil:
     Mix_Quit()
+
+
+cdef void ttf_quit() nogil:
+    TTF_Quit()
 
 
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:

@@ -28,6 +28,9 @@ from .background import BackgroundRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 from .shaders.eosd import GameShader, BackgroundShader
 
+from collections import namedtuple
+Rect = namedtuple('Rect', 'x y w h')
+Color = namedtuple('Color', 'r g b a')
 
 logger = get_logger(__name__)
 
@@ -158,6 +161,7 @@ class GameRunner(GameRenderer):
             self.game.run_iter(keystate)
         if not self.skip:
             self.render_game()
+            self.render_text()
             self.render_interface()
         return True
 
@@ -174,6 +178,36 @@ class GameRunner(GameRenderer):
         GameRenderer.render(self)
 
         glDisable(GL_SCISSOR_TEST)
+
+        if self.game.msg_runner:
+            rect = Rect(48, 368, 288, 48)
+            color1 = Color(0, 0, 0, 192)
+            color2 = Color(0, 0, 0, 128)
+            self.render_quads([rect], [(color1, color1, color2, color2)], 0)
+
+
+    def render_text(self):
+        if self.font_manager is None:
+            return
+
+        labels = [label for label in self.game.texts + self.game.native_texts if label is not None]
+        self.font_manager.load(labels)
+
+        black = Color(0, 0, 0, 255)
+
+        for label in labels:
+            if label is None:
+                continue
+
+            rect = Rect(label.x, label.y, label.width, label.height)
+            gradient = [Color(*color, a=label.alpha) for color in label.gradient]
+
+            if label.shadow:
+                shadow_rect = Rect(label.x + 1, label.y + 1, label.width, label.height)
+                shadow = [black._replace(a=label.alpha)] * 4
+                self.render_quads([shadow_rect, rect], [shadow, gradient], label.texture)
+            else:
+                self.render_quads([rect], [gradient], label.texture)
 
 
     def render_interface(self):

@@ -16,3 +16,4 @@ cdef class Renderer:
     cdef PyObject *elements[640*3]
 
     cpdef render_elements(self, elements)
+    cpdef render_quads(self, rects, colors, texture)

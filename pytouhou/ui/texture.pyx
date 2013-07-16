@@ -19,7 +19,7 @@ from pytouhou.lib.opengl cimport \
           glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint,
           glDeleteTextures)
 
-from pytouhou.lib.sdl cimport load_png, create_rgb_surface
+from pytouhou.lib.sdl cimport load_png, create_rgb_surface, Font
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 
 import os
@@ -48,6 +48,33 @@ class TextureManager(object):
                     entry.texture = load_texture(entry.texture)
                 self.renderer.add_texture(entry.texture)
                 entry.texture.renderer = self.renderer
+
+
+cdef class FontManager:
+    cdef Font font
+    cdef object renderer
+
+    def __init__(self, fontname, fontsize=16, renderer=None):
+        self.font = Font(fontname, fontsize)
+        self.renderer = renderer
+
+
+    def load(self, label_list):
+        for label in label_list:
+            if not hasattr(label, 'texture'):
+                surface = self.font.render(label.text)
+                label.width, label.height = surface.surface.w, surface.surface.h
+
+                if label.align == 'center':
+                    label.x -= label.width // 2
+                elif label.align == 'right':
+                    label.x -= label.width
+                else:
+                    assert label.align == 'left'
+
+                texture = Texture(label.width, label.height, -4, surface.pixels)
+                label.texture = load_texture(texture)
+                label.texture.renderer = self.renderer
 
 
 cdef decode_png(loader, first_name, secondary_name):

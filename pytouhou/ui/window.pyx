@@ -97,6 +97,7 @@ cdef class Window:
             sdl.set_main_ready()
         sdl.init(sdl.INIT_VIDEO)
         sdl.img_init(sdl.INIT_PNG)
+        sdl.ttf_init()
         if sound:
             sdl.mix_init(0)
 
@@ -169,5 +170,6 @@ cdef class Window:
     def __dealloc__(self):
         sdl.mix_close_audio()
         sdl.mix_quit()
+        sdl.ttf_quit()
         sdl.img_quit()
         sdl.quit()

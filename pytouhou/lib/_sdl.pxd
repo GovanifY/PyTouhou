@@ -164,3 +164,19 @@ cdef extern from "SDL_mixer.h" nogil:
     int Mix_VolumeMusic(int volume)
 
     int Mix_PlayChannel(int channel, Mix_Chunk *chunk, int loops)
+
+
+cdef extern from "SDL_pixels.h" nogil:
+    ctypedef struct SDL_Color:
+        Uint8 r, g, b, a
+
+
+cdef extern from "SDL_ttf.h" nogil:
+    ctypedef struct TTF_Font:
+        pass
+
+    int TTF_Init()
+    void TTF_Quit()
+    TTF_Font *TTF_OpenFont(const char *filename, int ptsize)
+    void TTF_CloseFont(TTF_Font *font)
+    SDL_Surface *TTF_RenderUTF8_Blended(TTF_Font *font, const char *text, SDL_Color fg)

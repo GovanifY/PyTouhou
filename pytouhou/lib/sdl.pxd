@@ -74,9 +74,16 @@ cdef class Chunk:
     cdef void set_volume(self, float volume) nogil
 
 
+cdef class Font:
+    cdef TTF_Font *font
+
+    cdef Surface render(self, unicode text)
+
+
 cdef void init(Uint32 flags) except *
 cdef void img_init(Uint32 flags) except *
 cdef void mix_init(int flags) except *
+cdef void ttf_init() except *
 
 IF UNAME_SYSNAME == "Windows":
     cdef void set_main_ready()
@@ -84,6 +91,7 @@ IF UNAME_SYSNAME == "Windows":
 cdef void quit() nogil
 cdef void img_quit() nogil
 cdef void mix_quit() nogil
+cdef void ttf_quit() nogil
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
 cdef list poll_events()
 cdef const Uint8* get_keyboard_state() nogil
