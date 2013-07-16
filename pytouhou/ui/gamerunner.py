@@ -89,6 +89,8 @@ class GameRunner(GameRenderer):
 
         sdl.init(sdl.INIT_VIDEO)
         sdl.img_init(sdl.INIT_PNG)
+        sdl.mix_init(0)
+
         sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
         sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
         sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
@@ -100,6 +102,9 @@ class GameRunner(GameRenderer):
                               self.width, self.height,
                               sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN)
         self.win.gl_create_context()
+
+        sdl.mix_open_audio(44100, sdl.DEFAULT_FORMAT, 2, 4096)
+        sdl.mix_allocate_channels(26) #TODO: make it dependent on the SFX number.
 
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
@@ -189,6 +194,8 @@ class GameRunner(GameRenderer):
 
         self.win.gl_delete_context()
         self.win.destroy_window()
+        sdl.mix_close_audio()
+        sdl.mix_quit()
         sdl.img_quit()
         sdl.quit()
 

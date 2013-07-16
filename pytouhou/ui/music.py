@@ -14,77 +14,11 @@
 
 
 from os.path import join
-
-from pyglet.media import AudioData, AudioFormat, StaticSource, Player
-from pyglet.media.riff import WaveSource
-
-
+from glob import glob
+from pytouhou.lib import sdl
 from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
-
-
-class InfiniteWaveSource(WaveSource):
-    def __init__(self, filename, start, end, file=None):
-        WaveSource.__init__(self, filename, file)
-
-        self._start = self.audio_format.bytes_per_sample * start
-        self._end = self.audio_format.bytes_per_sample * end
-
-        if self._end > self._max_offset:
-            raise Exception('Music ends after the end of the file.')
-
-        self._duration = None
-
-
-    def _get_audio_data(self, bytes):
-        bytes -= bytes % self.audio_format.bytes_per_sample
-
-        data = b''
-        length = bytes
-        while True:
-            size = min(length, self._end - self._offset)
-            data += self._file.read(size)
-            if size == length:
-                break
-
-            self._offset = self._start
-            self._file.seek(self._offset + self._start_offset)
-            length -= size
-
-        self._offset += length
-
-        timestamp = float(self._offset) / self.audio_format.bytes_per_second
-        duration = float(bytes) / self.audio_format.bytes_per_second
-
-        return AudioData(data, bytes, timestamp, duration)
-
-
-    def seek(self, timestamp):
-        raise NotImplementedError('irrelevant')
-
-
-class ZwavSource(InfiniteWaveSource):
-    def __init__(self, filename, format, file=None):
-        if file is None:
-            file = open(filename, 'rb')
-
-        self._file = file
-
-        magic = self._file.read(4)
-        assert b'ZWAV' == magic
-
-        self.audio_format = AudioFormat(
-            channels=format.wChannels,
-            sample_size=format.wBitsPerSample,
-            sample_rate=format.dwSamplesPerSec)
-
-        self._start_offset = 0
-        self._offset = format.intro
-
-        self._file.seek(self._offset)
-        self._start = format.intro + format.start
-        self._end = format.intro + format.duration
 
 
 class MusicPlayer(object):
@@ -99,69 +33,63 @@ class MusicPlayer(object):
                 track = resource_loader.get_track(posname)
             except KeyError:
                 self.bgms.append(None)
-                logger.warn('Music description not found: %s', posname)
+                logger.warn(u'Music description “%s” not found.', posname)
                 continue
-            wavname = join(resource_loader.game_dir, bgm[1].replace('.mid', '.wav'))
-            try:
-                source = InfiniteWaveSource(wavname, track.start, track.end)
-            except IOError:
-                source = None
-            self.bgms.append(source)
-
-        self.player = Player()
-
-
-    def pause(self):
-        self.player.pause()
-
+            globname = join(resource_loader.game_dir, bgm[1]).replace('.mid', '.*')
+            filenames = glob(globname)
+            for filename in reversed(filenames):
+                try:
+                    source = sdl.load_music(filename)
+                except sdl.SDLError as error:
+                    logger.debug(u'Music file “%s” unreadable: %s', filename, error)
+                    continue
+                else:
+                    source.set_loop_points(track.start / 44100., track.end / 44100.) #TODO: retrieve the sample rate from the actual track.
+                    self.bgms.append(source)
+                    logger.debug(u'Music file “%s” opened.', filename)
+                    break
+            else:
+                self.bgms.append(None)
+                logger.warn(u'No working music file for “%s”, disabling bgm.', globname)
 
     def play(self, index):
         bgm = self.bgms[index]
-        if self.player.playing:
-            self.player.next()
         if bgm:
-            self.player.queue(bgm)
-        self.player.play()
+            bgm.play(-1)
 
 
 class SFXPlayer(object):
     def __init__(self, loader, volume=.42):
         self.loader = loader
-        self.players = {}
+        self.channels = {}
         self.sounds = {}
         self.volume = volume
+        self.next_channel = 0
 
-
-    def get_player(self, name):
-        if name not in self.players:
-            self.players[name] = Player()
-            self.players[name].volume = self.volume
-        return self.players[name]
-
+    def get_channel(self, name):
+        if name not in self.channels:
+            self.channels[name] = self.next_channel
+            self.next_channel += 1
+        return self.channels[name]
 
     def get_sound(self, name):
         if name not in self.sounds:
             wave_file = self.loader.get_file(name)
-            self.sounds[name] = StaticSource(WaveSource(name, wave_file))
+            self.sounds[name] = sdl.load_chunk(wave_file)
+            self.sounds[name].volume = self.volume
         return self.sounds[name]
-
 
     def play(self, name, volume=None):
         sound = self.get_sound(name)
-        player = self.get_player(name)
+        channel = self.get_channel(name)
         if volume:
-            player.volume = volume
-        if player.playing:
-            player.next()
-        if sound:
-            player.queue(sound)
-        player.play()
+            sdl.mix_volume(channel, volume)
+        sound.play(channel, 0)
 
 
 class NullPlayer(object):
     def __init__(self, loader=None, bgms=None):
         pass
 
-
-    def play(self, name):
+    def play(self, name, volume=None):
         pass

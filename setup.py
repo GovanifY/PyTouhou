@@ -18,7 +18,7 @@ except ImportError:
 
 
 COMMAND = 'pkg-config'
-LIBRARIES = ['sdl2', 'SDL2_image']
+LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer']
 
 packages = []
 extension_names = []

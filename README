@@ -16,7 +16,7 @@ Running:
     * Cython
     * Pyglet
     * SDL2
-    * SDL2_image
+    * SDL2_image, SDL2_mixer
 
 
 Building sample data:

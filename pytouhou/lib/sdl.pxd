@@ -123,3 +123,37 @@ cdef extern from "SDL_image.h":
     int IMG_Init(int flags)
     void IMG_Quit()
     SDL_Surface *IMG_LoadPNG_RW(SDL_RWops *src)
+
+
+cdef extern from "SDL_mixer.h":
+    ctypedef enum:
+        MIX_DEFAULT_FORMAT
+
+    ctypedef struct Mix_Music:
+        pass
+
+    ctypedef struct Mix_Chunk:
+        pass
+
+    int Mix_Init(int flags)
+    void Mix_Quit()
+
+    int Mix_OpenAudio(int frequency, Uint16 format_, int channels, int chunksize)
+    void Mix_CloseAudio()
+
+    int Mix_AllocateChannels(int numchans)
+
+    Mix_Music *Mix_LoadMUS(const char *filename)
+    Mix_Chunk *Mix_LoadWAV_RW(SDL_RWops *src, int freesrc)
+
+    void Mix_FreeMusic(Mix_Music *music)
+    void Mix_FreeChunk(Mix_Chunk *chunk)
+
+    int Mix_PlayMusic(Mix_Music *music, int loops)
+    #int Mix_SetLoopPoints(Mix_Music *music, double start, double end)
+
+    int Mix_Volume(int channel, int volume)
+    int Mix_VolumeChunk(Mix_Chunk *chunk, int volume)
+    int Mix_VolumeMusic(int volume)
+
+    int Mix_PlayChannel(int channel, Mix_Chunk *chunk, int loops)

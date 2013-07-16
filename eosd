@@ -204,7 +204,6 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
             runner.start()
             break
         except NextStage:
-            game.music.pause()
             if not story or stage_num == (7 if boss_rush else 6 if rank > 0 else 5):
                 break
             stage_num += 1

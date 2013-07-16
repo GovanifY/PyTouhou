@@ -37,6 +37,8 @@ SCANCODE_ESCAPE = SDL_SCANCODE_ESCAPE
 KEYDOWN = SDL_KEYDOWN
 QUIT = SDL_QUIT
 
+DEFAULT_FORMAT = MIX_DEFAULT_FORMAT
+
 
 class SDLError(Exception):
     pass
@@ -97,6 +99,36 @@ cdef class Surface:
             image[3+4*i] = alpha[3*i]
 
 
+cdef class Music:
+    cdef Mix_Music *music
+
+    def __dealloc__(self):
+        if self.music != NULL:
+            Mix_FreeMusic(self.music)
+
+    def play(self, int loops):
+        Mix_PlayMusic(self.music, loops)
+
+    def set_loop_points(self, double start, double end):
+        #Mix_SetLoopPoints(self.music, start, end)
+        pass
+
+
+cdef class Chunk:
+    cdef Mix_Chunk *chunk
+
+    def __dealloc__(self):
+        if self.chunk != NULL:
+            Mix_FreeChunk(self.chunk)
+
+    property volume:
+        def __set__(self, float volume):
+            Mix_VolumeChunk(self.chunk, int(volume * 128))
+
+    def play(self, int channel, int loops):
+        Mix_PlayChannel(channel, self.chunk, loops)
+
+
 def init(Uint32 flags):
     if SDL_Init(flags) < 0:
         raise SDLError(SDL_GetError())
@@ -107,12 +139,21 @@ def img_init(Uint32 flags):
         raise SDLError(SDL_GetError())
 
 
+def mix_init(int flags):
+    if Mix_Init(flags) != flags:
+        raise SDLError(SDL_GetError())
+
+
 def quit():
     SDL_Quit()
 
 
 def img_quit():
     IMG_Quit()
+
+
+def mix_quit():
+    Mix_Quit()
 
 
 def gl_set_attribute(SDL_GLattr attr, int value):
@@ -156,6 +197,47 @@ def create_rgb_surface(int width, int height, int depth, Uint32 rmask=0, Uint32 
     if surface.surface == NULL:
         raise SDLError(SDL_GetError())
     return surface
+
+
+def mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize):
+    if Mix_OpenAudio(frequency, format_, channels, chunksize) < 0:
+        raise SDLError(SDL_GetError())
+
+
+def mix_close_audio():
+    Mix_CloseAudio()
+
+
+def mix_allocate_channels(int numchans):
+    if Mix_AllocateChannels(numchans) != numchans:
+        raise SDLError(SDL_GetError())
+
+
+def mix_volume(int channel, float volume):
+    return Mix_Volume(channel, int(volume * 128))
+
+
+def mix_volume_music(float volume):
+    return Mix_VolumeMusic(int(volume * 128))
+
+
+def load_music(const char *filename):
+    music = Music()
+    music.music = Mix_LoadMUS(filename)
+    if music.music == NULL:
+        raise SDLError(SDL_GetError())
+    return music
+
+
+def load_chunk(file_):
+    cdef SDL_RWops *rwops
+    chunk = Chunk()
+    data = file_.read()
+    rwops = SDL_RWFromConstMem(<char*>data, len(data))
+    chunk.chunk = Mix_LoadWAV_RW(rwops, 1)
+    if chunk.chunk == NULL:
+        raise SDLError(SDL_GetError())
+    return chunk
 
 
 def get_ticks():
