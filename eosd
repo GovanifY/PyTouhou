@@ -42,6 +42,7 @@ parser.add_argument('--debug', action='store_true', help='Set unlimited continue
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
 parser.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
+parser.add_argument('--no-music', action='store_false', help='Disable background music.')
 parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
 
@@ -56,7 +57,6 @@ pyximport.install()
 
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
-from pytouhou.game.background import Background
 from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDGame
 from pytouhou.game.game import GameOver
@@ -97,8 +97,8 @@ class EoSDGameBossRush(EoSDGame):
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, fps_limit, single_buffer, debug,
-         fixed_pipeline, display_background, display_particles, hints,
-         verbosity):
+         fixed_pipeline, enable_background, enable_particles, enable_music,
+         hints, verbosity):
 
     resource_loader = Loader(path)
 
@@ -185,24 +185,18 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
         hints_stage = hints.stages[stage_num - 1] if hints else None
 
-        # Load stage data
-        stage = resource_loader.get_stage('stage%d.std' % stage_num)
-
         game = game_class(resource_loader, states, stage_num, rank, difficulty, prng=prng, continues=continues, hints=hints_stage)
 
-        if not display_particles:
+        if not enable_particles:
             def new_particle(pos, anim, amp, number=1, reverse=False, duration=24):
                 pass
             game.new_particle = new_particle
 
-        if display_background:
-            background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage_num,))
-            background = Background(stage, background_anm_wrapper)
-        else:
-            background = None
+        background = game.background if enable_background else None
+        bgms = game.std.bgms if enable_music else None
 
         # Main loop
-        runner.load_game(game, background, stage.bgms, replay, save_keystates)
+        runner.load_game(game, background, bgms, replay, save_keystates)
         window.set_runner(runner)
         try:
             window.run()
@@ -231,4 +225,5 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 main(args.path, tuple(args.data), args.stage, args.rank, args.character,
      args.replay, args.save_replay, args.skip_replay, args.boss_rush,
      args.fps_limit, args.single_buffer, args.debug, args.fixed_pipeline,
-     args.no_background, args.no_particles, args.hints, args.verbosity)
+     args.no_background, args.no_particles, args.no_music, args.hints,
+     args.verbosity)

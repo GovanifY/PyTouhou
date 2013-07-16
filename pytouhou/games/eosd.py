@@ -22,9 +22,9 @@ from pytouhou.game.player import Player
 from pytouhou.game.orb import Orb
 from pytouhou.game.effect import Effect
 from pytouhou.game.text import Text, Counter, Gauge
+from pytouhou.game.background import Background
 
-
-SQ2 = 2. ** 0.5 / 2.
+from pytouhou.vm.eclrunner import ECLMainRunner
 
 
 class EoSDGame(Game):
@@ -35,7 +35,7 @@ class EoSDGame(Game):
 
         if not bullet_types:
             etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
-            etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
+            self.etama = resource_loader.get_anm_wrapper(('etama4.anm',))
             bullet_types = [BulletType(etama3, 0, 11, 14, 15, 16, hitbox_size=2,
                                        type_id=0),
                             BulletType(etama3, 1, 12, 17, 18, 19, hitbox_size=3,
@@ -57,7 +57,7 @@ class EoSDGame(Game):
                             BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=4.5,
                                        launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
                                        type_id=8),
-                            BulletType(etama4, 0, 1, 2, 2, 2, hitbox_size=16,
+                            BulletType(self.etama, 0, 1, 2, 2, 2, hitbox_size=16,
                                        launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8),
                                        type_id=9)]
 
@@ -73,6 +73,13 @@ class EoSDGame(Game):
                           ItemType(etama3, 4, 11), #Full power
                           ItemType(etama3, 5, 12), #1up
                           ItemType(etama3, 6, 13)] #Star
+
+        self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
+                                                                 'stg%denm2.anm' % stage))
+        ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
+        self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
+
+        self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
 
         player_face = player_states[0].character // 2
         enemy_face = [('face03a.anm', 'face03b.anm'),
@@ -95,7 +102,15 @@ class EoSDGame(Game):
         self.stage = stage #XXX
         interface = EoSDInterface(self, resource_loader)
 
-        Game.__init__(self, resource_loader, players, stage, rank, difficulty,
+        # Load stage data
+        self.std = resource_loader.get_stage('stage%d.std' % stage)
+
+        background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage,))
+        self.background = Background(self.std, background_anm_wrapper)
+
+        self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
+
+        Game.__init__(self, players, stage, rank, difficulty,
                       bullet_types, laser_types, item_types, nb_bullets_max,
                       width, height, prng, interface, continues, hints)
 
@@ -277,4 +292,3 @@ class EoSDPlayer(Player):
 
         for orb in self.orbs:
             orb.update()
-

@@ -14,7 +14,6 @@
 
 from itertools import chain
 
-from pytouhou.vm.eclrunner import ECLMainRunner
 from pytouhou.vm.msgrunner import MSGRunner
 
 from pytouhou.game.bullet import LAUNCHED, CANCELLED
@@ -31,12 +30,10 @@ class GameOver(Exception):
 
 
 class Game(object):
-    def __init__(self, resource_loader, players, stage, rank, difficulty,
-                 bullet_types, laser_types, item_types,
-                 nb_bullets_max=None, width=384, height=448, prng=None,
-                 interface=None, continues=0, hints=None):
-        self.resource_loader = resource_loader
-
+    def __init__(self, players, stage, rank, difficulty, bullet_types,
+                 laser_types, item_types, nb_bullets_max=None, width=384,
+                 height=448, prng=None, interface=None, continues=0,
+                 hints=None):
         self.width, self.height = width, height
 
         self.nb_bullets_max = nb_bullets_max
@@ -75,13 +72,6 @@ class Game(object):
         self.prng = prng
         self.frame = 0
 
-        self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
-                                                                 'stg%denm2.anm' % stage))
-        self.etama4 = resource_loader.get_anm_wrapper(('etama4.anm',))
-        ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
-        self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
-
-        self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
         self.spellcard_effect = None
 
         # See 102h.exe@0x413220 if you think you're brave enough.
@@ -187,13 +177,13 @@ class Game(object):
     def new_effect(self, pos, anim, anm_wrapper=None, number=1):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
-            self.effects.append(Effect(pos, anim, anm_wrapper or self.etama4))
+            self.effects.append(Effect(pos, anim, anm_wrapper or self.etama))
 
 
     def new_particle(self, pos, anim, amp, number=1, reverse=False, duration=24):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
-            self.effects.append(Particle(pos, anim, self.etama4, amp, self, reverse=reverse, duration=duration))
+            self.effects.append(Particle(pos, anim, self.etama, amp, self, reverse=reverse, duration=duration))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):

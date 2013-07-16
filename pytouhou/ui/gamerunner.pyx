@@ -71,9 +71,14 @@ class GameRunner(GameRenderer):
 
         self.save_keystates = save_keystates
 
-        game.music = MusicPlayer(game.resource_loader, bgms)
-        game.music.play(0)
-        game.sfx_player = SFXPlayer(game.resource_loader) if not self.skip else NullPlayer()
+        null_player = NullPlayer()
+        if bgms:
+            game.music = MusicPlayer(game.resource_loader, bgms)
+            game.music.play(0)
+        else:
+            game.music = null_player
+
+        game.sfx_player = SFXPlayer(game.resource_loader) if not self.skip else null_player
 
 
     def set_input(self, replay=None):
