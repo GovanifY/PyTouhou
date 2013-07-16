@@ -19,9 +19,8 @@ import os
 import pyximport
 pyximport.install()
 
+from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
-from pytouhou.game.sprite import Sprite
-from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.ui.anmrenderer import ANMRenderer
 
 
@@ -29,10 +28,13 @@ def main(path, data, name, script, sprites, fixed_pipeline):
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name) for name in data)
 
+    window = Window((384, 448), fixed_pipeline=fixed_pipeline, sound=False)
+
     # Get out animation
     anm_wrapper = resource_loader.get_anm_wrapper(name.split(','))
-    anm = ANMRenderer(resource_loader, anm_wrapper, script, sprites, fixed_pipeline)
-    anm.start()
+    anm = ANMRenderer(window, resource_loader, anm_wrapper, script, sprites)
+    window.set_runner(anm)
+    window.run()
 
 
 parser = argparse.ArgumentParser(description='Viewer of ANM files, archives containing animations used in Touhou games.')

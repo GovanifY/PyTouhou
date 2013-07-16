@@ -14,7 +14,7 @@ Dependencies:
 Running:
     * Python2 (>= 2.6)
     * Cython
-    * Pyglet
+    * A working OpenGL driver
     * SDL2
     * SDL2_image, SDL2_mixer
 
