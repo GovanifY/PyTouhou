@@ -17,7 +17,7 @@ from itertools import chain
 
 from pytouhou.lib.opengl cimport \
          (glClear, glMatrixMode, glLoadIdentity, glLoadMatrixf, glDisable,
-          glEnable, glFogi, glFogf, glFogfv, GL_DEPTH_BUFFER_BIT,
+          glEnable, glFogi, glFogf, glFogfv,
           GL_PROJECTION, GL_MODELVIEW, GL_FOG, GL_FOG_MODE, GL_LINEAR,
           GL_FOG_START, GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
 
@@ -35,8 +35,6 @@ class GameRenderer(Renderer):
 
     def render(self):
         cdef float* fog_data
-
-        glClear(GL_DEPTH_BUFFER_BIT)
 
         back = self.background
         game = self.game

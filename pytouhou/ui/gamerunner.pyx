@@ -17,7 +17,7 @@ from pytouhou.lib import sdl
 from pytouhou.lib.opengl cimport \
          (glMatrixMode, glEnable, glDisable, glViewport, glScissor,
           glLoadMatrixf, glGenBuffers, glDeleteBuffers, GL_MODELVIEW,
-          GL_FOG, GL_SCISSOR_TEST)
+          GL_FOG, GL_SCISSOR_TEST, glClear, GL_DEPTH_BUFFER_BIT)
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
@@ -162,6 +162,7 @@ class GameRunner(GameRenderer):
         #TODO: move that to GameRenderer?
         x, y = self.game.interface.game_pos
         glViewport(x, y, self.game.width, self.game.height)
+        glClear(GL_DEPTH_BUFFER_BIT)
         glScissor(x, y, self.game.width, self.game.height)
         glEnable(GL_SCISSOR_TEST)
 
