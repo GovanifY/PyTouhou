@@ -13,7 +13,7 @@
 ##
 
 
-from random import randrange
+from random import randrange, random
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.vm.common import MetaRegistry, instruction
@@ -25,19 +25,34 @@ class ANMRunner(object):
     __metaclass__ = MetaRegistry
     __slots__ = ('_anm_wrapper', '_sprite', 'running',
                  'sprite_index_offset', 'script', 'instruction_pointer',
-                 'frame', 'waiting', 'handlers')
+                 'frame', 'waiting', 'handlers', 'variables', 'version', 'timeout')
 
+    #TODO: check!
+    formulae = {0: lambda x: x,
+                1: lambda x: x ** 2,
+                2: lambda x: x ** 3,
+                3: lambda x: x ** 4,
+                4: lambda x: 2 * x - x ** 2,
+                5: lambda x: 2 * x - x ** 3,
+                6: lambda x: 2 * x - x ** 4,
+                7: lambda x: x,
+                255: lambda x: x} #XXX
 
     def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
         self._anm_wrapper = anm_wrapper
         self._sprite = sprite
-        self.handlers = self._handlers[6]
         self.running = True
         self.waiting = False
 
         anm, self.script = anm_wrapper.get_script(script_id)
+        self.version = anm.version
+        self.handlers = self._handlers[{0: 6, 2: 7}[anm.version]]
         self.frame = 0
+        self.timeout = -1
         self.instruction_pointer = 0
+        self.variables = [0,  0,  0,  0,
+                          0., 0., 0., 0.,
+                          0,  0,  0,  0]
 
         self.sprite_index_offset = sprite_index_offset
 
@@ -75,11 +90,15 @@ class ANMRunner(object):
                 except KeyError:
                     logger.warn('unhandled opcode %d (args: %r)', opcode, args)
                 else:
+                    logger.debug('[%d - %04d] anm_%d%r', id(self),
+                                 self.frame, opcode, args)
                     callback(self, *args)
                     sprite.changed = True
 
         if not self.waiting:
             self.frame += 1
+        elif self.timeout == sprite.frame: #TODO: check if it’s happening at the correct frame.
+            self.waiting = False
 
         # Update sprite
         sprite.frame += 1
@@ -88,6 +107,10 @@ class ANMRunner(object):
             ax, ay, az = sprite.rotations_3d
             sax, say, saz = sprite.rotations_speed_3d
             sprite.rotations_3d = ax + sax, ay + say, az + saz
+            sprite.changed = True
+        elif sprite.rotation_interpolator:
+            sprite.rotation_interpolator.update(sprite.frame)
+            sprite.rotations_3d = sprite.rotation_interpolator.values
             sprite.changed = True
 
         if sprite.scale_speed != (0., 0.):
@@ -111,31 +134,55 @@ class ANMRunner(object):
             sprite.dest_offset = sprite.offset_interpolator.values
             sprite.changed = True
 
+        if sprite.color_interpolator:
+            sprite.color_interpolator.update(sprite.frame)
+            sprite.color = sprite.color_interpolator.values
+            sprite.changed = True
+
         return self.running
 
 
+    def _setval(self, variable_id, value):
+        if self.version == 2:
+            if 10000 <= variable_id <= 10011:
+                self.variables[int(variable_id-10000)] = value
+
+
+    def _getval(self, value):
+        if self.version == 2:
+            if 10000 <= value <= 10011:
+                return self.variables[int(value-10000)]
+        return value
+
+
     @instruction(0)
+    @instruction(1, 7)
     def remove(self):
         self._sprite.removed = True
         self.running = False
 
 
     @instruction(1)
+    @instruction(3, 7)
     def load_sprite(self, sprite_index):
+        #TODO: version 2 only: do not crash when assigning a non-existant sprite.
         self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(sprite_index + self.sprite_index_offset)
 
 
     @instruction(2)
+    @instruction(7, 7)
     def set_scale(self, sx, sy):
-        self._sprite.rescale = sx, sy
+        self._sprite.rescale = self._getval(sx), self._getval(sy)
 
 
     @instruction(3)
+    @instruction(8, 7)
     def set_alpha(self, alpha):
         self._sprite.alpha = alpha % 256 #TODO
 
 
     @instruction(4)
+    @instruction(9, 7)
     def set_color(self, b, g, r):
         if not self._sprite.fade_interpolator:
             self._sprite.color = (r, g, b)
@@ -149,26 +196,31 @@ class ANMRunner(object):
 
 
     @instruction(7)
+    @instruction(10, 7)
     def toggle_mirrored(self):
         self._sprite.mirrored = not self._sprite.mirrored
 
 
     @instruction(9)
+    @instruction(12, 7)
     def set_rotations_3d(self, rx, ry, rz):
-        self._sprite.rotations_3d = rx, ry, rz
+        self._sprite.rotations_3d = self._getval(rx), self._getval(ry), self._getval(rz)
 
 
     @instruction(10)
+    @instruction(13, 7)
     def set_rotations_speed_3d(self, srx, sry, srz):
-        self._sprite.rotations_speed_3d = srx, sry, srz
+        self._sprite.rotations_speed_3d = self._getval(srx), self._getval(sry), self._getval(srz)
 
 
     @instruction(11)
+    @instruction(14, 7)
     def set_scale_speed(self, ssx, ssy):
         self._sprite.scale_speed = ssx, ssy
 
 
     @instruction(12)
+    @instruction(15, 7)
     def fade(self, new_alpha, duration):
         self._sprite.fade(duration, new_alpha, lambda x: x) #TODO: formula
 
@@ -184,6 +236,7 @@ class ANMRunner(object):
 
 
     @instruction(15)
+    @instruction(2, 7)
     def keep_still(self):
         self.running = False
 
@@ -194,26 +247,31 @@ class ANMRunner(object):
 
 
     @instruction(17)
+    @instruction(6, 7)
     def move(self, x, y, z):
         self._sprite.dest_offset = (x, y, z)
 
 
     @instruction(18)
+    @instruction(17, 7)
     def move_in_linear(self, x, y, z, duration):
         self._sprite.move_in(duration, x, y, z, lambda x: x)
 
 
     @instruction(19)
+    @instruction(18, 7)
     def move_in_decel(self, x, y, z, duration):
         self._sprite.move_in(duration, x, y, z, lambda x: 2. * x - x ** 2)
 
 
     @instruction(20)
+    @instruction(19, 7)
     def move_in_accel(self, x, y, z, duration):
         self._sprite.move_in(duration, x, y, z, lambda x: x ** 2)
 
 
     @instruction(21)
+    @instruction(20, 7)
     def wait(self):
         """Wait for an interrupt.
         """
@@ -221,17 +279,20 @@ class ANMRunner(object):
 
 
     @instruction(22)
+    @instruction(21, 7)
     def interrupt_label(self, interrupt):
         """Noop"""
         pass
 
 
     @instruction(23)
+    @instruction(22, 7)
     def set_corner_relative_placement(self):
         self._sprite.corner_relative_placement = True #TODO
 
 
     @instruction(24)
+    @instruction(23, 7)
     def wait_ex(self):
         """Hide the sprite and wait for an interrupt.
         """
@@ -240,11 +301,13 @@ class ANMRunner(object):
 
 
     @instruction(25)
+    @instruction(24, 7)
     def set_allow_dest_offset(self, value):
         self._sprite.allow_dest_offset = bool(value)
 
 
     @instruction(26)
+    @instruction(25, 7)
     def set_automatic_orientation(self, value):
         """If true, rotate by pi-angle around the z axis.
         """
@@ -252,23 +315,134 @@ class ANMRunner(object):
 
 
     @instruction(27)
+    @instruction(26, 7)
     def shift_texture_x(self, dx):
         tox, toy = self._sprite.texoffsets
         self._sprite.texoffsets = tox + dx, toy
 
 
     @instruction(28)
+    @instruction(27, 7)
     def shift_texture_y(self, dy):
         tox, toy = self._sprite.texoffsets
         self._sprite.texoffsets = tox, toy + dy
 
 
     @instruction(29)
+    @instruction(28, 7)
     def set_visible(self, visible):
         self._sprite.visible = bool(visible & 1)
 
 
     @instruction(30)
+    @instruction(29, 7)
     def scale_in(self, sx, sy, duration):
         self._sprite.scale_in(duration, sx, sy, lambda x: x) #TODO: formula
 
+
+# Now are the instructions new to anm2.
+
+
+    @instruction(0, 7)
+    def noop(self):
+        pass
+
+
+    @instruction(4, 7)
+    def jump_bis(self, instruction_pointer, frame):
+        self.instruction_pointer = instruction_pointer
+        self.frame = frame
+
+
+    @instruction(5, 7)
+    def jump_ex(self, variable_id, instruction_pointer, frame):
+        """If the given variable is non-zero, decrease it by 1 and jump to a
+        relative offset in the same subroutine.
+        """
+        counter_value = self._getval(variable_id) - 1
+        if counter_value > 0:
+            self._setval(variable_id, counter_value)
+            self.instruction_pointer = instruction_pointer
+            self.frame = frame
+
+
+    @instruction(16, 7)
+    def set_blendfunc(self, value):
+        self._sprite.blendfunc = bool(value & 1)
+
+
+    @instruction(32, 7)
+    def move_in_bis(self, duration, formula, x, y, z):
+        self._sprite.move_in(duration, x, y, z, self.formulae[formula])
+
+
+    @instruction(33, 7)
+    def change_color_in(self, duration, formula, r, g, b):
+        self._sprite.change_color_in(duration, r, g, b, self.formulae[formula])
+
+
+    @instruction(34, 7)
+    def fade_bis(self, duration, formula, new_alpha):
+        self._sprite.fade(duration, new_alpha, self.formulae[formula])
+
+
+    @instruction(35, 7)
+    def rotate_in_bis(self, duration, formula, rx, ry, rz):
+        self._sprite.rotate_in(duration, rx, ry, rz, self.formulae[formula])
+
+
+    @instruction(36, 7)
+    def scale_in_bis(self, duration, formula, sx, sy):
+        self._sprite.scale_in(duration, sx, sy, self.formulae[formula])
+
+
+    @instruction(37, 7)
+    @instruction(38, 7)
+    def set_variable(self, variable_id, value):
+        self._setval(variable_id, value)
+
+
+    @instruction(42, 7)
+    def decrement(self, variable_id, value):
+        self._setval(variable_id, self._getval(variable_id) - self._getval(value))
+
+
+    @instruction(50, 7)
+    def add(self, variable_id, a, b):
+        self._setval(variable_id, self._getval(a) + self._getval(b))
+
+
+    @instruction(52, 7)
+    def substract(self, variable_id, a, b):
+        self._setval(variable_id, self._getval(a) - self._getval(b))
+
+
+    @instruction(55, 7)
+    def divide_int(self, variable_id, a, b):
+        self._setval(variable_id, self._getval(a) // self._getval(b))
+
+
+    @instruction(59, 7)
+    def set_random_int(self, variable_id, amp):
+        #TODO: use the game's PRNG?
+        self._setval(variable_id, randrange(amp))
+
+
+    @instruction(60, 7)
+    def set_random_float(self, variable_id, amp):
+        #TODO: use the game's PRNG?
+        self._setval(variable_id, amp * random())
+
+
+    @instruction(69, 7)
+    def branch_if_not_equal(self, variable_id, value, instruction_pointer, frame):
+        if self._getval(variable_id) != value:
+            self.instruction_pointer = instruction_pointer
+            self.frame = frame
+            assert self.frame == self.script[self.instruction_pointer][0]
+
+
+    @instruction(79, 7)
+    def wait_duration(self, duration):
+        self.timeout = self._sprite.frame + duration
+        self.waiting = True

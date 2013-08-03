@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from itertools import repeat
+from itertools import repeat, chain
 
 
 class AnmWrapper(object):
@@ -32,7 +32,7 @@ class AnmWrapper(object):
         if not offsets:
             offsets = repeat(0) # “offsets” defaults to zeroes
 
-        for anm, offset in zip(anm_files, offsets):
+        for anm, offset in zip(chain(*anm_files), offsets):
             for script_id, script in anm.scripts.iteritems():
                 self.scripts[script_id + offset] = (anm, script) #TODO: check
             for sprite_id, sprite in anm.sprites.iteritems():

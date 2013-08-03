@@ -18,10 +18,12 @@ from pytouhou.utils.interpolator import Interpolator
 
 class Sprite(object):
     __slots__ = ('anm', 'removed', 'changed', 'width_override', 'height_override',
-                 'angle', 'force_rotation', 'scale_interpolator', 'fade_interpolator',
-                 'offset_interpolator', 'automatic_orientation', 'blendfunc',
-                 'texcoords', 'dest_offset', 'allow_dest_offset', 'texoffsets',
-                 'mirrored', 'rescale', 'scale_speed', 'rotations_3d',
+                 'angle', 'force_rotation', 'scale_interpolator',
+                 'fade_interpolator', 'offset_interpolator',
+                 'rotation_interpolator', 'color_interpolator',
+                 'automatic_orientation', 'blendfunc', 'texcoords',
+                 'dest_offset', 'allow_dest_offset', 'texoffsets', 'mirrored',
+                 'rescale', 'scale_speed', 'rotations_3d',
                  'rotations_speed_3d', 'corner_relative_placement', 'frame',
                  'color', 'alpha', 'visible', '_rendering_data')
     def __init__(self, width_override=0, height_override=0):
@@ -38,6 +40,8 @@ class Sprite(object):
         self.scale_interpolator = None
         self.fade_interpolator = None
         self.offset_interpolator = None
+        self.rotation_interpolator = None
+        self.color_interpolator = None
 
         self.automatic_orientation = False
 
@@ -76,6 +80,18 @@ class Sprite(object):
         self.offset_interpolator = Interpolator(self.dest_offset, self.frame,
                                                 (x, y, z), self.frame + duration,
                                                 formula)
+
+
+    def rotate_in(self, duration, rx, ry, rz, formula):
+        self.rotation_interpolator = Interpolator(self.rotations_3d, self.frame,
+                                                  (rx, ry, rz), self.frame + duration,
+                                                  formula)
+
+
+    def change_color_in(self, duration, r, g, b, formula):
+        self.color_interpolator = Interpolator(self.color, self.frame,
+                                               (r, g, b), self.frame + duration,
+                                               formula)
 
 
     def update_orientation(self, angle_base=0., force_rotation=False):

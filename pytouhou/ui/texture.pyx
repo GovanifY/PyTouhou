@@ -38,9 +38,12 @@ class TextureManager(object):
 
     def load(self, anm_list):
         for anm in anm_list:
-            if not hasattr(anm, 'texture'):
-                texture = decode_png(self.loader, anm.first_name, anm.secondary_name)
-                anm.texture = load_texture(texture)
+            for entry in anm:
+                if not hasattr(entry, 'texture'):
+                    texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
+                    entry.texture = load_texture(texture)
+                elif not isinstance(entry.texture, TextureId):
+                    entry.texture = load_texture(entry.texture)
 
 
 cdef decode_png(loader, first_name, secondary_name):

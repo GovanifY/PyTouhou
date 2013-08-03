@@ -17,6 +17,7 @@ from glob import glob
 from itertools import chain
 from io import BytesIO
 
+from pytouhou.formats import WrongFormatError
 from pytouhou.formats.pbg3 import PBG3
 from pytouhou.formats.std import Stage
 from pytouhou.formats.ecl import ECL
@@ -140,7 +141,7 @@ class Loader(object):
     def get_anm(self, name):
         if name not in self.instanced_anms:
             file = self.get_file(name)
-            self.instanced_anms[name] = ANM0.read(file) #TODO: modular
+            self.instanced_anms[name] = ANM0.read(file)
         return self.instanced_anms[name]
 
 
