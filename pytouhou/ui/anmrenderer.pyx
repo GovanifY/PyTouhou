@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 
 class ANMRenderer(Renderer):
-    def __init__(self, window, resource_loader, anm_wrapper, index=0, sprites=False):
+    def __init__(self, window, resource_loader, anm, index=0, sprites=False):
         self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
 
         Renderer.__init__(self, resource_loader)
@@ -39,7 +39,7 @@ class ANMRenderer(Renderer):
         self.window = window
         self.texture_manager.load(resource_loader.instanced_anms.values())
 
-        self._anm_wrapper = anm_wrapper
+        self._anm = anm
         self.sprites = sprites
         self.clear_color = (0., 0., 0., 1.)
         self.force_allow_dest_offset = False
@@ -74,10 +74,11 @@ class ANMRenderer(Renderer):
             index = self.num
         self.sprite = Sprite()
         if self.sprites:
-            self.sprite.anm, self.sprite.texcoords = self._anm_wrapper.get_sprite(index)
+            self.sprite.anm = self._anm
+            self.sprite.texcoords = self._anm.sprites[index]
             print('Loaded sprite %d' % index)
         else:
-            self.anmrunner = ANMRunner(self._anm_wrapper, index, self.sprite)
+            self.anmrunner = ANMRunner(self._anm, index, self.sprite)
             print('Loading anim %d, handled events: %r' % (index, self.anmrunner.script.interrupts.keys()))
         self.num = index
 
@@ -93,9 +94,9 @@ class ANMRenderer(Renderer):
     def index_items(self):
         self.items = {}
         if self.sprites:
-            self.items = self._anm_wrapper.sprites
+            self.items = self._anm.sprites
         else:
-            self.items = self._anm_wrapper.scripts
+            self.items = self._anm.scripts
 
 
     def toggle_sprites(self):

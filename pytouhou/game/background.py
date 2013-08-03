@@ -19,9 +19,9 @@ from pytouhou.game.sprite import Sprite
 
 
 class Background(object):
-    def __init__(self, stage, anm_wrapper):
+    def __init__(self, stage, anm):
         self.stage = stage
-        self.anm_wrapper = anm_wrapper
+        self.anm = anm
         self.last_frame = -1
 
         self.models = []
@@ -53,7 +53,7 @@ class Background(object):
             quads = []
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 sprite = Sprite(width_override, height_override)
-                anm_runner = ANMRunner(self.anm_wrapper, script_index, sprite)
+                anm_runner = ANMRunner(self.anm, script_index, sprite)
                 anm_runner.run_frame()
                 quads.append((ox, oy, oz, width_override, height_override, sprite))
                 self.anm_runners.append(anm_runner)

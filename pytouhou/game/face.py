@@ -18,12 +18,12 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Face(object):
-    __slots__ = ('_anm_wrapper', 'sprite', 'anmrunner', 'side', 'x', 'y', 'objects')
+    __slots__ = ('_anms', 'sprite', 'anmrunner', 'side', 'x', 'y', 'objects')
 
-    def __init__(self, anm_wrapper, effect, side):
-        self._anm_wrapper = anm_wrapper
+    def __init__(self, anms, effect, side):
+        self._anms = anms
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(anm_wrapper, side * 2, self.sprite)
+        self.anmrunner = ANMRunner(self._anms[0][0][0], side * 2, self.sprite)
         self.side = side
         self.load(0)
         self.animate(effect)
@@ -40,10 +40,9 @@ class Face(object):
 
 
     def load(self, index):
-        self.sprite.anm, self.sprite.texcoords = self._anm_wrapper.get_sprite(self.side * 8 + index)
+        self.sprite.anm, self.sprite.texcoords = self._anms[self.side][index]
         self.anmrunner.run_frame()
 
 
     def update(self):
         self.anmrunner.run_frame()
-

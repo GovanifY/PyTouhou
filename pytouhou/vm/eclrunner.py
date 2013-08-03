@@ -920,7 +920,7 @@ class ECLRunner(object):
         elif 4 <= anim <= 15:
             self._game.new_particle((self._enemy.x, self._enemy.y), anim + 5, 192, number=number)
         elif anim == 16:
-            self._game.new_effect((self._enemy.x, self._enemy.y), 0, self._game.spellcard_effect_anm_wrapper, number=number)
+            self._game.new_effect((self._enemy.x, self._enemy.y), 0, self._game.spellcard_effect_anm, number=number)
         elif anim == 17:
             self._game.new_particle((self._enemy.x, self._enemy.y), anim - 10, 640, number=number, reverse=True, duration=60)
         elif anim == 18:

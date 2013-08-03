@@ -22,10 +22,11 @@ STARTING, STARTED, STOPPING = range(3)
 
 
 class LaserLaunchAnim(object):
-    def __init__(self, laser, anm_wrapper, index):
+    def __init__(self, laser, anm, index):
         self._laser = laser
         self.sprite = Sprite()
-        self.sprite.anm, self.sprite.texcoords = anm_wrapper.get_sprite(index)
+        self.sprite.anm = anm
+        self.sprite.texcoords = anm.sprites[index]
         self.sprite.blendfunc = 1
         self.removed = False
         self.objects = [self]
@@ -57,7 +58,7 @@ class Laser(object):
                        grazing_delay, grazing_extra_duration,
                        game):
         self._game = game
-        launch_anim = LaserLaunchAnim(self, laser_type.anm_wrapper,
+        launch_anim = LaserLaunchAnim(self, laser_type.anm,
                                       laser_type.launch_anim_offsets[sprite_idx_offset]
                                       + laser_type.launch_sprite_idx)
         self._game.effects.append(launch_anim)
@@ -97,7 +98,7 @@ class Laser(object):
         lt = self._laser_type
         self.sprite = Sprite()
         self.sprite.angle = self.angle
-        self.anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
+        self.anmrunner = ANMRunner(lt.anm, lt.anim_index,
                                    self.sprite, self.sprite_idx_offset)
         self.anmrunner.run_frame()
 
@@ -234,7 +235,7 @@ class PlayerLaser(object):
 
         lt = self._laser_type
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(lt.anm_wrapper, lt.anim_index,
+        self.anmrunner = ANMRunner(lt.anm, lt.anim_index,
                                    self.sprite, self.sprite_idx_offset)
         #self.sprite.blendfunc = 1 #XXX
         self.anmrunner.run_frame()

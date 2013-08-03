@@ -28,9 +28,6 @@ from pytouhou.formats.exe import SHT as EoSDSHT, InvalidExeException
 from pytouhou.formats.music import Track
 from pytouhou.formats.fmt import FMT
 
-
-from pytouhou.resource.anmwrapper import AnmWrapper
-
 from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
@@ -188,28 +185,13 @@ class Loader(object):
         return FMT.read(file) #TODO: modular
 
 
-    def get_anm_wrapper(self, names, offsets=None):
-        """Create an AnmWrapper for ANM files “names”.
-
-        If one of the files “names” does not exist or is not a valid ANM file,
-        raises an exception.
-        """
-        return AnmWrapper((self.get_anm(name) for name in names), offsets)
+    def get_single_anm(self, name):
+        """Hack for EoSD, since it doesn’t support multi-entries ANMs."""
+        anm = self.get_anm(name)
+        assert len(anm) == 1
+        return anm[0]
 
 
-    def get_anm_wrapper2(self, names, offsets=None):
-        """Create an AnmWrapper for ANM files “names”.
-
-        Stop at the first non-existent or invalid ANM file if there is one,
-        and return an AnmWrapper for all the previous correct files.
-        """
-        anms = []
-
-        try:
-            for name in names:
-                anms.append(self.get_anm(name))
-        except KeyError:
-            pass
-
-        return AnmWrapper(anms, offsets)
-
+    def get_multi_anm(self, names):
+        """Hack for EoSD, since it doesn’t support multi-entries ANMs."""
+        return sum((self.get_anm(name) for name in names), [])

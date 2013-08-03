@@ -24,16 +24,16 @@ from pytouhou.resource.loader import Loader
 from pytouhou.ui.anmrenderer import ANMRenderer
 
 
-def main(path, data, name, script, sprites, fixed_pipeline):
+def main(path, data, name, script, entry, sprites, fixed_pipeline):
     resource_loader = Loader()
     resource_loader.scan_archives(os.path.join(path, name) for name in data)
 
     window = Window((384, 448), fixed_pipeline=fixed_pipeline, sound=False)
 
     # Get out animation
-    anm_wrapper = resource_loader.get_anm_wrapper(name.split(','))
-    anm = ANMRenderer(window, resource_loader, anm_wrapper, script, sprites)
-    window.set_runner(anm)
+    anm = resource_loader.get_anm(name)
+    renderer = ANMRenderer(window, resource_loader, anm[entry], script, sprites)
+    window.set_runner(renderer)
     window.run()
 
 
@@ -43,10 +43,11 @@ parser.add_argument('data', metavar='DAT', default=('CM.DAT', 'ST.DAT'), nargs='
 parser.add_argument('-p', '--path', metavar='DIRECTORY', default='.', help='Game directory path.')
 parser.add_argument('--anm', metavar='ANM', required=True, help='Select an ANM')
 parser.add_argument('--script', metavar='SCRIPT', type=int, default=0, help='First script to play')
+parser.add_argument('--entry', metavar='ENTRY', type=int, default=0, help='Entry to display, in multi-entries ANMs.')
 parser.add_argument('--sprites', action='store_true', default=False, help='Display sprites instead of scripts.')
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 
 args = parser.parse_args()
 
-main(args.path, tuple(args.data), args.anm, args.script, args.sprites,
+main(args.path, tuple(args.data), args.anm, args.script, args.entry, args.sprites,
      args.fixed_pipeline)

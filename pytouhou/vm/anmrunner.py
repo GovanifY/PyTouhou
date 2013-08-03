@@ -23,9 +23,9 @@ logger = get_logger(__name__)
 
 class ANMRunner(object):
     __metaclass__ = MetaRegistry
-    __slots__ = ('_anm_wrapper', '_sprite', 'running',
-                 'sprite_index_offset', 'script', 'instruction_pointer',
-                 'frame', 'waiting', 'handlers', 'variables', 'version', 'timeout')
+    __slots__ = ('_anm', '_sprite', 'running', 'sprite_index_offset', 'script',
+                 'instruction_pointer', 'frame', 'waiting', 'handlers',
+                 'variables', 'version', 'timeout')
 
     #TODO: check!
     formulae = {0: lambda x: x,
@@ -38,13 +38,13 @@ class ANMRunner(object):
                 7: lambda x: x,
                 255: lambda x: x} #XXX
 
-    def __init__(self, anm_wrapper, script_id, sprite, sprite_index_offset=0):
-        self._anm_wrapper = anm_wrapper
+    def __init__(self, anm, script_id, sprite, sprite_index_offset=0):
+        self._anm = anm
         self._sprite = sprite
         self.running = True
         self.waiting = False
 
-        anm, self.script = anm_wrapper.get_script(script_id)
+        self.script = anm.scripts[script_id]
         self.version = anm.version
         self.handlers = self._handlers[{0: 6, 2: 7}[anm.version]]
         self.frame = 0
@@ -166,7 +166,7 @@ class ANMRunner(object):
     @instruction(3, 7)
     def load_sprite(self, sprite_index):
         #TODO: version 2 only: do not crash when assigning a non-existant sprite.
-        self._sprite.anm, self._sprite.texcoords = self._anm_wrapper.get_sprite(sprite_index + self.sprite_index_offset)
+        self._sprite.anm, self._sprite.texcoords = self._anm, self._anm.sprites[sprite_index + self.sprite_index_offset]
 
 
     @instruction(2)

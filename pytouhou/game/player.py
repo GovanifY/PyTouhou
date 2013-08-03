@@ -53,11 +53,11 @@ class PlayerState(object):
 
 
 class Player(object):
-    def __init__(self, state, game, anm_wrapper):
+    def __init__(self, state, game, anm):
         self._game = game
         self.sprite = None
         self.anmrunner = None
-        self.anm_wrapper = anm_wrapper
+        self.anm = anm
 
         self.speeds = (self.sht.horizontal_vertical_speed,
                        self.sht.diagonal_speed,
@@ -86,7 +86,7 @@ class Player(object):
 
     def set_anim(self, index):
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(self.anm_wrapper, index, self.sprite)
+        self.anmrunner = ANMRunner(self.anm, index, self.sprite)
         self.anmrunner.run_frame()
 
 
@@ -134,7 +134,7 @@ class Player(object):
                 if lasers[number]:
                     continue
 
-                laser_type = LaserType(self.anm_wrapper, shot.sprite % 256, 68)
+                laser_type = LaserType(self.anm, shot.sprite % 256, 68)
                 lasers[number] = PlayerLaser(laser_type, 0, shot.hitbox, shot.damage, shot.angle, shot.speed, shot.interval, origin)
                 continue
 
@@ -148,7 +148,7 @@ class Player(object):
             y = origin.y + shot.pos[1]
 
             #TODO: find a better way to do that.
-            bullet_type = BulletType(self.anm_wrapper, shot.sprite % 256,
+            bullet_type = BulletType(self.anm, shot.sprite % 256,
                                      shot.sprite % 256 + 32, #TODO: find the real cancel anim
                                      0, 0, 0, 0.)
             #TODO: Type 1 (homing bullets)
@@ -274,7 +274,7 @@ class Player(object):
                 self.direction = None
 
                 self.sprite = Sprite()
-                self.anmrunner = ANMRunner(self.anm_wrapper, 0, self.sprite)
+                self.anmrunner = ANMRunner(self.anm, 0, self.sprite)
                 self.sprite.alpha = 128
                 self.sprite.rescale = 0.0, 2.5
                 self.sprite.fade(30, 255, lambda x: x)

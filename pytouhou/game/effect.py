@@ -20,9 +20,9 @@ from pytouhou.utils.interpolator import Interpolator
 
 
 class Effect(object):
-    def __init__(self, pos, index, anm_wrapper):
+    def __init__(self, pos, index, anm):
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(anm_wrapper, index, self.sprite)
+        self.anmrunner = ANMRunner(anm, index, self.sprite)
         self.anmrunner.run_frame()
         self.removed = False
         self.objects = [self]
@@ -42,8 +42,8 @@ class Effect(object):
 
 
 class Particle(Effect):
-    def __init__(self, pos, index, anm_wrapper, amp, game, reverse=False, duration=24):
-        Effect.__init__(self, pos, index, anm_wrapper)
+    def __init__(self, pos, index, anm, amp, game, reverse=False, duration=24):
+        Effect.__init__(self, pos, index, anm)
 
         self.frame = 0
         self.duration = duration

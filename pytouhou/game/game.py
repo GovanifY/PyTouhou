@@ -105,7 +105,7 @@ class Game(object):
 
     def enable_spellcard_effect(self):
         self.spellcard_effect = Effect((-32., -16.), 0,
-                                       self.spellcard_effect_anm_wrapper) #TODO: find why this offset is necessary.
+                                       self.spellcard_effect_anm) #TODO: find why this offset is necessary.
         self.spellcard_effect.sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
 
 
@@ -174,20 +174,20 @@ class Game(object):
                 enemy.death_callback = -1
 
 
-    def new_effect(self, pos, anim, anm_wrapper=None, number=1):
+    def new_effect(self, pos, anim, anm=None, number=1):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
-            self.effects.append(Effect(pos, anim, anm_wrapper or self.etama))
+            self.effects.append(Effect(pos, anim, anm or self.etama[1]))
 
 
     def new_particle(self, pos, anim, amp, number=1, reverse=False, duration=24):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
-            self.effects.append(Particle(pos, anim, self.etama, amp, self, reverse=reverse, duration=duration))
+            self.effects.append(Particle(pos, anim, self.etama[1], amp, self, reverse=reverse, duration=duration))
 
 
     def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
-        enemy = Enemy(pos, life, instr_type, bonus_dropped, die_score, self.enm_anm_wrapper, self)
+        enemy = Enemy(pos, life, instr_type, bonus_dropped, die_score, self.enm_anm, self)
         self.enemies.append(enemy)
         return enemy
 
@@ -198,7 +198,7 @@ class Game(object):
 
 
     def new_label(self, pos, text):
-        label = Text(pos, self.interface.ascii_wrapper, text=text, xspacing=8, shift=48)
+        label = Text(pos, self.interface.ascii_anm, text=text, xspacing=8, shift=48)
         label.set_timeout(60, effect='move')
         self.labels.append(label)
         return label
@@ -209,7 +209,7 @@ class Game(object):
         #TODO: Scale
 
         pos = pos[0] + 192, pos[1]
-        label = Text(pos, self.interface.ascii_wrapper, text=hint['Text'], align=hint['Align'])
+        label = Text(pos, self.interface.ascii_anm, text=hint['Text'], align=hint['Align'])
         label.set_timeout(hint['Time'])
         label.set_alpha(hint['Alpha'])
         label.set_color(hint['Color'], text=False)
@@ -218,7 +218,7 @@ class Game(object):
 
 
     def new_face(self, side, effect):
-        face = Face(self.msg_anm_wrapper, effect, side)
+        face = Face(self.msg_anm, effect, side)
         self.faces[side] = face
         return face
 

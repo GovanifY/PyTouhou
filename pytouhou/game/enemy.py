@@ -24,9 +24,9 @@ from pytouhou.game.bullet import LAUNCHED
 
 
 class Enemy(object):
-    def __init__(self, pos, life, _type, bonus_dropped, die_score, anm_wrapper, game):
+    def __init__(self, pos, life, _type, bonus_dropped, die_score, anms, game):
         self._game = game
-        self._anm_wrapper = anm_wrapper
+        self._anms = anms
         self._type = _type
 
         self.process = None
@@ -221,8 +221,9 @@ class Enemy(object):
 
 
     def set_anim(self, index):
+        entry = 0 if index in self._anms[0].scripts else 1
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(self._anm_wrapper, index, self.sprite)
+        self.anmrunner = ANMRunner(self._anms[entry], index, self.sprite)
         self.anmrunner.run_frame()
 
 
@@ -241,8 +242,9 @@ class Enemy(object):
             self._game.new_particle((self.x, self.y), color, 256) #TODO: find the real size.
 
 
-    def set_aux_anm(self, number, script):
-        self.aux_anm[number] = Effect((self.x, self.y), script, self._anm_wrapper)
+    def set_aux_anm(self, number, index):
+        entry = 0 if index in self._anms[0].scripts else 1
+        self.aux_anm[number] = Effect((self.x, self.y), index, self._anms[entry])
 
 
     def set_pos(self, x, y, z):

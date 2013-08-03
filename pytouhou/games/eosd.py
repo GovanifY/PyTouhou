@@ -34,52 +34,54 @@ class EoSDGame(Game):
                  continues=0, hints=None):
 
         if not bullet_types:
-            etama3 = resource_loader.get_anm_wrapper(('etama3.anm',))
-            self.etama = resource_loader.get_anm_wrapper(('etama4.anm',))
-            bullet_types = [BulletType(etama3, 0, 11, 14, 15, 16, hitbox_size=2,
+            self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
+            bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
                                        type_id=0),
-                            BulletType(etama3, 1, 12, 17, 18, 19, hitbox_size=3,
+                            BulletType(self.etama[0], 1, 12, 17, 18, 19, hitbox_size=3,
                                        type_id=1),
-                            BulletType(etama3, 2, 12, 17, 18, 19, hitbox_size=2,
+                            BulletType(self.etama[0], 2, 12, 17, 18, 19, hitbox_size=2,
                                        type_id=2),
-                            BulletType(etama3, 3, 12, 17, 18, 19, hitbox_size=3,
+                            BulletType(self.etama[0], 3, 12, 17, 18, 19, hitbox_size=3,
                                        type_id=3),
-                            BulletType(etama3, 4, 12, 17, 18, 19, hitbox_size=2.5,
+                            BulletType(self.etama[0], 4, 12, 17, 18, 19, hitbox_size=2.5,
                                        type_id=4),
-                            BulletType(etama3, 5, 12, 17, 18, 19, hitbox_size=2,
+                            BulletType(self.etama[0], 5, 12, 17, 18, 19, hitbox_size=2,
                                        type_id=5),
-                            BulletType(etama3, 6, 13, 20, 20, 20, hitbox_size=8,
+                            BulletType(self.etama[0], 6, 13, 20, 20, 20, hitbox_size=8,
                                        launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
                                        type_id=6),
-                            BulletType(etama3, 7, 13, 20, 20, 20, hitbox_size=5.5,
+                            BulletType(self.etama[0], 7, 13, 20, 20, 20, hitbox_size=5.5,
                                        launch_anim_offsets=(1,)*28,
                                        type_id=7),
-                            BulletType(etama3, 8, 13, 20, 20, 20, hitbox_size=4.5,
+                            BulletType(self.etama[0], 8, 13, 20, 20, 20, hitbox_size=4.5,
                                        launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
                                        type_id=8),
-                            BulletType(self.etama, 0, 1, 2, 2, 2, hitbox_size=16,
+                            BulletType(self.etama[1], 0, 1, 2, 2, 2, hitbox_size=16,
                                        launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8),
                                        type_id=9)]
 
         if not laser_types:
-            laser_types = [LaserType(etama3, 9),
-                           LaserType(etama3, 10)]
+            laser_types = [LaserType(self.etama[0], 9),
+                           LaserType(self.etama[0], 10)]
 
         if not item_types:
-            item_types = [ItemType(etama3, 0, 7), #Power
-                          ItemType(etama3, 1, 8), #Point
-                          ItemType(etama3, 2, 9), #Big power
-                          ItemType(etama3, 3, 10), #Bomb
-                          ItemType(etama3, 4, 11), #Full power
-                          ItemType(etama3, 5, 12), #1up
-                          ItemType(etama3, 6, 13)] #Star
+            item_types = [ItemType(self.etama[0], 0, 7), #Power
+                          ItemType(self.etama[0], 1, 8), #Point
+                          ItemType(self.etama[0], 2, 9), #Big power
+                          ItemType(self.etama[0], 3, 10), #Bomb
+                          ItemType(self.etama[0], 4, 11), #Full power
+                          ItemType(self.etama[0], 5, 12), #1up
+                          ItemType(self.etama[0], 6, 13)] #Star
 
-        self.enm_anm_wrapper = resource_loader.get_anm_wrapper2(('stg%denm.anm' % stage,
-                                                                 'stg%denm2.anm' % stage))
+        try:
+            self.enm_anm = resource_loader.get_multi_anm(('stg%denm.anm' % stage,
+                                                          'stg%denm2.anm' % stage))
+        except KeyError:
+            self.enm_anm = resource_loader.get_anm('stg%denm.anm' % stage)
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
 
-        self.spellcard_effect_anm_wrapper = resource_loader.get_anm_wrapper(('eff0%d.anm' % stage,))
+        self.spellcard_effect_anm = resource_loader.get_single_anm('eff0%d.anm' % stage)
 
         player_face = player_states[0].character // 2
         enemy_face = [('face03a.anm', 'face03b.anm'),
@@ -90,11 +92,16 @@ class EoSDGame(Game):
                       ('face09b.anm', 'face10a.anm', 'face10b.anm'),
                       ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
         self.msg = resource_loader.get_msg('msg%d.dat' % stage)
-        self.msg_anm_wrapper = resource_loader.get_anm_wrapper2(('face0%da.anm' % player_face,
-                                                                 'face0%db.anm' % player_face,
-                                                                 'face0%dc.anm' % player_face)
-                                                                + enemy_face[stage - 1],
-                                                                (0, 2, 4, 8, 10, 11, 12))
+        msg_anm = [resource_loader.get_multi_anm(('face0%da.anm' % player_face,
+                                                  'face0%db.anm' % player_face,
+                                                  'face0%dc.anm' % player_face)),
+                   resource_loader.get_multi_anm(enemy_face[stage - 1])]
+
+        self.msg_anm = [[], []]
+        for i, anms in enumerate(msg_anm):
+            for anm in anms:
+                for sprite in anm.sprites.values():
+                    self.msg_anm[i].append((anm, sprite))
 
         characters = resource_loader.get_eosd_characters()
         players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
@@ -105,8 +112,8 @@ class EoSDGame(Game):
         # Load stage data
         self.std = resource_loader.get_stage('stage%d.std' % stage)
 
-        background_anm_wrapper = resource_loader.get_anm_wrapper(('stg%dbg.anm' % stage,))
-        self.background = Background(self.std, background_anm_wrapper)
+        background_anm = resource_loader.get_single_anm('stg%dbg.anm' % stage)
+        self.background = Background(self.std, background_anm)
 
         self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
 
@@ -119,8 +126,8 @@ class EoSDGame(Game):
 class EoSDInterface(object):
     def __init__(self, game, resource_loader):
         self.game = game
-        front = resource_loader.get_anm_wrapper(('front.anm',))
-        self.ascii_wrapper = resource_loader.get_anm_wrapper(('ascii.anm',))
+        front = resource_loader.get_single_anm('front.anm')
+        self.ascii_anm = resource_loader.get_single_anm('ascii.anm')
 
         self.width = 640
         self.height = 480
@@ -136,25 +143,25 @@ class EoSDInterface(object):
         for item in self.items:
             item.sprite.allow_dest_offset = True #XXX
 
-        self.level_start = [Text((176, 200), self.ascii_wrapper, text='STAGE %d' % game.stage)] #TODO: find the exact location.
+        self.level_start = [Text((176, 200), self.ascii_anm, text='STAGE %d' % game.stage)] #TODO: find the exact location.
         self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
         self.level_start[0].set_color('yellow')
         #TODO: use the system text for the stage name, and the song name.
 
         self.labels = {
-            'highscore': Text((500, 58), self.ascii_wrapper, front, text='0'),
-            'score': Text((500, 82), self.ascii_wrapper, front, text='0'),
+            'highscore': Text((500, 58), self.ascii_anm, front, text='0'),
+            'score': Text((500, 82), self.ascii_anm, front, text='0'),
             'player': Counter((500, 122), front, front, script=16, value=0),
             'bombs': Counter((500, 146), front, front, script=17, value=0),
-            'power': Text((500, 186), self.ascii_wrapper, front, text='0'),
-            'graze': Text((500, 206), self.ascii_wrapper, front, text='0'),
-            'points': Text((500, 226), self.ascii_wrapper, front, text='0'),
-            'framerate': Text((512, 464), self.ascii_wrapper, front),
-            'debug?': Text((0, 464), self.ascii_wrapper, front),
+            'power': Text((500, 186), self.ascii_anm, front, text='0'),
+            'graze': Text((500, 206), self.ascii_anm, front, text='0'),
+            'points': Text((500, 226), self.ascii_anm, front, text='0'),
+            'framerate': Text((512, 464), self.ascii_anm, front),
+            'debug?': Text((0, 464), self.ascii_anm, front),
 
             # Only when there is a boss.
-            'boss_lives': Text((80, 16), self.ascii_wrapper),
-            'timeout': Text((384, 16), self.ascii_wrapper),
+            'boss_lives': Text((80, 16), self.ascii_anm),
+            'timeout': Text((384, 16), self.ascii_anm),
         }
         self.labels['boss_lives'].set_color('yellow')
 
@@ -237,13 +244,12 @@ class EoSDPlayer(Player):
     def __init__(self, state, game, resource_loader, character):
         self.sht = character[0]
         self.focused_sht = character[1]
-        anm_wrapper = resource_loader.get_anm_wrapper(('player0%d.anm' % (state.character // 2),))
-        self.anm_wrapper = anm_wrapper
+        self.anm = resource_loader.get_single_anm('player0%d.anm' % (state.character // 2))
 
-        Player.__init__(self, state, game, anm_wrapper)
+        Player.__init__(self, state, game, self.anm)
 
-        self.orbs = [Orb(self.anm_wrapper, 128, self.state, None),
-                     Orb(self.anm_wrapper, 129, self.state, None)]
+        self.orbs = [Orb(self.anm, 128, self.state, None),
+                     Orb(self.anm, 129, self.state, None)]
 
         self.orbs[0].offset_x = -24
         self.orbs[1].offset_x = 24

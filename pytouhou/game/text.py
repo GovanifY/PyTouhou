@@ -28,7 +28,7 @@ class Glyph(object):
 
 
 class Widget(object):
-    def __init__(self, pos, back_wrapper=None, back_script=22):
+    def __init__(self, pos, back_anm=None, back_script=22):
         self.sprite = None
         self.removed = False
         self.changed = True
@@ -36,10 +36,10 @@ class Widget(object):
         self.frame = 0
 
         # Set up the backround sprite
-        self.back_wrapper = back_wrapper
-        if back_wrapper:
+        self.back_anm = back_anm
+        if back_anm:
             self.sprite = Sprite()
-            self.anmrunner = ANMRunner(back_wrapper, back_script, self.sprite)
+            self.anmrunner = ANMRunner(back_anm, back_script, self.sprite)
             self.anmrunner.run_frame()
 
         self.x, self.y = pos
@@ -54,17 +54,17 @@ class Widget(object):
 
 
 class GlyphCollection(Widget):
-    def __init__(self, pos, anm_wrapper, back_wrapper=None, ref_script=0,
+    def __init__(self, pos, anm, back_anm=None, ref_script=0,
                  xspacing=14, back_script=22):
-        Widget.__init__(self, pos, back_wrapper, back_script)
+        Widget.__init__(self, pos, back_anm, back_script)
 
         self.ref_sprite = Sprite()
-        self.anm_wrapper = anm_wrapper
+        self.anm = anm
         self.glyphes = []
         self.xspacing = xspacing
 
         # Set up ref sprite
-        anm_runner = ANMRunner(anm_wrapper, ref_script, self.ref_sprite)
+        anm_runner = ANMRunner(anm, ref_script, self.ref_sprite)
         anm_runner.run_frame()
         self.ref_sprite.corner_relative_placement = True #TODO: perhaps not right
 
@@ -82,7 +82,8 @@ class GlyphCollection(Widget):
     def set_sprites(self, sprite_indexes):
         self.set_length(len(sprite_indexes))
         for glyph, idx in zip(self.glyphes, sprite_indexes):
-            glyph.sprite.anm, glyph.sprite.texcoords = self.anm_wrapper.get_sprite(idx)
+            glyph.sprite.anm = self.anm
+            glyph.sprite.texcoords = self.anm.sprites[idx]
             glyph.sprite.changed = True
 
 
@@ -105,9 +106,9 @@ class GlyphCollection(Widget):
 
 
 class Text(GlyphCollection):
-    def __init__(self, pos, ascii_wrapper, back_wrapper=None, text='',
+    def __init__(self, pos, ascii_anm, back_anm=None, text='',
                  xspacing=14, shift=21, back_script=22, align='left'):
-        GlyphCollection.__init__(self, pos, ascii_wrapper, back_wrapper,
+        GlyphCollection.__init__(self, pos, ascii_anm, back_anm,
                                  xspacing=xspacing, back_script=back_script)
         self.text = ''
         self.shift = shift
@@ -193,10 +194,10 @@ class Text(GlyphCollection):
 
 
 class Counter(GlyphCollection):
-    def __init__(self, pos, anm_wrapper, back_wrapper=None, script=0,
+    def __init__(self, pos, anm, back_anm=None, script=0,
                  xspacing=16, value=0, back_script=22):
-        GlyphCollection.__init__(self, pos, anm_wrapper,
-                                 back_wrapper=back_wrapper, ref_script=script,
+        GlyphCollection.__init__(self, pos, anm,
+                                 back_anm=back_anm, ref_script=script,
                                  xspacing=xspacing, back_script=back_script)
 
         self.value = value
@@ -221,9 +222,9 @@ class Counter(GlyphCollection):
 
 
 class Gauge(object):
-    def __init__(self, pos, anm_wrapper, max_length=280, maximum=1, value=0):
+    def __init__(self, pos, anm, max_length=280, maximum=1, value=0):
         self.sprite = Sprite()
-        self.anmrunner = ANMRunner(anm_wrapper, 21, self.sprite)
+        self.anmrunner = ANMRunner(anm, 21, self.sprite)
         self.anmrunner.run_frame()
         self.removed = False
         self.sprite.corner_relative_placement = True #TODO: perhaps not right
