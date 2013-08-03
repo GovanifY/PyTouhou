@@ -64,6 +64,7 @@ setup(name='PyTouhou',
       packages=packages,
       ext_modules=cythonize(extensions, nthreads=4,
                             compiler_directives={'infer_types': True,
-                                                 'infer_types.verbose': True}),
+                                                 'infer_types.verbose': True},
+                            compile_time_env={'MAX_TEXTURES': 1024}),
       scripts=['eosd', 'anmviewer'],
       **extra)

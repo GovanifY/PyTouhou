@@ -29,21 +29,25 @@ class TextureId(int):
     def __del__(self):
         cdef GLuint texture = self
         glDeleteTextures(1, &texture)
+        self.renderer.remove_texture(self)
 
 
 class TextureManager(object):
-    def __init__(self, loader=None):
+    def __init__(self, loader=None, renderer=None):
         self.loader = loader
+        self.renderer = renderer
 
 
     def load(self, anm_list):
-        for anm in anm_list:
+        for anm in sorted(anm_list, key=lambda x: x[0].first_name.endswith('ascii.png')):
             for entry in anm:
                 if not hasattr(entry, 'texture'):
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
                     entry.texture = load_texture(texture)
                 elif not isinstance(entry.texture, TextureId):
                     entry.texture = load_texture(entry.texture)
+                self.renderer.add_texture(entry.texture)
+                entry.texture.renderer = self.renderer
 
 
 cdef decode_png(loader, first_name, secondary_name):
