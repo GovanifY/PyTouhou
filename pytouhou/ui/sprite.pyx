@@ -24,10 +24,10 @@ cpdef object get_sprite_rendering_data(object sprite):
     if not sprite.changed:
         return sprite._rendering_data
 
-    vertmat = Matrix([[-.5,     .5,     .5,    -.5],
-                      [-.5,    -.5,     .5,     .5],
-                      [ .0,     .0,     .0,     .0],
-                      [ 1.,     1.,     1.,     1.]])
+    vertmat = Matrix([-.5,  .5,  .5, -.5,
+                      -.5, -.5,  .5,  .5,
+                       .0,  .0,  .0,  .0,
+                       1.,  1.,  1.,  1.])
 
     tx, ty, tw, th = sprite.texcoords
     sx, sy = sprite.rescale
@@ -64,11 +64,9 @@ cpdef object get_sprite_rendering_data(object sprite):
            ty * y_1 + toy,
            (ty + th) * y_1 + toy)
 
-    (x1, x2 , x3, x4), (y1, y2, y3, y4), (z1, z2, z3, z4), _ = vertmat.data
-
     key = sprite.anm.texture, sprite.blendfunc
     r, g, b = sprite.color
-    values = ((x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4)), uvs, (r, g, b, sprite.alpha)
+    values = tuple([x for x in vertmat.data[:12]]), uvs, (r, g, b, sprite.alpha)
     sprite._rendering_data = key, values
     sprite.changed = False
 

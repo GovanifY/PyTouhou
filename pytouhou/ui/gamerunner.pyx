@@ -21,7 +21,7 @@ from pytouhou.lib.opengl cimport \
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
-from pytouhou.utils.matrix cimport matrix_to_floats
+from pytouhou.utils.matrix cimport Matrix
 
 from .gamerenderer import GameRenderer
 from .background import BackgroundRenderer
@@ -182,7 +182,7 @@ class GameRunner(GameRenderer):
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf(matrix_to_floats(self.interface_mvp))
+            glLoadMatrixf((<Matrix>self.interface_mvp).data)
             glDisable(GL_FOG)
         else:
             self.interface_shader.bind()

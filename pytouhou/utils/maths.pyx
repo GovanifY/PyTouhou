@@ -20,13 +20,15 @@ from .vector import Vector, normalize, cross, dot
 
 
 cpdef ortho_2d(left, right, bottom, top):
+    cdef float *data
+
     mat = Matrix()
     data = mat.data
-    data[0][0] = 2 / (right - left)
-    data[1][1] = 2 / (top - bottom)
-    data[2][2] = -1
-    data[3][0] = -(right + left) / (right - left)
-    data[3][1] = -(top + bottom) / (top - bottom)
+    data[4*0+0] = 2 / (right - left)
+    data[4*1+1] = 2 / (top - bottom)
+    data[4*2+2] = -1
+    data[4*3+0] = -(right + left) / (right - left)
+    data[4*3+1] = -(top + bottom) / (top - bottom)
     return mat
 
 
@@ -40,13 +42,15 @@ cpdef look_at(eye, center, up):
     s = normalize(cross(f, u))
     u = cross(s, f)
 
-    return Matrix([[s[0], u[0], -f[0], 0],
-                   [s[1], u[1], -f[1], 0],
-                   [s[2], u[2], -f[2], 0],
-                   [-dot(s, eye), -dot(u, eye), dot(f, eye), 1]])
+    return Matrix([s[0], u[0], -f[0], 0,
+                   s[1], u[1], -f[1], 0,
+                   s[2], u[2], -f[2], 0,
+                   -dot(s, eye), -dot(u, eye), dot(f, eye), 1])
 
 
 cpdef perspective(fovy, aspect, z_near, z_far):
+    cdef float *data
+
     top = tan(radians(fovy / 2)) * z_near
     bottom = -top
     left = -top * aspect
@@ -54,12 +58,12 @@ cpdef perspective(fovy, aspect, z_near, z_far):
 
     mat = Matrix()
     data = mat.data
-    data[0][0] = (2 * z_near) / (right - left)
-    data[1][1] = (2 * z_near) / (top - bottom)
-    data[2][2] = -(z_far + z_near) / (z_far - z_near)
-    data[2][3] = -1
-    data[3][2] = -(2 * z_far * z_near) / (z_far - z_near)
-    data[3][3] = 0
+    data[4*0+0] = (2 * z_near) / (right - left)
+    data[4*1+1] = (2 * z_near) / (top - bottom)
+    data[4*2+2] = -(z_far + z_near) / (z_far - z_near)
+    data[4*2+3] = -1
+    data[4*3+2] = -(2 * z_far * z_near) / (z_far - z_near)
+    data[4*3+3] = 0
     return mat
 
 

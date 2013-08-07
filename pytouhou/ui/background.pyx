@@ -79,7 +79,7 @@ cdef class BackgroundRenderer:
             for ox2, oy2, oz2, width_override, height_override, sprite in model:
                 #TODO: view frustum culling
                 key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
-                (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
+                x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = vertices
                 left, right, bottom, top = uvs
                 r, g, b, a = colors
 

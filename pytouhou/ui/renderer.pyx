@@ -67,7 +67,7 @@ cdef class Renderer:
                 rec = indices_by_texture.setdefault(key, [])
 
                 # Pack data in buffer
-                (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4) = vertices
+                x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = vertices
                 left, right, bottom, top = uvs
                 r, g, b, a = colors
                 self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, left, bottom, r, g, b, a)

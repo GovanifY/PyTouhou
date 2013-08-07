@@ -12,7 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-from libc.stdlib cimport malloc, free
 from itertools import chain
 
 from pytouhou.lib.opengl cimport \
@@ -21,7 +20,7 @@ from pytouhou.lib.opengl cimport \
           GL_PROJECTION, GL_MODELVIEW, GL_FOG, GL_FOG_MODE, GL_LINEAR,
           GL_FOG_START, GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
 
-from pytouhou.utils.matrix cimport Matrix, matrix_to_floats
+from pytouhou.utils.matrix cimport Matrix
 from pytouhou.utils.maths cimport setup_camera
 
 from .renderer import Renderer
@@ -34,7 +33,8 @@ class GameRenderer(Renderer):
 
 
     def render(self):
-        cdef float* fog_data
+        cdef float fog_data[4]
+        cdef Matrix view, mvp
 
         back = self.background
         game = self.game
@@ -46,7 +46,7 @@ class GameRenderer(Renderer):
         if game is not None and game.spellcard_effect is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(matrix_to_floats(self.game_mvp))
+                glLoadMatrixf((<Matrix>self.game_mvp).data)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
@@ -68,26 +68,26 @@ class GameRenderer(Renderer):
             fog_end -= 101010101./2010101.
 
             model = Matrix()
-            model.data[3] = [-x, -y, -z, 1]
+            model.data[12] = -x
+            model.data[13] = -y
+            model.data[14] = -z
             view = setup_camera(dx, dy, dz)
             mvp = model * view * self.proj
 
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(matrix_to_floats(mvp))
+                glLoadMatrixf(mvp.data)
 
                 glEnable(GL_FOG)
                 glFogi(GL_FOG_MODE, GL_LINEAR)
                 glFogf(GL_FOG_START, fog_start)
                 glFogf(GL_FOG_END,  fog_end)
 
-                fog_data = <float*>malloc(4 * sizeof(float))
                 fog_data[0] = fog_r / 255.
                 fog_data[1] = fog_g / 255.
                 fog_data[2] = fog_b / 255.
                 fog_data[3] = 1.
                 glFogfv(GL_FOG_COLOR, fog_data)
-                free(fog_data)
             else:
                 self.background_shader.bind()
                 self.background_shader.uniform_matrix('mvp', mvp)
@@ -103,7 +103,7 @@ class GameRenderer(Renderer):
         if game is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(matrix_to_floats(self.game_mvp))
+                glLoadMatrixf((<Matrix>self.game_mvp).data)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()

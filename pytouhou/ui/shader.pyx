@@ -19,7 +19,7 @@ from pytouhou.lib.opengl cimport \
           GLuint, GLchar, GLfloat, GLenum)
 
 from libc.stdlib cimport malloc, free
-from pytouhou.utils.matrix cimport Matrix, matrix_to_floats
+from pytouhou.utils.matrix cimport Matrix
 
 
 class GLSLException(Exception):
@@ -145,4 +145,4 @@ cdef class Shader:
         # obtain the uniform location
         loc = self.get_uniform_location(name)
         # uplaod the 4x4 floating point matrix
-        glUniformMatrix4fv(loc, 1, False, matrix_to_floats(mat))
+        glUniformMatrix4fv(loc, 1, False, mat.data)

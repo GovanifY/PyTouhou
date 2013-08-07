@@ -1,13 +1,10 @@
-cdef float* matrix_to_floats(Matrix self)
-
 cdef class Matrix:
-    cdef public list data
-    cdef float *c_data
+    cdef float data[16]
 
-    cpdef flip(self)
-    cpdef scale(self, x, y, z)
-    cpdef scale2d(self, x, y)
-    cpdef translate(self, x, y, z)
-    cpdef rotate_x(self, angle)
-    cpdef rotate_y(self, angle)
-    cpdef rotate_z(self, angle)
+    cdef void flip(self) nogil
+    cdef void scale(self, float x, float y, float z) nogil
+    cdef void scale2d(self, float x, float y) nogil
+    cdef void translate(self, float x, float y, float z) nogil
+    cdef void rotate_x(self, float angle) nogil
+    cdef void rotate_y(self, float angle) nogil
+    cdef void rotate_z(self, float angle) nogil
