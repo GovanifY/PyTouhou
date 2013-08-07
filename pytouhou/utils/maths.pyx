@@ -12,14 +12,16 @@
 ## GNU General Public License for more details.
 ##
 
-from math import radians
-from libc.math cimport tan
+from libc.math cimport tan, M_PI as pi
 
-from .matrix cimport Matrix
-from .vector import Vector, normalize, cross, dot
+from .vector cimport Vector, normalize, cross, dot
 
 
-cpdef ortho_2d(left, right, bottom, top):
+cdef double radians(double degrees) nogil:
+    return degrees * pi / 180
+
+
+cdef Matrix ortho_2d(float left, float right, float bottom, float top):
     cdef float *data
 
     mat = Matrix()
@@ -32,23 +34,19 @@ cpdef ortho_2d(left, right, bottom, top):
     return mat
 
 
-cpdef look_at(eye, center, up):
-    eye = Vector(eye)
-    center = Vector(center)
-    up = Vector(up)
-
-    f = normalize(center - eye)
+cdef Matrix look_at(Vector eye, Vector center, Vector up):
+    f = normalize(center.sub(eye))
     u = normalize(up)
     s = normalize(cross(f, u))
     u = cross(s, f)
 
-    return Matrix([s[0], u[0], -f[0], 0,
-                   s[1], u[1], -f[1], 0,
-                   s[2], u[2], -f[2], 0,
+    return Matrix([s.x, u.x, -f.x, 0,
+                   s.y, u.y, -f.y, 0,
+                   s.z, u.z, -f.z, 0,
                    -dot(s, eye), -dot(u, eye), dot(f, eye), 1])
 
 
-cpdef perspective(fovy, aspect, z_near, z_far):
+cdef Matrix perspective(float fovy, float aspect, float z_near, float z_far):
     cdef float *data
 
     top = tan(radians(fovy / 2)) * z_near
@@ -67,11 +65,11 @@ cpdef perspective(fovy, aspect, z_near, z_far):
     return mat
 
 
-cpdef setup_camera(dx, dy, dz):
+cdef Matrix setup_camera(float dx, float dy, float dz):
     # Some explanations on the magic constants:
     # 192. = 384. / 2. = width / 2.
     # 224. = 448. / 2. = height / 2.
     # 835.979370 = 224./math.tan(math.radians(15)) = (height/2.)/math.tan(math.radians(fov/2))
     # This is so that objects on the (O, x, y) plane use pixel coordinates
-    return look_at((192., 224., - 835.979370 * dz),
-                   (192. + dx, 224. - dy, 0.), (0., -1., 0.))
+    return look_at(Vector(192., 224., - 835.979370 * dz),
+                   Vector(192. + dx, 224. - dy, 0.), Vector(0., -1., 0.))

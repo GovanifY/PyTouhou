@@ -1,4 +1,5 @@
-cpdef ortho_2d(left, right, bottom, top)
-cpdef look_at(eye, center, up)
-cpdef perspective(fovy, aspect, zNear, zFar)
-cpdef setup_camera(dx, dy, dz)
+from .matrix cimport Matrix
+
+cdef Matrix ortho_2d(float left, float right, float bottom, float top)
+cdef Matrix perspective(float fovy, float aspect, float zNear, float zFar)
+cdef Matrix setup_camera(float dx, float dy, float dz)
