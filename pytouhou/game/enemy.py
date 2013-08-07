@@ -249,17 +249,16 @@ class Enemy(object):
     def set_pos(self, x, y, z):
         self.x, self.y = x, y
         self.update_mode = 1
-        self.interpolator = Interpolator((x, y))
-        self.interpolator.set_interpolation_start(self._game.frame, (x, y))
+        self.interpolator = Interpolator((x, y), self._game.frame)
 
 
     def move_to(self, duration, x, y, z, formula):
         frame = self._game.frame
         self.speed_interpolator = None
         self.update_mode = 1
-        self.interpolator = Interpolator((self.x, self.y), formula)
-        self.interpolator.set_interpolation_start(frame, (self.x, self.y))
-        self.interpolator.set_interpolation_end(frame + duration - 1, (x, y))
+        self.interpolator = Interpolator((self.x, self.y), frame,
+                                         (x, y), frame + duration - 1,
+                                         formula)
 
         self.angle = atan2(y - self.y, x - self.x)
 
@@ -268,9 +267,9 @@ class Enemy(object):
         frame = self._game.frame
         self.interpolator = None
         self.update_mode = 1
-        self.speed_interpolator = Interpolator((self.speed,), formula)
-        self.speed_interpolator.set_interpolation_start(frame, (self.speed,))
-        self.speed_interpolator.set_interpolation_end(frame + duration - 1, (0.,))
+        self.speed_interpolator = Interpolator((self.speed,), frame,
+                                               (0.,), frame + duration - 1,
+                                               formula)
 
 
     def is_visible(self, screen_width, screen_height):
