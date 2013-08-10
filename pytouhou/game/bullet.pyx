@@ -12,27 +12,20 @@
 ## GNU General Public License for more details.
 ##
 
-from math import cos, sin, atan2, pi
+from libc.math cimport cos, sin, atan2, M_PI as pi
 
-from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
-from pytouhou.game.sprite import Sprite
-from pytouhou.game.element cimport Element
+from pytouhou.game.sprite cimport Sprite
 
 
 LAUNCHING, LAUNCHED, CANCELLED = range(3)
 
 cdef class Bullet(Element):
-    cdef public unsigned int state, flags, frame, sprite_idx_offset
-    cdef public double dx, dy, angle, speed #TODO
-    cdef public object player_bullet, target
-    cdef public object _game, _bullet_type
-    cdef public object was_visible
-    cdef public object attributes, damage, hitbox, speed_interpolator, grazed
+    def __init__(self, pos, bullet_type, unsigned long sprite_idx_offset,
+                       double angle, double speed, attributes, unsigned long flags, target, game,
+                       bint player_bullet=False, unsigned long damage=0, hitbox=None):
+        cdef double launch_mult
 
-    def __init__(self, pos, bullet_type, sprite_idx_offset,
-                       angle, speed, attributes, flags, target, game,
-                       player_bullet=False, damage=0, hitbox=None):
         Element.__init__(self, pos)
 
         self._game = game
@@ -40,8 +33,8 @@ cdef class Bullet(Element):
         self.state = LAUNCHING
         self.was_visible = True
 
-        if hitbox:
-            self.hitbox = (hitbox[0], hitbox[1])
+        if hitbox is not None:
+            self.hitbox = hitbox
         else:
             self.hitbox = (bullet_type.hitbox_size, bullet_type.hitbox_size)
 
@@ -88,12 +81,14 @@ cdef class Bullet(Element):
             self.sprite.angle = angle
 
 
-    cpdef is_visible(self, screen_width, screen_height):
-        tx, ty, tw, th = self.sprite.texcoords
+    cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height):
+        cdef double tw, th
+
+        tw, th = self.sprite.texcoords[2:]
         x, y = self.x, self.y
 
-        max_x = tw / 2.
-        max_y = th / 2.
+        max_x = tw / 2
+        max_y = th / 2
 
         if (max_x < x - screen_width
             or max_x < -x
@@ -103,7 +98,7 @@ cdef class Bullet(Element):
         return True
 
 
-    def set_anim(self, sprite_idx_offset=None):
+    cpdef set_anim(self, sprite_idx_offset=None):
         if sprite_idx_offset is not None:
             self.sprite_idx_offset = sprite_idx_offset
 
@@ -117,7 +112,7 @@ cdef class Bullet(Element):
                                    self.sprite, self.sprite_idx_offset)
 
 
-    def launch(self):
+    cdef void launch(self):
         self.state = LAUNCHED
         self.frame = 0
         self.set_anim()
@@ -128,12 +123,12 @@ cdef class Bullet(Element):
                                                    (self.speed,), 16)
 
 
-    def collide(self):
+    cpdef collide(self):
         self.cancel()
         self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
-    def cancel(self):
+    cpdef cancel(self):
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
@@ -148,7 +143,10 @@ cdef class Bullet(Element):
         self.state = CANCELLED
 
 
-    def update(self):
+    cpdef update(self):
+        cdef int frame, count, game_width, game_height
+        cdef double length, angle, speed, acceleration, angular_speed
+
         if self.anmrunner is not None and not self.anmrunner.run_frame():
             if self.state == LAUNCHING:
                 #TODO: check if it doesn't skip a frame
@@ -197,7 +195,7 @@ cdef class Bullet(Element):
             frame, count = self.attributes[0:2]
             angle, speed = self.attributes[4:6]
             if self.frame % frame == 0:
-                count = count - 1
+                count -= 1
 
                 if self.frame != 0:
                     self.speed = self.speed if speed < -900 else speed
@@ -237,19 +235,21 @@ cdef class Bullet(Element):
 
         self.frame += 1
 
+        game_width, game_height = self._game.width, self._game.height
+
         # Filter out-of-screen bullets and handle special flags
         if self.flags & 448:
             self.was_visible = False
-        elif self.is_visible(self._game.width, self._game.height):
+        elif self.is_visible(game_width, game_height):
             self.was_visible = True
         elif self.was_visible:
             self.removed = True
             if self.flags & (1024 | 2048) and self.attributes[0] > 0:
                 # Bounce!
-                if self.x < 0 or self.x > self._game.width:
+                if self.x < 0 or self.x > game_width:
                     self.angle = pi - self.angle
                     self.removed = False
-                if self.y < 0 or ((self.flags & 1024) and self.y > self._game.height):
+                if self.y < 0 or ((self.flags & 1024) and self.y > game_height):
                     self.angle = -self.angle
                     self.removed = False
                 self.sprite.angle = self.angle
@@ -258,4 +258,3 @@ cdef class Bullet(Element):
                 self.dx = cos(self.angle) * self.speed
                 self.dy = sin(self.angle) * self.speed
                 self.attributes[0] -= 1
-
