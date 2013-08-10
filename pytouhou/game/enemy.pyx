@@ -12,20 +12,17 @@
 ## GNU General Public License for more details.
 ##
 
+from libc.math cimport cos, sin, atan2, M_PI as pi
 
-from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
-from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
-from pytouhou.game.bullet import Bullet
+from pytouhou.game.bullet import Bullet, LAUNCHED
 from pytouhou.game.laser import Laser
 from pytouhou.game.effect import Effect
-from math import cos, sin, atan2, pi
-from pytouhou.game.bullet import LAUNCHED
 
 
-class Enemy(Element):
-    def __init__(self, pos, life, _type, bonus_dropped, die_score, anms, game):
+cdef class Enemy(Element):
+    def __init__(self, pos, long life, long _type, long bonus_dropped, long die_score, anms, game):
         Element.__init__(self)
 
         self._game = game
@@ -56,7 +53,7 @@ class Enemy(Element):
         self.death_callback = -1
         self.boss_callback = -1
         self.low_life_callback = -1
-        self.low_life_trigger = None
+        self.low_life_trigger = -1
         self.timeout = -1
         self.timeout_callback = -1
         self.remaining_lives = 0
@@ -69,7 +66,7 @@ class Enemy(Element):
 
         self.death_anim = 0
         self.movement_dependant_sprites = None
-        self.direction = None
+        self.direction = 0
         self.interpolator = None #TODO
         self.speed_interpolator = None
         self.update_mode = 0
@@ -78,19 +75,18 @@ class Enemy(Element):
         self.rotation_speed = 0.
         self.acceleration = 0.
 
-        self.hitbox = (0, 0)
-        self.hitbox_half_size = (0, 0)
+        self.hitbox_half_size[:] = [0, 0]
         self.screen_box = None
 
         self.aux_anm = 8 * [None]
 
 
-    @property
-    def objects(self):
-        return [self] + [anm for anm in self.aux_anm if anm]
+    property objects:
+        def __get__(self):
+            return [self] + [anm for anm in self.aux_anm if anm is not None]
 
 
-    def play_sound(self, index):
+    cpdef play_sound(self, index):
         name = {
             5: 'power0',
             6: 'power1',
@@ -110,9 +106,13 @@ class Enemy(Element):
         self._game.sfx_player.play('%s.wav' % name)
 
 
-    def set_bullet_attributes(self, type_, anim, sprite_idx_offset,
-                              bullets_per_shot, number_of_shots, speed, speed2,
-                              launch_angle, angle, flags):
+    cpdef set_hitbox(self, double width, double height):
+        self.hitbox_half_size[:] = [width / 2, height / 2]
+
+
+    cpdef set_bullet_attributes(self, type_, anim, sprite_idx_offset,
+                                bullets_per_shot, number_of_shots, speed, speed2,
+                                launch_angle, angle, flags):
 
         # Apply difficulty-specific modifiers
         speed_a, speed_b, nb_a, nb_b, shots_a, shots_b = self.difficulty_coeffs
@@ -130,22 +130,22 @@ class Enemy(Element):
             self.fire()
 
 
-    def set_bullet_launch_interval(self, value, start=0):
+    cpdef set_bullet_launch_interval(self, long value, unsigned long start=0):
         # Apply difficulty-specific modifiers:
         #TODO: check every value possible! Look around 102h.exe@0x408720
-        value -= value * (self._game.difficulty - 16) // 80
+        value -= value * (<long>self._game.difficulty - 16) // 80
 
         self.bullet_launch_interval = value
-        self.bullet_launch_timer = start % value if value else 0
+        self.bullet_launch_timer = start % value if value > 0 else 0
 
 
-    def fire(self, offset=None, bullet_attributes=None, launch_pos=None):
+    cpdef fire(self, offset=None, bullet_attributes=None, launch_pos=None):
         (type_, type_idx, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = bullet_attributes or self.bullet_attributes
 
         bullet_type = self._game.bullet_types[type_idx]
 
-        if not launch_pos:
+        if launch_pos is None:
             ox, oy = offset or self.bullet_launch_offset
             launch_pos = self.x + ox, self.y + oy
 
@@ -168,12 +168,12 @@ class Enemy(Element):
         bullets = self._game.bullets
         nb_bullets_max = self._game.nb_bullets_max
 
-        for shot_nb in range(number_of_shots):
+        for shot_nb in xrange(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
             bullet_angle = launch_angle
             if type_ in (69, 70, 71, 74):
                 launch_angle += angle
-            for bullet_nb in range(bullets_per_shot):
+            for bullet_nb in xrange(bullets_per_shot):
                 if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                     break
 
@@ -192,11 +192,11 @@ class Enemy(Element):
                     bullet_angle += angle
 
 
-    def new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
-                  start_offset, end_offset, max_length, width,
-                  start_duration, duration, end_duration,
-                  grazing_delay, grazing_extra_duration, unknown,
-                  offset=None):
+    cpdef new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
+                    start_offset, end_offset, max_length, width,
+                    start_duration, duration, end_duration,
+                    grazing_delay, grazing_extra_duration, unknown,
+                    offset=None):
         ox, oy = offset or self.bullet_launch_offset
         launch_pos = self.x + ox, self.y + oy
         if variant == 86:
@@ -210,49 +210,49 @@ class Enemy(Element):
         self.laser_by_id[self.current_laser_id] = laser
 
 
-    def select_player(self, players=None):
+    cpdef select_player(self, players=None):
         return (players or self._game.players)[0] #TODO
 
 
-    def get_player_angle(self, player=None, pos=None):
-        player = player or self.select_player()
+    cpdef get_player_angle(self, player=None, pos=None):
+        player_state = (player or self.select_player()).state
         x, y = pos or (self.x, self.y)
-        return atan2(player.y - y, player.x - x)
+        return atan2(player_state.y - y, player_state.x - x)
 
 
-    def set_anim(self, index):
+    cpdef set_anim(self, index):
         entry = 0 if index in self._anms[0].scripts else 1
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self._anms[entry], index, self.sprite)
 
 
-    def die_anim(self):
+    cdef void die_anim(self):
         anim = {0: 3, 1: 4, 2: 5}[self.death_anim % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
         self._game.new_effect((self.x, self.y), anim)
         self._game.sfx_player.play('enep00.wav')
 
 
-    def drop_particles(self, number, color):
+    cdef void drop_particles(self, long number, long color):
         if color == 0:
             if self._game.stage in [1, 2, 7]:
                 color = 3
         color += 9
-        for i in range(number):
+        for i in xrange(number):
             self._game.new_particle((self.x, self.y), color, 256) #TODO: find the real size.
 
 
-    def set_aux_anm(self, number, index):
+    cpdef set_aux_anm(self, long number, long index):
         entry = 0 if index in self._anms[0].scripts else 1
         self.aux_anm[number] = Effect((self.x, self.y), index, self._anms[entry])
 
 
-    def set_pos(self, x, y, z):
+    cpdef set_pos(self, x, y, z):
         self.x, self.y = x, y
         self.update_mode = 1
         self.interpolator = Interpolator((x, y), self._game.frame)
 
 
-    def move_to(self, duration, x, y, z, formula):
+    cpdef move_to(self, duration, x, y, z, formula):
         frame = self._game.frame
         self.speed_interpolator = None
         self.update_mode = 1
@@ -263,7 +263,7 @@ class Enemy(Element):
         self.angle = atan2(y - self.y, x - self.x)
 
 
-    def stop_in(self, duration, formula):
+    cpdef stop_in(self, duration, formula):
         frame = self._game.frame
         self.interpolator = None
         self.update_mode = 1
@@ -272,17 +272,19 @@ class Enemy(Element):
                                                formula)
 
 
-    def is_visible(self, screen_width, screen_height):
-        if self.sprite:
-            tx, ty, tw, th = self.sprite.texcoords
+    cpdef bint is_visible(self, long screen_width, long screen_height):
+        cdef double tw, th
+
+        if self.sprite is not None:
             if self.sprite.corner_relative_placement:
                 raise Exception #TODO
+            _, _, tw, th = self.sprite.texcoords
         else:
-            tx, ty, tw, th = 0., 0., 0., 0.
+            tw, th = 0, 0
 
         x, y = self.x, self.y
-        max_x = tw / 2.
-        max_y = th / 2.
+        max_x = tw / 2
+        max_y = th / 2
 
         if (max_x < x - screen_width
             or max_x < -x
@@ -292,10 +294,14 @@ class Enemy(Element):
         return True
 
 
-    def check_collisions(self):
+    cdef void check_collisions(self):
+        cdef long damages
+        cdef double half_size[2], bx, by, lx, ly, px, py, phalf_size
+
         # Check for collisions
         ex, ey = self.x, self.y
-        ehalf_size_x, ehalf_size_y = self.hitbox_half_size
+        ehalf_size_x = self.hitbox_half_size[0]
+        ehalf_size_y = self.hitbox_half_size[1]
         ex1, ex2 = ex - ehalf_size_x, ex + ehalf_size_x
         ey1, ey2 = ey - ehalf_size_y, ey + ehalf_size_y
 
@@ -305,7 +311,8 @@ class Enemy(Element):
         for bullet in self._game.players_bullets:
             if bullet.state != LAUNCHED:
                 continue
-            half_size = bullet.hitbox
+            half_size[0] = bullet.hitbox[0]
+            half_size[1] = bullet.hitbox[1]
             bx, by = bullet.x, bullet.y
             bx1, bx2 = bx - half_size[0], bx + half_size[0]
             by1, by2 = by - half_size[1], by + half_size[1]
@@ -321,7 +328,8 @@ class Enemy(Element):
             if not laser:
                 continue
 
-            half_size = laser.hitbox
+            half_size[0] = laser.hitbox[0]
+            half_size[1] = laser.hitbox[1]
             lx, ly = laser.x, laser.y * 2.
             lx1, lx2 = lx - half_size[0], lx + half_size[0]
 
@@ -336,7 +344,7 @@ class Enemy(Element):
         ey1, ey2 = ey - ehalf_size_y * 2. / 3., ey + ehalf_size_y * 2. / 3.
         if self.collidable:
             for player in self._game.players:
-                px, py = player.x, player.y
+                px, py = player.state.x, player.state.y
                 phalf_size = player.sht.hitbox
                 px1, px2 = px - phalf_size, px + phalf_size
                 py1, py2 = py - phalf_size, py + phalf_size
@@ -353,7 +361,7 @@ class Enemy(Element):
         self._game.players[0].state.score += score #TODO: better distribution amongst the players.
 
         if self.damageable:
-            if self._game.spellcard:
+            if self._game.spellcard is not None:
                 #TODO: there is a division by 3, somewhere... where is it?
                 if damages <= 7:
                     damages = 1 if damages else 0
@@ -364,7 +372,7 @@ class Enemy(Element):
             self.life -= damages
 
 
-    def handle_callbacks(self):
+    cdef void handle_callbacks(self):
         #TODO: implement missing callbacks and clean up!
         if self.life <= 0 and self.touchable:
             self.timeout = -1 #TODO: not really true, the timeout is frozen
@@ -443,14 +451,16 @@ class Enemy(Element):
                 raise Exception('What the hell, man!')
 
 
-    def update(self):
+    cpdef update(self):
+        cdef double x, y, speed
+
         if self.process:
             self.process.run_iteration()
 
         x, y = self.x, self.y
 
         if self.update_mode == 1:
-            speed = 0.0
+            speed = 0.
             if self.interpolator:
                 self.interpolator.update(self._game.frame)
                 x, y = self.interpolator.values
@@ -469,7 +479,7 @@ class Enemy(Element):
             x += dx
         y += dy
 
-        if self.movement_dependant_sprites:
+        if self.movement_dependant_sprites is not None:
             #TODO: is that really how it works? Almost.
             # Sprite determination is done only once per changement, and is
             # superseeded by ins_97.
@@ -480,12 +490,12 @@ class Enemy(Element):
             elif x > self.x and self.direction != +1:
                 self.set_anim(right)
                 self.direction = +1
-            elif x == self.x and self.direction is not None:
+            elif x == self.x and self.direction != 0:
                 self.set_anim({-1: end_left, +1: end_right}[self.direction])
-                self.direction = None
+                self.direction = 0
 
 
-        if self.screen_box:
+        if self.screen_box is not None:
             xmin, ymin, xmax, ymax = self.screen_box
             x = max(xmin, min(x, xmax))
             y = max(ymin, min(y, ymax))
@@ -494,10 +504,10 @@ class Enemy(Element):
         self.x, self.y = x, y
 
         #TODO
-        if self.anmrunner and not self.anmrunner.run_frame():
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
 
-        if self.sprite and self.visible:
+        if self.sprite is not None and self.visible:
             if self.sprite.removed:
                 self.sprite = None
             else:
@@ -515,7 +525,7 @@ class Enemy(Element):
             self.check_collisions()
 
         for anm in self.aux_anm:
-            if anm:
+            if anm is not None:
                 anm.x, anm.y = self.x, self.y
                 anm.update()
 

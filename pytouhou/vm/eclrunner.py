@@ -815,8 +815,7 @@ class ECLRunner(object):
 
     @instruction(103)
     def set_hitbox(self, width, height, depth):
-        self._enemy.hitbox = (width, height)
-        self._enemy.hitbox_half_size = (width / 2., height / 2.)
+        self._enemy.set_hitbox(width, height)
 
 
     @instruction(104)
