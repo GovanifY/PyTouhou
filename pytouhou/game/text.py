@@ -12,8 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-from copy import copy
-
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.utils.interpolator import Interpolator
@@ -70,7 +68,7 @@ class GlyphCollection(Widget):
     def set_length(self, length):
         current_length = len(self.glyphes)
         if length > current_length:
-            self.glyphes.extend(Glyph(copy(self.ref_sprite),
+            self.glyphes.extend(Glyph(self.ref_sprite.copy(),
                                       (self.x + self.xspacing * i, self.y))
                                 for i in range(current_length, length))
         elif length < current_length:

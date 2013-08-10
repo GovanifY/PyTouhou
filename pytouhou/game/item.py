@@ -14,7 +14,6 @@
 
 
 from math import cos, sin, atan2, pi
-from copy import copy
 
 from pytouhou.utils.interpolator import Interpolator
 
@@ -23,7 +22,7 @@ class Indicator(object):
     def __init__(self, item):
         self._item = item
 
-        self.sprite = copy(item._item_type.indicator_sprite)
+        self.sprite = item._item_type.indicator_sprite.copy()
         self.removed = False
 
         self.frame = 0

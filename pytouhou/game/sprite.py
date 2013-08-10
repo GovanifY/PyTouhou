@@ -12,20 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-
-from pytouhou.utils.interpolator import Interpolator
-
-
 class Sprite(object):
-    __slots__ = ('anm', 'removed', 'changed', 'width_override', 'height_override',
-                 'angle', 'force_rotation', 'scale_interpolator',
-                 'fade_interpolator', 'offset_interpolator',
-                 'rotation_interpolator', 'color_interpolator',
-                 'automatic_orientation', 'blendfunc', 'texcoords',
-                 'dest_offset', 'allow_dest_offset', 'texoffsets', 'mirrored',
-                 'rescale', 'scale_speed', 'rotations_3d',
-                 'rotations_speed_3d', 'corner_relative_placement', 'frame',
-                 'color', 'alpha', 'visible', '_rendering_data')
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self.removed = False
@@ -64,31 +51,31 @@ class Sprite(object):
         self._rendering_data = None
 
 
-    def fade(self, duration, alpha, formula):
+    def fade(self, duration, alpha, formula=None):
         self.fade_interpolator = Interpolator((self.alpha,), self.frame,
                                               (alpha,), self.frame + duration,
                                               formula)
 
 
-    def scale_in(self, duration, sx, sy, formula):
+    def scale_in(self, duration, sx, sy, formula=None):
         self.scale_interpolator = Interpolator(self.rescale, self.frame,
                                                (sx, sy), self.frame + duration,
                                                formula)
 
 
-    def move_in(self, duration, x, y, z, formula):
+    def move_in(self, duration, x, y, z, formula=None):
         self.offset_interpolator = Interpolator(self.dest_offset, self.frame,
                                                 (x, y, z), self.frame + duration,
                                                 formula)
 
 
-    def rotate_in(self, duration, rx, ry, rz, formula):
+    def rotate_in(self, duration, rx, ry, rz, formula=None):
         self.rotation_interpolator = Interpolator(self.rotations_3d, self.frame,
                                                   (rx, ry, rz), self.frame + duration,
                                                   formula)
 
 
-    def change_color_in(self, duration, r, g, b, formula):
+    def change_color_in(self, duration, r, g, b, formula=None):
         self.color_interpolator = Interpolator(self.color, self.frame,
                                                (r, g, b), self.frame + duration,
                                                formula)
@@ -99,6 +86,44 @@ class Sprite(object):
             self.angle = angle_base
             self.force_rotation = force_rotation
             self.changed = True
+
+
+    def copy(self):
+        sprite = Sprite(self.width_override, self.height_override)
+
+        sprite.blendfunc = self.blendfunc
+        sprite.frame = self.frame
+        sprite.angle = self.angle
+
+        sprite.removed = self.removed
+        sprite.changed = self.changed
+        sprite.visible = self.visible
+        sprite.force_rotation = self.force_rotation
+        sprite.automatic_orientation = self.automatic_orientation
+        sprite.allow_dest_offset = self.allow_dest_offset
+        sprite.mirrored = self.mirrored
+        sprite.corner_relative_placement = self.corner_relative_placement
+
+        sprite.scale_interpolator = self.scale_interpolator
+        sprite.fade_interpolator = self.fade_interpolator
+        sprite.offset_interpolator = self.offset_interpolator
+        sprite.rotation_interpolator = self.rotation_interpolator
+        sprite.color_interpolator = self.color_interpolator
+
+        sprite.texcoords = self.texcoords
+        sprite.dest_offset = self.dest_offset
+        sprite.texoffsets = self.texoffsets
+        sprite.rescale = self.rescale
+        sprite.scale_speed = self.scale_speed
+        sprite.rotations_3d = self.rotations_3d
+        sprite.rotations_speed_3d = self.rotations_speed_3d
+        sprite.color = self.color
+
+        sprite.alpha = self.alpha
+        sprite.anm = self.anm
+        sprite._rendering_data = self._rendering_data
+
+        return sprite
 
 
     def update(self):
@@ -122,7 +147,7 @@ class Sprite(object):
 
         if self.fade_interpolator:
             self.fade_interpolator.update(self.frame)
-            self.alpha = int(self.fade_interpolator.values[0])
+            self.alpha = self.fade_interpolator.values[0]
             self.changed = True
 
         if self.scale_interpolator:

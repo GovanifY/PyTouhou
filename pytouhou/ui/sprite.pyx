@@ -13,21 +13,25 @@
 ##
 
 
-from math import pi
+from libc.math cimport M_PI as pi
 
 from pytouhou.utils.matrix cimport Matrix
 
 
-cpdef object get_sprite_rendering_data(object sprite):
+cpdef object get_sprite_rendering_data(Sprite sprite):
     cdef Matrix vertmat
+    cdef double tx, ty, tw, th, sx, sy, rx, ry, rz, tox, toy
+    cdef object tmp1, tmp2
 
     if not sprite.changed:
         return sprite._rendering_data
 
-    vertmat = Matrix([-.5,  .5,  .5, -.5,
-                      -.5, -.5,  .5,  .5,
-                       .0,  .0,  .0,  .0,
-                       1.,  1.,  1.,  1.])
+    tmp1 = .5
+    tmp2 = -.5
+    vertmat = Matrix([tmp2, tmp1, tmp1, tmp2,
+                      tmp2, tmp2, tmp1, tmp1,
+                      0,    0,    0,    0,
+                      1,    1,    1,    1])
 
     tx, ty, tw, th = sprite.texcoords
     sx, sy = sprite.rescale
@@ -44,20 +48,19 @@ cpdef object get_sprite_rendering_data(object sprite):
     elif sprite.force_rotation:
         rz += sprite.angle
 
-    if (rx, ry, rz) != (0., 0., 0.):
-        if rx:
-            vertmat.rotate_x(-rx)
-        if ry:
-            vertmat.rotate_y(ry)
-        if rz:
-            vertmat.rotate_z(-rz) #TODO: minus, really?
+    if rx:
+        vertmat.rotate_x(-rx)
+    if ry:
+        vertmat.rotate_y(ry)
+    if rz:
+        vertmat.rotate_z(-rz) #TODO: minus, really?
     if sprite.allow_dest_offset:
         vertmat.translate(sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
     if sprite.corner_relative_placement: # Reposition
-        vertmat.translate(width / 2., height / 2., 0.)
+        vertmat.translate(width / 2, height / 2, 0)
 
-    x_1 = 1. / sprite.anm.size[0]
-    y_1 = 1. / sprite.anm.size[1]
+    x_1 = 1 / <double>sprite.anm.size[0]
+    y_1 = 1 / <double>sprite.anm.size[1]
     tox, toy = sprite.texoffsets
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,
@@ -71,4 +74,3 @@ cpdef object get_sprite_rendering_data(object sprite):
     sprite.changed = False
 
     return sprite._rendering_data
-
