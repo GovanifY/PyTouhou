@@ -46,7 +46,7 @@ cdef class Game:
         self.items = []
         self.labels = []
         self.faces = [None, None]
-        self.texts = [None, None, None, None]
+        self.texts = [None, None, None, None, None, None]
         self.interface = interface
         self.hints = hints
 
@@ -100,13 +100,33 @@ cdef class Game:
 
 
     def enable_spellcard_effect(self):
-        self.spellcard_effect = Effect((-32., -16.), 0,
-                                       self.spellcard_effect_anm) #TODO: find why this offset is necessary.
-        self.spellcard_effect.sprite.allow_dest_offset = True #TODO: should be the role of anm’s 25th instruction. Investigate!
+        pos = (-32, -16)
+        self.spellcard_effect = Effect(pos, 0,
+                                       self.spellcard_effect_anm)
+        self.spellcard_effect.sprite.allow_dest_offset = True
+
+        face = Effect(pos, 3, self.msg_anm[0][0][0])
+        face.sprite.allow_dest_offset = True
+        face.sprite.anm, face.sprite.texcoords = self.msg_anm[1][self.spellcard[2]]
+        self.effects.append(face)
+
+        self.texts[5] = self.new_native_text((384-24, 24), self.spellcard[1], align='right')
 
 
     def disable_spellcard_effect(self):
         self.spellcard_effect = None
+        self.texts[5] = None
+
+
+    def set_player_bomb(self):
+        face = Effect((-32, -16), 1, self.msg_anm[0][0][0])
+        face.sprite.allow_dest_offset = True
+        self.effects.append(face)
+        self.texts[4] = self.new_native_text((24, 24), u'Player Spellcard')
+
+
+    def unset_player_bomb(self):
+        self.texts[4] = None
 
 
     cpdef drop_bonus(self, double x, double y, long _type, end_pos=None):

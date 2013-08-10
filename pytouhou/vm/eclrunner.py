@@ -746,7 +746,7 @@ class ECLRunner(object):
         #TODO: display it on the game.
         self._enemy.difficulty_coeffs = (-.5, .5, 0, 0, 0, 0)
         self._game.change_bullets_into_star_items()
-        self._game.spellcard = (number, name)
+        self._game.spellcard = (number, name, face)
         self._game.enable_spellcard_effect()
 
 

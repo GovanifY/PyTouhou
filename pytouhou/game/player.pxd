@@ -14,7 +14,7 @@ cdef class Player(Element):
 
     cdef object anm
     cdef tuple speeds
-    cdef long fire_time, direction
+    cdef long fire_time, bomb_time, direction
 
     cdef void set_anim(self, index)
     cpdef play_sound(self, str name)

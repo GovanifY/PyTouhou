@@ -230,6 +230,14 @@ cdef class Player(Element):
                 self.fire()
                 self.fire_time -= 1
 
+            if keystate & 2 and self.bomb_time == 0:
+                self._game.set_player_bomb()
+                self.bomb_time = 240
+            if self.bomb_time > 0:
+                self.bomb_time -= 1
+                if self.bomb_time == 0:
+                    self._game.unset_player_bomb()
+
         if self.death_time:
             time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
