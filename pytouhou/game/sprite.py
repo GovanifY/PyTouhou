@@ -100,3 +100,42 @@ class Sprite(object):
             self.force_rotation = force_rotation
             self.changed = True
 
+
+    def update(self):
+        self.frame += 1
+
+        if self.rotations_speed_3d != (0., 0., 0.):
+            ax, ay, az = self.rotations_3d
+            sax, say, saz = self.rotations_speed_3d
+            self.rotations_3d = ax + sax, ay + say, az + saz
+            self.changed = True
+        elif self.rotation_interpolator:
+            self.rotation_interpolator.update(self.frame)
+            self.rotations_3d = self.rotation_interpolator.values
+            self.changed = True
+
+        if self.scale_speed != (0., 0.):
+            rx, ry = self.rescale
+            rsx, rsy = self.scale_speed
+            self.rescale = rx + rsx, ry + rsy
+            self.changed = True
+
+        if self.fade_interpolator:
+            self.fade_interpolator.update(self.frame)
+            self.alpha = int(self.fade_interpolator.values[0])
+            self.changed = True
+
+        if self.scale_interpolator:
+            self.scale_interpolator.update(self.frame)
+            self.rescale = self.scale_interpolator.values
+            self.changed = True
+
+        if self.offset_interpolator:
+            self.offset_interpolator.update(self.frame)
+            self.dest_offset = self.offset_interpolator.values
+            self.changed = True
+
+        if self.color_interpolator:
+            self.color_interpolator.update(self.frame)
+            self.color = self.color_interpolator.values
+            self.changed = True

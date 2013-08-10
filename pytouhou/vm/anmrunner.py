@@ -74,8 +74,6 @@ class ANMRunner(object):
         if not self.running:
             return False
 
-        sprite = self._sprite
-
         while self.running and not self.waiting:
             frame, opcode, args = self.script[self.instruction_pointer]
 
@@ -93,51 +91,14 @@ class ANMRunner(object):
                     logger.debug('[%d - %04d] anm_%d%r', id(self),
                                  self.frame, opcode, args)
                     callback(self, *args)
-                    sprite.changed = True
+                    self._sprite.changed = True
 
         if not self.waiting:
             self.frame += 1
-        elif self.timeout == sprite.frame: #TODO: check if it’s happening at the correct frame.
+        elif self.timeout == self._sprite.frame: #TODO: check if it’s happening at the correct frame.
             self.waiting = False
 
-        # Update sprite
-        sprite.frame += 1
-
-        if sprite.rotations_speed_3d != (0., 0., 0.):
-            ax, ay, az = sprite.rotations_3d
-            sax, say, saz = sprite.rotations_speed_3d
-            sprite.rotations_3d = ax + sax, ay + say, az + saz
-            sprite.changed = True
-        elif sprite.rotation_interpolator:
-            sprite.rotation_interpolator.update(sprite.frame)
-            sprite.rotations_3d = sprite.rotation_interpolator.values
-            sprite.changed = True
-
-        if sprite.scale_speed != (0., 0.):
-            rx, ry = sprite.rescale
-            rsx, rsy = sprite.scale_speed
-            sprite.rescale = rx + rsx, ry + rsy
-            sprite.changed = True
-
-        if sprite.fade_interpolator:
-            sprite.fade_interpolator.update(sprite.frame)
-            sprite.alpha = int(sprite.fade_interpolator.values[0])
-            sprite.changed = True
-
-        if sprite.scale_interpolator:
-            sprite.scale_interpolator.update(sprite.frame)
-            sprite.rescale = sprite.scale_interpolator.values
-            sprite.changed = True
-
-        if sprite.offset_interpolator:
-            sprite.offset_interpolator.update(sprite.frame)
-            sprite.dest_offset = sprite.offset_interpolator.values
-            sprite.changed = True
-
-        if sprite.color_interpolator:
-            sprite.color_interpolator.update(sprite.frame)
-            sprite.color = sprite.color_interpolator.values
-            sprite.changed = True
+        self._sprite.update()
 
         return self.running
 
