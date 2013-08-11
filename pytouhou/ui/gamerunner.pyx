@@ -177,6 +177,7 @@ class GameRunner(GameRenderer):
 
 
     def render_interface(self):
+        elements = []
         interface = self.game.interface
         interface.labels['framerate'].set_text('%.2ffps' % self.window.clock.get_fps())
 
@@ -194,17 +195,18 @@ class GameRunner(GameRenderer):
 
         if items:
             # Redraw all the interface
-            self.render_elements(items)
+            elements.extend(items)
         else:
             # Redraw only changed labels
             labels = [label for label in labels if label.changed]
 
-        self.render_elements(interface.level_start)
+        elements.extend(interface.level_start)
 
         if self.game.boss:
-            self.render_elements(interface.boss_items)
+            elements.extend(interface.boss_items)
 
-        self.render_elements(labels)
+        elements.extend(labels)
+        self.render_elements(elements)
         for label in labels:
             label.changed = False
 
