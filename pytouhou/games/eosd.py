@@ -27,52 +27,64 @@ from pytouhou.game.background import Background
 from pytouhou.vm.eclrunner import ECLMainRunner
 
 
+class EoSDCommon(object):
+    def __init__(self, resource_loader):
+        self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
+        self.bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
+                                        type_id=0),
+                             BulletType(self.etama[0], 1, 12, 17, 18, 19, hitbox_size=3,
+                                        type_id=1),
+                             BulletType(self.etama[0], 2, 12, 17, 18, 19, hitbox_size=2,
+                                        type_id=2),
+                             BulletType(self.etama[0], 3, 12, 17, 18, 19, hitbox_size=3,
+                                        type_id=3),
+                             BulletType(self.etama[0], 4, 12, 17, 18, 19, hitbox_size=2.5,
+                                        type_id=4),
+                             BulletType(self.etama[0], 5, 12, 17, 18, 19, hitbox_size=2,
+                                        type_id=5),
+                             BulletType(self.etama[0], 6, 13, 20, 20, 20, hitbox_size=8,
+                                        launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
+                                        type_id=6),
+                             BulletType(self.etama[0], 7, 13, 20, 20, 20, hitbox_size=5.5,
+                                        launch_anim_offsets=(1,)*28,
+                                        type_id=7),
+                             BulletType(self.etama[0], 8, 13, 20, 20, 20, hitbox_size=4.5,
+                                        launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
+                                        type_id=8),
+                             BulletType(self.etama[1], 0, 1, 2, 2, 2, hitbox_size=16,
+                                        launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8),
+                                        type_id=9)]
+
+        self.laser_types = [LaserType(self.etama[0], 9),
+                            LaserType(self.etama[0], 10)]
+
+        self.item_types = [ItemType(self.etama[0], 0, 7), #Power
+                           ItemType(self.etama[0], 1, 8), #Point
+                           ItemType(self.etama[0], 2, 9), #Big power
+                           ItemType(self.etama[0], 3, 10), #Bomb
+                           ItemType(self.etama[0], 4, 11), #Full power
+                           ItemType(self.etama[0], 5, 12), #1up
+                           ItemType(self.etama[0], 6, 13)] #Star
+
+        self.enemy_face = [('face03a.anm', 'face03b.anm'),
+                           ('face05a.anm',),
+                           ('face06a.anm', 'face06b.anm'),
+                           ('face08a.anm', 'face08b.anm'),
+                           ('face09a.anm', 'face09b.anm'),
+                           ('face09b.anm', 'face10a.anm', 'face10b.anm'),
+                           ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
+
+        self.characters = resource_loader.get_eosd_characters()
+        self.interface = EoSDInterface(resource_loader)
+
+
+
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
-                 bullet_types=None, laser_types=None, item_types=None,
-                 nb_bullets_max=640, width=384, height=448, prng=None,
+                 common, nb_bullets_max=640, width=384, height=448, prng=None,
                  continues=0, hints=None):
 
-        if not bullet_types:
-            self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
-            bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
-                                       type_id=0),
-                            BulletType(self.etama[0], 1, 12, 17, 18, 19, hitbox_size=3,
-                                       type_id=1),
-                            BulletType(self.etama[0], 2, 12, 17, 18, 19, hitbox_size=2,
-                                       type_id=2),
-                            BulletType(self.etama[0], 3, 12, 17, 18, 19, hitbox_size=3,
-                                       type_id=3),
-                            BulletType(self.etama[0], 4, 12, 17, 18, 19, hitbox_size=2.5,
-                                       type_id=4),
-                            BulletType(self.etama[0], 5, 12, 17, 18, 19, hitbox_size=2,
-                                       type_id=5),
-                            BulletType(self.etama[0], 6, 13, 20, 20, 20, hitbox_size=8,
-                                       launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
-                                       type_id=6),
-                            BulletType(self.etama[0], 7, 13, 20, 20, 20, hitbox_size=5.5,
-                                       launch_anim_offsets=(1,)*28,
-                                       type_id=7),
-                            BulletType(self.etama[0], 8, 13, 20, 20, 20, hitbox_size=4.5,
-                                       launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
-                                       type_id=8),
-                            BulletType(self.etama[1], 0, 1, 2, 2, 2, hitbox_size=16,
-                                       launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8),
-                                       type_id=9)]
-
-        if not laser_types:
-            laser_types = [LaserType(self.etama[0], 9),
-                           LaserType(self.etama[0], 10)]
-
-        if not item_types:
-            item_types = [ItemType(self.etama[0], 0, 7), #Power
-                          ItemType(self.etama[0], 1, 8), #Point
-                          ItemType(self.etama[0], 2, 9), #Big power
-                          ItemType(self.etama[0], 3, 10), #Bomb
-                          ItemType(self.etama[0], 4, 11), #Full power
-                          ItemType(self.etama[0], 5, 12), #1up
-                          ItemType(self.etama[0], 6, 13)] #Star
-
+        self.etama = common.etama #XXX
         try:
             self.enm_anm = resource_loader.get_multi_anm(('stg%denm.anm' % stage,
                                                           'stg%denm2.anm' % stage))
@@ -84,18 +96,11 @@ class EoSDGame(Game):
         self.spellcard_effect_anm = resource_loader.get_single_anm('eff0%d.anm' % stage)
 
         player_face = player_states[0].character // 2
-        enemy_face = [('face03a.anm', 'face03b.anm'),
-                      ('face05a.anm',),
-                      ('face06a.anm', 'face06b.anm'),
-                      ('face08a.anm', 'face08b.anm'),
-                      ('face09a.anm', 'face09b.anm'),
-                      ('face09b.anm', 'face10a.anm', 'face10b.anm'),
-                      ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
         self.msg = resource_loader.get_msg('msg%d.dat' % stage)
         msg_anm = [resource_loader.get_multi_anm(('face0%da.anm' % player_face,
                                                   'face0%db.anm' % player_face,
                                                   'face0%dc.anm' % player_face)),
-                   resource_loader.get_multi_anm(enemy_face[stage - 1])]
+                   resource_loader.get_multi_anm(common.enemy_face[stage - 1])]
 
         self.msg_anm = [[], []]
         for i, anms in enumerate(msg_anm):
@@ -103,11 +108,9 @@ class EoSDGame(Game):
                 for sprite in anm.sprites.values():
                     self.msg_anm[i].append((anm, sprite))
 
-        characters = resource_loader.get_eosd_characters()
-        players = [EoSDPlayer(state, self, resource_loader, characters[state.character]) for state in player_states]
+        players = [EoSDPlayer(state, self, resource_loader, common.characters[state.character]) for state in player_states]
 
-        self.stage = stage #XXX
-        interface = EoSDInterface(self, resource_loader)
+        common.interface.start_stage(self, stage)
 
         # Load stage data
         self.std = resource_loader.get_stage('stage%d.std' % stage)
@@ -118,14 +121,15 @@ class EoSDGame(Game):
         self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
 
         Game.__init__(self, players, stage, rank, difficulty,
-                      bullet_types, laser_types, item_types, nb_bullets_max,
-                      width, height, prng, interface, continues, hints)
+                      common.bullet_types, common.laser_types,
+                      common.item_types, nb_bullets_max, width, height, prng,
+                      common.interface, continues, hints)
 
 
 
 class EoSDInterface(object):
-    def __init__(self, game, resource_loader):
-        self.game = game
+    def __init__(self, resource_loader):
+        self.game = None
         front = resource_loader.get_single_anm('front.anm')
         self.ascii_anm = resource_loader.get_single_anm('ascii.anm')
 
@@ -143,10 +147,7 @@ class EoSDInterface(object):
         for item in self.items:
             item.sprite.allow_dest_offset = True #XXX
 
-        self.level_start = [Text((176, 200), self.ascii_anm, text='STAGE %d' % game.stage)] #TODO: find the exact location.
-        self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
-        self.level_start[0].set_color('yellow')
-        #TODO: use the system text for the stage name, and the song name.
+        self.level_start = []
 
         self.labels = {
             'highscore': Text((500, 58), self.ascii_anm, front, text='0'),
@@ -172,6 +173,20 @@ class EoSDInterface(object):
         ]
         for item in self.boss_items:
             item.sprite.allow_dest_offset = True #XXX
+
+
+    def start_stage(self, game, stage):
+        self.game = game
+        if stage < 6:
+            text = 'STAGE %d' % stage
+        elif stage == 6:
+            text = 'FINAL STAGE'
+        elif stage == 7:
+            text = 'EXTRA STAGE'
+        self.level_start = [Text((16+384/2, 200), self.ascii_anm, text=text, align='center')] #TODO: find the exact location.
+        self.level_start[0].set_timeout(240, effect='fadeout', duration=60, start=120)
+        self.level_start[0].set_color('yellow')
+        #TODO: use the system text for the stage name, and the song name.
 
 
     def set_boss_life(self):
