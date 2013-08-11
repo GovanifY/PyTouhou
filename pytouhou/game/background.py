@@ -54,7 +54,6 @@ class Background(object):
             for script_index, ox, oy, oz, width_override, height_override in obj.quads:
                 sprite = Sprite(width_override, height_override)
                 anm_runner = ANMRunner(self.anm, script_index, sprite)
-                anm_runner.run_frame()
                 quads.append((ox, oy, oz, width_override, height_override, sprite))
                 self.anm_runners.append(anm_runner)
             self.models.append(quads)

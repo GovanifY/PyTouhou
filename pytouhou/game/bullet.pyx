@@ -82,7 +82,6 @@ cdef class Bullet(object):
             self.anmrunner = ANMRunner(bullet_type.anm,
                                         index, self.sprite,
                                         bullet_type.launch_anim_offsets[sprite_idx_offset])
-            self.anmrunner.run_frame()
         else:
             self.launch()
 
@@ -119,7 +118,6 @@ cdef class Bullet(object):
             self.sprite.angle = self.angle
         self.anmrunner = ANMRunner(bt.anm, bt.anim_index,
                                    self.sprite, self.sprite_idx_offset)
-        self.anmrunner.run_frame()
 
 
     def launch(self):
@@ -148,7 +146,6 @@ cdef class Bullet(object):
             self.sprite.angle = self.angle
         self.anmrunner = ANMRunner(bt.anm, bt.cancel_anim_index,
                                    self.sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
-        self.anmrunner.run_frame()
         self.dx, self.dy = self.dx / 2., self.dy / 2.
 
         self.state = CANCELLED

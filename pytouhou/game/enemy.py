@@ -224,7 +224,6 @@ class Enemy(object):
         entry = 0 if index in self._anms[0].scripts else 1
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self._anms[entry], index, self.sprite)
-        self.anmrunner.run_frame()
 
 
     def die_anim(self):

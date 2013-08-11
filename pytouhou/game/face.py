@@ -41,7 +41,6 @@ class Face(object):
 
     def load(self, index):
         self.sprite.anm, self.sprite.texcoords = self._anms[self.side][index]
-        self.anmrunner.run_frame()
 
 
     def update(self):

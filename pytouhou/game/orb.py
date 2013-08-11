@@ -24,7 +24,6 @@ class Orb(object):
     def __init__(self, anm, index, player_state, fire_func):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, index, self.sprite)
-        self.anmrunner.run_frame()
 
         self.offset_x = 0
         self.offset_y = 0

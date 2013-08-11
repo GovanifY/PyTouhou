@@ -56,6 +56,8 @@ class ANMRunner(object):
 
         self.sprite_index_offset = sprite_index_offset
 
+        self.run_frame()
+
 
     def interrupt(self, interrupt):
         new_ip = self.script.interrupts.get(interrupt, None)

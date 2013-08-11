@@ -40,7 +40,6 @@ class Widget(object):
         if back_anm:
             self.sprite = Sprite()
             self.anmrunner = ANMRunner(back_anm, back_script, self.sprite)
-            self.anmrunner.run_frame()
 
         self.x, self.y = pos
 
@@ -64,8 +63,7 @@ class GlyphCollection(Widget):
         self.xspacing = xspacing
 
         # Set up ref sprite
-        anm_runner = ANMRunner(anm, ref_script, self.ref_sprite)
-        anm_runner.run_frame()
+        ANMRunner(anm, ref_script, self.ref_sprite)
         self.ref_sprite.corner_relative_placement = True #TODO: perhaps not right
 
 
@@ -225,7 +223,6 @@ class Gauge(object):
     def __init__(self, pos, anm, max_length=280, maximum=1, value=0):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, 21, self.sprite)
-        self.anmrunner.run_frame()
         self.removed = False
         self.sprite.corner_relative_placement = True #TODO: perhaps not right
         self.objects = [self]

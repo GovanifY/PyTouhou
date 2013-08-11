@@ -100,7 +100,6 @@ class Laser(object):
         self.sprite.angle = self.angle
         self.anmrunner = ANMRunner(lt.anm, lt.anim_index,
                                    self.sprite, self.sprite_idx_offset)
-        self.anmrunner.run_frame()
 
 
     def _check_collision(self, point, border_size):
@@ -238,7 +237,6 @@ class PlayerLaser(object):
         self.anmrunner = ANMRunner(lt.anm, lt.anim_index,
                                    self.sprite, self.sprite_idx_offset)
         #self.sprite.blendfunc = 1 #XXX
-        self.anmrunner.run_frame()
 
 
     def cancel(self):

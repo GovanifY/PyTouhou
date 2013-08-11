@@ -87,7 +87,6 @@ class Player(object):
     def set_anim(self, index):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self.anm, index, self.sprite)
-        self.anmrunner.run_frame()
 
 
     def play_sound(self, name):
@@ -280,7 +279,6 @@ class Player(object):
                 self.sprite.fade(30, 255, lambda x: x)
                 self.sprite.blendfunc = 1
                 self.sprite.scale_in(30, 1., 1., lambda x: x)
-                self.anmrunner.run_frame()
 
             elif time == 61: # respawned
                 self.state.touchable = True

@@ -23,7 +23,6 @@ class Effect(object):
     def __init__(self, pos, index, anm):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, index, self.sprite)
-        self.anmrunner.run_frame()
         self.removed = False
         self.objects = [self]
 
