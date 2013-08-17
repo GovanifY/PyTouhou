@@ -12,41 +12,37 @@
 ## GNU General Public License for more details.
 ##
 
-
-from pytouhou.game.element import Element
-from pytouhou.game.sprite import Sprite
+from pytouhou.game.sprite cimport Sprite
 from pytouhou.vm.anmrunner import ANMRunner
-from pytouhou.utils.interpolator import Interpolator
 
 
-
-class Effect(Element):
+cdef class Effect(Element):
     def __init__(self, pos, index, anm):
         Element.__init__(self, pos)
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, index, self.sprite)
 
 
-    def update(self):
-        if self.anmrunner and not self.anmrunner.run_frame():
+    cpdef update(self):
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
 
-        if self.sprite:
+        if self.sprite is not None:
             if self.sprite.removed:
                 self.sprite = None
                 self.removed = True
 
 
 
-class Particle(Effect):
-    def __init__(self, pos, index, anm, amp, game, reverse=False, duration=24):
+cdef class Particle(Effect):
+    def __init__(self, pos, index, anm, long amp, game, bint reverse=False, long duration=24):
         Effect.__init__(self, pos, index, anm)
 
         self.frame = 0
         self.duration = duration
 
-        random_pos = (self.x + amp * game.prng.rand_double() - amp / 2,
-                      self.y + amp * game.prng.rand_double() - amp / 2)
+        random_pos = (self.x + amp * <double>game.prng.rand_double() - amp / 2,
+                      self.y + amp * <double>game.prng.rand_double() - amp / 2)
 
         if not reverse:
             self.pos_interpolator = Interpolator((self.x, self.y), 0,
@@ -57,11 +53,10 @@ class Particle(Effect):
             self.x, self.y = random_pos
 
 
-    def update(self):
+    cpdef update(self):
         Effect.update(self)
 
         self.pos_interpolator.update(self.frame)
         self.x, self.y = self.pos_interpolator.values
 
         self.frame += 1
-

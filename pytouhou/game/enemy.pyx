@@ -18,7 +18,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet, LAUNCHED
 from pytouhou.game.laser import Laser
-from pytouhou.game.effect import Effect
+from pytouhou.game.effect cimport Effect
 
 
 cdef class Enemy(Element):
