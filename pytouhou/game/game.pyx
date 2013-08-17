@@ -15,8 +15,7 @@
 from pytouhou.vm.msgrunner import MSGRunner
 
 from pytouhou.game.element cimport Element
-from pytouhou.game.bullet cimport Bullet
-from pytouhou.game.bullet import LAUNCHED, CANCELLED
+from pytouhou.game.bullet cimport Bullet, LAUNCHED, CANCELLED
 from pytouhou.game.enemy cimport Enemy
 from pytouhou.game.item cimport Item
 from pytouhou.game.effect cimport Particle
@@ -291,8 +290,10 @@ cdef class Game:
     cdef void update_msg(self, long keystate) except *:
         cdef long k
 
-        if any([(keystate & k and not self.last_keystate & k) for k in (1, 256)]):
-            self.msg_runner.skip()
+        for k in (1, 256):
+            if keystate & k and not self.last_keystate & k:
+                self.msg_runner.skip()
+                break
         self.msg_runner.skipping = bool(keystate & 256)
         self.last_keystate = keystate
         self.msg_runner.run_iteration()

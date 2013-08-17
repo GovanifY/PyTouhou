@@ -18,8 +18,6 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite cimport Sprite
 
 
-LAUNCHING, LAUNCHED, CANCELLED = range(3)
-
 cdef class Bullet(Element):
     def __init__(self, pos, bullet_type, unsigned long sprite_idx_offset,
                        double angle, double speed, attributes, unsigned long flags, target, Game game,

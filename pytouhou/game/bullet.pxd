@@ -2,8 +2,14 @@ from pytouhou.game.element cimport Element
 from pytouhou.game.game cimport Game
 from pytouhou.utils.interpolator cimport Interpolator
 
+
+cdef enum State:
+    LAUNCHING, LAUNCHED, CANCELLED
+
+
 cdef class Bullet(Element):
-    cdef public unsigned long state, flags, frame, sprite_idx_offset, damage
+    cdef public State state
+    cdef public unsigned long flags, frame, sprite_idx_offset, damage
     cdef public double dx, dy, angle, speed
     cdef public bint player_bullet, was_visible, grazed
     cdef public object target, _bullet_type

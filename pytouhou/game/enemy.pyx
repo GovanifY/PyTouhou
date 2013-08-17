@@ -16,7 +16,7 @@ from libc.math cimport cos, sin, atan2, M_PI as pi
 
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
-from pytouhou.game.bullet import Bullet, LAUNCHED
+from pytouhou.game.bullet cimport Bullet, LAUNCHED
 from pytouhou.game.laser import Laser
 from pytouhou.game.effect cimport Effect
 
