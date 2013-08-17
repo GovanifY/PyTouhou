@@ -56,8 +56,7 @@ from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
 from pytouhou.games.eosd import EoSDCommon, EoSDGame
-from pytouhou.game.game import GameOver
-from pytouhou.game.player import PlayerState
+from pytouhou.game.player import PlayerState, GameOver
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
 from pytouhou.vm.msgrunner import NextStage
@@ -161,7 +160,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
                 previous_level = replay.levels[stage_num - 1]
                 states[0].score = previous_level.score
                 states[0].effective_score = previous_level.score
-            states[0].point_items = level.point_items
+            states[0].points = level.point_items
             states[0].power = level.power
             states[0].lives = level.lives
             states[0].bombs = level.bombs

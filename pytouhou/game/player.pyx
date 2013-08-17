@@ -12,21 +12,22 @@
 ## GNU General Public License for more details.
 ##
 
+from libc.math cimport M_PI as pi
 
-from pytouhou.game.element import Element
-from pytouhou.game.sprite import Sprite
+from pytouhou.game.sprite cimport Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
-from pytouhou.game.bullet import Bullet
+from pytouhou.game.bullet cimport Bullet
 from pytouhou.game.lasertype import LaserType
 from pytouhou.game.laser import PlayerLaser
-from pytouhou.game.game import GameOver
-
-from math import pi
 
 
-class PlayerState(object):
-    def __init__(self, character=0, score=0, power=0, lives=2, bombs=3):
+class GameOver(Exception):
+    pass
+
+
+cdef class PlayerState:
+    def __init__(self, long character=0, long score=0, long power=0, long lives=2, long bombs=3):
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
         self.score = score
@@ -53,8 +54,8 @@ class PlayerState(object):
                            self.power, self.lives, self.bombs)
 
 
-class Player(Element):
-    def __init__(self, state, game, anm):
+cdef class Player(Element):
+    def __init__(self, PlayerState state, game, anm):
         Element.__init__(self)
 
         self._game = game
@@ -68,39 +69,29 @@ class Player(Element):
         self.fire_time = 0
 
         self.state = state
-        self.direction = None
+        self.direction = 0
 
         self.set_anim(0)
 
         self.death_time = 0
 
 
-    @property
-    def x(self):
-        return self.state.x
-
-
-    @property
-    def y(self):
-        return self.state.y
-
-
-    def set_anim(self, index):
+    cdef void set_anim(self, index):
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self.anm, index, self.sprite)
 
 
-    def play_sound(self, name):
+    cpdef play_sound(self, str name):
         self._game.sfx_player.play('%s.wav' % name)
 
 
-    def collide(self):
+    cpdef collide(self):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
             self._game.new_effect((self.state.x, self.state.y), 17)
             self._game.modify_difficulty(-1600)
             self.play_sound('pldead00')
-            for i in range(16):
+            for i in xrange(16):
                 self._game.new_particle((self.state.x, self.state.y), 11, 256) #TODO: find the real size and range.
 
 
@@ -112,7 +103,10 @@ class Player(Element):
         self.state.focused = False
 
 
-    def fire(self):
+    cdef void fire(self):
+        cdef double x, y
+        cdef long shot_power
+
         sht = self.focused_sht if self.state.focused else self.sht
 
         # Don’t use min() since sht.shots could be an empty dict.
@@ -123,20 +117,24 @@ class Player(Element):
 
         bullets = self._game.players_bullets
         lasers = self._game.players_lasers
-        nb_bullets_max = self._game.nb_bullets_max
+        nb_bullets_max = <long>self._game.nb_bullets_max
 
         if self.fire_time % 5 == 0:
             self.play_sound('plst00')
 
         for shot in sht.shots[power]:
             origin = self.orbs[shot.orb - 1] if shot.orb else self.state
+            shot_type = <unsigned char>shot.type
 
-            if shot.type == 3:
+            if shot_type == 3:
                 if self.fire_time != 30:
                     continue
 
-                number = shot.delay #TODO: number can do very surprising things, like removing any bullet creation from enemies with 3. For now, crash when not 0 or 1.
-                if lasers[number]:
+                #TODO: number can do very surprising things, like removing any
+                # bullet creation from enemies with 3. For now, crash when not
+                # an actual laser number.
+                number = <long>shot.delay
+                if lasers[number] is not None:
                     continue
 
                 laser_type = LaserType(self.anm, shot.sprite % 256, 68)
@@ -146,7 +144,7 @@ class Player(Element):
             if (self.fire_time + shot.delay) % shot.interval != 0:
                 continue
 
-            if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
+            if nb_bullets_max != 0 and len(bullets) == nb_bullets_max:
                 break
 
             x = origin.x + shot.pos[0]
@@ -157,7 +155,7 @@ class Player(Element):
                                      shot.sprite % 256 + 32, #TODO: find the real cancel anim
                                      0, 0, 0, 0.)
             #TODO: Type 1 (homing bullets)
-            if shot.type == 2:
+            if shot_type == 2:
                 #TODO: triple-check acceleration!
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
@@ -172,15 +170,17 @@ class Player(Element):
                                       damage=shot.damage, hitbox=shot.hitbox))
 
 
-    def update(self, keystate):
+    cpdef update(self, long keystate):
+        cdef double dx, dy
+
         if self.death_time == 0 or self._game.frame - self.death_time > 60:
             speed, diag_speed = self.speeds[2:] if self.state.focused else self.speeds[:2]
             try:
-                dx, dy = {16: (0.0, -speed), 32: (0.0, speed), 64: (-speed, 0.0), 128: (speed, 0.0),
+                dx, dy = {16: (0., -speed), 32: (0., speed), 64: (-speed, 0.), 128: (speed, 0.),
                           16|64: (-diag_speed, -diag_speed), 16|128: (diag_speed, -diag_speed),
                           32|64: (-diag_speed, diag_speed), 32|128:  (diag_speed, diag_speed)}[keystate & (16|32|64|128)]
             except KeyError:
-                dx, dy = 0.0, 0.0
+                dx, dy = 0., 0.
 
             if dx < 0 and self.direction != -1:
                 self.set_anim(1)
@@ -188,12 +188,16 @@ class Player(Element):
             elif dx > 0 and self.direction != +1:
                 self.set_anim(3)
                 self.direction = +1
-            elif dx == 0 and self.direction is not None:
+            elif dx == 0 and self.direction != 0:
                 self.set_anim({-1: 2, +1: 4}[self.direction])
-                self.direction = None
+                self.direction = 0
 
             self.state.x += dx
             self.state.y += dy
+
+            #XXX
+            self.x = self.state.x
+            self.y = self.state.y
 
             if self.state.x < 8.:
                 self.state.x = 8.
@@ -227,7 +231,7 @@ class Player(Element):
                 self.fire_time -= 1
 
         if self.death_time:
-            time = self._game.frame - self.death_time
+            time = <long>self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
                 self.state.touchable = False
                 if self.state.power > 16:
@@ -235,7 +239,7 @@ class Player(Element):
                 else:
                     self.state.power = 0
                 for laser in self._game.players_lasers:
-                    if laser:
+                    if laser is not None:
                         laser.cancel()
 
                 self.state.lives -= 1
@@ -245,7 +249,7 @@ class Player(Element):
                     if self._game.continues < 0:
                         raise GameOver
 
-                    for i in range(5):
+                    for i in xrange(5):
                         self._game.drop_bonus(self.state.x, self.state.y, 4,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
@@ -261,7 +265,7 @@ class Player(Element):
                     self._game.drop_bonus(self.state.x, self.state.y, 2,
                                           end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
                                                    self._game.prng.rand_double() * 192 - 64))        # @0x41f3
-                    for i in range(5):
+                    for i in xrange(5):
                         self._game.drop_bonus(self.state.x, self.state.y, 0,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
@@ -270,21 +274,21 @@ class Player(Element):
                 self.sprite.mirrored = False
                 self.sprite.blendfunc = 0
                 self.sprite.rescale = 0.75, 1.5
-                self.sprite.fade(26, 96, lambda x: x)
-                self.sprite.scale_in(26, 0.00, 2.5, lambda x: x)
+                self.sprite.fade(26, 96)
+                self.sprite.scale_in(26, 0., 2.5)
 
             elif time == 32:
                 self.state.x = float(self._game.width) / 2. #TODO
                 self.state.y = float(self._game.width) #TODO
-                self.direction = None
+                self.direction = 0
 
                 self.sprite = Sprite()
                 self.anmrunner = ANMRunner(self.anm, 0, self.sprite)
                 self.sprite.alpha = 128
-                self.sprite.rescale = 0.0, 2.5
-                self.sprite.fade(30, 255, lambda x: x)
+                self.sprite.rescale = 0., 2.5
+                self.sprite.fade(30, 255)
                 self.sprite.blendfunc = 1
-                self.sprite.scale_in(30, 1., 1., lambda x: x)
+                self.sprite.scale_in(30, 1., 1.)
 
             elif time == 61: # respawned
                 self.state.touchable = True

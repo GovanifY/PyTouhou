@@ -203,10 +203,10 @@ class ECLRunner(object):
                 return self._enemy.z
             elif value == -10018:
                 player = self._enemy.select_player()
-                return player.x
+                return player.state.x
             elif value == -10019:
                 player = self._enemy.select_player()
-                return player.y
+                return player.state.y
             elif value == -10021:
                 return self._enemy.get_player_angle()
             elif value == -10022:

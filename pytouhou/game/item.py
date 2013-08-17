@@ -168,7 +168,8 @@ class Item(Element):
                                                    (3.,), 180)
 
         if self.player is not None:
-            self.angle = atan2(self.player.y - self.y, self.player.x - self.x)
+            player_state = self.player.state
+            self.angle = atan2(player_state.y - self.y, player_state.x - self.x)
             self.x += cos(self.angle) * self.speed
             self.y += sin(self.angle) * self.speed
         elif self.speed_interpolator is None:

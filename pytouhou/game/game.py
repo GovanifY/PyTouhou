@@ -24,11 +24,6 @@ from pytouhou.game.text import Text
 from pytouhou.game.face import Face
 
 
-
-class GameOver(Exception):
-    pass
-
-
 class Game(object):
     def __init__(self, players, stage, rank, difficulty, bullet_types,
                  laser_types, item_types, nb_bullets_max=None, width=384,
@@ -342,7 +337,7 @@ class Game(object):
             if not player.state.touchable:
                 continue
 
-            px, py = player.x, player.y
+            px, py = player.state.x, player.state.y
             phalf_size = player.sht.hitbox
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
