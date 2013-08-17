@@ -121,8 +121,7 @@ class Game(object):
 
     def autocollect(self, player):
         for item in self.items:
-            if not item.player:
-                item.autocollect(player)
+            item.autocollect(player)
 
 
     def cancel_bullets(self):

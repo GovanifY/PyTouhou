@@ -12,35 +12,28 @@
 ## GNU General Public License for more details.
 ##
 
-
-from math import cos, sin, atan2, pi
-
-from pytouhou.game.element import Element
-from pytouhou.utils.interpolator import Interpolator
+from libc.math cimport cos, sin, atan2, M_PI as pi
 
 
-class Indicator(Element):
-    def __init__(self, item):
+cdef class Indicator(Element):
+    def __init__(self, Item item):
         Element.__init__(self)
 
         self._item = item
-
         self.sprite = item._item_type.indicator_sprite.copy()
 
-        self.frame = 0
         self.x = self._item.x
         self.y = self.sprite.texcoords[2] / 2.
 
 
-    def update(self):
+    cpdef update(self):
         #TODO: alpha
         self.x = self._item.x
-        self.frame += 1
 
 
 
-class Item(Element):
-    def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
+cdef class Item(Element):
+    def __init__(self, start_pos, long _type, item_type, game, double angle=pi/2, Player player=None, end_pos=None):
         Element.__init__(self, start_pos)
 
         self._game = game
@@ -52,12 +45,11 @@ class Item(Element):
         self.angle = angle
         self.indicator = None
 
-        if player:
+        if player is not None:
             self.autocollect(player)
         else:
             self.player = None
 
-        if not player:
             #TODO: find the formulae in the binary.
             self.speed_interpolator = None
             if end_pos:
@@ -70,12 +62,22 @@ class Item(Element):
         self.sprite.angle = angle
 
 
-    def autocollect(self, player):
-        self.player = player
-        self.speed = player.sht.autocollection_speed
+    property objects:
+        def __get__(self):
+            if self.indicator is not None:
+                return [self.indicator]
+            return [self]
 
 
-    def on_collect(self, player):
+    cpdef autocollect(self, Player player):
+        if self.player is None:
+            self.player = player
+            self.speed = player.sht.autocollection_speed
+
+
+    cpdef on_collect(self, Player player):
+        cdef long level, poc
+
         player_state = player.state
         old_power = player_state.power
         score = 0
@@ -147,7 +149,7 @@ class Item(Element):
 
         if score > 0:
             player_state.score += score
-            if not label:
+            if label is None:
                 label = self._game.new_label((self.x, self.y), str(score))
                 if color != 'white':
                     label.set_color(color)
@@ -155,14 +157,9 @@ class Item(Element):
         self.removed = True
 
 
-    @property
-    def objects(self):
-        if self.indicator is not None:
-            return [self.indicator]
-        return [self]
+    cpdef update(self):
+        cdef bint offscreen
 
-
-    def update(self):
         if self.frame == 60:
             self.speed_interpolator = Interpolator((0.,), 60,
                                                    (3.,), 180)
@@ -182,14 +179,12 @@ class Item(Element):
             self.x += dx
             self.y += dy
 
-        offscreen = self.y < -(self.sprite.texcoords[2] / 2.)
+        offscreen = self.y < -(<double>self.sprite.texcoords[2] / 2.)
         if offscreen:
-            self.indicator = self.indicator or Indicator(self)
+            if self.indicator is None:
+                self.indicator = Indicator(self)
+            self.indicator.update()
         else:
             self.indicator = None
 
-        if self.indicator:
-            self.indicator.update()
-
         self.frame += 1
-
