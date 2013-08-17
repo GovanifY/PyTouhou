@@ -1,4 +1,5 @@
 from pytouhou.game.element cimport Element
+from pytouhou.game.game cimport Game
 
 cdef class PlayerState:
     cdef public double x, y
@@ -8,8 +9,8 @@ cdef class PlayerState:
 
 cdef class Player(Element):
     cdef public PlayerState state
-    cdef public object _game
     cdef public long death_time
+    cdef public Game _game
 
     cdef object anm
     cdef tuple speeds

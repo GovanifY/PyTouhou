@@ -12,22 +12,22 @@
 ## GNU General Public License for more details.
 ##
 
-from itertools import chain
-
 from pytouhou.vm.msgrunner import MSGRunner
 
+from pytouhou.game.element cimport Element
+from pytouhou.game.bullet cimport Bullet
 from pytouhou.game.bullet import LAUNCHED, CANCELLED
-from pytouhou.game.enemy import Enemy
-from pytouhou.game.item import Item
-from pytouhou.game.effect import Effect, Particle
+from pytouhou.game.enemy cimport Enemy
+from pytouhou.game.item cimport Item
+from pytouhou.game.effect cimport Particle
 from pytouhou.game.text import Text
 from pytouhou.game.face import Face
 
 
-class Game(object):
-    def __init__(self, players, stage, rank, difficulty, bullet_types,
-                 laser_types, item_types, nb_bullets_max=None, width=384,
-                 height=448, prng=None, interface=None, continues=0,
+cdef class Game:
+    def __init__(self, players, long stage, long rank, long difficulty, bullet_types,
+                 laser_types, item_types, long nb_bullets_max=0, long width=384,
+                 long height=448, prng=None, interface=None, double continues=0,
                  hints=None):
         self.width, self.height = width, height
 
@@ -66,6 +66,7 @@ class Game(object):
                            1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 2]
         self.prng = prng
         self.frame = 0
+        self.sfx_player = None
 
         self.spellcard_effect = None
 
@@ -77,14 +78,14 @@ class Game(object):
 
 
     def msg_sprites(self):
-        return [face for face in self.faces if face] if self.msg_runner and not self.msg_runner.ended else []
+        return [face for face in self.faces if face is not None] if self.msg_runner is not None and not self.msg_runner.ended else []
 
 
     def lasers_sprites(self):
-        return [laser for laser in self.players_lasers if laser]
+        return [laser for laser in self.players_lasers if laser is not None]
 
 
-    def modify_difficulty(self, diff):
+    cpdef modify_difficulty(self, long diff):
         self.difficulty_counter += diff
         while self.difficulty_counter < 0:
             self.difficulty -= 1
@@ -108,23 +109,26 @@ class Game(object):
         self.spellcard_effect = None
 
 
-    def drop_bonus(self, x, y, _type, end_pos=None):
-        player = self.players[0] #TODO
+    cpdef drop_bonus(self, double x, double y, long _type, end_pos=None):
         if _type > 6:
             return
         if len(self.items) >= self.nb_bullets_max:
             return #TODO: check
         item_type = self.item_types[_type]
-        item = Item((x, y), _type, item_type, self, end_pos=end_pos)
-        self.items.append(item)
+        self.items.append(Item((x, y), _type, item_type, self, end_pos=end_pos))
 
 
-    def autocollect(self, player):
+    cdef void autocollect(self, Player player):
+        cdef Item item
+
         for item in self.items:
             item.autocollect(player)
 
 
-    def cancel_bullets(self):
+    cpdef cancel_bullets(self):
+        cdef Bullet bullet
+        #TODO: cdef Laser laser
+
         for bullet in self.bullets:
             bullet.cancel()
         for laser in self.lasers:
@@ -132,6 +136,9 @@ class Game(object):
 
 
     def change_bullets_into_star_items(self):
+        cdef Player player
+        cdef Bullet bullet
+
         player = self.players[0] #TODO
         item_type = self.item_types[6]
         self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player)
@@ -144,6 +151,9 @@ class Game(object):
 
 
     def change_bullets_into_bonus(self):
+        cdef Player player
+        cdef Bullet bullet
+
         player = self.players[0] #TODO
         score = 0
         bonus = 2000
@@ -157,6 +167,8 @@ class Game(object):
 
 
     def kill_enemies(self):
+        cdef Enemy enemy
+
         for enemy in self.enemies:
             if enemy.boss:
                 pass # Bosses are immune to 96
@@ -168,13 +180,13 @@ class Game(object):
                 enemy.death_callback = -1
 
 
-    def new_effect(self, pos, anim, anm=None, number=1):
+    def new_effect(self, pos, long anim, anm=None, long number=1):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
             self.effects.append(Effect(pos, anim, anm or self.etama[1]))
 
 
-    def new_particle(self, pos, anim, amp, number=1, reverse=False, duration=24):
+    cpdef new_particle(self, pos, long anim, long amp, long number=1, bint reverse=False, long duration=24):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
             self.effects.append(Particle(pos, anim, self.etama[1], amp, self, reverse=reverse, duration=duration))
@@ -191,7 +203,7 @@ class Game(object):
         self.msg_runner.run_iteration()
 
 
-    def new_label(self, pos, text):
+    cpdef new_label(self, pos, str text):
         label = Text(pos, self.interface.ascii_anm, text=text, xspacing=8, shift=48)
         label.set_timeout(60, effect='move')
         self.labels.append(label)
@@ -217,7 +229,7 @@ class Game(object):
         return face
 
 
-    def run_iter(self, keystate):
+    def run_iter(self, long keystate):
         # 1. VMs.
         for runner in self.ecl_runners:
             runner.run_iter()
@@ -227,12 +239,11 @@ class Game(object):
             self.modify_difficulty(+100)
 
         # 3. Filter out destroyed enemies
-        self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
-        self.effects = [effect for effect in self.effects if not effect.removed]
-        self.bullets = [bullet for bullet in self.bullets if not bullet.removed]
-        self.cancelled_bullets = [bullet for bullet in self.cancelled_bullets if not bullet.removed]
-        self.items = [item for item in self.items if not item.removed]
-
+        self.enemies = filter_removed(self.enemies)
+        self.effects = filter_removed(self.effects)
+        self.bullets = filter_removed(self.bullets)
+        self.cancelled_bullets = filter_removed(self.cancelled_bullets)
+        self.items = filter_removed(self.items)
 
         # 4. Let's play!
         # In the original game, updates are done in prioritized functions called "chains"
@@ -240,7 +251,7 @@ class Game(object):
 
         # Pri 6 is background
         self.update_background() #TODO: Pri unknown
-        if self.msg_runner:
+        if self.msg_runner is not None:
             self.update_msg(keystate) # Pri ?
             keystate &= ~3 # Remove the ability to attack (keystates 1 and 2).
         self.update_players(keystate) # Pri 7
@@ -262,30 +273,37 @@ class Game(object):
         self.frame += 1
 
 
-    def update_background(self):
+    cdef void update_background(self):
         if self.time_stop:
-            return None
+            return
         if self.spellcard_effect is not None:
             self.spellcard_effect.update()
         #TODO: update the actual background here?
 
 
-    def update_enemies(self):
+    cdef void update_enemies(self):
+        cdef Enemy enemy
+
         for enemy in self.enemies:
             enemy.update()
 
 
-    def update_msg(self, keystate):
-        if any((keystate & k and not self.last_keystate & k) for k in (1, 256)):
+    cdef void update_msg(self, long keystate) except *:
+        cdef long k
+
+        if any([(keystate & k and not self.last_keystate & k) for k in (1, 256)]):
             self.msg_runner.skip()
         self.msg_runner.skipping = bool(keystate & 256)
         self.last_keystate = keystate
         self.msg_runner.run_iteration()
 
 
-    def update_players(self, keystate):
+    cdef void update_players(self, long keystate) except *:
+        cdef Bullet bullet
+        cdef Player player
+
         if self.time_stop:
-            return None
+            return
 
         for bullet in self.players_bullets:
             bullet.update()
@@ -299,26 +317,34 @@ class Game(object):
         #TODO: give extra lives to the player
 
 
-    def update_effects(self):
+    cdef void update_effects(self):
+        cdef Element effect
+
         for effect in self.effects:
             effect.update()
 
 
-    def update_hints(self):
+    cdef void update_hints(self):
         for hint in self.hints:
             if hint['Count'] == self.frame and hint['Base'] == 'start':
                 self.new_hint(hint)
 
 
-    def update_faces(self):
+    cdef void update_faces(self):
         for face in self.faces:
             if face:
                 face.update()
 
 
-    def update_bullets(self):
+    cdef void update_bullets(self):
+        cdef Player player
+        cdef Bullet bullet
+        cdef Item item
+        cdef double bhalf_width, bhalf_height
+
         if self.time_stop:
-            return None
+            return
+
         for bullet in self.cancelled_bullets:
             bullet.update()
 
@@ -326,32 +352,34 @@ class Game(object):
             bullet.update()
 
         for laser in self.players_lasers:
-            if laser:
+            if laser is not None:
                 laser.update()
 
         for item in self.items:
             item.update()
 
         for player in self.players:
-            if not player.state.touchable:
+            player_state = player.state
+
+            if not player_state.touchable:
                 continue
 
-            px, py = player.state.x, player.state.y
-            phalf_size = player.sht.hitbox
+            px, py = player_state.x, player_state.y
+            phalf_size = <double>player.sht.hitbox
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
 
-            ghalf_size = player.sht.graze_hitbox
+            ghalf_size = <double>player.sht.graze_hitbox
             gx1, gx2 = px - ghalf_size, px + ghalf_size
             gy1, gy2 = py - ghalf_size, py + ghalf_size
 
             for laser in self.lasers:
                 if laser.check_collision((px, py)):
-                    if player.state.invulnerable_time == 0:
+                    if player_state.invulnerable_time == 0:
                         player.collide()
                 elif laser.check_grazing((px, py)):
-                    player.state.graze += 1 #TODO
-                    player.state.score += 500 #TODO
+                    player_state.graze += 1 #TODO
+                    player_state.score += 500 #TODO
                     player.play_sound('graze')
                     self.modify_difficulty(+6) #TODO
                     self.new_particle((px, py), 9, 192) #TODO
@@ -368,14 +396,14 @@ class Game(object):
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
                     bullet.collide()
-                    if player.state.invulnerable_time == 0:
+                    if player_state.invulnerable_time == 0:
                         player.collide()
 
                 elif not bullet.grazed and not (bx2 < gx1 or bx1 > gx2
                         or by2 < gy1 or by1 > gy2):
                     bullet.grazed = True
-                    player.state.graze += 1
-                    player.state.score += 500 # found experimentally
+                    player_state.graze += 1
+                    player_state.score += 500 # found experimentally
                     player.play_sound('graze')
                     self.modify_difficulty(+6)
                     self.new_particle((px, py), 9, 192) #TODO: find the real size and range.
@@ -383,10 +411,10 @@ class Game(object):
                     # 12 pixels of the player, in the axis of the “collision”.
 
             #TODO: is it the right place?
-            if py < 128 and player.state.power >= 128: #TODO: check py.
+            if py < 128 and player_state.power >= 128: #TODO: check py.
                 self.autocollect(player)
 
-            ihalf_size = player.sht.item_hitbox
+            ihalf_size = <double>player.sht.item_hitbox
             for item in self.items:
                 bx, by = item.x, item.y
                 bx1, bx2 = bx - ihalf_size, bx + ihalf_size
@@ -397,7 +425,12 @@ class Game(object):
                     item.on_collect(player)
 
 
-    def cleanup(self):
+    cdef void cleanup(self):
+        cdef Enemy enemy
+        cdef Bullet bullet
+        cdef Item item
+        cdef long i
+
         # Filter out non-visible enemies
         for enemy in self.enemies:
             if enemy.is_visible(self.width, self.height):
@@ -406,25 +439,41 @@ class Game(object):
                 # Filter out-of-screen enemy
                 enemy.removed = True
 
-        self.enemies = [enemy for enemy in self.enemies if not enemy.removed]
+        self.enemies = filter_removed(self.enemies)
 
-        # Update cancelled bullets
-        self.cancelled_bullets = [b for b in chain(self.cancelled_bullets,
-                                                   self.bullets,
-                                                   self.players_bullets)
-                                    if b.state == CANCELLED and not b.removed]
         # Filter out-of-scren bullets
-        self.bullets = [bullet for bullet in self.bullets
-                            if not bullet.removed and bullet.state != CANCELLED]
-        self.players_bullets = [bullet for bullet in self.players_bullets
-                            if not bullet.removed and bullet.state != CANCELLED]
-        for i, laser in enumerate(self.players_lasers):
-            if laser and laser.removed:
-                self.players_lasers[i] = None
-        self.effects = [effect for effect in self.effects if not effect.removed]
+        cancelled_bullets = []
+        bullets = []
+        players_bullets = []
+
+        for bullet in self.cancelled_bullets:
+            if bullet.state == CANCELLED and not bullet.removed:
+                cancelled_bullets.append(bullet)
+
+        for bullet in self.bullets:
+            if not bullet.removed:
+                if bullet.state == CANCELLED:
+                    cancelled_bullets.append(bullet)
+                else:
+                    bullets.append(bullet)
+
+        for bullet in self.players_bullets:
+            if not bullet.removed:
+                if bullet.state == CANCELLED:
+                    cancelled_bullets.append(bullet)
+                else:
+                    players_bullets.append(bullet)
+
+        self.cancelled_bullets = cancelled_bullets
+        self.bullets = bullets
+        self.players_bullets = players_bullets
 
         # Filter “timed-out” lasers
-        self.lasers = [laser for laser in self.lasers if not laser.removed]
+        for i, laser in enumerate(self.players_lasers):
+            if laser is not None and laser.removed:
+                self.players_lasers[i] = None
+
+        self.lasers = filter_removed(self.lasers)
 
         # Filter out-of-scren items
         items = []
@@ -435,9 +484,18 @@ class Game(object):
                 self.modify_difficulty(-3)
         self.items = items
 
-        self.labels = [label for label in self.labels if not label.removed]
+        self.effects = filter_removed(self.effects)
+        self.labels = filter_removed(self.labels)
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._enemy.removed:
             self.boss = None
 
+cdef list filter_removed(list elements):
+    cdef Element element
+
+    filtered = []
+    for element in elements:
+        if not element.removed:
+            filtered.append(element)
+    return filtered

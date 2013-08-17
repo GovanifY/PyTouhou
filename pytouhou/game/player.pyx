@@ -55,7 +55,7 @@ cdef class PlayerState:
 
 
 cdef class Player(Element):
-    def __init__(self, PlayerState state, game, anm):
+    def __init__(self, PlayerState state, Game game, anm):
         Element.__init__(self)
 
         self._game = game
@@ -117,7 +117,7 @@ cdef class Player(Element):
 
         bullets = self._game.players_bullets
         lasers = self._game.players_lasers
-        nb_bullets_max = <long>self._game.nb_bullets_max
+        nb_bullets_max = self._game.nb_bullets_max
 
         if self.fire_time % 5 == 0:
             self.play_sound('plst00')
@@ -231,7 +231,7 @@ cdef class Player(Element):
                 self.fire_time -= 1
 
         if self.death_time:
-            time = <long>self._game.frame - self.death_time
+            time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
                 self.state.touchable = False
                 if self.state.power > 16:
@@ -277,6 +277,10 @@ cdef class Player(Element):
                 self.sprite.fade(26, 96)
                 self.sprite.scale_in(26, 0., 2.5)
 
+            #TODO: the next two branches could be happening at the same frame.
+            elif time == 31:
+                self._game.cancel_bullets()
+
             elif time == 32:
                 self.state.x = float(self._game.width) / 2. #TODO
                 self.state.y = float(self._game.width) #TODO
@@ -296,10 +300,7 @@ cdef class Player(Element):
                 self.sprite.blendfunc = 0
                 self.sprite.changed = True
 
-            if time > 30:
-                self._game.cancel_bullets()
-
-            if time > 90: # start the bullet hell again
+            elif time == 91: # start the bullet hell again
                 self.death_time = 0
 
         self.anmrunner.run_frame()

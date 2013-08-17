@@ -22,7 +22,7 @@ from pytouhou.game.effect cimport Effect
 
 
 cdef class Enemy(Element):
-    def __init__(self, pos, long life, long _type, long bonus_dropped, long die_score, anms, game):
+    def __init__(self, pos, long life, long _type, long bonus_dropped, long die_score, anms, Game game):
         Element.__init__(self)
 
         self._game = game
@@ -272,7 +272,7 @@ cdef class Enemy(Element):
                                                formula)
 
 
-    cpdef bint is_visible(self, long screen_width, long screen_height):
+    cdef bint is_visible(self, long screen_width, long screen_height):
         cdef double tw, th
 
         if self.sprite is not None:

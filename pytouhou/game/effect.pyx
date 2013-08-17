@@ -15,6 +15,8 @@
 from pytouhou.game.sprite cimport Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 
+from pytouhou.game.game cimport Game
+
 
 cdef class Effect(Element):
     def __init__(self, pos, index, anm):
@@ -35,7 +37,7 @@ cdef class Effect(Element):
 
 
 cdef class Particle(Effect):
-    def __init__(self, pos, index, anm, long amp, game, bint reverse=False, long duration=24):
+    def __init__(self, pos, index, anm, long amp, Game game, bint reverse=False, long duration=24):
         Effect.__init__(self, pos, index, anm)
 
         self.frame = 0

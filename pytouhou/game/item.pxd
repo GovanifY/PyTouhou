@@ -1,4 +1,5 @@
 from pytouhou.game.element cimport Element
+from pytouhou.game.game cimport Game
 from pytouhou.game.player cimport Player
 from pytouhou.utils.interpolator cimport Interpolator
 
@@ -12,10 +13,10 @@ cdef class Indicator(Element):
 cdef class Item(Element):
     cdef public object _item_type
 
-    cdef object _game
     cdef unsigned long frame
     cdef long _type
     cdef double angle, speed
+    cdef Game _game
     cdef Player player
     cdef Indicator indicator
     cdef Interpolator speed_interpolator, pos_interpolator

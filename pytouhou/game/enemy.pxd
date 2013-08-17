@@ -1,4 +1,5 @@
 from pytouhou.game.element cimport Element
+from pytouhou.game.game cimport Game
 from pytouhou.utils.interpolator cimport Interpolator
 
 cdef class Enemy(Element):
@@ -9,8 +10,9 @@ cdef class Enemy(Element):
     cdef public dict laser_by_id
     cdef public list aux_anm
     cdef public Interpolator interpolator, speed_interpolator
-    cdef public object _game, _anms, process
+    cdef public object _anms, process
 
+    cdef Game _game
     cdef double[2] hitbox_half_size
 
     cpdef play_sound(self, index)
@@ -34,7 +36,7 @@ cdef class Enemy(Element):
     cpdef set_pos(self, x, y, z)
     cpdef move_to(self, duration, x, y, z, formula)
     cpdef stop_in(self, duration, formula)
-    cpdef bint is_visible(self, long screen_width, long screen_height)
+    cdef bint is_visible(self, long screen_width, long screen_height)
     cdef void check_collisions(self)
     cdef void handle_callbacks(self)
     cpdef update(self)
