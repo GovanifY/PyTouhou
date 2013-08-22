@@ -92,7 +92,7 @@ cdef class Bullet(object):
             self.sprite.angle = angle
 
 
-    cpdef is_visible(Bullet self, screen_width, screen_height):
+    cpdef is_visible(self, screen_width, screen_height):
         tx, ty, tw, th = self.sprite.texcoords
         x, y = self.x, self.y
 
@@ -107,7 +107,7 @@ cdef class Bullet(object):
         return True
 
 
-    def set_anim(Bullet self, sprite_idx_offset=None):
+    def set_anim(self, sprite_idx_offset=None):
         if sprite_idx_offset is not None:
             self.sprite_idx_offset = sprite_idx_offset
 
@@ -122,7 +122,7 @@ cdef class Bullet(object):
         self.anmrunner.run_frame()
 
 
-    def launch(Bullet self):
+    def launch(self):
         self.state = LAUNCHED
         self.frame = 0
         self.set_anim()
@@ -133,12 +133,12 @@ cdef class Bullet(object):
                                                    (self.speed,), 16)
 
 
-    def collide(Bullet self):
+    def collide(self):
         self.cancel()
         self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
-    def cancel(Bullet self):
+    def cancel(self):
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
@@ -154,7 +154,7 @@ cdef class Bullet(object):
         self.state = CANCELLED
 
 
-    def update(Bullet self):
+    def update(self):
         if self.anmrunner is not None and not self.anmrunner.run_frame():
             if self.state == LAUNCHING:
                 #TODO: check if it doesn't skip a frame

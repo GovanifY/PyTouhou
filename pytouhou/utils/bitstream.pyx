@@ -19,7 +19,7 @@ cdef class BitStream:
     cdef bytes bytes
 
 
-    def __init__(BitStream self, io):
+    def __init__(self, io):
         self.io = io
         self.bits = 0
         self.byte = 0
@@ -33,21 +33,21 @@ cdef class BitStream:
         return self.io.__exit__(type, value, traceback)
 
 
-    def seek(BitStream self, offset, whence=0):
+    def seek(self, offset, whence=0):
         self.io.seek(offset, whence)
         self.byte = 0
         self.bits = 0
 
 
-    def tell(BitStream self):
+    def tell(self):
         return self.io.tell()
 
 
-    def tell2(BitStream self):
+    def tell2(self):
         return self.io.tell(), self.bits
 
 
-    cpdef unsigned char read_bit(BitStream self):
+    cpdef unsigned char read_bit(self):
         if not self.bits:
             self.bytes = self.io.read(1)
             self.byte = (<unsigned char*> self.bytes)[0]
@@ -56,7 +56,7 @@ cdef class BitStream:
         return (self.byte >> self.bits) & 0x01
 
 
-    cpdef unsigned int read(BitStream self, unsigned int nb_bits):
+    cpdef unsigned int read(self, unsigned int nb_bits):
         cdef unsigned int value = 0, read = 0
         cdef unsigned int nb_bits2 = nb_bits
 
@@ -72,7 +72,7 @@ cdef class BitStream:
         return value & ((1 << nb_bits) - 1)
 
 
-    cpdef write_bit(BitStream self, bit):
+    cpdef write_bit(self, bit):
         if self.bits == 8:
             self.io.write(chr(self.byte))
             self.bits = 0
@@ -82,12 +82,12 @@ cdef class BitStream:
         self.bits += 1
 
 
-    def write(BitStream self, bits, nb_bits):
+    def write(self, bits, nb_bits):
         for i in range(nb_bits):
             self.write_bit(bits >> (nb_bits - 1 - i) & 0x01)
 
 
-    def flush(BitStream self):
+    def flush(self):
         self.io.write(chr(self.byte))
         self.bits = 0
         self.byte = 0
