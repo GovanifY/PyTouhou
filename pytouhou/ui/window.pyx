@@ -24,7 +24,7 @@ IF USE_GLEW:
     from pytouhou.lib.opengl cimport glewInit
 
 
-class Clock(object):
+class Clock:
     def __init__(self, fps=None):
         self._target_fps = 0
         self._ref_tick = 0
@@ -52,10 +52,14 @@ class Clock(object):
             self._ref_tick = current
             self._ref_frame = 0
 
-        if self._fps_frame >= (self._target_fps or 60):
+        if self._fps_frame >= (self._target_fps if self._target_fps > 0 else 60):
             self._rate = self._fps_frame * 1000. / (current - self._fps_tick)
             self._fps_tick = current
             self._fps_frame = 0
+            # If we are relying on vsync, but vsync doesn't work or is higher
+            # than 60 fps, limit ourselves to 60 fps.
+            if self._target_fps < 0 and self._rate > 64.:
+                self._target_fps = 60
 
         self._ref_frame += 1
         self._fps_frame += 1

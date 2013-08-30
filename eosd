@@ -37,7 +37,7 @@ parser.add_argument('--save-replay', metavar='REPLAY', help='Save the upcoming g
 parser.add_argument('--skip-replay', action='store_true', help='Skip the replay and start to play when it’s finished')
 parser.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses')
 parser.add_argument('--single-buffer', action='store_true', help='Disable double buffering')
-parser.add_argument('--fps-limit', metavar='FPS', default=60, type=int, help='Set fps limit')
+parser.add_argument('--fps-limit', metavar='FPS', default=-1, type=int, help='Set fps limit. A value of 0 disables fps limiting, while a negative value limits to 60 fps if and only if vsync doesn’t work.')
 parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
