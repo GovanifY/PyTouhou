@@ -114,7 +114,12 @@ class Player(Element):
 
     def fire(self):
         sht = self.focused_sht if self.state.focused else self.sht
-        power = min(power for power in sht.shots if self.state.power < power)
+
+        # Don’t use min() since sht.shots could be an empty dict.
+        power = 999
+        for shot_power in sht.shots:
+            if self.state.power < shot_power:
+                power = power if power < shot_power else shot_power
 
         bullets = self._game.players_bullets
         lasers = self._game.players_lasers
