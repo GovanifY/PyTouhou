@@ -58,6 +58,8 @@ cdef class Window:
 
     def gl_create_context(self):
         self.context = SDL_GL_CreateContext(self.window)
+        if self.context == NULL:
+            raise SDLError(SDL_GetError())
 
     def gl_swap_window(self):
         SDL_GL_SwapWindow(self.window)
