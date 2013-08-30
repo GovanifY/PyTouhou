@@ -13,25 +13,25 @@
 ##
 
 
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 
 
-class Face(object):
-    __slots__ = ('_anms', 'sprite', 'anmrunner', 'side', 'x', 'y', 'objects')
+class Face(Element):
+    __slots__ = ('_anms', 'side')
 
     def __init__(self, anms, effect, side):
+        Element.__init__(self, (-32, -16))
+
         self._anms = anms
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self._anms[0][0][0], side * 2, self.sprite)
         self.side = side
         self.load(0)
         self.animate(effect)
-        self.objects = [self]
 
         #FIXME: the same as game.effect.
-        self.x = -32
-        self.y = -16
         self.sprite.allow_dest_offset = True
 
 

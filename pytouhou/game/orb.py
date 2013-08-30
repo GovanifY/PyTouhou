@@ -13,15 +13,17 @@
 ##
 
 
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 
 
-class Orb(object):
-    __slots__ = ('sprite', 'anmrunner', 'offset_x', 'offset_y', 'player_state',
-                 'fire')
+class Orb(Element):
+    __slots__ = ('offset_x', 'offset_y', 'player_state', 'fire')
 
     def __init__(self, anm, index, player_state, fire_func):
+        Element.__init__(self)
+
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, index, self.sprite)
 

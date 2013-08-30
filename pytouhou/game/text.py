@@ -12,25 +12,22 @@
 ## GNU General Public License for more details.
 ##
 
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.utils.interpolator import Interpolator
 
 
-class Glyph(object):
+class Glyph(Element):
     def __init__(self, sprite, pos):
+        Element.__init__(self, pos)
         self.sprite = sprite
-        self.removed = False
-
-        self.x, self.y = pos
 
 
-class Widget(object):
+class Widget(Element):
     def __init__(self, pos, back_anm=None, back_script=22):
-        self.sprite = None
-        self.removed = False
+        Element.__init__(self, pos)
         self.changed = True
-        self.anmrunner = None
         self.frame = 0
 
         # Set up the backround sprite
@@ -38,8 +35,6 @@ class Widget(object):
         if back_anm:
             self.sprite = Sprite()
             self.anmrunner = ANMRunner(back_anm, back_script, self.sprite)
-
-        self.x, self.y = pos
 
     def update(self):
         self.frame += 1
@@ -63,6 +58,11 @@ class GlyphCollection(Widget):
         # Set up ref sprite
         ANMRunner(anm, ref_script, self.ref_sprite)
         self.ref_sprite.corner_relative_placement = True #TODO: perhaps not right
+
+
+    @property
+    def objects(self):
+        return [self] + self.glyphes
 
 
     def set_length(self, length):
@@ -117,11 +117,6 @@ class Text(GlyphCollection):
             assert align == 'left'
 
         self.set_text(text)
-
-
-    @property
-    def objects(self):
-        return self.glyphes + [self]
 
 
     def set_text(self, text):
@@ -200,11 +195,6 @@ class Counter(GlyphCollection):
         self.set_value(value)
 
 
-    @property
-    def objects(self):
-        return [self] + self.glyphes
-
-
     def set_value(self, value):
         if value < 0:
             value = 0
@@ -217,15 +207,13 @@ class Counter(GlyphCollection):
 
 
 
-class Gauge(object):
+class Gauge(Element):
     def __init__(self, pos, anm, max_length=280, maximum=1, value=0):
+        Element.__init__(self, pos)
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, 21, self.sprite)
-        self.removed = False
         self.sprite.corner_relative_placement = True #TODO: perhaps not right
-        self.objects = [self]
 
-        self.x, self.y = pos
         self.max_length = max_length
         self.maximum = maximum
 

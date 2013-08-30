@@ -15,6 +15,7 @@
 
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet import Bullet
 from pytouhou.game.laser import Laser
@@ -23,16 +24,15 @@ from math import cos, sin, atan2, pi
 from pytouhou.game.bullet import LAUNCHED
 
 
-class Enemy(object):
+class Enemy(Element):
     def __init__(self, pos, life, _type, bonus_dropped, die_score, anms, game):
+        Element.__init__(self)
+
         self._game = game
         self._anms = anms
         self._type = _type
 
         self.process = None
-        self.sprite = None
-        self.anmrunner = None
-        self.removed = False
         self.visible = True
         self.was_visible = False
         self.bonus_dropped = bonus_dropped

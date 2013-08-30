@@ -17,30 +17,28 @@ from math import cos, sin, atan2, pi
 from pytouhou.utils.interpolator import Interpolator
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
+from pytouhou.game.element cimport Element
 
 
 LAUNCHING, LAUNCHED, CANCELLED = range(3)
 
-cdef class Bullet(object):
+cdef class Bullet(Element):
     cdef public unsigned int state, flags, frame, sprite_idx_offset
     cdef public double dx, dy, angle, speed #TODO
     cdef public object player_bullet, target
     cdef public object _game, _bullet_type
-    cdef public object sprite, anmrunner, removed, was_visible, objects
+    cdef public object was_visible
     cdef public object attributes, damage, hitbox, speed_interpolator, grazed
-    cdef public object x, y #TODO
 
     def __init__(self, pos, bullet_type, sprite_idx_offset,
                        angle, speed, attributes, flags, target, game,
                        player_bullet=False, damage=0, hitbox=None):
+        Element.__init__(self, pos)
+
         self._game = game
         self._bullet_type = bullet_type
         self.state = LAUNCHING
-        self.sprite = None
-        self.anmrunner = None
-        self.removed = False
         self.was_visible = True
-        self.objects = [self]
 
         if hitbox:
             self.hitbox = (hitbox[0], hitbox[1])
@@ -58,7 +56,6 @@ cdef class Bullet(object):
         self.flags = flags
         self.attributes = list(attributes)
 
-        self.x, self.y = pos
         self.angle = angle
         self.speed = speed
         self.dx, self.dy = cos(angle) * speed, sin(angle) * speed

@@ -13,20 +13,18 @@
 ##
 
 
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.utils.interpolator import Interpolator
 
 
 
-class Effect(object):
+class Effect(Element):
     def __init__(self, pos, index, anm):
+        Element.__init__(self, pos)
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(anm, index, self.sprite)
-        self.removed = False
-        self.objects = [self]
-
-        self.x, self.y = pos
 
 
     def update(self):

@@ -13,6 +13,7 @@
 ##
 
 
+from pytouhou.game.element import Element
 from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
@@ -52,11 +53,11 @@ class PlayerState(object):
                            self.power, self.lives, self.bombs)
 
 
-class Player(object):
+class Player(Element):
     def __init__(self, state, game, anm):
+        Element.__init__(self)
+
         self._game = game
-        self.sprite = None
-        self.anmrunner = None
         self.anm = anm
 
         self.speeds = (self.sht.horizontal_vertical_speed,

@@ -15,15 +15,17 @@
 
 from math import cos, sin, atan2, pi
 
+from pytouhou.game.element import Element
 from pytouhou.utils.interpolator import Interpolator
 
 
-class Indicator(object):
+class Indicator(Element):
     def __init__(self, item):
+        Element.__init__(self)
+
         self._item = item
 
         self.sprite = item._item_type.indicator_sprite.copy()
-        self.removed = False
 
         self.frame = 0
         self.x = self._item.x
@@ -37,16 +39,16 @@ class Indicator(object):
 
 
 
-class Item(object):
+class Item(Element):
     def __init__(self, start_pos, _type, item_type, game, angle=pi/2, player=None, end_pos=None):
+        Element.__init__(self, start_pos)
+
         self._game = game
         self._type = _type
         self._item_type = item_type
         self.sprite = item_type.sprite
-        self.removed = False
 
         self.frame = 0
-        self.x, self.y = start_pos
         self.angle = angle
         self.indicator = None
 
@@ -155,7 +157,7 @@ class Item(object):
 
     @property
     def objects(self):
-        if self.indicator:
+        if self.indicator is not None:
             return [self.indicator]
         return [self]
 

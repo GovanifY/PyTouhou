@@ -14,6 +14,7 @@
 
 from math import cos, sin, pi
 
+from pytouhou.game.element import Element
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 
@@ -21,16 +22,15 @@ from pytouhou.game.sprite import Sprite
 STARTING, STARTED, STOPPING = range(3)
 
 
-class LaserLaunchAnim(object):
+class LaserLaunchAnim(Element):
     def __init__(self, laser, anm, index):
+        Element.__init__(self, (0, 0))
+
         self._laser = laser
         self.sprite = Sprite()
         self.sprite.anm = anm
         self.sprite.texcoords = anm.sprites[index]
         self.sprite.blendfunc = 1
-        self.removed = False
-        self.objects = [self]
-        self.x, self.y = 0, 0
 
 
     def update(self):
@@ -51,12 +51,14 @@ class LaserLaunchAnim(object):
 
 
 
-class Laser(object):
+class Laser(Element):
     def __init__(self, base_pos, laser_type, sprite_idx_offset,
                        angle, speed, start_offset, end_offset, max_length, width,
                        start_duration, duration, stop_duration,
                        grazing_delay, grazing_extra_duration,
                        game):
+        Element.__init__(self, (0, 0))
+
         self._game = game
         launch_anim = LaserLaunchAnim(self, laser_type.anm,
                                       laser_type.launch_anim_offsets[sprite_idx_offset]
@@ -64,10 +66,6 @@ class Laser(object):
         self._game.effects.append(launch_anim)
         self._laser_type = laser_type
         self.state = STARTING
-        self.sprite = None
-        self.anmrunner = None
-        self.removed = False
-        self.objects = [self]
 
         #TODO: hitbox
 
@@ -80,7 +78,6 @@ class Laser(object):
 
         self.sprite_idx_offset = sprite_idx_offset
         self.base_pos = base_pos
-        self.x, self.y = 0, 0
         self.angle = angle
         self.speed = speed
         self.start_offset = start_offset
@@ -195,15 +192,13 @@ class Laser(object):
         self.frame += 1
 
 
-class PlayerLaser(object):
+class PlayerLaser(Element):
     def __init__(self, laser_type, sprite_idx_offset, hitbox, damage,
                  angle, offset, duration, origin):
-        self.sprite = None
-        self.anmrunner = None
-        self.removed = False
+        Element.__init__(self)
+
         self._laser_type = laser_type
         self.origin = origin
-        self.objects = [self]
 
         self.hitbox = hitbox[0], hitbox[1]
 
