@@ -52,9 +52,6 @@ args = parser.parse_args()
 import sys
 import logging
 
-import pyximport
-pyximport.install()
-
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner

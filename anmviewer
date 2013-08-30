@@ -16,9 +16,6 @@
 import argparse
 import os
 
-import pyximport
-pyximport.install()
-
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.anmrenderer import ANMRenderer
