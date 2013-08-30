@@ -11,16 +11,27 @@ try:
     from Cython.Build import cythonize
 except ImportError:
     print('You don’t seem to have Cython installed. Please get a '
-          'copy from www.cython.org and install it')
+          'copy from http://www.cython.org/ and install it.')
     sys.exit(1)
 
 
 COMMAND = 'pkg-config'
-LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer']
+SDL_LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer']
 
 packages = []
 extension_names = []
 extensions = []
+
+
+def get_arguments(arg, libraries):
+    try:
+        return check_output([COMMAND, arg] + libraries).split()
+    except OSError:
+        print('You don’t seem to have pkg-config installed. Please get a copy '
+              'from http://pkg-config.freedesktop.org/ and install it.\n'
+              'If you prefer to use it from somewhere else, just modify the '
+              'setup.py script.')
+        sys.exit(1)
 
 
 for directory, _, files in os.walk('pytouhou'):
@@ -31,11 +42,11 @@ for directory, _, files in os.walk('pytouhou'):
             extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
             extension_names.append(extension_name)
             if extension_name == 'pytouhou.lib.sdl':
-                compile_args = check_output([COMMAND, '--cflags'] + LIBRARIES).split()
-                link_args = check_output([COMMAND, '--libs'] + LIBRARIES).split()
+                compile_args = get_arguments('--cflags', SDL_LIBRARIES)
+                link_args = get_arguments('--libs', SDL_LIBRARIES)
             elif extension_name.startswith('pytouhou.ui.'): #XXX
-                compile_args = check_output([COMMAND, '--cflags', 'gl']).split()
-                link_args = check_output([COMMAND, '--libs', 'gl']).split()
+                compile_args = get_arguments('--cflags', ['gl'])
+                link_args = get_arguments('--libs', ['gl'])
             else:
                 compile_args = None
                 link_args = None
