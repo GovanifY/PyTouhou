@@ -49,8 +49,10 @@ for directory, _, files in os.walk('pytouhou'):
 try:
     from cx_Freeze import setup, Executable
 except ImportError:
+    is_windows = False
     extra = {}
 else:
+    is_windows = True
     extra = {'options': {'build_exe': {'includes': extension_names}},
              'executables': [Executable(script='eosd', base='Win32GUI')]}
 
@@ -65,6 +67,7 @@ setup(name='PyTouhou',
       ext_modules=cythonize(extensions, nthreads=4,
                             compiler_directives={'infer_types': True,
                                                  'infer_types.verbose': True},
-                            compile_time_env={'MAX_TEXTURES': 1024}),
+                            compile_time_env={'MAX_TEXTURES': 1024,
+                                              'USE_GLEW': is_windows}),
       scripts=['eosd', 'anmviewer'],
       **extra)

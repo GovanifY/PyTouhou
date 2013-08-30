@@ -12,7 +12,13 @@
 ## GNU General Public License for more details.
 ##
 
-cdef extern from 'GL/gl.h':
+
+IF USE_GLEW:
+    cdef extern from 'GL/glew.h' nogil:
+        GLenum glewInit()
+
+
+cdef extern from 'GL/gl.h' nogil:
     ctypedef unsigned int GLuint
     ctypedef int GLint
     ctypedef float GLfloat

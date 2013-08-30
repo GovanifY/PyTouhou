@@ -23,6 +23,11 @@ cdef extern from "SDL.h":
     void SDL_Quit()
 
 
+IF UNAME_SYSNAME == "Windows":
+    cdef extern from "SDL_main.h":
+        void SDL_SetMainReady()
+
+
 cdef extern from "SDL_error.h":
     const char *SDL_GetError()
 

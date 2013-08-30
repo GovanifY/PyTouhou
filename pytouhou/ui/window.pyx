@@ -20,6 +20,9 @@ from pytouhou.lib.opengl cimport \
           GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
           GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
+IF USE_GLEW:
+    from pytouhou.lib.opengl cimport glewInit
+
 
 class Clock(object):
     def __init__(self, fps=None):
@@ -76,6 +79,8 @@ class Window(object):
         self.use_fixed_pipeline = fixed_pipeline
         self.runner = None
 
+        IF UNAME_SYSNAME == "Windows":
+            sdl.set_main_ready()
         sdl.init(sdl.INIT_VIDEO)
         sdl.img_init(sdl.INIT_PNG)
         if sound:
@@ -93,6 +98,10 @@ class Window(object):
                               self.width, self.height,
                               sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN)
         self.win.gl_create_context()
+
+        IF USE_GLEW:
+            if glewInit() != 0:
+                raise Exception('GLEW init fail!')
 
         # Initialize OpenGL
         glEnable(GL_BLEND)

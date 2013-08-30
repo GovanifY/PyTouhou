@@ -147,6 +147,11 @@ def mix_init(int flags):
         raise SDLError(SDL_GetError())
 
 
+IF UNAME_SYSNAME == "Windows":
+    def set_main_ready():
+        SDL_SetMainReady()
+
+
 def quit():
     SDL_Quit()
 
