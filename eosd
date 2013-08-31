@@ -45,6 +45,7 @@ parser.add_argument('--no-particles', action='store_false', help='Disable partic
 parser.add_argument('--no-music', action='store_false', help='Disable background music.')
 parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
+parser.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
 
 args = parser.parse_args()
 
@@ -55,7 +56,6 @@ import logging
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
-from pytouhou.games.eosd import EoSDCommon, EoSDGame
 from pytouhou.game.player import PlayerState, GameOver
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
@@ -63,14 +63,18 @@ from pytouhou.vm.msgrunner import NextStage
 from pytouhou.formats.hint import Hint
 
 
-class EoSDGameBossRush(EoSDGame):
+if args.game == 'EoSD':
+    from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
+
+
+class GameBossRush(Game):
     def run_iter(self, keystate):
         for i in range(20):
             skip = not (self.enemies or self.items or self.lasers
                         or self.bullets or self.cancelled_bullets)
             if skip:
                 keystate &= ~1
-            EoSDGame.run_iter(self, keystate | 256 if i == 0 else 0)
+            Game.run_iter(self, keystate | 256 if i == 0 else 0)
             if not self.enemies and self.frame % 90 == 0:
                 for player in self.players:
                     if player.state.power < 128:
@@ -88,7 +92,7 @@ class EoSDGameBossRush(EoSDGame):
                             if not hasattr(effect, '_laser')
                             or effect._laser in self.lasers]
             self.bullets = [bullet for bullet in self.bullets if bullet.frame > 1]
-        EoSDGame.cleanup(self)
+        Game.cleanup(self)
 
 
 def main(path, data, stage_num, rank, character, replay, save_filename,
@@ -142,9 +146,9 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
     default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
     states = [PlayerState(character=character, power=default_power)]
 
-    game_class = EoSDGameBossRush if boss_rush else EoSDGame
+    game_class = GameBossRush if boss_rush else Game
 
-    common = EoSDCommon(resource_loader)
+    common = Common(resource_loader)
     runner = GameRunner(window, resource_loader, skip=skip_replay)
     while True:
         if replay:
