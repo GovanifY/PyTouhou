@@ -24,7 +24,7 @@ from pytouhou.utils.maths cimport perspective, setup_camera
 from .renderer import Renderer
 from .shaders.eosd import GameShader
 
-from pytouhou.lib import sdl
+from pytouhou.lib cimport sdl
 
 
 logger = get_logger(__name__)

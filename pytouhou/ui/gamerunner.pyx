@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from pytouhou.lib import sdl
+from pytouhou.lib cimport sdl
 
 from pytouhou.lib.opengl cimport \
          (glMatrixMode, glEnable, glDisable, glViewport, glScissor,
@@ -179,7 +179,7 @@ class GameRunner(GameRenderer):
     def render_interface(self):
         elements = []
         interface = self.game.interface
-        interface.labels['framerate'].set_text('%.2ffps' % self.window.clock.get_fps())
+        interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)

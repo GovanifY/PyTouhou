@@ -45,8 +45,8 @@ for directory, _, files in os.walk('pytouhou'):
                 compile_args = get_arguments('--cflags', SDL_LIBRARIES)
                 link_args = get_arguments('--libs', SDL_LIBRARIES)
             elif extension_name.startswith('pytouhou.ui.'): #XXX
-                compile_args = get_arguments('--cflags', ['gl'])
-                link_args = get_arguments('--libs', ['gl'])
+                compile_args = get_arguments('--cflags', ['gl'] + SDL_LIBRARIES)
+                link_args = get_arguments('--libs', ['gl'] + SDL_LIBRARIES)
             else:
                 compile_args = None
                 link_args = None

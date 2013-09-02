@@ -45,56 +45,43 @@ class SDLError(Exception):
 
 
 cdef class Window:
-    cdef SDL_Window *window
-    cdef SDL_GLContext context
-
     def __init__(self, const char *title, int x, int y, int w, int h, Uint32 flags):
         self.window = SDL_CreateWindow(title, x, y, w, h, flags)
         if self.window == NULL:
             raise SDLError(SDL_GetError())
 
-    def destroy_window(self):
-        SDL_DestroyWindow(self.window)
+    def __dealloc__(self):
+        if self.context != NULL:
+            SDL_GL_DeleteContext(self.context)
+        if self.window != NULL:
+            SDL_DestroyWindow(self.window)
 
-    def gl_create_context(self):
+    cdef void gl_create_context(self) except *:
         self.context = SDL_GL_CreateContext(self.window)
         if self.context == NULL:
             raise SDLError(SDL_GetError())
 
-    def gl_swap_window(self):
+    cdef void gl_swap_window(self) nogil:
         SDL_GL_SwapWindow(self.window)
 
-    def gl_delete_context(self):
-        SDL_GL_DeleteContext(self.context)
-
-    def set_window_size(self, width, height):
+    cdef void set_window_size(self, int width, int height) nogil:
         SDL_SetWindowSize(self.window, width, height)
 
 
 cdef class Surface:
-    cdef SDL_Surface *surface
-
     def __dealloc__(self):
         if self.surface != NULL:
             SDL_FreeSurface(self.surface)
-
-    property width:
-        def __get__(self):
-            return self.surface.w
-
-    property height:
-        def __get__(self):
-            return self.surface.h
 
     property pixels:
         def __get__(self):
             return bytes(self.surface.pixels[:self.surface.w * self.surface.h * 4])
 
-    def blit(self, Surface other):
+    cdef void blit(self, Surface other):
         if SDL_BlitSurface(other.surface, NULL, self.surface, NULL) < 0:
             raise SDLError(SDL_GetError())
 
-    def set_alpha(self, Surface alpha_surface):
+    cdef void set_alpha(self, Surface alpha_surface) nogil:
         nb_pixels = self.surface.w * self.surface.h
         image = self.surface.pixels
         alpha = alpha_surface.surface.pixels
@@ -105,73 +92,68 @@ cdef class Surface:
 
 
 cdef class Music:
-    cdef Mix_Music *music
-
     def __dealloc__(self):
         if self.music != NULL:
             Mix_FreeMusic(self.music)
 
-    def play(self, int loops):
+    cdef void play(self, int loops) nogil:
         Mix_PlayMusic(self.music, loops)
 
-    def set_loop_points(self, double start, double end):
+    cdef void set_loop_points(self, double start, double end) nogil:
         #Mix_SetLoopPoints(self.music, start, end)
         pass
 
 
 cdef class Chunk:
-    cdef Mix_Chunk *chunk
-
     def __dealloc__(self):
         if self.chunk != NULL:
             Mix_FreeChunk(self.chunk)
 
-    property volume:
-        def __set__(self, float volume):
-            Mix_VolumeChunk(self.chunk, int(volume * 128))
-
-    def play(self, int channel, int loops):
+    cdef void play(self, int channel, int loops) nogil:
         Mix_PlayChannel(channel, self.chunk, loops)
 
+    cdef void set_volume(self, float volume) nogil:
+        Mix_VolumeChunk(self.chunk, int(volume * 128))
 
-def init(Uint32 flags):
+
+cdef void init(Uint32 flags) except *:
     if SDL_Init(flags) < 0:
         raise SDLError(SDL_GetError())
 
 
-def img_init(Uint32 flags):
+cdef void img_init(Uint32 flags) except *:
     if IMG_Init(flags) != flags:
         raise SDLError(SDL_GetError())
 
 
-def mix_init(int flags):
+cdef void mix_init(int flags) except *:
     if Mix_Init(flags) != flags:
         raise SDLError(SDL_GetError())
 
 
 IF UNAME_SYSNAME == "Windows":
-    def set_main_ready():
+    cdef void set_main_ready():
         SDL_SetMainReady()
 
 
-def quit():
+cdef void quit() nogil:
     SDL_Quit()
 
 
-def img_quit():
+cdef void img_quit() nogil:
     IMG_Quit()
 
 
-def mix_quit():
+cdef void mix_quit() nogil:
     Mix_Quit()
 
 
-def gl_set_attribute(SDL_GLattr attr, int value):
+cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:
     if SDL_GL_SetAttribute(attr, value) < 0:
         raise SDLError(SDL_GetError())
 
 
-def poll_events():
+cdef list poll_events():
     cdef SDL_Event event
     ret = []
     while SDL_PollEvent(&event):
@@ -182,15 +164,11 @@ def poll_events():
     return ret
 
 
-def get_keyboard_state():
-    cdef int numkeys
-    cdef bint k
-    cdef const Uint8 *state
-    state = SDL_GetKeyboardState(&numkeys)
-    return tuple([k is not False for k in state[:numkeys]])
+cdef const Uint8* get_keyboard_state() nogil:
+    return SDL_GetKeyboardState(NULL)
 
 
-def load_png(file_):
+cdef Surface load_png(file_):
     data = file_.read()
     rwops = SDL_RWFromConstMem(<char*>data, len(data))
     surface = Surface()
@@ -201,7 +179,7 @@ def load_png(file_):
     return surface
 
 
-def create_rgb_surface(int width, int height, int depth, Uint32 rmask=0, Uint32 gmask=0, Uint32 bmask=0, Uint32 amask=0):
+cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=0, Uint32 gmask=0, Uint32 bmask=0, Uint32 amask=0):
     surface = Surface()
     surface.surface = SDL_CreateRGBSurface(0, width, height, depth, rmask, gmask, bmask, amask)
     if surface.surface == NULL:
@@ -209,29 +187,29 @@ def create_rgb_surface(int width, int height, int depth, Uint32 rmask=0, Uint32 
     return surface
 
 
-def mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize):
+cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *:
     if Mix_OpenAudio(frequency, format_, channels, chunksize) < 0:
         raise SDLError(SDL_GetError())
 
 
-def mix_close_audio():
+cdef void mix_close_audio() nogil:
     Mix_CloseAudio()
 
 
-def mix_allocate_channels(int numchans):
+cdef void mix_allocate_channels(int numchans) except *:
     if Mix_AllocateChannels(numchans) != numchans:
         raise SDLError(SDL_GetError())
 
 
-def mix_volume(int channel, float volume):
+cdef int mix_volume(int channel, float volume) nogil:
     return Mix_Volume(channel, int(volume * 128))
 
 
-def mix_volume_music(float volume):
+cdef int mix_volume_music(float volume) nogil:
     return Mix_VolumeMusic(int(volume * 128))
 
 
-def load_music(const char *filename):
+cdef Music load_music(const char *filename):
     music = Music()
     music.music = Mix_LoadMUS(filename)
     if music.music == NULL:
@@ -239,7 +217,7 @@ def load_music(const char *filename):
     return music
 
 
-def load_chunk(file_):
+cdef Chunk load_chunk(file_):
     cdef SDL_RWops *rwops
     chunk = Chunk()
     data = file_.read()
@@ -250,9 +228,9 @@ def load_chunk(file_):
     return chunk
 
 
-def get_ticks():
+cdef Uint32 get_ticks() nogil:
     return SDL_GetTicks()
 
 
-def delay(Uint32 ms):
+cdef void delay(Uint32 ms) nogil:
     SDL_Delay(ms)

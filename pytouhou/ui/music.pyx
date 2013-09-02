@@ -15,7 +15,7 @@
 
 from os.path import join
 from glob import glob
-from pytouhou.lib import sdl
+from pytouhou.lib cimport sdl
 from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
@@ -53,6 +53,7 @@ class MusicPlayer(object):
                 logger.warn(u'No working music file for “%s”, disabling bgm.', globname)
 
     def play(self, index):
+        cdef sdl.Music bgm
         bgm = self.bgms[index]
         if bgm:
             bgm.play(-1)
@@ -75,11 +76,13 @@ class SFXPlayer(object):
     def get_sound(self, name):
         if name not in self.sounds:
             wave_file = self.loader.get_file(name)
-            self.sounds[name] = sdl.load_chunk(wave_file)
-            self.sounds[name].volume = self.volume
+            chunk = sdl.load_chunk(wave_file)
+            chunk.set_volume(self.volume)
+            self.sounds[name] = chunk
         return self.sounds[name]
 
     def play(self, name, volume=None):
+        cdef sdl.Chunk sound
         sound = self.get_sound(name)
         channel = self.get_channel(name)
         if volume:

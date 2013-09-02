@@ -19,7 +19,7 @@ from pytouhou.lib.opengl cimport \
           glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint,
           glDeleteTextures)
 
-from pytouhou.lib.sdl import load_png, create_rgb_surface
+from pytouhou.lib.sdl cimport load_png, create_rgb_surface
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 
 import os
@@ -52,7 +52,7 @@ class TextureManager(object):
 
 cdef decode_png(loader, first_name, secondary_name):
     image_file = load_png(loader.get_file(os.path.basename(first_name)))
-    width, height = image_file.width, image_file.height
+    width, height = image_file.surface.w, image_file.surface.h
 
     # Support only 32 bits RGBA. Paletted surfaces are awful to work with.
     #TODO: verify it doesn’t blow up on big-endian systems.
@@ -61,7 +61,7 @@ cdef decode_png(loader, first_name, secondary_name):
 
     if secondary_name:
         alpha_file = load_png(loader.get_file(os.path.basename(secondary_name)))
-        assert (width == alpha_file.width and height == alpha_file.height)
+        assert (width == alpha_file.surface.w and height == alpha_file.surface.h)
 
         new_alpha_file = create_rgb_surface(width, height, 24)
         new_alpha_file.blit(alpha_file)

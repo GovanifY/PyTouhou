@@ -12,155 +12,89 @@
 ## GNU General Public License for more details.
 ##
 
-cdef extern from "SDL.h":
-    ctypedef unsigned int Uint32
-    ctypedef unsigned short Uint16
-    ctypedef unsigned char Uint8
+from _sdl cimport *
 
-    int SDL_INIT_VIDEO
 
-    int SDL_Init(Uint32 flags)
-    void SDL_Quit()
+cdef Uint32 INIT_VIDEO
+cdef Uint32 INIT_PNG
 
+cdef SDL_GLattr GL_CONTEXT_MAJOR_VERSION
+cdef SDL_GLattr GL_CONTEXT_MINOR_VERSION
+cdef SDL_GLattr GL_DOUBLEBUFFER
+cdef SDL_GLattr GL_DEPTH_SIZE
+
+cdef SDL_WindowFlags WINDOWPOS_CENTERED
+cdef SDL_WindowFlags WINDOW_OPENGL
+cdef SDL_WindowFlags WINDOW_SHOWN
+
+#TODO: should be SDL_Scancode, but Cython doesn’t allow enum for array indexing.
+cdef long SCANCODE_Z
+cdef long SCANCODE_X
+cdef long SCANCODE_LSHIFT
+cdef long SCANCODE_UP
+cdef long SCANCODE_DOWN
+cdef long SCANCODE_LEFT
+cdef long SCANCODE_RIGHT
+cdef long SCANCODE_LCTRL
+cdef long SCANCODE_ESCAPE
+
+cdef SDL_EventType KEYDOWN
+cdef SDL_EventType QUIT
+
+cdef Uint16 DEFAULT_FORMAT
+
+
+cdef class Window:
+    cdef SDL_Window *window
+    cdef SDL_GLContext context
+
+    cdef void gl_create_context(self) except *
+    cdef void gl_swap_window(self) nogil
+    cdef void set_window_size(self, int width, int height) nogil
+
+
+cdef class Surface:
+    cdef SDL_Surface *surface
+
+    cdef void blit(self, Surface other) except *
+    cdef void set_alpha(self, Surface alpha_surface) nogil
+
+
+cdef class Music:
+    cdef Mix_Music *music
+
+    cdef void play(self, int loops) nogil
+    cdef void set_loop_points(self, double start, double end) nogil
+
+
+cdef class Chunk:
+    cdef Mix_Chunk *chunk
+
+    cdef void play(self, int channel, int loops) nogil
+    cdef void set_volume(self, float volume) nogil
+
+
+cdef void init(Uint32 flags) except *
+cdef void img_init(Uint32 flags) except *
+cdef void mix_init(int flags) except *
 
 IF UNAME_SYSNAME == "Windows":
-    cdef extern from "SDL_main.h":
-        void SDL_SetMainReady()
+    cdef void set_main_ready()
 
-
-cdef extern from "SDL_error.h":
-    const char *SDL_GetError()
-
-
-cdef extern from "SDL_video.h":
-    ctypedef enum SDL_GLattr:
-        SDL_GL_CONTEXT_MAJOR_VERSION
-        SDL_GL_CONTEXT_MINOR_VERSION
-        SDL_GL_DOUBLEBUFFER
-        SDL_GL_DEPTH_SIZE
-
-    ctypedef enum SDL_WindowFlags:
-        SDL_WINDOWPOS_CENTERED
-        SDL_WINDOW_OPENGL
-        SDL_WINDOW_SHOWN
-
-    ctypedef struct SDL_Window:
-        pass
-
-    ctypedef void *SDL_GLContext
-
-    int SDL_GL_SetAttribute(SDL_GLattr attr, int value)
-    SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int w, int h, Uint32 flags)
-    SDL_GLContext SDL_GL_CreateContext(SDL_Window *window)
-    void SDL_GL_SwapWindow(SDL_Window *window)
-    void SDL_GL_DeleteContext(SDL_GLContext context)
-    void SDL_DestroyWindow(SDL_Window *window)
-
-    void SDL_SetWindowSize(SDL_Window *window, int w, int h)
-
-
-cdef extern from "SDL_scancode.h":
-    ctypedef enum SDL_Scancode:
-        SDL_SCANCODE_Z
-        SDL_SCANCODE_X
-        SDL_SCANCODE_LSHIFT
-        SDL_SCANCODE_UP
-        SDL_SCANCODE_DOWN
-        SDL_SCANCODE_LEFT
-        SDL_SCANCODE_RIGHT
-        SDL_SCANCODE_LCTRL
-        SDL_SCANCODE_ESCAPE
-
-
-cdef extern from "SDL_events.h":
-    ctypedef enum SDL_EventType:
-        SDL_KEYDOWN
-        SDL_QUIT
-
-    ctypedef struct SDL_Keysym:
-        SDL_Scancode scancode
-
-    ctypedef struct SDL_KeyboardEvent:
-        Uint32 type
-        SDL_Keysym keysym
-
-    ctypedef union SDL_Event:
-        Uint32 type
-        SDL_KeyboardEvent key
-
-    int SDL_PollEvent(SDL_Event *event)
-
-
-cdef extern from "SDL_keyboard.h":
-    const Uint8 *SDL_GetKeyboardState(int *numkeys)
-
-
-cdef extern from "SDL_timer.h":
-    Uint32 SDL_GetTicks()
-    void SDL_Delay(Uint32 ms)
-
-
-cdef extern from "SDL_rect.h":
-    ctypedef struct SDL_Rect:
-        int x, y
-        int w, h
-
-
-cdef extern from "SDL_surface.h":
-    ctypedef struct SDL_Surface:
-        int w, h
-        unsigned char *pixels
-
-    void SDL_FreeSurface(SDL_Surface *surface)
-    int SDL_BlitSurface(SDL_Surface *src, const SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect)
-    SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int depth, Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
-
-
-cdef extern from "SDL_rwops.h":
-    ctypedef struct SDL_RWops:
-        pass
-
-    SDL_RWops *SDL_RWFromConstMem(const void *mem, int size)
-    int SDL_RWclose(SDL_RWops *context)
-
-
-cdef extern from "SDL_image.h":
-    int IMG_INIT_PNG
-
-    int IMG_Init(int flags)
-    void IMG_Quit()
-    SDL_Surface *IMG_LoadPNG_RW(SDL_RWops *src)
-
-
-cdef extern from "SDL_mixer.h":
-    ctypedef enum:
-        MIX_DEFAULT_FORMAT
-
-    ctypedef struct Mix_Music:
-        pass
-
-    ctypedef struct Mix_Chunk:
-        pass
-
-    int Mix_Init(int flags)
-    void Mix_Quit()
-
-    int Mix_OpenAudio(int frequency, Uint16 format_, int channels, int chunksize)
-    void Mix_CloseAudio()
-
-    int Mix_AllocateChannels(int numchans)
-
-    Mix_Music *Mix_LoadMUS(const char *filename)
-    Mix_Chunk *Mix_LoadWAV_RW(SDL_RWops *src, int freesrc)
-
-    void Mix_FreeMusic(Mix_Music *music)
-    void Mix_FreeChunk(Mix_Chunk *chunk)
-
-    int Mix_PlayMusic(Mix_Music *music, int loops)
-    #int Mix_SetLoopPoints(Mix_Music *music, double start, double end)
-
-    int Mix_Volume(int channel, int volume)
-    int Mix_VolumeChunk(Mix_Chunk *chunk, int volume)
-    int Mix_VolumeMusic(int volume)
-
-    int Mix_PlayChannel(int channel, Mix_Chunk *chunk, int loops)
+cdef void quit() nogil
+cdef void img_quit() nogil
+cdef void mix_quit() nogil
+cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
+cdef list poll_events()
+cdef const Uint8* get_keyboard_state() nogil
+cdef Surface load_png(file_)
+cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)
+cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *
+cdef void mix_close_audio() nogil
+cdef void mix_allocate_channels(int numchans) except *
+cdef int mix_volume(int channel, float volume) nogil
+cdef int mix_volume_music(float volume) nogil
+cdef Music load_music(const char *filename)
+cdef Chunk load_chunk(file_)
+cdef Uint32 get_ticks() nogil
+cdef void delay(Uint32 ms) nogil

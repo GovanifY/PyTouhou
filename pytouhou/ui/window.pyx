@@ -13,7 +13,7 @@
 ##
 
 
-from pytouhou.lib import sdl
+from pytouhou.lib cimport sdl
 
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
@@ -24,8 +24,11 @@ IF USE_GLEW:
     from pytouhou.lib.opengl cimport glewInit
 
 
-class Clock:
-    def __init__(self, fps=None):
+cdef class Clock:
+    cdef long _target_fps, _ref_tick, _ref_frame, _fps_tick, _fps_frame
+    cdef double _rate
+
+    def __init__(self, long fps=-1):
         self._target_fps = 0
         self._ref_tick = 0
         self._ref_frame = 0
@@ -35,17 +38,17 @@ class Clock:
         self.set_target_fps(fps)
 
 
-    def set_target_fps(self, fps):
+    cdef void set_target_fps(self, long fps) nogil:
         self._target_fps = fps
         self._ref_tick = 0
         self._fps_tick = 0
 
 
-    def get_fps(self):
+    cdef double get_fps(self) nogil:
         return self._rate
 
 
-    def tick(self):
+    cdef void tick(self) nogil except *:
         current = sdl.get_ticks()
 
         if not self._ref_tick:
@@ -66,7 +69,7 @@ class Clock:
 
         target_tick = self._ref_tick
         if self._target_fps:
-            target_tick += int(self._ref_frame * 1000 / self._target_fps)
+            target_tick += <long>(self._ref_frame * 1000 / self._target_fps)
 
         if current <= target_tick:
             sdl.delay(target_tick - current)
@@ -76,9 +79,16 @@ class Clock:
 
 
 
-class Window(object):
-    def __init__(self, size=None, double_buffer=True, fps_limit=60,
-                 fixed_pipeline=False, sound=True):
+cdef class Window:
+    cdef sdl.Window win
+    cdef long fps_limit
+    cdef public long width, height
+    cdef public bint use_fixed_pipeline
+    cdef object runner
+    cdef Clock clock
+
+    def __init__(self, size=None, bint double_buffer=True, long fps_limit=-1,
+                 bint fixed_pipeline=False, bint sound=True):
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
         self.runner = None
@@ -95,7 +105,7 @@ class Window(object):
         sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
         sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
 
-        self.width, self.height = size if size else (640, 480)
+        self.width, self.height = size if size is not None else (640, 480)
 
         self.win = sdl.Window('PyTouhou',
                               sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
@@ -125,16 +135,17 @@ class Window(object):
         self.clock = Clock(self.fps_limit)
 
 
-    def set_size(self, width, height):
+    cdef void set_size(self, int width, int height) nogil:
         self.win.set_window_size(width, height)
 
 
-    def set_runner(self, runner):
+    cpdef set_runner(self, runner=None):
         self.runner = runner
-        runner.start()
+        if runner is not None:
+            runner.start()
 
 
-    def run(self):
+    cpdef run(self):
         try:
             while self.run_frame():
                 pass
@@ -142,17 +153,20 @@ class Window(object):
             self.runner.finish()
 
 
-    def run_frame(self):
-        if self.runner:
+    cdef bint run_frame(self) except? False:
+        cdef bint running = False
+        if self.runner is not None:
             running = self.runner.update()
         self.win.gl_swap_window()
         self.clock.tick()
         return running
 
 
+    cpdef double get_fps(self):
+        return self.clock.get_fps()
+
+
     def __dealloc__(self):
-        self.win.gl_delete_context()
-        self.win.destroy_window()
         sdl.mix_close_audio()
         sdl.mix_quit()
         sdl.img_quit()
