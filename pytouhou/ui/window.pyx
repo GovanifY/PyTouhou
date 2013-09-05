@@ -13,8 +13,6 @@
 ##
 
 
-from pytouhou.lib cimport sdl
-
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
           GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
@@ -25,9 +23,6 @@ IF USE_GLEW:
 
 
 cdef class Clock:
-    cdef long _target_fps, _ref_tick, _ref_frame, _fps_tick, _fps_frame
-    cdef double _rate
-
     def __init__(self, long fps=-1):
         self._target_fps = 0
         self._ref_tick = 0
@@ -80,14 +75,7 @@ cdef class Clock:
 
 
 cdef class Window:
-    cdef sdl.Window win
-    cdef long fps_limit
-    cdef public long width, height
-    cdef public bint use_fixed_pipeline
-    cdef object runner
-    cdef Clock clock
-
-    def __init__(self, size=None, bint double_buffer=True, long fps_limit=-1,
+    def __init__(self, tuple size=None, bint double_buffer=True, long fps_limit=-1,
                  bint fixed_pipeline=False, bint sound=True):
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline

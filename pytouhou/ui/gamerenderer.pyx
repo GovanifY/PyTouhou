@@ -20,21 +20,18 @@ from pytouhou.lib.opengl cimport \
           GL_PROJECTION, GL_MODELVIEW, GL_FOG, GL_FOG_MODE, GL_LINEAR,
           GL_FOG_START, GL_FOG_END, GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat)
 
-from pytouhou.utils.matrix cimport Matrix
 from pytouhou.utils.maths cimport setup_camera
 
-from .renderer import Renderer
 
-
-
-class GameRenderer(Renderer):
+cdef class GameRenderer(Renderer):
     def __init__(self, resource_loader):
         Renderer.__init__(self, resource_loader)
 
 
     def render(self):
-        cdef float fog_data[4]
-        cdef Matrix view, mvp
+        cdef float x, y, z, dx, dy, dz, fog_data[4], fog_start, fog_end
+        cdef unsigned char fog_r, fog_g, fog_b
+        cdef Matrix mvp
 
         back = self.background
         game = self.game
@@ -46,7 +43,7 @@ class GameRenderer(Renderer):
         if game is not None and game.spellcard_effect is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf((<Matrix>self.game_mvp).data)
+                glLoadMatrixf(self.game_mvp.data)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
@@ -103,7 +100,7 @@ class GameRenderer(Renderer):
         if game is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf((<Matrix>self.game_mvp).data)
+                glLoadMatrixf(self.game_mvp.data)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()

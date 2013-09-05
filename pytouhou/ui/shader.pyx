@@ -15,11 +15,9 @@ from pytouhou.lib.opengl cimport \
           GL_COMPILE_STATUS, GL_INFO_LOG_LENGTH, glGetShaderInfoLog,
           glAttachShader, glLinkProgram, glGetProgramiv, glGetProgramInfoLog,
           GL_LINK_STATUS, glUseProgram, glGetUniformLocation, glUniform1fv,
-          glUniform4fv, glUniformMatrix4fv, glBindAttribLocation, GLint,
-          GLuint, GLchar, GLfloat, GLenum)
+          glUniform4fv, glUniformMatrix4fv, glBindAttribLocation)
 
 from libc.stdlib cimport malloc, free
-from pytouhou.utils.matrix cimport Matrix
 
 
 class GLSLException(Exception):
@@ -27,10 +25,6 @@ class GLSLException(Exception):
 
 
 cdef class Shader:
-    cdef GLuint handle
-    cdef bint linked
-    cdef dict location_cache
-
     # vert and frag take arrays of source strings the arrays will be
     # concattenated into one string by OpenGL
     def __init__(self, vert=None, frag=None):
@@ -120,17 +114,17 @@ cdef class Shader:
             self.location_cache[name] = loc
         return self.location_cache[name]
 
-    def bind(self):
+    cdef void bind(self) nogil:
         # bind the program
         glUseProgram(self.handle)
 
     # upload a floating point uniform
     # this program must be currently bound
-    def uniform_1(self, name, GLfloat val):
+    cdef void uniform_1(self, name, GLfloat val):
         glUniform1fv(self.get_uniform_location(name), 1, &val)
 
     # upload a vec4 uniform
-    def uniform_4(self, name, GLfloat a, GLfloat b, GLfloat c, GLfloat d):
+    cdef void uniform_4(self, name, GLfloat a, GLfloat b, GLfloat c, GLfloat d):
         cdef GLfloat vals[4]
         vals[0] = a
         vals[1] = b
@@ -141,7 +135,7 @@ cdef class Shader:
     # upload a uniform matrix
     # works with matrices stored as lists,
     # as well as euclid matrices
-    def uniform_matrix(self, name, Matrix mat):
+    cdef void uniform_matrix(self, name, Matrix mat):
         # obtain the uniform location
         loc = self.get_uniform_location(name)
         # uplaod the 4x4 floating point matrix

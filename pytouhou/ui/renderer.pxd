@@ -7,9 +7,11 @@ cdef struct Vertex:
 
 
 cdef class Renderer:
-    cdef public texture_manager
+    cdef public texture_manager, font_manager
     cdef unsigned int vbo
     cdef Vertex *vertex_buffer
+
+    cdef bint use_fixed_pipeline #XXX
 
     cdef unsigned short *indices[2][MAX_TEXTURES]
     cdef unsigned short last_indices[2 * MAX_TEXTURES]

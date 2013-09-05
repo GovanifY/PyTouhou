@@ -21,9 +21,9 @@ from pytouhou.lib.opengl cimport \
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
-from pytouhou.utils.matrix cimport Matrix
 
-from .gamerenderer import GameRenderer
+from .window cimport Window
+from .gamerenderer cimport GameRenderer
 from .background import BackgroundRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 from .shaders.eosd import GameShader, BackgroundShader
@@ -35,8 +35,13 @@ Color = namedtuple('Color', 'r g b a')
 logger = get_logger(__name__)
 
 
-class GameRunner(GameRenderer):
-    def __init__(self, window, resource_loader, replay=None, skip=False):
+cdef class GameRunner(GameRenderer):
+    cdef Window window
+    cdef object replay_level, save_keystates
+    cdef long width, height, keystate
+    cdef bint skip
+
+    def __init__(self, window, resource_loader, bint skip=False):
         self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
 
         GameRenderer.__init__(self, resource_loader)
@@ -114,6 +119,8 @@ class GameRunner(GameRenderer):
 
 
     def update(self):
+        cdef long keystate
+
         if self.background:
             self.background.update(self.game.frame)
         for event in sdl.poll_events():
@@ -125,7 +132,7 @@ class GameRunner(GameRenderer):
             elif type_ == sdl.QUIT:
                 return False
         if self.game:
-            if not self.replay_level:
+            if self.replay_level is None:
                 #TODO: allow user settings
                 keys = sdl.get_keyboard_state()
                 keystate = 0
@@ -217,7 +224,7 @@ class GameRunner(GameRenderer):
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf((<Matrix>self.interface_mvp).data)
+            glLoadMatrixf(self.interface_mvp.data)
             glDisable(GL_FOG)
         else:
             self.interface_shader.bind()
