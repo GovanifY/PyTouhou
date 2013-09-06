@@ -42,7 +42,7 @@ cdef class BackgroundRenderer:
             glGenBuffers(1, &self.vbo)
 
 
-    cpdef render_background(self):
+    cdef void render_background(self):
         if self.use_fixed_pipeline:
             glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
@@ -68,10 +68,12 @@ cdef class BackgroundRenderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cpdef prerender(self, background):
+    cdef void load(self, background):
         cdef float ox, oy, oz, ox2, oy2, oz2
         cdef unsigned short nb_vertices = 0
         cdef Vertex* vertex_buffer
+
+        self.background = background
 
         vertex_buffer = self.vertex_buffer
 

@@ -11,6 +11,7 @@ cdef class BackgroundRenderer:
     cdef unsigned short blendfunc, nb_vertices
     cdef Vertex *vertex_buffer
     cdef unsigned int use_fixed_pipeline, vbo
+    cdef object background
 
-    cpdef render_background(self)
-    cpdef prerender(self, background)
+    cdef void render_background(self)
+    cdef void load(self, background)

@@ -14,37 +14,23 @@
 
 from pytouhou.lib cimport sdl
 
-from pytouhou.lib.opengl cimport \
-         (glMatrixMode, glEnable, glDisable, glViewport, glScissor,
-          glLoadMatrixf, glGenBuffers, glDeleteBuffers, GL_MODELVIEW,
-          GL_FOG, GL_SCISSOR_TEST, glClear, GL_DEPTH_BUFFER_BIT)
-
-from pytouhou.utils.helpers import get_logger
-from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
-
 from .window cimport Window
 from .gamerenderer cimport GameRenderer
-from .background import BackgroundRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
-from .shaders.eosd import GameShader, BackgroundShader
-
-from collections import namedtuple
-Rect = namedtuple('Rect', 'x y w h')
-Color = namedtuple('Color', 'r g b a')
-
-logger = get_logger(__name__)
 
 
-cdef class GameRunner(GameRenderer):
+cdef class GameRunner:
+    cdef object game, background
+    cdef GameRenderer renderer
     cdef Window window
     cdef object replay_level, save_keystates
     cdef long width, height, keystate
-    cdef bint skip
+    cdef bint skip, use_fixed_pipeline
 
     def __init__(self, window, resource_loader, bint skip=False):
         self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
 
-        GameRenderer.__init__(self, resource_loader)
+        self.renderer = GameRenderer(resource_loader, self.use_fixed_pipeline)
 
         self.window = window
         self.replay_level = None
@@ -54,21 +40,13 @@ cdef class GameRunner(GameRenderer):
         self.width = window.width #XXX
         self.height = window.height #XXX
 
-        if not self.use_fixed_pipeline:
-            self.game_shader = GameShader()
-            self.background_shader = BackgroundShader()
-            self.interface_shader = self.game_shader
-
 
     def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
         self.game = game
         self.background = background
 
-        self.texture_manager.load(game.resource_loader.instanced_anms.values())
-
-        if background:
-            self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
-            self.background_renderer.prerender(background)
+        self.renderer.texture_manager.load(game.resource_loader.instanced_anms.values())
+        self.renderer.load_background(background)
 
         self.set_input(replay)
         if replay and replay.levels[game.stage - 1]:
@@ -98,16 +76,13 @@ cdef class GameRunner(GameRenderer):
 
 
     def start(self):
-        width = self.game.interface.width if self.game else 640
-        height = self.game.interface.height if self.game else 480
-        if (width, height) != (self.width, self.height):
+        cdef long width, height
+        width = self.game.interface.width if self.game is not None else 640
+        height = self.game.interface.height if self.game is not None else 480
+        if width != self.width or height != self.height:
             self.window.set_size(width, height)
 
-        self.proj = perspective(30, float(self.game.width) / float(self.game.height),
-                                101010101./2010101., 101010101./10101.)
-        game_view = setup_camera(0, 0, 1)
-        self.game_mvp = game_view * self.proj
-        self.interface_mvp = ortho_2d(0., float(self.width), float(self.height), 0.)
+        self.renderer.start(self.game)
 
 
     def finish(self):
@@ -166,88 +141,7 @@ cdef class GameRunner(GameRenderer):
                 self.save_keystates.append(keystate)
 
             self.game.run_iter(keystate)
+            self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
         if not self.skip:
-            self.render_game()
-            self.render_text()
-            self.render_interface()
+            self.renderer.render(self.game)
         return True
-
-
-    def render_game(self):
-        # Switch to game projection
-        #TODO: move that to GameRenderer?
-        x, y = self.game.interface.game_pos
-        glViewport(x, y, self.game.width, self.game.height)
-        glClear(GL_DEPTH_BUFFER_BIT)
-        glScissor(x, y, self.game.width, self.game.height)
-        glEnable(GL_SCISSOR_TEST)
-
-        GameRenderer.render(self)
-
-        glDisable(GL_SCISSOR_TEST)
-
-        if self.game.msg_runner:
-            rect = Rect(48, 368, 288, 48)
-            color1 = Color(0, 0, 0, 192)
-            color2 = Color(0, 0, 0, 128)
-            self.render_quads([rect], [(color1, color1, color2, color2)], 0)
-
-
-    def render_text(self):
-        if self.font_manager is None:
-            return
-
-        labels = [label for label in self.game.texts + self.game.native_texts if label is not None]
-        self.font_manager.load(labels)
-
-        black = Color(0, 0, 0, 255)
-
-        for label in labels:
-            if label is None:
-                continue
-
-            rect = Rect(label.x, label.y, label.width, label.height)
-            gradient = [Color(*color, a=label.alpha) for color in label.gradient]
-
-            if label.shadow:
-                shadow_rect = Rect(label.x + 1, label.y + 1, label.width, label.height)
-                shadow = [black._replace(a=label.alpha)] * 4
-                self.render_quads([shadow_rect, rect], [shadow, gradient], label.texture)
-            else:
-                self.render_quads([rect], [gradient], label.texture)
-
-
-    def render_interface(self):
-        elements = []
-        interface = self.game.interface
-        interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
-
-        if self.use_fixed_pipeline:
-            glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf(self.interface_mvp.data)
-            glDisable(GL_FOG)
-        else:
-            self.interface_shader.bind()
-            self.interface_shader.uniform_matrix('mvp', self.interface_mvp)
-        glViewport(0, 0, self.width, self.height)
-
-        items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]
-        labels = interface.labels.values()
-
-        if items:
-            # Redraw all the interface
-            elements.extend(items)
-        else:
-            # Redraw only changed labels
-            labels = [label for label in labels if label.changed]
-
-        elements.extend(interface.level_start)
-
-        if self.game.boss:
-            elements.extend(interface.boss_items)
-
-        elements.extend(labels)
-        self.render_elements(elements)
-        for label in labels:
-            label.changed = False
-
