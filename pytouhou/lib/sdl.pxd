@@ -15,9 +15,6 @@
 from _sdl cimport *
 
 
-cdef Uint32 INIT_VIDEO
-cdef Uint32 INIT_PNG
-
 cdef SDL_GLattr GL_CONTEXT_MAJOR_VERSION
 cdef SDL_GLattr GL_CONTEXT_MINOR_VERSION
 cdef SDL_GLattr GL_DOUBLEBUFFER
@@ -40,8 +37,6 @@ cdef long SCANCODE_ESCAPE
 
 cdef SDL_EventType KEYDOWN
 cdef SDL_EventType QUIT
-
-cdef Uint16 DEFAULT_FORMAT
 
 
 cdef class Window:
@@ -84,21 +79,12 @@ cdef void init(Uint32 flags) except *
 cdef void img_init(Uint32 flags) except *
 cdef void mix_init(int flags) except *
 cdef void ttf_init() except *
-
-IF UNAME_SYSNAME == "Windows":
-    cdef void set_main_ready()
-
-cdef void quit() nogil
-cdef void img_quit() nogil
-cdef void mix_quit() nogil
-cdef void ttf_quit() nogil
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
 cdef list poll_events()
 cdef const Uint8* get_keyboard_state() nogil
 cdef Surface load_png(file_)
 cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)
 cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *
-cdef void mix_close_audio() nogil
 cdef void mix_allocate_channels(int numchans) except *
 cdef int mix_volume(int channel, float volume) nogil
 cdef int mix_volume_music(float volume) nogil

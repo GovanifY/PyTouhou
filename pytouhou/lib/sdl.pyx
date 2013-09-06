@@ -12,9 +12,6 @@
 ## GNU General Public License for more details.
 ##
 
-INIT_VIDEO = SDL_INIT_VIDEO
-INIT_PNG = IMG_INIT_PNG
-
 GL_CONTEXT_MAJOR_VERSION = SDL_GL_CONTEXT_MAJOR_VERSION
 GL_CONTEXT_MINOR_VERSION = SDL_GL_CONTEXT_MINOR_VERSION
 GL_DOUBLEBUFFER = SDL_GL_DOUBLEBUFFER
@@ -37,11 +34,35 @@ SCANCODE_ESCAPE = SDL_SCANCODE_ESCAPE
 KEYDOWN = SDL_KEYDOWN
 QUIT = SDL_QUIT
 
-DEFAULT_FORMAT = MIX_DEFAULT_FORMAT
-
 
 class SDLError(Exception):
     pass
+
+
+class SDL(object):
+    def __init__(self, sound=True):
+        self.sound = sound
+
+    def __enter__(self):
+        IF UNAME_SYSNAME == "Windows":
+            SDL_SetMainReady()
+        init(SDL_INIT_VIDEO)
+        img_init(IMG_INIT_PNG)
+        ttf_init()
+
+        if self.sound:
+            mix_init(0)
+            mix_open_audio(44100, MIX_DEFAULT_FORMAT, 2, 4096)
+            mix_allocate_channels(MAX_CHANNELS) #TODO: make it dependent on the SFX number.
+
+    def __exit__(self, *args):
+        if self.sound:
+            Mix_CloseAudio()
+            Mix_Quit()
+
+        TTF_Quit()
+        IMG_Quit()
+        SDL_Quit()
 
 
 cdef class Window:
@@ -157,11 +178,6 @@ cdef void ttf_init() except *:
         raise SDLError(SDL_GetError())
 
 
-IF UNAME_SYSNAME == "Windows":
-    cdef void set_main_ready():
-        SDL_SetMainReady()
-
-
 cdef void quit() nogil:
     SDL_Quit()
 
@@ -220,10 +236,6 @@ cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=0
 cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *:
     if Mix_OpenAudio(frequency, format_, channels, chunksize) < 0:
         raise SDLError(SDL_GetError())
-
-
-cdef void mix_close_audio() nogil:
-    Mix_CloseAudio()
 
 
 cdef void mix_allocate_channels(int numchans) except *:

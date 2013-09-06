@@ -79,6 +79,7 @@ setup(name='PyTouhou',
                             compiler_directives={'infer_types': True,
                                                  'infer_types.verbose': True},
                             compile_time_env={'MAX_TEXTURES': 1024,
+                                              'MAX_CHANNELS': 26,
                                               'USE_GLEW': is_windows}),
       scripts=['eosd', 'anmviewer'],
       **extra)
