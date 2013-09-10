@@ -41,6 +41,7 @@ cdef extern from 'GL/gl.h' nogil:
         GL_SRC_ALPHA
         GL_ONE_MINUS_SRC_ALPHA
         GL_ONE
+        GL_ZERO
         GL_TEXTURE_2D
         GL_TRIANGLES
         GL_DEPTH_TEST
@@ -81,6 +82,13 @@ cdef extern from 'GL/gl.h' nogil:
         GL_INFO_LOG_LENGTH
         GL_COMPILE_STATUS
         GL_LINK_STATUS
+
+        GL_FRAMEBUFFER
+        GL_COLOR_ATTACHMENT0
+        GL_RENDERBUFFER
+        GL_DEPTH_COMPONENT
+        GL_DEPTH_ATTACHMENT
+        GL_FRAMEBUFFER_COMPLETE
 
     void glVertexPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
     void glTexCoordPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
@@ -138,3 +146,12 @@ cdef extern from 'GL/gl.h' nogil:
     void glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
     void glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
     void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+
+    void glGenFramebuffers(GLsizei n, GLuint *ids)
+    void glBindFramebuffer(GLenum target, GLuint framebuffer)
+    void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+    void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
+    void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+    void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+    void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+    GLenum glCheckFramebufferStatus(GLenum target)

@@ -90,3 +90,34 @@ class BackgroundShader(Shader):
                 gl_FragColor = vec4(mix(fog_color, temp_color, fog_density).rgb, temp_color.a);
             }
         '''])
+
+
+class PassthroughShader(Shader):
+    def __init__(self):
+        Shader.__init__(self, ['''
+            #version 120
+
+            attribute vec2 in_position;
+            attribute vec2 in_texcoord;
+
+            uniform mat4 mvp;
+
+            varying vec2 texcoord;
+
+            void main()
+            {
+                gl_Position = mvp * vec4(in_position, 0.0, 1.0);
+                texcoord = in_texcoord;
+            }
+        '''], ['''
+            #version 120
+
+            varying vec2 texcoord;
+
+            uniform sampler2D color_map;
+
+            void main()
+            {
+                gl_FragColor = texture2D(color_map, texcoord);
+            }
+        '''])

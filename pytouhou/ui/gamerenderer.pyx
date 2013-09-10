@@ -22,7 +22,7 @@ from pytouhou.lib.opengl cimport \
           GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT)
 
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
-from .shaders.eosd import GameShader, BackgroundShader
+from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -39,6 +39,9 @@ cdef class GameRenderer(Renderer):
             self.game_shader = GameShader()
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
+            self.passthrough_shader = PassthroughShader()
+
+            self.framebuffer = Framebuffer(0, 0, 640, 480)
 
 
     cdef void load_background(self, background):
@@ -58,9 +61,17 @@ cdef class GameRenderer(Renderer):
 
 
     cdef void render(self, game):
+        if not self.use_fixed_pipeline:
+            self.framebuffer.bind()
+
         self.render_game(game)
         self.render_text(game.texts + game.native_texts)
         self.render_interface(game.interface, game.boss)
+
+        if not self.use_fixed_pipeline:
+            self.passthrough_shader.bind()
+            self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
+            self.render_framebuffer(self.framebuffer)
 
 
     cdef void render_game(self, game):

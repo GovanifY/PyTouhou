@@ -1,4 +1,5 @@
 from cpython cimport PyObject
+from pytouhou.lib.opengl cimport GLuint
 
 cdef struct Vertex:
     int x, y, z
@@ -6,9 +7,14 @@ cdef struct Vertex:
     unsigned char r, g, b, a
 
 
+cdef struct PassthroughVertex:
+    int x, y
+    float u, v
+
+
 cdef class Renderer:
     cdef public texture_manager, font_manager
-    cdef unsigned int vbo
+    cdef GLuint vbo, framebuffer_vbo
     cdef Vertex *vertex_buffer
 
     cdef bint use_fixed_pipeline #XXX
@@ -19,3 +25,11 @@ cdef class Renderer:
 
     cpdef render_elements(self, elements)
     cpdef render_quads(self, rects, colors, texture)
+    cpdef render_framebuffer(self, Framebuffer fb)
+
+
+cdef class Framebuffer:
+    cdef GLuint fbo, texture, rbo
+    cdef int x, y, width, height
+
+    cpdef bind(self)

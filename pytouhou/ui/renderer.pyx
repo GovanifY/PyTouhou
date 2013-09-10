@@ -22,8 +22,16 @@ from pytouhou.lib.opengl cimport \
           glBindTexture, glDrawElements, glBindBuffer, glBufferData,
           GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT, GL_SRC_ALPHA,
-          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
-          glGenBuffers)
+          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO, GL_TEXTURE_2D, GL_TRIANGLES,
+          glGenBuffers, glBindFramebuffer, glViewport, glDeleteBuffers,
+          glGenTextures, glTexParameteri, glTexImage2D, glGenRenderbuffers,
+          glBindRenderbuffer, glRenderbufferStorage, glGenFramebuffers,
+          glFramebufferTexture2D, glFramebufferRenderbuffer,
+          glCheckFramebufferStatus, GL_FRAMEBUFFER, GL_TEXTURE_MIN_FILTER,
+          GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_RGBA, GL_RENDERBUFFER,
+          GL_DEPTH_COMPONENT, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
+          GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
+          GL_DEPTH_BUFFER_BIT)
 
 from pytouhou.lib.sdl import SDLError
 
@@ -63,6 +71,10 @@ cdef class Renderer:
     def __dealloc__(self):
         free(self.vertex_buffer)
 
+        if not self.use_fixed_pipeline:
+            glDeleteBuffers(1, &self.framebuffer_vbo)
+            glDeleteBuffers(1, &self.vbo)
+
 
     def __init__(self, resource_loader):
         self.texture_manager = TextureManager(resource_loader, self)
@@ -75,6 +87,7 @@ cdef class Renderer:
 
         if not self.use_fixed_pipeline:
             glGenBuffers(1, &self.vbo)
+            glGenBuffers(1, &self.framebuffer_vbo)
 
 
     def add_texture(self, int texture):
@@ -202,3 +215,71 @@ cdef class Renderer:
 
         if not self.use_fixed_pipeline:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    cpdef render_framebuffer(self, Framebuffer fb):
+        cdef PassthroughVertex[4] buf
+        cdef unsigned short indices[6]
+        indices[:] = [0, 1, 2, 2, 3, 0]
+
+        assert not self.use_fixed_pipeline
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glViewport(0, 0, 640, 480)
+        glBlendFunc(GL_ONE, GL_ZERO)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
+
+        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+        glVertexAttribPointer(0, 2, GL_INT, False, sizeof(PassthroughVertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>8)
+        glEnableVertexAttribArray(1)
+
+        buf[0] = PassthroughVertex(fb.x, fb.y, 0, 1)
+        buf[1] = PassthroughVertex(fb.x + fb.width, fb.y, 1, 1)
+        buf[2] = PassthroughVertex(fb.x + fb.width, fb.y + fb.height, 1, 0)
+        buf[3] = PassthroughVertex(fb.x, fb.y + fb.height, 0, 0)
+        glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(PassthroughVertex), buf, GL_DYNAMIC_DRAW)
+
+        glBindTexture(GL_TEXTURE_2D, fb.texture)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices)
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+cdef class Framebuffer:
+    def __init__(self, int x, int y, int width, int height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+        glGenTextures(1, &self.texture)
+        glBindTexture(GL_TEXTURE_2D, self.texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexImage2D(GL_TEXTURE_2D, 0,
+                     GL_RGBA,
+                     width, height,
+                     0,
+                     GL_RGBA, GL_UNSIGNED_BYTE,
+                     NULL)
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        glGenRenderbuffers(1, &self.rbo)
+        glBindRenderbuffer(GL_RENDERBUFFER, self.rbo)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height)
+        glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+        glGenFramebuffers(1, &self.fbo)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texture, 0)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self.rbo)
+        assert glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+    cpdef bind(self):
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
