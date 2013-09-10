@@ -14,17 +14,17 @@
 
 from pytouhou.lib cimport sdl
 
-from .window cimport Window
+from .window cimport Window, Runner
 from .gamerenderer cimport GameRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 
 
-cdef class GameRunner:
+cdef class GameRunner(Runner):
     cdef object game, background
     cdef GameRenderer renderer
     cdef Window window
     cdef object replay_level, save_keystates
-    cdef long width, height, keystate
+    cdef long keystate
     cdef bint skip, use_fixed_pipeline
 
     def __init__(self, window, resource_loader, bint skip=False):
@@ -75,7 +75,7 @@ cdef class GameRunner:
             self.keys = self.replay_level.iter_keystates()
 
 
-    def start(self):
+    cdef void start(self) except *:
         cdef long width, height
         width = self.game.interface.width if self.game is not None else 640
         height = self.game.interface.height if self.game is not None else 480
@@ -85,15 +85,7 @@ cdef class GameRunner:
         self.renderer.start(self.game)
 
 
-    def finish(self):
-        #TODO: actually clean after buffers are not needed anymore.
-        #if not self.use_fixed_pipeline:
-        #    vbo_array = (c_uint * 2)(self.vbo, self.back_vbo)
-        #    glDeleteBuffers(2, vbo_array)
-        pass
-
-
-    def update(self):
+    cdef bint update(self) except *:
         cdef long keystate
 
         if self.background:

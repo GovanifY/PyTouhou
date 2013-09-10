@@ -74,6 +74,18 @@ cdef class Clock:
 
 
 
+cdef class Runner:
+    cdef void start(self) except *:
+        pass
+
+    cdef void finish(self) except *:
+        pass
+
+    cdef bint update(self) except *:
+        return False
+
+
+
 cdef class Window:
     def __init__(self, tuple size=None, bint double_buffer=True, long fps_limit=-1,
                  bint fixed_pipeline=False, bint sound=True):
@@ -115,7 +127,7 @@ cdef class Window:
         self.win.set_window_size(width, height)
 
 
-    cpdef set_runner(self, runner=None):
+    cpdef set_runner(self, Runner runner=None):
         self.runner = runner
         if runner is not None:
             runner.start()
@@ -138,5 +150,5 @@ cdef class Window:
         return running
 
 
-    cpdef double get_fps(self):
+    cdef double get_fps(self) nogil:
         return self.clock.get_fps()

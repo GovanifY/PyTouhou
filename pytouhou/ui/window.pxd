@@ -10,16 +10,24 @@ cdef class Clock:
     cdef void tick(self) nogil except *
 
 
+cdef class Runner:
+    cdef long width, height
+
+    cdef void start(self) except *
+    cdef void finish(self) except *
+    cdef bint update(self) except *
+
+
 cdef class Window:
     cdef sdl.Window win
     cdef long fps_limit
     cdef public long width, height
     cdef public bint use_fixed_pipeline
-    cdef object runner
+    cdef Runner runner
     cdef Clock clock
 
     cdef void set_size(self, int width, int height) nogil
-    cpdef set_runner(self, runner=*)
+    cpdef set_runner(self, Runner runner=*)
     cpdef run(self)
     cdef bint run_frame(self) except? False
-    cpdef double get_fps(self)
+    cdef double get_fps(self) nogil
