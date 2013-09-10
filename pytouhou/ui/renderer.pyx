@@ -173,16 +173,6 @@ cdef class Renderer:
         length = len(rects)
         assert length == len(colors)
 
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-
-        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-        glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
-        glEnableVertexAttribArray(1)
-        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
-        glEnableVertexAttribArray(2)
-
         for i, r in enumerate(rects):
             c1, c2, c3, c4 = colors[i]
 
@@ -191,7 +181,24 @@ cdef class Renderer:
             buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
             buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
 
-        glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
+        if self.use_fixed_pipeline:
+            glVertexPointer(3, GL_INT, sizeof(Vertex), &buf[0].x)
+            glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &buf[0].u)
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &buf[0].r)
+        else:
+            glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+            glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
+
+            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
+            glEnableVertexAttribArray(0)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
+            glEnableVertexAttribArray(1)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
+            glEnableVertexAttribArray(2)
+
         glBindTexture(GL_TEXTURE_2D, texture)
         glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        if not self.use_fixed_pipeline:
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
