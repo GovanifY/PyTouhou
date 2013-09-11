@@ -1,4 +1,5 @@
 from cpython cimport PyObject
+from .window cimport Window
 from pytouhou.lib.opengl cimport GLuint
 
 cdef struct Vertex:
@@ -25,7 +26,7 @@ cdef class Renderer:
 
     cpdef render_elements(self, elements)
     cpdef render_quads(self, rects, colors, texture)
-    cpdef render_framebuffer(self, Framebuffer fb)
+    cpdef render_framebuffer(self, Framebuffer fb, Window window)
 
 
 cdef class Framebuffer:

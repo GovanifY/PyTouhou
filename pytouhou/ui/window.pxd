@@ -21,7 +21,7 @@ cdef class Runner:
 cdef class Window:
     cdef sdl.Window win
     cdef long fps_limit
-    cdef public long width, height
+    cdef public long x, y, width, height
     cdef public bint use_fixed_pipeline
     cdef Runner runner
     cdef Clock clock

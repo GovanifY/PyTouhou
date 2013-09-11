@@ -12,6 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
+cimport cython
 
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
@@ -100,10 +101,14 @@ cdef class Window:
 
         self.width, self.height = size if size is not None else (640, 480)
 
+        flags = sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN
+        if not self.use_fixed_pipeline:
+            flags |= sdl.WINDOW_RESIZABLE
+
         self.win = sdl.Window('PyTouhou',
                               sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
                               self.width, self.height,
-                              sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN)
+                              flags)
         self.win.gl_create_context()
 
         IF USE_GLEW:
@@ -123,8 +128,21 @@ cdef class Window:
         self.clock = Clock(self.fps_limit)
 
 
+    @cython.cdivision(True)
     cdef void set_size(self, int width, int height) nogil:
         self.win.set_window_size(width, height)
+
+        runner_width = float(self.runner.width)
+        runner_height = float(self.runner.height)
+
+        scale = min(width / runner_width,
+                    height / runner_height)
+
+        self.width = int(runner_width * scale)
+        self.height = int(runner_height * scale)
+
+        self.x = (width - self.width) // 2
+        self.y = (height - self.height) // 2
 
 
     cpdef set_runner(self, Runner runner=None):

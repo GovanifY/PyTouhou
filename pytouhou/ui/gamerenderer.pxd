@@ -11,7 +11,7 @@ cdef class GameRenderer(Renderer):
 
     cdef void load_background(self, background)
     cdef void start(self, game)
-    cdef void render(self, game)
+    cdef void render(self, game, window)
     cdef void render_game(self, game)
     cdef void render_text(self, texts)
     cdef void render_interface(self, interface, game_boss)

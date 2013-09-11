@@ -217,7 +217,7 @@ cdef class Renderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cpdef render_framebuffer(self, Framebuffer fb):
+    cpdef render_framebuffer(self, Framebuffer fb, Window window):
         cdef PassthroughVertex[4] buf
         cdef unsigned short indices[6]
         indices[:] = [0, 1, 2, 2, 3, 0]
@@ -225,7 +225,7 @@ cdef class Renderer:
         assert not self.use_fixed_pipeline
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glViewport(0, 0, 640, 480)
+        glViewport(window.x, window.y, window.width, window.height)
         glBlendFunc(GL_ONE, GL_ZERO)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 

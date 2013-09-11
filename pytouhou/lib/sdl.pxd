@@ -23,6 +23,7 @@ cdef SDL_GLattr GL_DEPTH_SIZE
 cdef SDL_WindowFlags WINDOWPOS_CENTERED
 cdef SDL_WindowFlags WINDOW_OPENGL
 cdef SDL_WindowFlags WINDOW_SHOWN
+cdef SDL_WindowFlags WINDOW_RESIZABLE
 
 #TODO: should be SDL_Scancode, but Cython doesn’t allow enum for array indexing.
 cdef long SCANCODE_Z
@@ -35,8 +36,11 @@ cdef long SCANCODE_RIGHT
 cdef long SCANCODE_LCTRL
 cdef long SCANCODE_ESCAPE
 
+cdef SDL_WindowEventID WINDOWEVENT_RESIZED
+
 cdef SDL_EventType KEYDOWN
 cdef SDL_EventType QUIT
+cdef SDL_EventType WINDOWEVENT
 
 
 cdef class Window:

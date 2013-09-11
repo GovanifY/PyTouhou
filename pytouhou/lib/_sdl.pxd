@@ -43,6 +43,7 @@ cdef extern from "SDL_video.h" nogil:
         SDL_WINDOWPOS_CENTERED
         SDL_WINDOW_OPENGL
         SDL_WINDOW_SHOWN
+        SDL_WINDOW_RESIZABLE
 
     ctypedef struct SDL_Window:
         pass
@@ -76,6 +77,7 @@ cdef extern from "SDL_events.h" nogil:
     ctypedef enum SDL_EventType:
         SDL_KEYDOWN
         SDL_QUIT
+        SDL_WINDOWEVENT
 
     ctypedef struct SDL_Keysym:
         SDL_Scancode scancode
@@ -84,9 +86,19 @@ cdef extern from "SDL_events.h" nogil:
         Uint32 type
         SDL_Keysym keysym
 
+    ctypedef enum SDL_WindowEventID:
+        SDL_WINDOWEVENT_RESIZED
+
+    ctypedef struct SDL_WindowEvent:
+        Uint32 type
+        SDL_WindowEventID event
+        int data1
+        int data2
+
     ctypedef union SDL_Event:
         Uint32 type
         SDL_KeyboardEvent key
+        SDL_WindowEvent window
 
     int SDL_PollEvent(SDL_Event *event)
 

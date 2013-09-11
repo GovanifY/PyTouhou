@@ -20,6 +20,7 @@ GL_DEPTH_SIZE = SDL_GL_DEPTH_SIZE
 WINDOWPOS_CENTERED = SDL_WINDOWPOS_CENTERED
 WINDOW_OPENGL = SDL_WINDOW_OPENGL
 WINDOW_SHOWN = SDL_WINDOW_SHOWN
+WINDOW_RESIZABLE = SDL_WINDOW_RESIZABLE
 
 SCANCODE_Z = SDL_SCANCODE_Z
 SCANCODE_X = SDL_SCANCODE_X
@@ -31,8 +32,11 @@ SCANCODE_RIGHT = SDL_SCANCODE_RIGHT
 SCANCODE_LCTRL = SDL_SCANCODE_LCTRL
 SCANCODE_ESCAPE = SDL_SCANCODE_ESCAPE
 
+WINDOWEVENT_RESIZED = SDL_WINDOWEVENT_RESIZED
+
 KEYDOWN = SDL_KEYDOWN
 QUIT = SDL_QUIT
+WINDOWEVENT = SDL_WINDOWEVENT
 
 
 class SDLError(Exception):
@@ -207,6 +211,8 @@ cdef list poll_events():
             ret.append((event.type, event.key.keysym.scancode))
         elif event.type == SDL_QUIT:
             ret.append((event.type,))
+        elif event.type == SDL_WINDOWEVENT:
+            ret.append((event.type, event.window.event, event.window.data1, event.window.data2))
     return ret
 
 

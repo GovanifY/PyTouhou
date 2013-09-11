@@ -25,12 +25,10 @@ cdef class GameRunner(Runner):
     cdef Window window
     cdef object replay_level, save_keystates
     cdef long keystate
-    cdef bint skip, use_fixed_pipeline
+    cdef bint skip
 
-    def __init__(self, window, resource_loader, bint skip=False):
-        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
-
-        self.renderer = GameRenderer(resource_loader, self.use_fixed_pipeline)
+    def __init__(self, Window window, resource_loader, bint skip=False):
+        self.renderer = GameRenderer(resource_loader, window.use_fixed_pipeline)
 
         self.window = window
         self.replay_level = None
@@ -98,6 +96,10 @@ cdef class GameRunner(Runner):
                     return False #TODO: implement the pause.
             elif type_ == sdl.QUIT:
                 return False
+            elif type_ == sdl.WINDOWEVENT:
+                event_ = event[1]
+                if event_ == sdl.WINDOWEVENT_RESIZED:
+                    self.window.set_size(event[2], event[3])
         if self.game:
             if self.replay_level is None:
                 #TODO: allow user settings
@@ -135,5 +137,5 @@ cdef class GameRunner(Runner):
             self.game.run_iter(keystate)
             self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
         if not self.skip:
-            self.renderer.render(self.game)
+            self.renderer.render(self.game, self.window)
         return True

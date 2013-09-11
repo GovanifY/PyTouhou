@@ -60,7 +60,7 @@ cdef class GameRenderer(Renderer):
         self.interface_mvp = ortho_2d(0., float(game.interface.width), float(game.interface.height), 0.)
 
 
-    cdef void render(self, game):
+    cdef void render(self, game, window):
         if not self.use_fixed_pipeline:
             self.framebuffer.bind()
 
@@ -71,7 +71,7 @@ cdef class GameRenderer(Renderer):
         if not self.use_fixed_pipeline:
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
-            self.render_framebuffer(self.framebuffer)
+            self.render_framebuffer(self.framebuffer, window)
 
 
     cdef void render_game(self, game):
