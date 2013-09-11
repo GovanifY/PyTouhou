@@ -26,8 +26,7 @@ from pytouhou.game.face import Face
 cdef class Game:
     def __init__(self, players, long stage, long rank, long difficulty, bullet_types,
                  laser_types, item_types, long nb_bullets_max=0, long width=384,
-                 long height=448, prng=None, interface=None, double continues=0,
-                 hints=None):
+                 long height=448, prng=None, interface=None, hints=None):
         self.width, self.height = width, height
 
         self.nb_bullets_max = nb_bullets_max
@@ -50,7 +49,6 @@ cdef class Game:
         self.interface = interface
         self.hints = hints
 
-        self.continues = continues
         self.stage = stage
         self.rank = rank
         self.difficulty = difficulty

@@ -123,7 +123,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
         if debug:
             if not verbosity:
                 verbosity = 'DEBUG'
-            continues = float('inf')
+            continues = -1  # Infinite lives
 
         if verbosity:
             logging.basicConfig(level=logging.__getattribute__(verbosity))
@@ -146,7 +146,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
         difficulty = 16
         default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
-        states = [PlayerState(character=character, power=default_power)]
+        states = [PlayerState(character=character, power=default_power, continues=continues)]
 
         game_class = GameBossRush if boss_rush else Game
 
@@ -188,7 +188,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
 
             hints_stage = hints.stages[stage_num - 1] if hints else None
 
-            game = game_class(resource_loader, states, stage_num, rank, difficulty, common, prng=prng, continues=continues, hints=hints_stage)
+            game = game_class(resource_loader, states, stage_num, rank, difficulty, common, prng=prng, hints=hints_stage)
 
             if not enable_particles:
                 def new_particle(pos, anim, amp, number=1, reverse=False, duration=24):
@@ -208,7 +208,7 @@ def main(path, data, stage_num, rank, character, replay, save_filename,
                 if not story or stage_num == (7 if boss_rush else 6 if rank > 0 else 5):
                     break
                 stage_num += 1
-                states = [player.state.copy() for player in game.players]  # if player.state.lives >= 0]
+                states = [player.state for player in game.players]
             except GameOver:
                 print('Game over')
                 break

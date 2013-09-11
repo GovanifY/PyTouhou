@@ -82,7 +82,7 @@ class EoSDCommon(object):
 class EoSDGame(Game):
     def __init__(self, resource_loader, player_states, stage, rank, difficulty,
                  common, nb_bullets_max=640, width=384, height=448, prng=None,
-                 continues=0, hints=None):
+                 hints=None):
 
         self.etama = common.etama #XXX
         try:
@@ -124,7 +124,7 @@ class EoSDGame(Game):
         Game.__init__(self, players, stage, rank, difficulty,
                       common.bullet_types, common.laser_types,
                       common.item_types, nb_bullets_max, width, height, prng,
-                      common.interface, continues, hints)
+                      common.interface, hints)
 
 
 

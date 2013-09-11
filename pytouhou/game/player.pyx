@@ -27,7 +27,8 @@ class GameOver(Exception):
 
 
 cdef class PlayerState:
-    def __init__(self, long character=0, long score=0, long power=0, long lives=2, long bombs=3):
+    def __init__(self, long character=0, long score=0, long power=0,
+                 long lives=2, long bombs=3, long continues=0):
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
         self.score = score
@@ -35,6 +36,11 @@ cdef class PlayerState:
         self.lives = lives
         self.bombs = bombs
         self.power = power
+        self.continues = continues
+
+        self.continues_used = 0
+        self.miss = 0
+        self.bombs_used = 0
 
         self.graze = 0
         self.points = 0
@@ -47,11 +53,6 @@ cdef class PlayerState:
         self.focused = False
 
         self.power_bonus = 0 # Never goes over 30.
-
-
-    def copy(self):
-        return PlayerState(self.character, self.score,
-                           self.power, self.lives, self.bombs)
 
 
 cdef class Player(Element):
@@ -250,12 +251,17 @@ cdef class Player(Element):
                     if laser is not None:
                         laser.cancel()
 
+                self.state.miss += 1
                 self.state.lives -= 1
                 if self.state.lives < 0:
                     #TODO: display a menu to ask the players if they want to continue.
-                    self._game.continues -= 1
-                    if self._game.continues < 0:
+                    if self.state.continues == 0:
                         raise GameOver
+
+                    # Don’t decrement if it’s infinite.
+                    if self.state.continues >= 0:
+                        self.state.continues -= 1
+                    self.state.continues_used += 1
 
                     for i in xrange(5):
                         self._game.drop_bonus(self.state.x, self.state.y, 4,

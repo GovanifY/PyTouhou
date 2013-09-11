@@ -4,7 +4,11 @@ from pytouhou.game.game cimport Game
 cdef class PlayerState:
     cdef public double x, y
     cdef public bint touchable, focused
-    cdef public long character, score, effective_score, lives, bombs, power, graze, points, invulnerable_time, power_bonus
+    cdef public long character, score, effective_score, lives, bombs, power
+    cdef public long graze, points
+
+    cdef long invulnerable_time, power_bonus, continues, continues_used, miss,
+    cdef long bombs_used
 
 
 cdef class Player(Element):
