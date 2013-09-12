@@ -75,15 +75,15 @@ cdef class Game:
         self.last_keystate = 0
 
 
-    def msg_sprites(self):
+    cdef list msg_sprites(self):
         return [face for face in self.faces if face is not None] if self.msg_runner is not None and not self.msg_runner.ended else []
 
 
-    def lasers_sprites(self):
+    cdef list lasers_sprites(self):
         return [laser for laser in self.players_lasers if laser is not None]
 
 
-    cpdef modify_difficulty(self, long diff):
+    cdef void modify_difficulty(self, long diff):
         self.difficulty_counter += diff
         while self.difficulty_counter < 0:
             self.difficulty -= 1
@@ -97,7 +97,7 @@ cdef class Game:
             self.difficulty = self.difficulty_max
 
 
-    def enable_spellcard_effect(self):
+    cpdef enable_spellcard_effect(self):
         pos = (-32, -16)
         self.spellcard_effect = Effect(pos, 0,
                                        self.spellcard_effect_anm)
@@ -111,19 +111,19 @@ cdef class Game:
         self.texts[5] = self.new_native_text((384-24, 24), self.spellcard[1], align='right')
 
 
-    def disable_spellcard_effect(self):
+    cpdef disable_spellcard_effect(self):
         self.spellcard_effect = None
         self.texts[5] = None
 
 
-    def set_player_bomb(self):
+    cdef void set_player_bomb(self):
         face = Effect((-32, -16), 1, self.msg_anm[0][0][0])
         face.sprite.allow_dest_offset = True
         self.effects.append(face)
         self.texts[4] = self.new_native_text((24, 24), u'Player Spellcard')
 
 
-    def unset_player_bomb(self):
+    cdef void unset_player_bomb(self):
         self.texts[4] = None
 
 
@@ -143,7 +143,7 @@ cdef class Game:
             item.autocollect(player)
 
 
-    cpdef cancel_bullets(self):
+    cdef void cancel_bullets(self):
         cdef Bullet bullet
         #TODO: cdef Laser laser
 
@@ -153,22 +153,22 @@ cdef class Game:
             laser.cancel()
 
 
-    def change_bullets_into_star_items(self):
+    cpdef change_bullets_into_star_items(self):
         cdef Player player
         cdef Bullet bullet
 
         player = self.players[0] #TODO
         item_type = self.item_types[6]
-        self.items.extend(Item((bullet.x, bullet.y), 6, item_type, self, player=player)
-                            for bullet in self.bullets)
+        self.items.extend([Item((bullet.x, bullet.y), 6, item_type, self, player=player)
+                             for bullet in self.bullets])
         for laser in self.lasers:
-            self.items.extend(Item(pos, 6, item_type, self, player=player)
-                                for pos in laser.get_bullets_pos())
+            self.items.extend([Item(pos, 6, item_type, self, player=player)
+                                 for pos in laser.get_bullets_pos()])
             laser.cancel()
         self.bullets = []
 
 
-    def change_bullets_into_bonus(self):
+    cpdef change_bullets_into_bonus(self):
         cdef Player player
         cdef Bullet bullet
 
@@ -184,7 +184,7 @@ cdef class Game:
         #TODO: display the final bonus score.
 
 
-    def kill_enemies(self):
+    cpdef kill_enemies(self):
         cdef Enemy enemy
 
         for enemy in self.enemies:
@@ -198,7 +198,7 @@ cdef class Game:
                 enemy.death_callback = -1
 
 
-    def new_effect(self, pos, long anim, anm=None, long number=1):
+    cpdef new_effect(self, pos, long anim, anm=None, long number=1):
         number = min(number, self.nb_bullets_max - len(self.effects))
         for i in xrange(number):
             self.effects.append(Effect(pos, anim, anm or self.etama[1]))
@@ -210,30 +210,30 @@ cdef class Game:
             self.effects.append(Particle(pos, anim, self.etama[1], amp, self, reverse=reverse, duration=duration))
 
 
-    def new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
+    cpdef new_enemy(self, pos, life, instr_type, bonus_dropped, die_score):
         enemy = Enemy(pos, life, instr_type, bonus_dropped, die_score, self.enm_anm, self)
         self.enemies.append(enemy)
         return enemy
 
 
-    def new_msg(self, sub):
+    cpdef new_msg(self, sub):
         self.msg_runner = MSGRunner(self.msg, sub, self)
         self.msg_runner.run_iteration()
 
 
-    cpdef new_label(self, pos, str text):
+    cdef new_label(self, pos, str text):
         label = Text(pos, self.interface.ascii_anm, text=text, xspacing=8, shift=48)
         label.set_timeout(60, effect='move')
         self.labels.append(label)
         return label
 
 
-    def new_native_text(self, pos, text, align='left'):
+    cpdef new_native_text(self, pos, text, align='left'):
         label = NativeText(pos, text, shadow=True, align=align)
         return label
 
 
-    def new_hint(self, hint):
+    cpdef new_hint(self, hint):
         pos = hint['Pos']
         #TODO: Scale
 
@@ -246,13 +246,13 @@ cdef class Game:
         return label
 
 
-    def new_face(self, side, effect):
+    cpdef new_face(self, side, effect):
         face = Face(self.msg_anm, effect, side)
         self.faces[side] = face
         return face
 
 
-    def run_iter(self, long keystate):
+    cpdef run_iter(self, long keystate):
         # 1. VMs.
         for runner in self.ecl_runners:
             runner.run_iter()
@@ -317,7 +317,7 @@ cdef class Game:
             enemy.update()
 
 
-    cdef void update_msg(self, long keystate) except *:
+    cdef void update_msg(self, long keystate):
         cdef long k
 
         for k in (1, 256):
@@ -329,7 +329,7 @@ cdef class Game:
         self.msg_runner.run_iteration()
 
 
-    cdef void update_players(self, long keystate) except *:
+    cdef void update_players(self, long keystate):
         cdef Bullet bullet
         cdef Player player
 
@@ -371,7 +371,6 @@ cdef class Game:
         cdef Player player
         cdef Bullet bullet
         cdef Item item
-        cdef double bhalf_width, bhalf_height
 
         if self.time_stop:
             return
@@ -419,7 +418,8 @@ cdef class Game:
                 if bullet.state != LAUNCHED:
                     continue
 
-                bhalf_width, bhalf_height = bullet.hitbox
+                bhalf_width = bullet.hitbox[0]
+                bhalf_height = bullet.hitbox[1]
                 bx, by = bullet.x, bullet.y
                 bx1, bx2 = bx - bhalf_width, bx + bhalf_width
                 by1, by2 = by - bhalf_height, by + bhalf_height

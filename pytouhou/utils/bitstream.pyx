@@ -47,7 +47,7 @@ cdef class BitStream:
         return self.io.tell(), self.bits
 
 
-    cpdef unsigned char read_bit(self):
+    cpdef unsigned char read_bit(self) except? -1:
         if not self.bits:
             self.bytes = self.io.read(1)
             self.byte = (<unsigned char*> self.bytes)[0]
@@ -56,7 +56,7 @@ cdef class BitStream:
         return (self.byte >> self.bits) & 0x01
 
 
-    cpdef unsigned int read(self, unsigned int nb_bits):
+    cpdef unsigned int read(self, unsigned int nb_bits) except? -1:
         cdef unsigned int value = 0, read = 0
         cdef unsigned int nb_bits2 = nb_bits
 

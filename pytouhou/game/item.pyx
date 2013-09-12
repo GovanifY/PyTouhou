@@ -26,7 +26,7 @@ cdef class Indicator(Element):
         self.y = self.sprite.texcoords[2] / 2.
 
 
-    cpdef update(self):
+    cdef void update(self) nogil:
         #TODO: alpha
         self.x = self._item.x
 
@@ -69,13 +69,13 @@ cdef class Item(Element):
             return [self]
 
 
-    cpdef autocollect(self, Player player):
+    cdef void autocollect(self, Player player):
         if self.player is None:
             self.player = player
             self.speed = player.sht.autocollection_speed
 
 
-    cpdef on_collect(self, Player player):
+    cdef void on_collect(self, Player player):
         cdef long level, poc
 
         player_state = player.state

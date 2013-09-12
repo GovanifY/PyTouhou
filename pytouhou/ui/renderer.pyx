@@ -47,7 +47,7 @@ logger = get_logger(__name__)
 DEF MAX_ELEMENTS = 640*4*3
 
 
-cdef long find_objects(Renderer self, object elements):
+cdef long find_objects(Renderer self, object elements) except -1:
     # Don’t type element as Element, or else the overriding of objects won’t work.
     cdef Element obj
     cdef long i = 0
@@ -100,7 +100,7 @@ cdef class Renderer:
             free(self.indices[i][texture])
 
 
-    cpdef render_elements(self, elements):
+    cdef void render_elements(self, elements):
         cdef int key
         cdef int x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, ox, oy
         cdef float left, right, bottom, top
@@ -177,7 +177,7 @@ cdef class Renderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cpdef render_quads(self, rects, colors, texture):
+    cdef void render_quads(self, rects, colors, texture):
         # There is nothing that batch more than two quads on the same texture, currently.
         cdef Vertex buf[8]
         cdef unsigned short indices[12]
@@ -217,7 +217,7 @@ cdef class Renderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cpdef render_framebuffer(self, Framebuffer fb, Window window):
+    cdef void render_framebuffer(self, Framebuffer fb, Window window):
         cdef PassthroughVertex[4] buf
         cdef unsigned short indices[6]
         indices[:] = [0, 1, 2, 2, 3, 0]

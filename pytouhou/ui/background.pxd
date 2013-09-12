@@ -13,5 +13,5 @@ cdef class BackgroundRenderer:
     cdef unsigned int use_fixed_pipeline, vbo
     cdef object background
 
-    cdef void render_background(self)
-    cdef void load(self, background)
+    cdef void render_background(self) except *
+    cdef void load(self, background) except *

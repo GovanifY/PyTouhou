@@ -11,18 +11,34 @@ cdef class Game:
     cdef public bint time_stop, msg_wait
     cdef public unsigned short deaths_count, next_bonus
 
-    cpdef modify_difficulty(self, long diff)
+    cdef list msg_sprites(self)
+    cdef list lasers_sprites(self)
+    cdef void modify_difficulty(self, long diff) except *
+    cpdef enable_spellcard_effect(self)
+    cpdef disable_spellcard_effect(self)
+    cdef void set_player_bomb(self) except *
+    cdef void unset_player_bomb(self) except *
     cpdef drop_bonus(self, double x, double y, long _type, end_pos=*)
-    cdef void autocollect(self, Player player)
-    cpdef cancel_bullets(self)
+    cdef void autocollect(self, Player player) except *
+    cdef void cancel_bullets(self) except *
+    cpdef change_bullets_into_star_items(self)
+    cpdef change_bullets_into_bonus(self)
+    cpdef kill_enemies(self)
+    cpdef new_effect(self, pos, long anim, anm=*, long number=*)
     cpdef new_particle(self, pos, long anim, long amp, long number=*, bint reverse=*, long duration=*)
-    cpdef new_label(self, pos, str text)
-    cdef void update_background(self)
-    cdef void update_enemies(self)
+    cpdef new_enemy(self, pos, life, instr_type, bonus_dropped, die_score)
+    cpdef new_msg(self, sub)
+    cdef new_label(self, pos, str text)
+    cpdef new_native_text(self, pos, text, align=*)
+    cpdef new_hint(self, hint)
+    cpdef new_face(self, side, effect)
+    cpdef run_iter(self, long keystate)
+    cdef void update_background(self) except *
+    cdef void update_enemies(self) except *
     cdef void update_msg(self, long keystate) except *
     cdef void update_players(self, long keystate) except *
-    cdef void update_effects(self)
-    cdef void update_hints(self)
-    cdef void update_faces(self)
-    cdef void update_bullets(self)
+    cdef void update_effects(self) except *
+    cdef void update_hints(self) except *
+    cdef void update_faces(self) except *
+    cdef void update_bullets(self) except *
     cpdef cleanup(self)

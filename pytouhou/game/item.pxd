@@ -7,7 +7,7 @@ from pytouhou.utils.interpolator cimport Interpolator
 cdef class Indicator(Element):
     cdef Item _item
 
-    cpdef update(self)
+    cdef void update(self) nogil
 
 
 cdef class Item(Element):
@@ -21,6 +21,6 @@ cdef class Item(Element):
     cdef Indicator indicator
     cdef Interpolator speed_interpolator, pos_interpolator
 
-    cpdef autocollect(self, Player player)
-    cpdef on_collect(self, Player player)
+    cdef void autocollect(self, Player player) except *
+    cdef void on_collect(self, Player player) except *
     cpdef update(self)

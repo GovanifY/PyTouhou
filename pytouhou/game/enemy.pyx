@@ -159,7 +159,7 @@ cdef class Enemy(Element):
         player = self.select_player()
 
         if type_ in (67, 69, 71):
-            launch_angle += self.get_player_angle(player, launch_pos)
+            launch_angle += self.get_player_angle(launch_pos, player)
         if type_ == 71 and bullets_per_shot % 2 or type_ in (69, 70) and not bullets_per_shot % 2:
             launch_angle += pi / bullets_per_shot
         if type_ != 75:
@@ -200,7 +200,7 @@ cdef class Enemy(Element):
         ox, oy = offset or self.bullet_launch_offset
         launch_pos = self.x + ox, self.y + oy
         if variant == 86:
-            angle += self.get_player_angle(self.select_player(), launch_pos)
+            angle += self.get_player_angle(launch_pos)
         laser = Laser(launch_pos, self._game.laser_types[laser_type],
                       sprite_idx_offset, angle, speed,
                       start_offset, end_offset, max_length, width,
@@ -210,14 +210,18 @@ cdef class Enemy(Element):
         self.laser_by_id[self.current_laser_id] = laser
 
 
-    cpdef select_player(self, players=None):
-        return (players or self._game.players)[0] #TODO
+    cpdef Player select_player(self, list players=None):
+        if players is None:
+            players = self._game.players
+        return players[0] #TODO
 
 
-    cpdef get_player_angle(self, player=None, pos=None):
-        player_state = (player or self.select_player()).state
+    cpdef double get_player_angle(self, tuple pos=None, Player player=None):
+        cdef double x, y
+        if player is None:
+            player = self.select_player()
         x, y = pos or (self.x, self.y)
-        return atan2(player_state.y - y, player_state.x - x)
+        return atan2(player.state.y - y, player.state.x - x)
 
 
     cpdef set_anim(self, index):
@@ -295,8 +299,10 @@ cdef class Enemy(Element):
 
 
     cdef void check_collisions(self):
+        cdef Bullet bullet
+        cdef Player player
         cdef long damages
-        cdef double half_size[2], bx, by, lx, ly, px, py, phalf_size
+        cdef double half_size[2], lx, ly, phalf_size
 
         # Check for collisions
         ex, ey = self.x, self.y
@@ -451,10 +457,10 @@ cdef class Enemy(Element):
                 raise Exception('What the hell, man!')
 
 
-    cpdef update(self):
+    cdef void update(self):
         cdef double x, y, speed
 
-        if self.process:
+        if self.process is not None:
             self.process.run_iteration()
 
         x, y = self.x, self.y

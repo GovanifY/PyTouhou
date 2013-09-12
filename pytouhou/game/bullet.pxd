@@ -13,15 +13,15 @@ cdef class Bullet(Element):
     cdef public double dx, dy, angle, speed
     cdef public bint player_bullet, was_visible, grazed
     cdef public object target, _bullet_type
-    cdef public tuple hitbox
     cdef public list attributes
 
+    cdef double hitbox[2]
     cdef Interpolator speed_interpolator
     cdef Game _game
 
-    cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height)
+    cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height) except? False
     cpdef set_anim(self, sprite_idx_offset=*)
-    cdef void launch(self)
-    cpdef collide(self)
-    cpdef cancel(self)
-    cpdef update(self)
+    cdef void launch(self) except *
+    cdef void collide(self) except *
+    cdef void cancel(self) except *
+    cdef void update(self) except *

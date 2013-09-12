@@ -24,9 +24,9 @@ cdef class Renderer:
     cdef unsigned short last_indices[2 * MAX_TEXTURES]
     cdef PyObject *elements[640*3]
 
-    cpdef render_elements(self, elements)
-    cpdef render_quads(self, rects, colors, texture)
-    cpdef render_framebuffer(self, Framebuffer fb, Window window)
+    cdef void render_elements(self, elements) except *
+    cdef void render_quads(self, rects, colors, texture) except *
+    cdef void render_framebuffer(self, Framebuffer fb, Window window) except *
 
 
 cdef class Framebuffer:

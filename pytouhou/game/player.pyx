@@ -82,11 +82,11 @@ cdef class Player(Element):
         self.anmrunner = ANMRunner(self.anm, index, self.sprite)
 
 
-    cpdef play_sound(self, str name):
+    cdef void play_sound(self, str name):
         self._game.sfx_player.play('%s.wav' % name)
 
 
-    cpdef collide(self):
+    cdef void collide(self):
         if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
             self._game.new_effect((self.state.x, self.state.y), 17)

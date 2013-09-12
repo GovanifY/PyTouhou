@@ -21,7 +21,7 @@ from pytouhou.game.sprite cimport Sprite
 cdef class Bullet(Element):
     def __init__(self, pos, bullet_type, unsigned long sprite_idx_offset,
                        double angle, double speed, attributes, unsigned long flags, target, Game game,
-                       bint player_bullet=False, unsigned long damage=0, hitbox=None):
+                       bint player_bullet=False, unsigned long damage=0, tuple hitbox=None):
         cdef double launch_mult
 
         Element.__init__(self, pos)
@@ -32,9 +32,9 @@ cdef class Bullet(Element):
         self.was_visible = True
 
         if hitbox is not None:
-            self.hitbox = hitbox
+            self.hitbox[:] = [hitbox[0], hitbox[1]]
         else:
-            self.hitbox = (bullet_type.hitbox_size, bullet_type.hitbox_size)
+            self.hitbox[:] = [bullet_type.hitbox_size, bullet_type.hitbox_size]
 
         self.speed_interpolator = None
         self.frame = 0
@@ -121,12 +121,12 @@ cdef class Bullet(Element):
                                                    (self.speed,), 16)
 
 
-    cpdef collide(self):
+    cdef void collide(self):
         self.cancel()
         self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
-    cpdef cancel(self):
+    cdef void cancel(self):
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
@@ -141,7 +141,7 @@ cdef class Bullet(Element):
         self.state = CANCELLED
 
 
-    cpdef update(self):
+    cdef void update(self):
         cdef int frame, count, game_width, game_height
         cdef double length, angle, speed, acceleration, angular_speed
 

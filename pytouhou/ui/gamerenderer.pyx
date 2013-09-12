@@ -52,7 +52,7 @@ cdef class GameRenderer(Renderer):
             self.background_renderer = None
 
 
-    cdef void start(self, game):
+    cdef void start(self, Game game):
         self.proj = perspective(30, float(game.width) / float(game.height),
                                 101010101./2010101., 101010101./10101.)
         game_view = setup_camera(0, 0, 1)
@@ -60,7 +60,7 @@ cdef class GameRenderer(Renderer):
         self.interface_mvp = ortho_2d(0., float(game.interface.width), float(game.interface.height), 0.)
 
 
-    cdef void render(self, game, window):
+    cdef void render(self, Game game, Window window):
         if not self.use_fixed_pipeline:
             self.framebuffer.bind()
 
@@ -74,7 +74,7 @@ cdef class GameRenderer(Renderer):
             self.render_framebuffer(self.framebuffer, window)
 
 
-    cdef void render_game(self, game):
+    cdef void render_game(self, Game game):
         cdef long game_x, game_y
         cdef float x, y, z, dx, dy, dz, fog_data[4], fog_start, fog_end
         cdef unsigned char fog_r, fog_g, fog_b
@@ -167,7 +167,7 @@ cdef class GameRenderer(Renderer):
                                        game.cancelled_bullets, game.items,
                                        game.labels))
 
-        if game.msg_runner:
+        if game.msg_runner is not None:
             rect = Rect(48, 368, 288, 48)
             color1 = Color(0, 0, 0, 192)
             color2 = Color(0, 0, 0, 128)
