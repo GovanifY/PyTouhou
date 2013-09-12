@@ -456,7 +456,7 @@ cdef class Game:
                     item.on_collect(player)
 
 
-    cdef void cleanup(self):
+    cpdef cleanup(self):
         cdef Enemy enemy
         cdef Bullet bullet
         cdef Item item

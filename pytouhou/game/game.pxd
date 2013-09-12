@@ -25,4 +25,4 @@ cdef class Game:
     cdef void update_hints(self)
     cdef void update_faces(self)
     cdef void update_bullets(self)
-    cdef void cleanup(self)
+    cpdef cleanup(self)
