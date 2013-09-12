@@ -183,8 +183,9 @@ class Laser(Element):
 
         offset = self.end_offset - length / 2.
         self.x, self.y = self.base_pos[0] + offset * cos(self.angle), self.base_pos[1] + offset * sin(self.angle)
-        self.sprite.width_override = width or 0.01 #TODO
-        self.sprite.height_override = length or 0.01 #TODO
+        self.sprite.visible = (width > 0 and length > 0)
+        self.sprite.width_override = width
+        self.sprite.height_override = length
 
         self.sprite.update_orientation(pi/2. - self.angle, True)
         self.sprite.changed = True #TODO
@@ -247,7 +248,8 @@ class PlayerLaser(Element):
         if self.frame == self.duration:
             self.cancel()
 
-        self.sprite.height_override = length or 0.01 #TODO
+        self.sprite.visible = (length > 0)
+        self.sprite.height_override = length
         self.sprite.changed = True #TODO
 
         self.frame += 1

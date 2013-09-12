@@ -1,8 +1,8 @@
 from pytouhou.utils.interpolator cimport Interpolator
 
 cdef class Sprite:
-    cdef public long width_override, height_override, blendfunc, frame
-    cdef public double angle
+    cdef public long blendfunc, frame
+    cdef public double width_override, height_override, angle
     cdef public bint removed, changed, visible, force_rotation
     cdef public bint automatic_orientation, allow_dest_offset, mirrored
     cdef public bint corner_relative_placement
