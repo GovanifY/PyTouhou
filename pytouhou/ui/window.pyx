@@ -170,3 +170,7 @@ cdef class Window:
 
     cdef double get_fps(self) nogil:
         return self.clock.get_fps()
+
+
+    def del_runner(self):
+        self.runner = None
