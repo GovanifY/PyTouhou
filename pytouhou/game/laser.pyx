@@ -12,18 +12,13 @@
 ## GNU General Public License for more details.
 ##
 
-from math import cos, sin, pi
+from libc.math cimport cos, sin, M_PI as pi
 
-from pytouhou.game.element import Element
 from pytouhou.vm.anmrunner import ANMRunner
-from pytouhou.game.sprite import Sprite
 
 
-STARTING, STARTED, STOPPING = range(3)
-
-
-class LaserLaunchAnim(Element):
-    def __init__(self, laser, anm, index):
+cdef class LaserLaunchAnim(Element):
+    def __init__(self, Laser laser, anm, unsigned long index):
         Element.__init__(self, (0, 0))
 
         self._laser = laser
@@ -33,9 +28,9 @@ class LaserLaunchAnim(Element):
         self.sprite.blendfunc = 1
 
 
-    def update(self):
+    cpdef update(self):
         laser = self._laser
-        length = min(laser.end_offset - laser.start_offset, laser.max_length)
+        length = <double>min(laser.end_offset - laser.start_offset, laser.max_length)
         offset = laser.end_offset - length
         dx, dy = cos(laser.angle), sin(laser.angle)
 
@@ -51,12 +46,14 @@ class LaserLaunchAnim(Element):
 
 
 
-class Laser(Element):
-    def __init__(self, base_pos, laser_type, sprite_idx_offset,
-                       angle, speed, start_offset, end_offset, max_length, width,
-                       start_duration, duration, stop_duration,
-                       grazing_delay, grazing_extra_duration,
-                       game):
+cdef class Laser(Element):
+    def __init__(self, tuple base_pos, laser_type,
+                 unsigned long sprite_idx_offset, double angle, double speed,
+                 double start_offset, double end_offset, double max_length,
+                 double width, unsigned long start_duration,
+                 unsigned long duration, unsigned long stop_duration,
+                 unsigned long grazing_delay,
+                 unsigned long grazing_extra_duration, Game game):
         Element.__init__(self, (0, 0))
 
         self._game = game
@@ -77,7 +74,7 @@ class Laser(Element):
         self.grazing_extra_duration = grazing_extra_duration
 
         self.sprite_idx_offset = sprite_idx_offset
-        self.base_pos = base_pos
+        self.set_base_pos(base_pos[0], base_pos[1])
         self.angle = angle
         self.speed = speed
         self.start_offset = start_offset
@@ -88,8 +85,8 @@ class Laser(Element):
         self.set_anim()
 
 
-    def set_anim(self, sprite_idx_offset=None):
-        if sprite_idx_offset is not None:
+    cdef void set_anim(self, long sprite_idx_offset=-1):
+        if sprite_idx_offset >= 0:
             self.sprite_idx_offset = sprite_idx_offset
 
         lt = self._laser_type
@@ -99,19 +96,25 @@ class Laser(Element):
                                    self.sprite, self.sprite_idx_offset)
 
 
-    def _check_collision(self, point, border_size):
+    cpdef set_base_pos(self, double x, double y):
+        self.base_pos[:] = [x, y]
+
+
+    cdef bint _check_collision(self, double point[2], double border_size):
+        cdef double c1[2], c2[2], c3[2]
+
         x, y = point[0] - self.base_pos[0], point[1] - self.base_pos[1]
         dx, dy = cos(self.angle), sin(self.angle)
         dx2, dy2 = -dy, dx
 
-        length = min(self.end_offset - self.start_offset, self.max_length)
+        length = <double>min(self.end_offset - self.start_offset, self.max_length)
         offset = self.end_offset - length - border_size / 2.
         end_offset = self.end_offset + border_size / 2.
         half_width = self.width / 4. + border_size / 2.
 
-        c1 = dx * offset - dx2 * half_width, dy * offset - dy2 * half_width
-        c2 = dx * offset + dx2 * half_width, dy * offset + dy2 * half_width
-        c3 = dx * end_offset + dx2 * half_width, dy * end_offset + dy2 * half_width
+        c1[:] = [dx * offset - dx2 * half_width, dy * offset - dy2 * half_width]
+        c2[:] = [dx * offset + dx2 * half_width, dy * offset + dy2 * half_width]
+        c3[:] = [dx * end_offset + dx2 * half_width, dy * end_offset + dy2 * half_width]
         vx, vy = x - c2[0], y - c2[1]
         v1x, v1y = c1[0] - c2[0], c1[1] - c2[1]
         v2x, v2y = c3[0] - c2[0], c3[1] - c2[1]
@@ -120,14 +123,14 @@ class Laser(Element):
                 and 0 <= vx * v2x + vy * v2y <= v2x * v2x + v2y * v2y)
 
 
-    def check_collision(self, point):
+    cdef bint check_collision(self, double point[2]):
         if self.state != STARTED:
             return False
 
         return self._check_collision(point, 2.5)
 
 
-    def check_grazing(self, point):
+    cdef bint check_grazing(self, double point[2]):
         #TODO: quadruple check!
         if self.state == STOPPING and self.frame >= self.grazing_extra_duration:
             return False
@@ -141,7 +144,7 @@ class Laser(Element):
 
     def get_bullets_pos(self):
         #TODO: check
-        length = min(self.end_offset - self.start_offset, self.max_length)
+        length = <double>min(self.end_offset - self.start_offset, self.max_length)
         offset = self.end_offset - length
         dx, dy = cos(self.angle), sin(self.angle)
         while self.start_offset <= offset < self.end_offset:
@@ -149,20 +152,20 @@ class Laser(Element):
             offset += 48.
 
 
-    def cancel(self):
+    cpdef cancel(self):
         self.grazing_extra_duration = 0
         if self.state != STOPPING:
             self.frame = 0
             self.state = STOPPING
 
 
-    def update(self):
+    cpdef update(self):
         if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
 
         self.end_offset += self.speed
 
-        length = min(self.end_offset - self.start_offset, self.max_length) # TODO
+        length = <double>min(self.end_offset - self.start_offset, self.max_length) # TODO
         if self.state == STARTING:
             if self.frame == self.start_duration:
                 self.frame = 0
@@ -182,7 +185,8 @@ class Laser(Element):
                 width = self.width * (1. - float(self.frame) / self.stop_duration) #TODO
 
         offset = self.end_offset - length / 2.
-        self.x, self.y = self.base_pos[0] + offset * cos(self.angle), self.base_pos[1] + offset * sin(self.angle)
+        self.x = self.base_pos[0] + offset * cos(self.angle)
+        self.y = self.base_pos[1] + offset * sin(self.angle)
         self.sprite.visible = (width > 0 and length > 0)
         self.sprite.width_override = width
         self.sprite.height_override = length
@@ -193,15 +197,16 @@ class Laser(Element):
         self.frame += 1
 
 
-class PlayerLaser(Element):
-    def __init__(self, laser_type, sprite_idx_offset, hitbox, damage,
-                 angle, offset, duration, origin):
+cdef class PlayerLaser(Element):
+    def __init__(self, laser_type, unsigned long sprite_idx_offset,
+                 tuple hitbox, unsigned long damage, double angle,
+                 double offset, unsigned long duration, Element origin):
         Element.__init__(self)
 
         self._laser_type = laser_type
         self.origin = origin
 
-        self.hitbox = hitbox[0], hitbox[1]
+        self.hitbox[:] = [hitbox[0], hitbox[1]]
 
         self.frame = 0
         self.duration = duration
@@ -214,18 +219,8 @@ class PlayerLaser(Element):
         self.set_anim()
 
 
-    @property
-    def x(self):
-        return self.origin.x + self.offset * cos(self.angle)
-
-
-    @property
-    def y(self):
-        return self.origin.y / 2. + self.offset * sin(self.angle)
-
-
-    def set_anim(self, sprite_idx_offset=None):
-        if sprite_idx_offset is not None:
+    cdef void set_anim(self, long sprite_idx_offset=-1):
+        if sprite_idx_offset >= 0:
             self.sprite_idx_offset = sprite_idx_offset
 
         lt = self._laser_type
@@ -235,11 +230,11 @@ class PlayerLaser(Element):
         #self.sprite.blendfunc = 1 #XXX
 
 
-    def cancel(self):
+    cdef void cancel(self):
         self.anmrunner.interrupt(1)
 
 
-    def update(self):
+    cdef void update(self):
         if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
             self.removed = True
@@ -252,5 +247,7 @@ class PlayerLaser(Element):
         self.sprite.height_override = length
         self.sprite.changed = True #TODO
 
-        self.frame += 1
+        self.x = self.origin.x + self.offset * cos(self.angle)
+        self.y = self.origin.y / 2. + self.offset * sin(self.angle)
 
+        self.frame += 1

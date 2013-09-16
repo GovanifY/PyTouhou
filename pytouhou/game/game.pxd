@@ -21,6 +21,7 @@ cdef class Game:
     cpdef drop_bonus(self, double x, double y, long _type, end_pos=*)
     cdef void autocollect(self, Player player) except *
     cdef void cancel_bullets(self) except *
+    cdef void cancel_player_lasers(self) except *
     cpdef change_bullets_into_star_items(self)
     cpdef change_bullets_into_bonus(self)
     cpdef kill_enemies(self)

@@ -19,6 +19,7 @@ from pytouhou.game.bullet cimport Bullet, LAUNCHED, CANCELLED
 from pytouhou.game.enemy cimport Enemy
 from pytouhou.game.item cimport Item
 from pytouhou.game.effect cimport Particle
+from pytouhou.game.laser cimport Laser, PlayerLaser
 from pytouhou.game.text import Text, NativeText
 from pytouhou.game.face import Face
 
@@ -145,17 +146,24 @@ cdef class Game:
 
     cdef void cancel_bullets(self):
         cdef Bullet bullet
-        #TODO: cdef Laser laser
+        cdef Laser laser
 
         for bullet in self.bullets:
             bullet.cancel()
         for laser in self.lasers:
             laser.cancel()
 
+    cdef void cancel_player_lasers(self):
+        cdef PlayerLaser laser
+        for laser in self.players_lasers:
+            if laser is not None:
+                laser.cancel()
+
 
     cpdef change_bullets_into_star_items(self):
         cdef Player player
         cdef Bullet bullet
+        cdef Laser laser
 
         player = self.players[0] #TODO
         item_type = self.item_types[6]
@@ -253,6 +261,7 @@ cdef class Game:
 
 
     cpdef run_iter(self, long keystate):
+        cdef Laser laser
         # 1. VMs.
         for runner in self.ecl_runners:
             runner.run_iter()
@@ -371,6 +380,9 @@ cdef class Game:
         cdef Player player
         cdef Bullet bullet
         cdef Item item
+        cdef PlayerLaser player_laser
+        cdef Laser laser
+        cdef double player_pos[2]
 
         if self.time_stop:
             return
@@ -381,9 +393,9 @@ cdef class Game:
         for bullet in self.bullets:
             bullet.update()
 
-        for laser in self.players_lasers:
-            if laser is not None:
-                laser.update()
+        for player_laser in self.players_lasers:
+            if player_laser is not None:
+                player_laser.update()
 
         for item in self.items:
             item.update()
@@ -395,6 +407,7 @@ cdef class Game:
                 continue
 
             px, py = player_state.x, player_state.y
+            player_pos[:] = [px, py]
             phalf_size = <double>player.sht.hitbox
             px1, px2 = px - phalf_size, px + phalf_size
             py1, py2 = py - phalf_size, py + phalf_size
@@ -404,10 +417,10 @@ cdef class Game:
             gy1, gy2 = py - ghalf_size, py + ghalf_size
 
             for laser in self.lasers:
-                if laser.check_collision((px, py)):
+                if laser.check_collision(player_pos):
                     if player_state.invulnerable_time == 0:
                         player.collide()
-                elif laser.check_grazing((px, py)):
+                elif laser.check_grazing(player_pos):
                     player_state.graze += 1 #TODO
                     player_state.score += 500 #TODO
                     player.play_sound('graze')
@@ -460,6 +473,7 @@ cdef class Game:
         cdef Enemy enemy
         cdef Bullet bullet
         cdef Item item
+        cdef PlayerLaser laser
         cdef long i
 
         # Filter out non-visible enemies

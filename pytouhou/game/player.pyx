@@ -19,7 +19,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.bullettype import BulletType
 from pytouhou.game.bullet cimport Bullet
 from pytouhou.game.lasertype import LaserType
-from pytouhou.game.laser import PlayerLaser
+from pytouhou.game.laser cimport PlayerLaser
 
 
 class GameOver(Exception):
@@ -247,9 +247,7 @@ cdef class Player(Element):
                     self.state.power -= 16
                 else:
                     self.state.power = 0
-                for laser in self._game.players_lasers:
-                    if laser is not None:
-                        laser.cancel()
+                self._game.cancel_player_lasers()
 
                 self.state.miss += 1
                 self.state.lives -= 1

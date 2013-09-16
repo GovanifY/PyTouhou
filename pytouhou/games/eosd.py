@@ -275,8 +275,8 @@ class EoSDPlayer(Player):
 
         Player.__init__(self, state, game, self.anm)
 
-        self.orbs = [Orb(self.anm, 128, self.state, None),
-                     Orb(self.anm, 129, self.state, None)]
+        self.orbs = [Orb(self.anm, 128, self.state),
+                     Orb(self.anm, 129, self.state)]
 
         self.orbs[0].offset_x = -24
         self.orbs[1].offset_x = 24

@@ -17,7 +17,7 @@ from libc.math cimport cos, sin, atan2, M_PI as pi
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
 from pytouhou.game.bullet cimport Bullet, LAUNCHED
-from pytouhou.game.laser import Laser
+from pytouhou.game.laser cimport Laser, PlayerLaser
 from pytouhou.game.effect cimport Effect
 
 
@@ -301,8 +301,9 @@ cdef class Enemy(Element):
     cdef void check_collisions(self):
         cdef Bullet bullet
         cdef Player player
+        cdef PlayerLaser laser
         cdef long damages
-        cdef double half_size[2], lx, ly, phalf_size
+        cdef double half_size[2], phalf_size
 
         # Check for collisions
         ex, ey = self.x, self.y
