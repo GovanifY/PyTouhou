@@ -47,7 +47,7 @@ cdef class LaserLaunchAnim(Element):
 
 
 cdef class Laser(Element):
-    def __init__(self, tuple base_pos, laser_type,
+    def __init__(self, tuple base_pos, LaserType laser_type,
                  unsigned long sprite_idx_offset, double angle, double speed,
                  double start_offset, double end_offset, double max_length,
                  double width, unsigned long start_duration,
@@ -198,7 +198,7 @@ cdef class Laser(Element):
 
 
 cdef class PlayerLaser(Element):
-    def __init__(self, laser_type, unsigned long sprite_idx_offset,
+    def __init__(self, LaserType laser_type, unsigned long sprite_idx_offset,
                  tuple hitbox, unsigned long damage, double angle,
                  double offset, unsigned long duration, Element origin):
         Element.__init__(self)

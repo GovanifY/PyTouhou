@@ -33,7 +33,7 @@ cdef class Indicator(Element):
 
 
 cdef class Item(Element):
-    def __init__(self, start_pos, long _type, item_type, Game game, double angle=pi/2, Player player=None, end_pos=None):
+    def __init__(self, start_pos, long _type, ItemType item_type, Game game, double angle=pi/2, Player player=None, end_pos=None):
         Element.__init__(self, start_pos)
 
         self._game = game

@@ -13,6 +13,7 @@ class BulletType(object):
         self.launch_anim4_index = launch_anim4_index
         self.launch_anim8_index = launch_anim8_index
         self.hitbox_size = hitbox_size
-        self.launch_anim_penalties = launch_anim_penalties
+        assert 3 == len(launch_anim_penalties)
+        for i in xrange(3):
+            self.launch_anim_penalties[i] = launch_anim_penalties[i]
         self.launch_anim_offsets = launch_anim_offsets
-

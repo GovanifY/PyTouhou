@@ -19,7 +19,7 @@ from pytouhou.game.sprite cimport Sprite
 
 
 cdef class Bullet(Element):
-    def __init__(self, pos, bullet_type, unsigned long sprite_idx_offset,
+    def __init__(self, pos, BulletType bullet_type, unsigned long sprite_idx_offset,
                        double angle, double speed, attributes, unsigned long flags, target, Game game,
                        bint player_bullet=False, unsigned long damage=0, tuple hitbox=None):
         cdef double launch_mult

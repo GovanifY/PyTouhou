@@ -1,6 +1,7 @@
 from pytouhou.game.element cimport Element
 from pytouhou.game.game cimport Game
 from pytouhou.game.player cimport Player
+from pytouhou.game.itemtype cimport ItemType
 from pytouhou.utils.interpolator cimport Interpolator
 
 
@@ -11,7 +12,7 @@ cdef class Indicator(Element):
 
 
 cdef class Item(Element):
-    cdef public object _item_type
+    cdef public ItemType _item_type
 
     cdef unsigned long frame
     cdef long _type

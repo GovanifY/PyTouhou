@@ -1,5 +1,6 @@
 from pytouhou.game.element cimport Element
 from pytouhou.game.game cimport Game
+from pytouhou.game.bullettype cimport BulletType
 from pytouhou.utils.interpolator cimport Interpolator
 
 
@@ -12,7 +13,8 @@ cdef class Bullet(Element):
     cdef public unsigned long flags, frame, sprite_idx_offset, damage
     cdef public double dx, dy, angle, speed
     cdef public bint player_bullet, was_visible, grazed
-    cdef public object target, _bullet_type
+    cdef public Element target
+    cdef public BulletType _bullet_type
     cdef public list attributes
 
     cdef double hitbox[2]
