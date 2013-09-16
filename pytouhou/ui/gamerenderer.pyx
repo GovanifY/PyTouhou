@@ -22,6 +22,7 @@ from pytouhou.lib.opengl cimport \
           GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT)
 
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
+from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 
 from collections import namedtuple
@@ -177,6 +178,8 @@ cdef class GameRenderer(Renderer):
 
 
     cdef void render_text(self, texts):
+        cdef NativeText label
+
         if self.font_manager is None:
             return
 
@@ -201,6 +204,8 @@ cdef class GameRenderer(Renderer):
 
 
     cdef void render_interface(self, interface, game_boss):
+        cdef GlyphCollection label
+
         elements = []
 
         if self.use_fixed_pipeline:

@@ -1,5 +1,6 @@
 from pytouhou.game.effect cimport Effect
 from pytouhou.game.player cimport Player
+from pytouhou.game.text cimport Text, NativeText
 
 cdef class Game:
     cdef public long width, height, nb_bullets_max, stage, rank, difficulty, difficulty_counter, difficulty_min, difficulty_max, frame, last_keystate
@@ -29,9 +30,9 @@ cdef class Game:
     cpdef new_particle(self, pos, long anim, long amp, long number=*, bint reverse=*, long duration=*)
     cpdef new_enemy(self, pos, life, instr_type, bonus_dropped, die_score)
     cpdef new_msg(self, sub)
-    cdef new_label(self, pos, str text)
-    cpdef new_native_text(self, pos, text, align=*)
-    cpdef new_hint(self, hint)
+    cdef Text new_label(self, tuple pos, bytes text)
+    cpdef NativeText new_native_text(self, tuple pos, unicode text, align=*)
+    cpdef Text new_hint(self, hint)
     cpdef new_face(self, side, effect)
     cpdef run_iter(self, long keystate)
     cdef void update_background(self) except *

@@ -20,7 +20,6 @@ from pytouhou.game.enemy cimport Enemy
 from pytouhou.game.item cimport Item
 from pytouhou.game.effect cimport Particle
 from pytouhou.game.laser cimport Laser, PlayerLaser
-from pytouhou.game.text import Text, NativeText
 from pytouhou.game.face import Face
 
 
@@ -229,19 +228,19 @@ cdef class Game:
         self.msg_runner.run_iteration()
 
 
-    cdef new_label(self, pos, str text):
+    cdef Text new_label(self, tuple pos, bytes text):
         label = Text(pos, self.interface.ascii_anm, text=text, xspacing=8, shift=48)
         label.set_timeout(60, effect='move')
         self.labels.append(label)
         return label
 
 
-    cpdef new_native_text(self, pos, text, align='left'):
+    cpdef NativeText new_native_text(self, tuple pos, unicode text, align='left'):
         label = NativeText(pos, text, shadow=True, align=align)
         return label
 
 
-    cpdef new_hint(self, hint):
+    cpdef Text new_hint(self, hint):
         pos = hint['Pos']
         #TODO: Scale
 
@@ -249,7 +248,7 @@ cdef class Game:
         label = Text(pos, self.interface.ascii_anm, text=hint['Text'], align=hint['Align'])
         label.set_timeout(hint['Time'])
         label.set_alpha(hint['Alpha'])
-        label.set_color(hint['Color'], text=False)
+        label.set_color(None, hint['Color']) #XXX
         self.labels.append(label)
         return label
 

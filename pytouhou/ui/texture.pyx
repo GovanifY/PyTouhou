@@ -21,6 +21,7 @@ from pytouhou.lib.opengl cimport \
 
 from pytouhou.lib.sdl cimport load_png, create_rgb_surface, Font
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
+from pytouhou.game.text cimport NativeText
 
 import os
 
@@ -60,8 +61,10 @@ cdef class FontManager:
 
 
     def load(self, label_list):
+        cdef NativeText label
+
         for label in label_list:
-            if not hasattr(label, 'texture'):
+            if label.texture is None:
                 surface = self.font.render(label.text)
                 label.width, label.height = surface.surface.w, surface.surface.h
 

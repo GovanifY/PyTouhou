@@ -36,12 +36,12 @@ class Widget(Element):
             self.sprite = Sprite()
             self.anmrunner = ANMRunner(back_anm, back_script, self.sprite)
 
-    def update(self):
-        self.frame += 1
+    def normal_update(self):
         if self.changed:
-            if self.anmrunner and not self.anmrunner.run_frame():
+            if self.anmrunner is not None and not self.anmrunner.run_frame():
                 self.anmrunner = None
             self.changed = False
+        self.frame += 1
 
 
 
@@ -60,19 +60,16 @@ class GlyphCollection(Widget):
         self.ref_sprite.corner_relative_placement = True #TODO: perhaps not right
 
 
-    @property
-    def objects(self):
-        return [self] + self.glyphes
-
-
     def set_length(self, length):
         current_length = len(self.glyphes)
         if length > current_length:
-            self.glyphes.extend(Glyph(self.ref_sprite.copy(),
-                                      (self.x + self.xspacing * i, self.y))
-                                for i in range(current_length, length))
+            self.glyphes.extend([Glyph(self.ref_sprite.copy(),
+                                       (self.x + self.xspacing * i, self.y))
+                                 for i in range(current_length, length)])
+            self.objects = [self] + self.glyphes
         elif length < current_length:
             self.glyphes[:] = self.glyphes[:length]
+            self.objects = [self] + self.glyphes
 
 
     def set_sprites(self, sprite_indexes):
@@ -83,12 +80,14 @@ class GlyphCollection(Widget):
             glyph.sprite.changed = True
 
 
-    def set_color(self, color, text=True):
-        if text:
+    def set_color(self, text=None, color=None):
+        if text is not None:
             colors = {'white': (255, 255, 255), 'yellow': (255, 255, 0),
                       'blue': (192, 192, 255), 'darkblue': (160, 128, 255),
                       'purple': (224, 128, 255), 'red': (255, 64, 0)}
-            color = colors[color]
+            color = colors[text]
+        else:
+            assert color is not None
         self.ref_sprite.color = color
         for glyph in self.glyphes:
             glyph.sprite.color = color
@@ -106,7 +105,7 @@ class Text(GlyphCollection):
                  xspacing=14, shift=21, back_script=22, align='left'):
         GlyphCollection.__init__(self, pos, ascii_anm, back_anm,
                                  xspacing=xspacing, back_script=back_script)
-        self.text = ''
+        self.text = b''
         self.shift = shift
 
         if align == 'center':
@@ -129,7 +128,7 @@ class Text(GlyphCollection):
 
 
     def timeout_update(self):
-        GlyphCollection.update(self)
+        GlyphCollection.normal_update(self)
         if self.frame == self.timeout:
             self.removed = True
 
@@ -144,9 +143,9 @@ class Text(GlyphCollection):
     def fadeout_timeout_update(self):
         if self.frame >= self.start:
             if self.frame == self.start:
-                self.fade(self.duration, 255, lambda x: x)
+                self.fade(self.duration, 255)
             elif self.frame == self.timeout - self.duration:
-                self.fade(self.duration, 0, lambda x: x)
+                self.fade(self.duration, 0)
             self.fade_interpolator.update(self.frame)
             self.alpha = int(self.fade_interpolator.values[0])
             for glyph in self.glyphes:
@@ -155,7 +154,7 @@ class Text(GlyphCollection):
         self.timeout_update()
 
 
-    def fade(self, duration, alpha, formula):
+    def fade(self, duration, alpha, formula=None):
         self.fade_interpolator = Interpolator((self.alpha,), self.frame,
                                               (alpha,), self.frame + duration,
                                               formula)
@@ -225,12 +224,12 @@ class Gauge(Element):
             self.sprite.visible = False
         else:
             self.sprite.visible = True
-        if self.anmrunner and not self.anmrunner.run_frame():
+        if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
 
 
 
-class NativeText(object):
+class NativeText(Element):
     def __init__(self, pos, text, gradient=None, alpha=255, shadow=False, align='left'):
         self.removed = False
         self.x, self.y = pos
@@ -265,9 +264,9 @@ class NativeText(object):
     def move_ex_timeout_update(self):
         if self.frame >= self.start:
             if self.frame == self.start:
-                self.move_in(self.duration, self.to[0], self.to[1], lambda x: x)
+                self.move_in(self.duration, self.to[0], self.to[1])
             elif self.frame == self.timeout - self.duration:
-                self.move_in(self.duration, self.end[0], self.end[1], lambda x: x)
+                self.move_in(self.duration, self.end[0], self.end[1])
             if self.offset_interpolator:
                 self.offset_interpolator.update(self.frame)
                 self.x, self.y = self.offset_interpolator.values
@@ -277,21 +276,21 @@ class NativeText(object):
     def fadeout_timeout_update(self):
         if self.frame >= self.start:
             if self.frame == self.start:
-                self.fade(self.duration, 255, lambda x: x)
+                self.fade(self.duration, 255)
             elif self.frame == self.timeout - self.duration:
-                self.fade(self.duration, 0, lambda x: x)
+                self.fade(self.duration, 0)
             self.fade_interpolator.update(self.frame)
             self.alpha = int(self.fade_interpolator.values[0])
         self.timeout_update()
 
 
-    def fade(self, duration, alpha, formula):
+    def fade(self, duration, alpha, formula=None):
         self.fade_interpolator = Interpolator((self.alpha,), self.frame,
                                               (alpha,), self.frame + duration,
                                               formula)
 
 
-    def move_in(self, duration, x, y, formula):
+    def move_in(self, duration, x, y, formula=None):
         self.offset_interpolator = Interpolator((self.x, self.y), self.frame,
                                                 (x, y), self.frame + duration,
                                                 formula)
@@ -305,8 +304,8 @@ class NativeText(object):
             self.update = self.move_ex_timeout_update
             self.duration = duration
             self.start = start
-            self.to = to
-            self.end = end
+            self.to[:] = [to[0], to[1]]
+            self.end[:] = [end[0], end[1]]
         elif effect == 'fadeout':
             self.alpha = 0
             self.update = self.fadeout_timeout_update

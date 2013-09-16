@@ -94,7 +94,7 @@ cdef class Item(Element):
                     player_state.power = 128
                 for level in (8, 16, 32, 48, 64, 96):
                     if old_power < level and player_state.power >= level:
-                        label = self._game.new_label((self.x, self.y), ':') # Actually a “PowerUp” character.
+                        label = self._game.new_label((self.x, self.y), b':') # Actually a “PowerUp” character.
                         color = 'blue'
                         label.set_color(color)
                         labeled = True
