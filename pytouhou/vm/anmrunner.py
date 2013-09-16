@@ -55,8 +55,8 @@ class ANMRunner(object):
                           0,  0,  0,  0]
 
         self.sprite_index_offset = sprite_index_offset
-
         self.run_frame()
+        self.sprite_index_offset = 0
 
 
     def interrupt(self, interrupt):

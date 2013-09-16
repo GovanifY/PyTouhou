@@ -46,13 +46,13 @@ class EoSDCommon(object):
                                         launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
                                         type_id=6),
                              BulletType(self.etama[0], 7, 13, 20, 20, 20, hitbox_size=5.5,
-                                        launch_anim_offsets=(1,)*28,
+                                        launch_anim_offsets=(1, 1, 1, 1),
                                         type_id=7),
                              BulletType(self.etama[0], 8, 13, 20, 20, 20, hitbox_size=4.5,
                                         launch_anim_offsets=(0, 1, 1, 2, 2, 3, 4, 0),
                                         type_id=8),
                              BulletType(self.etama[1], 0, 1, 2, 2, 2, hitbox_size=16,
-                                        launch_anim_offsets=(0, 1, 2, 3, 4, 5, 6, 7, 8),
+                                        launch_anim_offsets=(0, 1, 2, 3),
                                         type_id=9)]
 
         self.laser_types = [LaserType(self.etama[0], 9),
