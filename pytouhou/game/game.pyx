@@ -26,7 +26,8 @@ from pytouhou.game.face import Face
 cdef class Game:
     def __init__(self, players, long stage, long rank, long difficulty, bullet_types,
                  laser_types, item_types, long nb_bullets_max=0, long width=384,
-                 long height=448, prng=None, interface=None, hints=None):
+                 long height=448, prng=None, interface=None, hints=None,
+                 friendly_fire=True):
         self.width, self.height = width, height
 
         self.nb_bullets_max = nb_bullets_max
@@ -72,6 +73,7 @@ cdef class Game:
         self.deaths_count = self.prng.rand_uint16() % 3
         self.next_bonus = self.prng.rand_uint16() % 8
 
+        self.friendly_fire = friendly_fire
         self.last_keystate = 0
 
 
@@ -386,6 +388,7 @@ cdef class Game:
         cdef Item item
         cdef PlayerLaser player_laser
         cdef Laser laser
+        cdef PlayerLaser plaser
         cdef double player_pos[2]
 
         if self.time_stop:
@@ -457,6 +460,40 @@ cdef class Game:
                     self.new_particle((px, py), 9, 192) #TODO: find the real size and range.
                     #TODO: display a static particle during one frame at
                     # 12 pixels of the player, in the axis of the “collision”.
+
+            # Check for friendly-fire only if there are multiple players.
+            if self.friendly_fire and len(self.players) > 1:
+                for bullet in self.players_bullets:
+                    if bullet.state != LAUNCHED:
+                        continue
+
+                    if bullet.player == player_state.number:
+                        continue
+
+                    bhalf_width = bullet.hitbox[0]
+                    bhalf_height = bullet.hitbox[1]
+                    bx, by = bullet.x, bullet.y
+                    bx1, bx2 = bx - bhalf_width, bx + bhalf_width
+                    by1, by2 = by - bhalf_height, by + bhalf_height
+
+                    if not (bx2 < px1 or bx1 > px2
+                            or by2 < py1 or by1 > py2):
+                        bullet.collide()
+                        if player_state.invulnerable_time == 0:
+                            player.collide()
+
+                for plaser in self.players_lasers:
+                    if not plaser:
+                        continue
+
+                    lhalf_width = plaser.hitbox[0]
+                    lx, ly = plaser.x, plaser.y * 2.
+                    lx1, lx2 = lx - lhalf_width, lx + lhalf_width
+
+                    if not (lx2 < px1 or lx1 > px2
+                            or ly < py1):
+                        if player_state.invulnerable_time == 0:
+                            player.collide()
 
             #TODO: is it the right place?
             if py < 128 and player_state.power >= 128: #TODO: check py.

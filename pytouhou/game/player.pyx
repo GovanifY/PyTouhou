@@ -27,8 +27,9 @@ class GameOver(Exception):
 
 
 cdef class PlayerState:
-    def __init__(self, long character=0, long score=0, long power=0,
-                 long lives=2, long bombs=3, long continues=0):
+    def __init__(self, long number, long character=0, long score=0,
+                 long power=0, long lives=2, long bombs=3, long continues=0):
+        self.number = number
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
         self.score = score
@@ -161,13 +162,13 @@ cdef class Player(Element):
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
-                                      16, self, self._game, player_bullet=True,
+                                      16, self, self._game, player=self.state.number,
                                       damage=shot.damage, hitbox=shot.hitbox))
             else:
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player_bullet=True,
+                                      0, self, self._game, player=self.state.number,
                                       damage=shot.damage, hitbox=shot.hitbox))
 
 

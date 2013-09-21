@@ -21,7 +21,7 @@ from pytouhou.game.sprite cimport Sprite
 cdef class Bullet(Element):
     def __init__(self, pos, BulletType bullet_type, unsigned long sprite_idx_offset,
                        double angle, double speed, attributes, unsigned long flags, target, Game game,
-                       bint player_bullet=False, unsigned long damage=0, tuple hitbox=None):
+                       long player=-1, unsigned long damage=0, tuple hitbox=None):
         cdef double launch_mult
 
         Element.__init__(self, pos)
@@ -51,7 +51,7 @@ cdef class Bullet(Element):
         self.speed = speed
         self.dx, self.dy = cos(angle) * speed, sin(angle) * speed
 
-        self.player_bullet = player_bullet
+        self.player = player
         self.damage = damage
 
         #TODO
@@ -73,7 +73,7 @@ cdef class Bullet(Element):
         else:
             self.launch()
 
-        if self.player_bullet:
+        if self.player >= 0:
             self.sprite.angle = angle - pi
         else:
             self.sprite.angle = angle
@@ -102,7 +102,7 @@ cdef class Bullet(Element):
 
         bt = self._bullet_type
         self.sprite = Sprite()
-        if self.player_bullet:
+        if self.player >= 0:
             self.sprite.angle = self.angle - pi
         else:
             self.sprite.angle = self.angle
@@ -130,7 +130,7 @@ cdef class Bullet(Element):
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
-        if self.player_bullet:
+        if self.player >= 0:
             self.sprite.angle = self.angle - pi
         else:
             self.sprite.angle = self.angle

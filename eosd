@@ -48,6 +48,7 @@ parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO'
 parser.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
 parser.add_argument('--port', metavar='PORT', type=int, default=0, help='Local port to use for netplay')
 parser.add_argument('--remote', metavar='REMOTE', default=None, help='Remote address')
+parser.add_argument('--no-friendly-fire', action='store_false', help='Allow friendly-fire during netplay.')
 
 args = parser.parse_args()
 
@@ -101,7 +102,7 @@ class GameBossRush(Game):
 
 def main(window, path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, debug, enable_background, enable_particles,
-         enable_music, hints, verbosity, port, remote):
+         enable_music, hints, verbosity, port, remote, friendly_fire):
 
     resource_loader = Loader(path)
 
@@ -153,12 +154,12 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
         prng = Random(0)
         con = Network(port, addr, selected_player)
-        states = [PlayerState(character=1, power=default_power, continues=continues),
-                  PlayerState(character=3, power=default_power, continues=continues)]
+        states = [PlayerState(0, character=1, power=default_power, continues=continues),
+                  PlayerState(1, character=3, power=default_power, continues=continues)]
     else:
         con = None
         selected_player = 0
-        states = [PlayerState(character=character, power=default_power, continues=continues)]
+        states = [PlayerState(0, character=character, power=default_power, continues=continues)]
 
     if hints:
         with open(hints, 'rb') as file:
@@ -204,7 +205,9 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
         hints_stage = hints.stages[stage_num - 1] if hints else None
 
-        game = game_class(resource_loader, states, stage_num, rank, difficulty, common, prng=prng, hints=hints_stage)
+        game = game_class(resource_loader, states, stage_num, rank, difficulty,
+                          common, prng=prng, hints=hints_stage,
+                          friendly_fire=friendly_fire)
 
         if not enable_particles:
             def new_particle(pos, anim, amp, number=1, reverse=False, duration=24):
@@ -251,7 +254,8 @@ with SDL():
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,
          args.boss_rush, args.debug, args.no_background, args.no_particles,
-         args.no_music, args.hints, args.verbosity, args.port, args.remote)
+         args.no_music, args.hints, args.verbosity, args.port, args.remote,
+         args.no_friendly_fire)
 
     import gc
     gc.collect()

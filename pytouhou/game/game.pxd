@@ -12,6 +12,8 @@ cdef class Game:
     cdef public bint time_stop, msg_wait
     cdef public unsigned short deaths_count, next_bonus
 
+    cdef bint friendly_fire
+
     cdef list msg_sprites(self)
     cdef list lasers_sprites(self)
     cdef void modify_difficulty(self, long diff) except *

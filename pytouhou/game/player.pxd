@@ -7,6 +7,7 @@ cdef class PlayerState:
     cdef public long character, score, effective_score, lives, bombs, power
     cdef public long graze, points
 
+    cdef long number
     cdef long invulnerable_time, power_bonus, continues, continues_used, miss,
     cdef long bombs_used
 

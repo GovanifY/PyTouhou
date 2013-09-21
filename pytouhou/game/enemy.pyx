@@ -336,7 +336,6 @@ cdef class Enemy(Element):
                 continue
 
             half_size[0] = laser.hitbox[0]
-            half_size[1] = laser.hitbox[1]
             lx, ly = laser.x, laser.y * 2.
             lx1, lx2 = lx - half_size[0], lx + half_size[0]
 
