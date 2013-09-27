@@ -35,7 +35,7 @@ class MusicPlayer(object):
                 self.bgms.append(None)
                 logger.warn(u'Music description “%s” not found.', posname)
                 continue
-            globname = join(resource_loader.game_dir, bgm[1]).replace('.mid', '.*')
+            globname = join(resource_loader.game_dir, bgm[1].encode('ascii')).replace('.mid', '.*')
             filenames = glob(globname)
             for filename in reversed(filenames):
                 try:
