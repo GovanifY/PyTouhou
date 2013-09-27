@@ -34,11 +34,11 @@ cdef class Game:
     cpdef NativeText new_native_text(self, tuple pos, unicode text, align=*)
     cpdef Text new_hint(self, hint)
     cpdef new_face(self, side, effect)
-    cpdef run_iter(self, long keystate)
+    cpdef run_iter(self, list keystates)
     cdef void update_background(self) except *
     cdef void update_enemies(self) except *
     cdef void update_msg(self, long keystate) except *
-    cdef void update_players(self, long keystate) except *
+    cdef void update_players(self, list keystates) except *
     cdef void update_effects(self) except *
     cdef void update_hints(self) except *
     cdef void update_faces(self) except *

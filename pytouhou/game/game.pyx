@@ -164,7 +164,7 @@ cdef class Game:
         cdef Bullet bullet
         cdef Laser laser
 
-        player = self.players[0] #TODO
+        player = min(self.players, key=select_player_key)
         item_type = self.item_types[6]
         self.items.extend([Item((bullet.x, bullet.y), 6, item_type, self, player=player)
                              for bullet in self.bullets])
@@ -259,8 +259,9 @@ cdef class Game:
         return face
 
 
-    cpdef run_iter(self, long keystate):
+    cpdef run_iter(self, list keystates):
         cdef Laser laser
+
         # 1. VMs.
         for runner in self.ecl_runners:
             runner.run_iter()
@@ -283,9 +284,10 @@ cdef class Game:
         # Pri 6 is background
         self.update_background() #TODO: Pri unknown
         if self.msg_runner is not None:
-            self.update_msg(keystate) # Pri ?
-            keystate &= ~3 # Remove the ability to attack (keystates 1 and 2).
-        self.update_players(keystate) # Pri 7
+            self.update_msg(keystates[0]) # Pri ?
+            for i in xrange(len(keystates)):
+                keystates[i] &= ~3 # Remove the ability to attack (keystates 1 and 2).
+        self.update_players(keystates) # Pri 7
         self.update_enemies() # Pri 9
         self.update_effects() # Pri 10
         self.update_bullets() # Pri 11
@@ -337,9 +339,10 @@ cdef class Game:
         self.msg_runner.run_iteration()
 
 
-    cdef void update_players(self, long keystate):
+    cdef void update_players(self, list keystates):
         cdef Bullet bullet
         cdef Player player
+        cdef long keystate
 
         if self.time_stop:
             return
@@ -347,13 +350,13 @@ cdef class Game:
         for bullet in self.players_bullets:
             bullet.update()
 
-        for player in self.players:
+        for player, keystate in zip(self.players, keystates):
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
 
-        #XXX: Why 78910? Is it really the right value?
-        player.state.effective_score = min(player.state.effective_score + 78910,
-                                           player.state.score)
-        #TODO: give extra lives to the player
+            #XXX: Why 78910? Is it really the right value?
+            player.state.effective_score = min(player.state.effective_score + 78910,
+                                               player.state.score)
+            #TODO: give extra lives to the player
 
 
     cdef void update_effects(self):
@@ -540,6 +543,7 @@ cdef class Game:
         if self.boss and self.boss._enemy.removed:
             self.boss = None
 
+
 cdef list filter_removed(list elements):
     cdef Element element
 
@@ -548,3 +552,7 @@ cdef list filter_removed(list elements):
         if not element.removed:
             filtered.append(element)
     return filtered
+
+
+def select_player_key(player):
+    return (player.state.score, player.state.character)

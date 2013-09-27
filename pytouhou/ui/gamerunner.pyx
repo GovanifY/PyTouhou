@@ -20,20 +20,20 @@ from .music import MusicPlayer, SFXPlayer, NullPlayer
 
 
 cdef class GameRunner(Runner):
-    cdef object game, background
+    cdef object game, background, con
     cdef GameRenderer renderer
     cdef Window window
     cdef object replay_level, save_keystates
-    cdef long keystate
     cdef bint skip
 
-    def __init__(self, Window window, resource_loader, bint skip=False):
+    def __init__(self, Window window, resource_loader, bint skip=False,
+                 con=None):
         self.renderer = GameRenderer(resource_loader, window.use_fixed_pipeline)
 
         self.window = window
         self.replay_level = None
         self.skip = skip
-        self.keystate = 0
+        self.con = con
 
         self.width = window.width #XXX
         self.height = window.height #XXX
@@ -134,7 +134,11 @@ cdef class GameRunner(Runner):
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)
 
-            self.game.run_iter(keystate)
+            if self.con:
+                self.con.run_iter(self.game, keystate)
+            else:
+                self.game.run_iter([keystate])
+
             self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
         if not self.skip:
             self.renderer.render(self.game, self.window)

@@ -213,7 +213,7 @@ cdef class Enemy(Element):
     cpdef Player select_player(self, list players=None):
         if players is None:
             players = self._game.players
-        return players[0] #TODO
+        return min(players, key=self.select_player_key)
 
 
     cpdef double get_player_angle(self, tuple pos=None, Player player=None):
@@ -540,3 +540,6 @@ cdef class Enemy(Element):
 
         self.frame += 1
 
+
+    def select_player_key(self, p):
+        return ((p.x - self.x) ** 2 + (p.y - self.y) ** 2, p.state.character)
