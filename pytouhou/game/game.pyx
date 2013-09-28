@@ -179,7 +179,6 @@ cdef class Game:
         cdef Player player
         cdef Bullet bullet
 
-        player = self.players[0] #TODO
         score = 0
         bonus = 2000
         for bullet in self.bullets:
@@ -187,8 +186,11 @@ cdef class Game:
             score += bonus
             bonus += 10
         self.bullets = []
-        player.state.score += score
         #TODO: display the final bonus score.
+
+        #TODO: do we really want to give it to each player?
+        for player in self.players:
+            player.state.score += score
 
 
     cpdef kill_enemies(self):

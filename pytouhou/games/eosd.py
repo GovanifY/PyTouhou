@@ -28,7 +28,7 @@ from pytouhou.vm.eclrunner import ECLMainRunner
 
 
 class EoSDCommon(object):
-    def __init__(self, resource_loader):
+    def __init__(self, resource_loader, player_state):
         self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
         self.bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
                                         type_id=0),
@@ -75,7 +75,7 @@ class EoSDCommon(object):
                            ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
 
         self.characters = resource_loader.get_eosd_characters()
-        self.interface = EoSDInterface(resource_loader)
+        self.interface = EoSDInterface(resource_loader, player_state)
 
 
 
@@ -129,8 +129,9 @@ class EoSDGame(Game):
 
 
 class EoSDInterface(object):
-    def __init__(self, resource_loader):
+    def __init__(self, resource_loader, player_state):
         self.game = None
+        self.player_state = player_state
         front = resource_loader.get_single_anm('front.anm')
         self.ascii_anm = resource_loader.get_single_anm('ascii.anm')
 
@@ -221,7 +222,7 @@ class EoSDInterface(object):
             if elem.removed: #XXX
                 self.level_start = []
 
-        player_state = self.game.players[0].state
+        player_state = self.player_state
 
         self.highscore = max(self.highscore, player_state.effective_score)
         self.labels['highscore'].set_text('%09d' % self.highscore)

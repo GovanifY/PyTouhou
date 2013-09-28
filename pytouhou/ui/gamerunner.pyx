@@ -134,7 +134,7 @@ cdef class GameRunner(Runner):
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)
 
-            if self.con:
+            if self.con is not None:
                 self.con.run_iter(self.game, keystate)
             else:
                 self.game.run_iter([keystate])

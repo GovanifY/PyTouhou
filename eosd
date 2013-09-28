@@ -46,7 +46,7 @@ parser.add_argument('--no-music', action='store_false', help='Disable background
 parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
 parser.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
-parser.add_argument('--port', metavar='PORT', type=int, default=0, help='Port to use for netplay')
+parser.add_argument('--port', metavar='PORT', type=int, default=0, help='Local port to use for netplay')
 parser.add_argument('--remote', metavar='REMOTE', default=None, help='Remote address')
 
 args = parser.parse_args()
@@ -139,9 +139,10 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         save_replay.rank = rank
         save_replay.character = character
 
-    if port != 0:
-        players = [PlayerState(character=0), PlayerState(character=2)]
+    difficulty = 16
+    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
 
+    if port != 0:
         if remote:
             remote_addr, remote_port = remote.split(':')
             addr = remote_addr, int(remote_port)
@@ -152,20 +153,20 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
         prng = Random(0)
         con = Network(port, addr, selected_player)
+        states = [PlayerState(character=1, power=default_power, continues=continues),
+                  PlayerState(character=3, power=default_power, continues=continues)]
     else:
         con = None
+        selected_player = 0
+        states = [PlayerState(character=character, power=default_power, continues=continues)]
 
     if hints:
         with open(hints, 'rb') as file:
             hints = Hint.read(file)
 
-    difficulty = 16
-    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
-    states = [PlayerState(character=character, power=default_power, continues=continues)]
-
     game_class = GameBossRush if boss_rush else Game
 
-    common = Common(resource_loader)
+    common = Common(resource_loader, states[selected_player])
     runner = GameRunner(window, resource_loader, skip=skip_replay, con=con)
     while True:
         if replay:
