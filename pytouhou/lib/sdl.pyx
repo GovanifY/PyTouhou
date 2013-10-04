@@ -167,7 +167,7 @@ cdef void init(Uint32 flags) except *:
         raise SDLError(SDL_GetError())
 
 
-cdef void img_init(Uint32 flags) except *:
+cdef void img_init(int flags) except *:
     if IMG_Init(flags) != flags:
         raise SDLError(SDL_GetError())
 
@@ -180,22 +180,6 @@ cdef void mix_init(int flags) except *:
 cdef void ttf_init() except *:
     if TTF_Init() < 0:
         raise SDLError(SDL_GetError())
-
-
-cdef void quit() nogil:
-    SDL_Quit()
-
-
-cdef void img_quit() nogil:
-    IMG_Quit()
-
-
-cdef void mix_quit() nogil:
-    Mix_Quit()
-
-
-cdef void ttf_quit() nogil:
-    TTF_Quit()
 
 
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:

@@ -166,20 +166,20 @@ cdef class Laser(Element):
         self.end_offset += self.speed
 
         length = <double>min(self.end_offset - self.start_offset, self.max_length) # TODO
+        width = 0.
         if self.state == STARTING:
             if self.frame == self.start_duration:
                 self.frame = 0
                 self.state = STARTED
             else:
                 width = self.width * float(self.frame) / self.start_duration #TODO
-        if self.state == STARTED:
+        elif self.state == STARTED:
             width = self.width #TODO
             if self.frame == self.duration:
                 self.frame = 0
                 self.state = STOPPING
-        if self.state == STOPPING:
+        elif self.state == STOPPING:
             if self.frame == self.stop_duration:
-                width = 0.
                 self.removed = True
             else:
                 width = self.width * (1. - float(self.frame) / self.stop_duration) #TODO

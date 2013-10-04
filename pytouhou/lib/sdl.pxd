@@ -80,7 +80,7 @@ cdef class Font:
 
 
 cdef void init(Uint32 flags) except *
-cdef void img_init(Uint32 flags) except *
+cdef void img_init(int flags) except *
 cdef void mix_init(int flags) except *
 cdef void ttf_init() except *
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *

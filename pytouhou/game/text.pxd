@@ -30,7 +30,8 @@ cdef class GlyphCollection(Widget):
 
 cdef class Text(GlyphCollection):
     cdef bytes text
-    cdef long shift, timeout, duration, start
+    cdef unsigned long timeout, duration, start
+    cdef long shift
     cdef Interpolator fade_interpolator
     cdef unsigned char alpha
 
@@ -39,7 +40,7 @@ cdef class Text(GlyphCollection):
     #def move_timeout_update(self)
     #def fadeout_timeout_update(self)
     cdef void fade(self, unsigned long duration, unsigned char alpha, formula=*) except *
-    cpdef set_timeout(self, long timeout, str effect=*, long duration=*, long start=*)
+    cpdef set_timeout(self, unsigned long timeout, str effect=*, unsigned long duration=*, unsigned long start=*)
 
 
 cdef class Counter(GlyphCollection):
@@ -63,8 +64,7 @@ cdef class NativeText(Element):
     cdef unsigned char alpha
     cdef bint shadow
     cdef bytes align #TODO: use a proper enum.
-    cdef unsigned long frame, timeout, duration
-    cdef long start
+    cdef unsigned long frame, timeout, duration, start
     cdef double to[2], end[2]
     cdef list gradient
     cdef Interpolator fade_interpolator, offset_interpolator
@@ -78,4 +78,4 @@ cdef class NativeText(Element):
 
     cdef void fade(self, unsigned long duration, unsigned char alpha, formula=*) except *
     cdef void move_in(self, unsigned long duration, double x, double y, formula=*) except *
-    cpdef set_timeout(self, long timeout, str effect=*, long duration=*, long start=*, to=*, end=*)
+    cpdef set_timeout(self, unsigned long timeout, str effect=*, unsigned long duration=*, unsigned long start=*, to=*, end=*)

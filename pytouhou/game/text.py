@@ -12,10 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from pytouhou.game.element import Element
-from pytouhou.game.sprite import Sprite
 from pytouhou.vm.anmrunner import ANMRunner
-from pytouhou.utils.interpolator import Interpolator
 
 
 class Glyph(Element):

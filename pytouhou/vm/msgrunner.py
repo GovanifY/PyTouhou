@@ -113,7 +113,7 @@ class MSGRunner(object):
             self._game.texts[0] = None
             self._game.texts[1] = None
         self._game.texts[index] = self._game.new_native_text((64, 372 + index * 24), text)
-        self._game.texts[index].set_timeout(-1, effect='fadeout', duration=15)
+        self._game.texts[index].set_timeout(0, effect='fadeout', duration=15)
 
 
     @instruction(4)

@@ -65,7 +65,7 @@ cdef class Clock:
 
         target_tick = self._ref_tick
         if self._target_fps:
-            target_tick += <long>(self._ref_frame * 1000 / self._target_fps)
+            target_tick += <unsigned long>(self._ref_frame * 1000 / self._target_fps)
 
         if current <= target_tick:
             sdl.delay(target_tick - current)

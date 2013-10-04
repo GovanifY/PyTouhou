@@ -93,19 +93,12 @@ cdef extern from 'GL/gl.h' nogil:
     void glVertexPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
     void glTexCoordPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
     void glColorPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
-    void glVertexAttribPointer(GLuint index, GLint size, GLenum type_, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
-    void glEnableVertexAttribArray(GLuint index)
 
     void glBlendFunc(GLenum sfactor, GLenum dfactor)
     void glDrawArrays(GLenum mode, GLint first, GLsizei count)
     void glDrawElements(GLenum mode, GLsizei count, GLenum type_, const GLvoid *indices)
     void glEnable(GLenum cap)
     void glDisable(GLenum cap)
-
-    void glGenBuffers(GLsizei n, GLuint * buffers)
-    void glDeleteBuffers(GLsizei n, const GLuint * buffers)
-    void glBindBuffer(GLenum target, GLuint buffer_)
-    void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
 
     void glGenTextures(GLsizei n, GLuint *textures)
     void glDeleteTextures(GLsizei n, const GLuint *textures)
@@ -127,6 +120,16 @@ cdef extern from 'GL/gl.h' nogil:
 
     void glHint(GLenum target, GLenum mode)
     void glEnableClientState(GLenum cap)
+
+
+cdef extern from 'GL/glext.h' nogil:
+    void glVertexAttribPointer(GLuint index, GLint size, GLenum type_, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+    void glEnableVertexAttribArray(GLuint index)
+
+    void glGenBuffers(GLsizei n, GLuint * buffers)
+    void glDeleteBuffers(GLsizei n, const GLuint * buffers)
+    void glBindBuffer(GLenum target, GLuint buffer_)
+    void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
 
     GLuint glCreateProgram()
     GLuint glCreateShader(GLenum shaderType)
