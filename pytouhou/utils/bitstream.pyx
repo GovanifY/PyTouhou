@@ -13,12 +13,6 @@
 ##
 
 cdef class BitStream:
-    cdef public object io
-    cdef unsigned int bits
-    cdef unsigned char byte
-    cdef bytes bytes
-
-
     def __init__(self, io):
         self.io = io
         self.bits = 0
@@ -39,31 +33,25 @@ cdef class BitStream:
         self.bits = 0
 
 
-    def tell(self):
-        return self.io.tell()
-
-
-    def tell2(self):
-        return self.io.tell(), self.bits
-
-
-    cpdef unsigned char read_bit(self) except? -1:
+    cdef bint read_bit(self):
+        cdef bytes byte
         if not self.bits:
-            self.bytes = self.io.read(1)
-            self.byte = (<unsigned char*> self.bytes)[0]
+            byte = self.io.read(1)
+            self.byte = (<unsigned char*>byte)[0]
             self.bits = 8
         self.bits -= 1
         return (self.byte >> self.bits) & 0x01
 
 
-    cpdef unsigned int read(self, unsigned int nb_bits) except? -1:
+    cpdef unsigned int read(self, unsigned int nb_bits):
         cdef unsigned int value = 0, read = 0
         cdef unsigned int nb_bits2 = nb_bits
+        cdef bytes byte
 
         while nb_bits2:
             if not self.bits:
-                self.bytes = self.io.read(1)
-                self.byte = (<unsigned char*> self.bytes)[0]
+                byte = self.io.read(1)
+                self.byte = (<unsigned char*>byte)[0]
                 self.bits = 8
             read = self.bits if nb_bits2 > self.bits else nb_bits2
             nb_bits2 -= read
@@ -72,7 +60,7 @@ cdef class BitStream:
         return value & ((1 << nb_bits) - 1)
 
 
-    cpdef write_bit(self, bit):
+    cpdef write_bit(self, bint bit):
         if self.bits == 8:
             self.io.write(chr(self.byte))
             self.bits = 0
@@ -82,12 +70,12 @@ cdef class BitStream:
         self.bits += 1
 
 
-    def write(self, bits, nb_bits):
+    cpdef write(self, unsigned int bits, unsigned int nb_bits):
         for i in range(nb_bits):
             self.write_bit(bits >> (nb_bits - 1 - i) & 0x01)
 
 
-    def flush(self):
+    cpdef flush(self):
         self.io.write(chr(self.byte))
         self.bits = 0
         self.byte = 0

@@ -24,7 +24,7 @@ a file table, and LZSS-compressed files.
 from collections import namedtuple
 
 from pytouhou.utils.bitstream import BitStream
-import pytouhou.utils.lzss as lzss
+from pytouhou.utils import lzss
 
 from pytouhou.utils.helpers import get_logger
 

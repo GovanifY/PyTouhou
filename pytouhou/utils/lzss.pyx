@@ -12,19 +12,23 @@
 ## GNU General Public License for more details.
 ##
 
+cimport cython
 from libc.stdlib cimport calloc, malloc, free
 
+from .bitstream cimport BitStream
 
-cpdef bytes decompress(object bitstream,
+
+@cython.cdivision(True)
+cpdef bytes decompress(BitStream bitstream,
                        Py_ssize_t size,
                        unsigned int dictionary_size=0x2000,
                        unsigned int offset_size=13,
                        unsigned int length_size=4,
                        unsigned int minimum_match_length=3):
-    cdef unsigned int i, ptr, dictionary_head, offset, length
+    cdef Py_ssize_t ptr, length
+    cdef unsigned int dictionary_head
     cdef unsigned char byte
     cdef char *out_data, *dictionary
-    cdef bytes _out_data
 
     out_data = <char*> malloc(size)
     dictionary = <char*> calloc(dictionary_size, 1)
