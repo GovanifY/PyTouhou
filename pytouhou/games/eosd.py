@@ -28,7 +28,10 @@ from pytouhou.vm.eclrunner import ECLMainRunner
 
 
 class EoSDCommon(object):
-    def __init__(self, resource_loader, player_characters, continues, stage):
+    def __init__(self, resource_loader, player_characters, continues, stage,
+                 width=384, height=448):
+        self.width, self.height = width, height
+
         self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
         self.bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
                                         type_id=0),
@@ -99,8 +102,8 @@ class EoSDCommon(object):
 
 class EoSDGame(Game):
     def __init__(self, resource_loader, stage, rank, difficulty,
-                 common, nb_bullets_max=640, width=384, height=448, prng=None,
-                 hints=None, friendly_fire=True):
+                 common, prng=None, hints=None, friendly_fire=True,
+                 nb_bullets_max=640):
 
         self.etama = common.etama #XXX
         try:
@@ -135,12 +138,11 @@ class EoSDGame(Game):
         common.interface.start_stage(self, stage)
         self.native_texts = [common.interface.stage_name, common.interface.song_name]
 
-        self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
-
         Game.__init__(self, common.players, stage, rank, difficulty,
                       common.bullet_types, common.laser_types,
-                      common.item_types, nb_bullets_max, width, height, prng,
-                      common.interface, hints, friendly_fire)
+                      common.item_types, nb_bullets_max, common.width,
+                      common.height, prng, common.interface, hints,
+                      friendly_fire)
 
 
 

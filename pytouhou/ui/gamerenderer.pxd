@@ -3,7 +3,6 @@ from pytouhou.game.game cimport Game
 from .background cimport BackgroundRenderer
 from .renderer cimport Renderer, Framebuffer
 from .shader cimport Shader
-from .window cimport Window
 
 cdef class GameRenderer(Renderer):
     cdef Matrix game_mvp, interface_mvp, proj
@@ -12,8 +11,8 @@ cdef class GameRenderer(Renderer):
     cdef BackgroundRenderer background_renderer
 
     cdef void load_background(self, background) except *
-    cdef void start(self, Game game) except *
-    cdef void render(self, Game game, Window window) except *
+    cdef void start(self, common) except *
+    cdef void render(self, Game game) except *
     cdef void render_game(self, Game game) except *
     cdef void render_text(self, texts) except *
     cdef void render_interface(self, interface, game_boss) except *

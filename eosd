@@ -166,7 +166,8 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
     game_class = GameBossRush if boss_rush else Game
 
     common = Common(resource_loader, characters, continues, stage_num - 1)
-    runner = GameRunner(window, resource_loader, skip=skip_replay, con=con)
+    runner = GameRunner(window, common, resource_loader, skip_replay, con)
+    window.set_runner(runner)
     while True:
         first_player = common.players[0]
 
@@ -206,8 +207,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         hints_stage = hints.stages[stage_num - 1] if hints else None
 
         game = game_class(resource_loader, stage_num, rank, difficulty,
-                          common, prng=prng, hints=hints_stage,
-                          friendly_fire=friendly_fire)
+                          common, prng, hints_stage, friendly_fire)
 
         if not enable_particles:
             def new_particle(pos, anim, amp, number=1, reverse=False, duration=24):
@@ -219,7 +219,6 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
         # Main loop
         runner.load_game(game, background, bgms, replay, save_keystates)
-        window.set_runner(runner)
         try:
             window.run()
             break

@@ -12,38 +12,44 @@
 ## GNU General Public License for more details.
 ##
 
+cimport cython
+
 from pytouhou.lib cimport sdl
 
 from .window cimport Window, Runner
 from .gamerenderer cimport GameRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
+from pytouhou.game.game cimport Game
 
 
 cdef class GameRunner(Runner):
-    cdef object game, background, con
+    cdef object background, con, resource_loader, keys, replay_level, common
+    cdef Game game
     cdef GameRenderer renderer
     cdef Window window
-    cdef object replay_level, save_keystates
+    cdef list save_keystates
     cdef bint skip
 
-    def __init__(self, Window window, resource_loader, bint skip=False,
+    def __init__(self, Window window, common, resource_loader, bint skip=False,
                  con=None):
         self.renderer = GameRenderer(resource_loader, window.use_fixed_pipeline)
+        self.common = common
+        self.resource_loader = resource_loader
 
         self.window = window
         self.replay_level = None
         self.skip = skip
         self.con = con
 
-        self.width = window.width #XXX
-        self.height = window.height #XXX
+        self.width = common.interface.width
+        self.height = common.interface.height
 
 
-    def load_game(self, game=None, background=None, bgms=None, replay=None, save_keystates=None):
+    def load_game(self, Game game, background=None, bgms=None, replay=None, save_keystates=None):
         self.game = game
         self.background = background
 
-        self.renderer.texture_manager.load(game.resource_loader.instanced_anms.values())
+        self.renderer.texture_manager.load(self.resource_loader.instanced_anms.values())
         self.renderer.load_background(background)
 
         self.set_input(replay)
@@ -57,15 +63,15 @@ cdef class GameRunner(Runner):
 
         null_player = NullPlayer()
         if bgms:
-            game.music = MusicPlayer(game.resource_loader, bgms)
+            game.music = MusicPlayer(self.resource_loader, bgms)
             game.music.play(0)
         else:
             game.music = null_player
 
-        game.sfx_player = SFXPlayer(game.resource_loader) if not self.skip else null_player
+        game.sfx_player = SFXPlayer(self.resource_loader) if not self.skip else null_player
 
 
-    def set_input(self, replay=None):
+    cdef void set_input(self, replay=None) except *:
         if not replay or not replay.levels[self.game.stage-1]:
             self.replay_level = None
         else:
@@ -73,14 +79,24 @@ cdef class GameRunner(Runner):
             self.keys = self.replay_level.iter_keystates()
 
 
-    cdef void start(self) except *:
-        cdef long width, height
-        width = self.game.interface.width if self.game is not None else 640
-        height = self.game.interface.height if self.game is not None else 480
-        if width != self.width or height != self.height:
-            self.window.set_size(width, height)
+    @cython.cdivision(True)
+    cdef void set_renderer_size(self, long width, long height) nogil:
+        runner_width = float(self.width)
+        runner_height = float(self.height)
 
-        self.renderer.start(self.game)
+        scale = min(width / runner_width,
+                    height / runner_height)
+
+        self.renderer.width = int(runner_width * scale)
+        self.renderer.height = int(runner_height * scale)
+
+        self.renderer.x = (width - self.renderer.width) // 2
+        self.renderer.y = (height - self.renderer.height) // 2
+
+
+    cdef void start(self) except *:
+        self.set_renderer_size(self.width, self.height)
+        self.renderer.start(self.common)
 
 
     cdef bint update(self) except *:
@@ -99,6 +115,7 @@ cdef class GameRunner(Runner):
             elif type_ == sdl.WINDOWEVENT:
                 event_ = event[1]
                 if event_ == sdl.WINDOWEVENT_RESIZED:
+                    self.set_renderer_size(event[2], event[3])
                     self.window.set_size(event[2], event[3])
         if self.game:
             if self.replay_level is None:
@@ -129,7 +146,7 @@ cdef class GameRunner(Runner):
                     if self.skip:
                         self.set_input()
                         self.skip = False
-                        self.game.sfx_player = SFXPlayer(self.game.resource_loader)
+                        self.game.sfx_player = SFXPlayer(self.resource_loader)
 
             if self.save_keystates is not None:
                 self.save_keystates.append(keystate)
@@ -141,5 +158,5 @@ cdef class GameRunner(Runner):
 
             self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
         if not self.skip:
-            self.renderer.render(self.game, self.window)
+            self.renderer.render(self.game)
         return True

@@ -1,4 +1,5 @@
 from pytouhou.lib cimport sdl
+from .gamerenderer cimport GameRenderer
 
 
 cdef class Clock:
@@ -22,7 +23,6 @@ cdef class Runner:
 cdef class Window:
     cdef sdl.Window win
     cdef long fps_limit
-    cdef public long x, y, width, height
     cdef public bint use_fixed_pipeline
     cdef Runner runner
     cdef Clock clock

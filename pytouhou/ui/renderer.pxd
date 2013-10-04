@@ -1,5 +1,4 @@
 from cpython cimport PyObject
-from .window cimport Window
 from pytouhou.lib.opengl cimport GLuint
 
 cdef struct Vertex:
@@ -17,6 +16,7 @@ cdef class Renderer:
     cdef public texture_manager, font_manager
     cdef GLuint vbo, framebuffer_vbo
     cdef Vertex *vertex_buffer
+    cdef long x, y, width, height
 
     cdef bint use_fixed_pipeline #XXX
 
@@ -26,7 +26,7 @@ cdef class Renderer:
 
     cdef void render_elements(self, elements) except *
     cdef void render_quads(self, rects, colors, texture) except *
-    cdef void render_framebuffer(self, Framebuffer fb, Window window) except *
+    cdef void render_framebuffer(self, Framebuffer fb) except *
 
 
 cdef class Framebuffer:

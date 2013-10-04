@@ -53,15 +53,16 @@ cdef class GameRenderer(Renderer):
             self.background_renderer = None
 
 
-    cdef void start(self, Game game):
-        self.proj = perspective(30, float(game.width) / float(game.height),
+    cdef void start(self, common):
+        self.proj = perspective(30, float(common.width) / float(common.height),
                                 101010101./2010101., 101010101./10101.)
         game_view = setup_camera(0, 0, 1)
         self.game_mvp = game_view * self.proj
-        self.interface_mvp = ortho_2d(0., float(game.interface.width), float(game.interface.height), 0.)
+        self.interface_mvp = ortho_2d(0., float(common.interface.width),
+                                      float(common.interface.height), 0.)
 
 
-    cdef void render(self, Game game, Window window):
+    cdef void render(self, Game game):
         if not self.use_fixed_pipeline:
             self.framebuffer.bind()
 
@@ -72,7 +73,7 @@ cdef class GameRenderer(Renderer):
         if not self.use_fixed_pipeline:
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
-            self.render_framebuffer(self.framebuffer, window)
+            self.render_framebuffer(self.framebuffer)
 
 
     cdef void render_game(self, Game game):
