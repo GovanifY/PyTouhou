@@ -28,15 +28,15 @@ class ANMRunner(object):
                  'variables', 'version', 'timeout')
 
     #TODO: check!
-    formulae = {0: lambda x: x,
+    formulae = {0: None,
                 1: lambda x: x ** 2,
                 2: lambda x: x ** 3,
                 3: lambda x: x ** 4,
                 4: lambda x: 2 * x - x ** 2,
                 5: lambda x: 2 * x - x ** 3,
                 6: lambda x: 2 * x - x ** 4,
-                7: lambda x: x,
-                255: lambda x: x} #XXX
+                7: None,
+                255: None} #XXX
 
     def __init__(self, anm, script_id, sprite, sprite_index_offset=0):
         self._anm = anm
@@ -185,7 +185,7 @@ class ANMRunner(object):
     @instruction(12)
     @instruction(15, 7)
     def fade(self, new_alpha, duration):
-        self._sprite.fade(duration, new_alpha, lambda x: x) #TODO: formula
+        self._sprite.fade(duration, new_alpha)
 
 
     @instruction(13)
@@ -218,7 +218,7 @@ class ANMRunner(object):
     @instruction(18)
     @instruction(17, 7)
     def move_in_linear(self, x, y, z, duration):
-        self._sprite.move_in(duration, x, y, z, lambda x: x)
+        self._sprite.move_in(duration, x, y, z)
 
 
     @instruction(19)
@@ -300,7 +300,7 @@ class ANMRunner(object):
     @instruction(30)
     @instruction(29, 7)
     def scale_in(self, sx, sy, duration):
-        self._sprite.scale_in(duration, sx, sy, lambda x: x) #TODO: formula
+        self._sprite.scale_in(duration, sx, sy)
 
 
 # Now are the instructions new to anm2.

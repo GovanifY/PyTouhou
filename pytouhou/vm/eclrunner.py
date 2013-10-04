@@ -505,7 +505,7 @@ class ECLRunner(object):
     def move_to_linear(self, duration, x, y, z):
         self._enemy.move_to(duration,
                             self._getval(x), self._getval(y), self._getval(z),
-                            lambda x: x)
+                            None)
 
 
     @instruction(57)
@@ -524,7 +524,7 @@ class ECLRunner(object):
 
     @instruction(61)
     def stop_in(self, duration):
-        self._enemy.stop_in(duration, lambda x: x)
+        self._enemy.stop_in(duration, None)
 
 
     @instruction(63)
