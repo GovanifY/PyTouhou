@@ -37,19 +37,22 @@ def get_arguments(arg, libraries):
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
     packages.append(package)
+    if (package == 'pytouhou.formats' or package == 'pytouhou.vm'):
+        continue
+    if package == 'pytouhou.ui':
+        compile_args = get_arguments('--cflags', ['gl'] + SDL_LIBRARIES)
+        link_args = get_arguments('--libs', ['gl'] + SDL_LIBRARIES)
+    else:
+        compile_args = None
+        link_args = None
     for filename in files:
-        if filename.endswith('.pyx') or filename.endswith('.py') and not filename == '__init__.py':
+        if (filename.endswith('.pyx') or filename.endswith('.py') and
+                not filename == '__init__.py'):
             extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
             extension_names.append(extension_name)
             if extension_name == 'pytouhou.lib.sdl':
                 compile_args = get_arguments('--cflags', SDL_LIBRARIES)
                 link_args = get_arguments('--libs', SDL_LIBRARIES)
-            elif extension_name.startswith('pytouhou.ui.'): #XXX
-                compile_args = get_arguments('--cflags', ['gl'] + SDL_LIBRARIES)
-                link_args = get_arguments('--libs', ['gl'] + SDL_LIBRARIES)
-            else:
-                compile_args = None
-                link_args = None
             extensions.append(Extension(extension_name,
                                         [os.path.join(directory, filename)],
                                         extra_compile_args=compile_args,
