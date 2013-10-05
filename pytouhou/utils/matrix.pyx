@@ -14,18 +14,23 @@
 
 from libc.math cimport sin, cos
 from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
+
+
+cdef float[16] identity
+identity[:] = [1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, 1, 0,
+               0, 0, 0, 1]
 
 
 cdef class Matrix:
     def __init__(self, data=None):
-        if data is None:
-            data = [1, 0, 0, 0,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1]
-        for i in xrange(4):
-            for j in xrange(4):
-                self.data[i*4+j] = data[4*i+j]
+        if data is not None:
+            for i in xrange(16):
+                self.data[i] = data[i]
+        else:
+            memcpy(self.data, identity, 16 * sizeof(float))
 
 
     def __mul__(Matrix self, Matrix other):
