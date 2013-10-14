@@ -1,6 +1,5 @@
 from pytouhou.game.element cimport Element
 from pytouhou.game.sprite cimport Sprite
-from pytouhou.game.game cimport Game
 from pytouhou.game.lasertype cimport LaserType
 
 cdef enum State:
@@ -21,7 +20,6 @@ cdef class Laser(Element):
     cdef unsigned long grazing_extra_duration, sprite_idx_offset
     cdef double base_pos[2], speed, start_offset, end_offset, max_length, width
     cdef State state
-    cdef Game _game
     cdef LaserType _laser_type
 
     cdef void set_anim(self, long sprite_idx_offset=*) except *

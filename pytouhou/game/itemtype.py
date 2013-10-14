@@ -1,5 +1,3 @@
-from pytouhou.game.sprite import Sprite
-
 class ItemType(object):
     def __init__(self, anm, sprite_index, indicator_sprite_index):
         self.anm = anm

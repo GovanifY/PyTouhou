@@ -14,6 +14,7 @@
 
 from libc.math cimport cos, sin, M_PI as pi
 
+from pytouhou.game.game cimport Game
 from pytouhou.vm.anmrunner import ANMRunner
 
 
@@ -56,11 +57,10 @@ cdef class Laser(Element):
                  unsigned long grazing_extra_duration, Game game):
         Element.__init__(self, (0, 0))
 
-        self._game = game
         launch_anim = LaserLaunchAnim(self, laser_type.anm,
                                       laser_type.launch_anim_offsets[sprite_idx_offset]
                                       + laser_type.launch_sprite_idx)
-        self._game.effects.append(launch_anim)
+        game.effects.append(launch_anim)
         self._laser_type = laser_type
         self.state = STARTING
 
