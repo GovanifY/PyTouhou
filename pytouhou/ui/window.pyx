@@ -64,7 +64,7 @@ cdef class Clock:
         self._fps_frame += 1
 
         target_tick = self._ref_tick
-        if self._target_fps:
+        if self._target_fps > 0:
             target_tick += <unsigned long>(self._ref_frame * 1000 / self._target_fps)
 
         if current <= target_tick:
