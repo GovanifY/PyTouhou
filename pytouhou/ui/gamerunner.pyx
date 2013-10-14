@@ -48,9 +48,9 @@ cdef class GameRunner(Runner):
 
         self.set_input(replay)
         if replay and replay.levels[game.stage - 1]:
-            game.players[0].state.lives = self.replay_level.lives
-            game.players[0].state.power = self.replay_level.power
-            game.players[0].state.bombs = self.replay_level.bombs
+            game.players[0].lives = self.replay_level.lives
+            game.players[0].power = self.replay_level.power
+            game.players[0].bombs = self.replay_level.bombs
             game.difficulty = self.replay_level.difficulty
 
         self.save_keystates = save_keystates

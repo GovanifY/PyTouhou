@@ -78,8 +78,7 @@ cdef class Item(Element):
     cdef void on_collect(self, Player player):
         cdef long level, poc
 
-        player_state = player.state
-        old_power = player_state.power
+        old_power = player.power
         score = 0
         label = None
         color = 'white'
@@ -87,19 +86,19 @@ cdef class Item(Element):
 
         if self._type == 0 or self._type == 2: # power or big power
             if old_power < 128:
-                player_state.power_bonus = 0
+                player.power_bonus = 0
                 score = 10
-                player_state.power += (1 if self._type == 0 else 8)
-                if player_state.power > 128:
-                    player_state.power = 128
+                player.power += (1 if self._type == 0 else 8)
+                if player.power > 128:
+                    player.power = 128
                 for level in (8, 16, 32, 48, 64, 96):
-                    if old_power < level and player_state.power >= level:
+                    if old_power < level and player.power >= level:
                         label = self._game.new_label((self.x, self.y), b':') # Actually a “PowerUp” character.
                         color = 'blue'
                         label.set_color(color)
                         labeled = True
             else:
-                bonus = player_state.power_bonus + (1 if self._type == 0 else 8)
+                bonus = player.power_bonus + (1 if self._type == 0 else 8)
                 if bonus > 30:
                     bonus = 30
                 if bonus < 9:
@@ -111,13 +110,13 @@ cdef class Item(Element):
                 elif bonus == 30:
                     score = 51200
                     color = 'yellow'
-                player_state.power_bonus = bonus
+                player.power_bonus = bonus
             self._game.modify_difficulty(+1)
 
         elif self._type == 1: # point
-            player_state.points += 1
+            player.points += 1
             poc = player.sht.point_of_collection
-            if player_state.y < poc:
+            if player.y < poc:
                 score = 100000
                 self._game.modify_difficulty(+30)
                 color = 'yellow'
@@ -126,29 +125,29 @@ cdef class Item(Element):
                 self._game.modify_difficulty(+3)
 
         elif self._type == 3: # bomb
-            if player_state.bombs < 8:
-                player_state.bombs += 1
+            if player.bombs < 8:
+                player.bombs += 1
             self._game.modify_difficulty(+5)
 
         elif self._type == 4: # full power
             score = 1000
-            player_state.power = 128
+            player.power = 128
 
         elif self._type == 5: # 1up
-            if player_state.lives < 8:
-                player_state.lives += 1
+            if player.lives < 8:
+                player.lives += 1
             self._game.modify_difficulty(+200)
             player.play_sound('extend')
 
         elif self._type == 6: # star
             score = 500
 
-        if old_power < 128 and player_state.power == 128:
+        if old_power < 128 and player.power == 128:
             #TODO: display “full power”.
             self._game.change_bullets_into_star_items()
 
         if score > 0:
-            player_state.score += score
+            player.score += score
             if label is None:
                 label = self._game.new_label((self.x, self.y), str(score))
                 if color != 'white':
@@ -165,8 +164,7 @@ cdef class Item(Element):
                                                    (3.,), 180)
 
         if self.player is not None:
-            player_state = self.player.state
-            self.angle = atan2(player_state.y - self.y, player_state.x - self.x)
+            self.angle = atan2(self.player.y - self.y, self.player.x - self.x)
             self.x += cos(self.angle) * self.speed
             self.y += sin(self.angle) * self.speed
         elif self.speed_interpolator is None:

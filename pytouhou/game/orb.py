@@ -16,7 +16,7 @@ from pytouhou.vm.anmrunner import ANMRunner
 
 
 class Orb(Element):
-    def __init__(self, anm, index, player_state):
+    def __init__(self, anm, index, player):
         Element.__init__(self)
 
         self.sprite = Sprite()
@@ -25,10 +25,10 @@ class Orb(Element):
         self.offset_x = 0
         self.offset_y = 0
 
-        self.player_state = player_state
+        self.player = player
 
 
     def update(self):
         self.anmrunner.run_frame()
-        self.x = self.player_state.x + self.offset_x
-        self.y = self.player_state.y + self.offset_y
+        self.x = self.player.x + self.offset_x
+        self.y = self.player.y + self.offset_y

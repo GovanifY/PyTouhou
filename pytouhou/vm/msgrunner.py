@@ -31,7 +31,7 @@ class MSGRunner(object):
                  'handlers')
 
     def __init__(self, msg, script, game):
-        self._msg = msg.msgs[script + 10 * (game.players[0].state.character // 2)]
+        self._msg = msg.msgs[script + 10 * (game.players[0].character // 2)]
         self._game = game
         self.handlers = self._handlers[6]
         self.frame = 0

@@ -192,7 +192,7 @@ cdef class Game:
 
         #TODO: do we really want to give it to each player?
         for player in self.players:
-            player.state.score += score
+            player.score += score
 
 
     cpdef kill_enemies(self):
@@ -358,8 +358,8 @@ cdef class Game:
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
 
             #XXX: Why 78910? Is it really the right value?
-            player.state.effective_score = min(player.state.effective_score + 78910,
-                                               player.state.score)
+            player.effective_score = min(player.effective_score + 78910,
+                                         player.score)
             #TODO: give extra lives to the player
 
 
@@ -408,12 +408,10 @@ cdef class Game:
             item.update()
 
         for player in self.players:
-            player_state = player.state
-
-            if not player_state.touchable:
+            if not player.touchable:
                 continue
 
-            px, py = player_state.x, player_state.y
+            px, py = player.x, player.y
             player_pos[:] = [px, py]
             phalf_size = <double>player.sht.hitbox
             px1, px2 = px - phalf_size, px + phalf_size
@@ -425,11 +423,11 @@ cdef class Game:
 
             for laser in self.lasers:
                 if laser.check_collision(player_pos):
-                    if player_state.invulnerable_time == 0:
+                    if player.invulnerable_time == 0:
                         player.collide()
                 elif laser.check_grazing(player_pos):
-                    player_state.graze += 1 #TODO
-                    player_state.score += 500 #TODO
+                    player.graze += 1 #TODO
+                    player.score += 500 #TODO
                     player.play_sound('graze')
                     self.modify_difficulty(+6) #TODO
                     self.new_particle((px, py), 9, 192) #TODO
@@ -447,14 +445,14 @@ cdef class Game:
                 if not (bx2 < px1 or bx1 > px2
                         or by2 < py1 or by1 > py2):
                     bullet.collide()
-                    if player_state.invulnerable_time == 0:
+                    if player.invulnerable_time == 0:
                         player.collide()
 
                 elif not bullet.grazed and not (bx2 < gx1 or bx1 > gx2
                         or by2 < gy1 or by1 > gy2):
                     bullet.grazed = True
-                    player_state.graze += 1
-                    player_state.score += 500 # found experimentally
+                    player.graze += 1
+                    player.score += 500 # found experimentally
                     player.play_sound('graze')
                     self.modify_difficulty(+6)
                     self.new_particle((px, py), 9, 192) #TODO: find the real size and range.
@@ -467,7 +465,7 @@ cdef class Game:
                     if bullet.state != LAUNCHED:
                         continue
 
-                    if bullet.player == player_state.number:
+                    if bullet.player == player.number:
                         continue
 
                     bhalf_width = bullet.hitbox[0]
@@ -479,7 +477,7 @@ cdef class Game:
                     if not (bx2 < px1 or bx1 > px2
                             or by2 < py1 or by1 > py2):
                         bullet.collide()
-                        if player_state.invulnerable_time == 0:
+                        if player.invulnerable_time == 0:
                             player.collide()
 
                 for plaser in self.players_lasers:
@@ -492,11 +490,11 @@ cdef class Game:
 
                     if not (lx2 < px1 or lx1 > px2
                             or ly < py1):
-                        if player_state.invulnerable_time == 0:
+                        if player.invulnerable_time == 0:
                             player.collide()
 
             #TODO: is it the right place?
-            if py < 128 and player_state.power >= 128: #TODO: check py.
+            if py < 128 and player.power >= 128: #TODO: check py.
                 self.autocollect(player)
 
             ihalf_size = <double>player.sht.item_hitbox
@@ -594,4 +592,4 @@ cdef list filter_removed(list elements):
 
 
 def select_player_key(player):
-    return (player.state.score, player.state.character)
+    return (player.score, player.character)

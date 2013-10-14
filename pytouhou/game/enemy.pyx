@@ -221,7 +221,7 @@ cdef class Enemy(Element):
         if player is None:
             player = self.select_player()
         x, y = pos or (self.x, self.y)
-        return atan2(player.state.y - y, player.state.x - x)
+        return atan2(player.y - y, player.x - x)
 
 
     cpdef set_anim(self, index):
@@ -350,7 +350,7 @@ cdef class Enemy(Element):
         ey1, ey2 = ey - ehalf_size_y * 2. / 3., ey + ehalf_size_y * 2. / 3.
         if self.collidable:
             for player in self._game.players:
-                px, py = player.state.x, player.state.y
+                px, py = player.x, player.y
                 phalf_size = player.sht.hitbox
                 px1, px2 = px - phalf_size, px + phalf_size
                 py1, py2 = py - phalf_size, py + phalf_size
@@ -364,7 +364,7 @@ cdef class Enemy(Element):
         # Adjust damages
         damages = min(70, damages)
         score = (damages // 5) * 10
-        self._game.players[0].state.score += score #TODO: better distribution amongst the players.
+        self._game.players[0].score += score #TODO: better distribution amongst the players.
 
         if self.damageable:
             if self._game.spellcard is not None:
@@ -388,7 +388,7 @@ cdef class Enemy(Element):
             self.die_anim()
 
             #TODO: verify if the score is added with all the different flags.
-            self._game.players[0].state.score += self.die_score #TODO: better distribution amongst the players.
+            self._game.players[0].score += self.die_score #TODO: better distribution amongst the players.
 
             #TODO: verify if that should really be there.
             if self.boss:
@@ -540,5 +540,5 @@ cdef class Enemy(Element):
         self.frame += 1
 
 
-    def select_player_key(self, p):
-        return ((p.x - self.x) ** 2 + (p.y - self.y) ** 2, p.state.character)
+    def select_player_key(self, player):
+        return ((player.x - self.x) ** 2 + (player.y - self.y) ** 2, player.character)

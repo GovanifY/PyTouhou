@@ -28,7 +28,7 @@ from pytouhou.vm.eclrunner import ECLMainRunner
 
 
 class EoSDCommon(object):
-    def __init__(self, resource_loader, player_state):
+    def __init__(self, resource_loader, player_characters, continues, stage):
         self.etama = resource_loader.get_multi_anm(('etama3.anm', 'etama4.anm'))
         self.bullet_types = [BulletType(self.etama[0], 0, 11, 14, 15, 16, hitbox_size=2,
                                         type_id=0),
@@ -74,13 +74,31 @@ class EoSDCommon(object):
                            ('face09b.anm', 'face10a.anm', 'face10b.anm'),
                            ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
 
-        self.characters = resource_loader.get_eosd_characters()
-        self.interface = EoSDInterface(resource_loader, player_state)
+        default_power = [0, 64, 128, 128, 128, 128, 0][stage]
+
+        eosd_characters = resource_loader.get_eosd_characters()
+        self.first_character = player_characters[0] // 2
+        self.player_anms = {}
+        self.players = [None] * len(player_characters)
+        for i, player_character in enumerate(player_characters):
+            character = player_character // 2
+            if character not in self.player_anms:
+                face = resource_loader.get_multi_anm(('face0%da.anm' % character,
+                                                      'face0%db.anm' % character,
+                                                      'face0%dc.anm' % character))
+                anm = resource_loader.get_single_anm('player0%d.anm' % character)
+                self.player_anms[character] = (anm, face)
+
+            self.players[i] = EoSDPlayer(i, self.player_anms[character][0],
+                                         eosd_characters[player_character],
+                                         character, default_power, continues)
+
+        self.interface = EoSDInterface(resource_loader, self.players[0]) #XXX
 
 
 
 class EoSDGame(Game):
-    def __init__(self, resource_loader, player_states, stage, rank, difficulty,
+    def __init__(self, resource_loader, stage, rank, difficulty,
                  common, nb_bullets_max=640, width=384, height=448, prng=None,
                  hints=None, friendly_fire=True):
 
@@ -95,11 +113,8 @@ class EoSDGame(Game):
 
         self.spellcard_effect_anm = resource_loader.get_single_anm('eff0%d.anm' % stage)
 
-        player_face = player_states[0].character // 2
         self.msg = resource_loader.get_msg('msg%d.dat' % stage)
-        msg_anm = [resource_loader.get_multi_anm(('face0%da.anm' % player_face,
-                                                  'face0%db.anm' % player_face,
-                                                  'face0%dc.anm' % player_face)),
+        msg_anm = [common.player_anms[common.first_character][1], #TODO: does it break bomb face of non-first player?
                    resource_loader.get_multi_anm(common.enemy_face[stage - 1])]
 
         self.msg_anm = [[], []]
@@ -108,7 +123,8 @@ class EoSDGame(Game):
                 for sprite in anm.sprites.values():
                     self.msg_anm[i].append((anm, sprite))
 
-        players = [EoSDPlayer(state, self, resource_loader, common.characters[state.character]) for state in player_states]
+        for player in common.players:
+            player._game = self
 
         # Load stage data
         self.std = resource_loader.get_stage('stage%d.std' % stage)
@@ -121,7 +137,7 @@ class EoSDGame(Game):
 
         self.resource_loader = resource_loader #XXX: currently used for texture preload in pytouhou.ui.gamerunner. Wipe it!
 
-        Game.__init__(self, players, stage, rank, difficulty,
+        Game.__init__(self, common.players, stage, rank, difficulty,
                       common.bullet_types, common.laser_types,
                       common.item_types, nb_bullets_max, width, height, prng,
                       common.interface, hints, friendly_fire)
@@ -144,8 +160,8 @@ class EoSDInterface(object):
                       [Effect((416 + 32 * i, 32 * j), 6, front) for i in range(7) for j in range(15)] +
                       [Effect((32 + 32 * i, 0), 7, front) for i in range(12)] +
                       [Effect((32 + 32 * i, 464), 8, front) for i in range(12)] +
-                      [Effect((0, 0), 5, front)] +
-                      [Effect((0, 0), i, front) for i in range(5) + range(9, 16)])
+                      [Effect((0, 0), i, front) for i in reversed(range(6))] +
+                      [Effect((0, 0), i, front) for i in range(9, 16)])
         for item in self.items:
             item.sprite.allow_dest_offset = True #XXX
 
@@ -269,15 +285,14 @@ class EoSDInterface(object):
 
 
 class EoSDPlayer(Player):
-    def __init__(self, state, game, resource_loader, character):
-        self.sht = character[0]
-        self.focused_sht = character[1]
-        self.anm = resource_loader.get_single_anm('player0%d.anm' % (state.character // 2))
+    def __init__(self, number, anm, shts, character, power, continues):
+        self.sht = shts[0]
+        self.focused_sht = shts[1]
 
-        Player.__init__(self, state, game, self.anm)
+        Player.__init__(self, number, anm, character, power, continues)
 
-        self.orbs = [Orb(self.anm, 128, self.state),
-                     Orb(self.anm, 129, self.state)]
+        self.orbs = [Orb(anm, 128, self),
+                     Orb(anm, 129, self)]
 
         self.orbs[0].offset_x = -24
         self.orbs[1].offset_x = 24
@@ -292,7 +307,7 @@ class EoSDPlayer(Player):
                                                 lambda x: x ** 2)
         self.orb_dy_interpolator = Interpolator((0,), self._game.frame,
                                                 (-32,), self._game.frame + 8)
-        self.state.focused = True
+        self.focused = True
 
 
     def stop_focusing(self):
@@ -301,12 +316,12 @@ class EoSDPlayer(Player):
                                                 lambda x: x ** 2)
         self.orb_dy_interpolator = Interpolator((-32,), self._game.frame,
                                                 (0,), self._game.frame + 8)
-        self.state.focused = False
+        self.focused = False
 
 
     @property
     def objects(self):
-        return [self] + (self.orbs if self.state.power >= 8 else [])
+        return [self] + (self.orbs if self.power >= 8 else [])
 
 
     def update(self, keystate):

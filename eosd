@@ -60,7 +60,7 @@ from pytouhou.lib.sdl import SDL
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
-from pytouhou.game.player import PlayerState, GameOver
+from pytouhou.game.player import GameOver
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
 from pytouhou.vm.msgrunner import NextStage
@@ -82,8 +82,8 @@ class GameBossRush(Game):
             Game.run_iter(self, keystate | 256 if i == 0 else 0)
             if not self.enemies and self.frame % 90 == 0:
                 for player in self.players:
-                    if player.state.power < 128:
-                        player.state.power += 1
+                    if player.power < 128:
+                        player.power += 1
             if not skip:
                 break
 
@@ -141,7 +141,6 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         save_replay.character = character
 
     difficulty = 16
-    default_power = [0, 64, 128, 128, 128, 128, 0][stage_num - 1]
 
     if port != 0:
         if remote:
@@ -154,12 +153,11 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
         prng = Random(0)
         con = Network(port, addr, selected_player)
-        states = [PlayerState(0, character=1, power=default_power, continues=continues),
-                  PlayerState(1, character=3, power=default_power, continues=continues)]
+        characters = [1, 3]
     else:
         con = None
         selected_player = 0
-        states = [PlayerState(0, character=character, power=default_power, continues=continues)]
+        characters = [character]
 
     if hints:
         with open(hints, 'rb') as file:
@@ -167,9 +165,11 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
     game_class = GameBossRush if boss_rush else Game
 
-    common = Common(resource_loader, states[selected_player])
+    common = Common(resource_loader, characters, continues, stage_num - 1)
     runner = GameRunner(window, resource_loader, skip=skip_replay, con=con)
     while True:
+        first_player = common.players[0]
+
         if replay:
             level = replay.levels[stage_num - 1]
             if not level:
@@ -181,12 +181,12 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
             #TODO: see if the stored score is used or if it’s the one from the previous stage.
             if stage_num != 1 and stage_num - 2 in replay.levels:
                 previous_level = replay.levels[stage_num - 1]
-                states[0].score = previous_level.score
-                states[0].effective_score = previous_level.score
-            states[0].points = level.point_items
-            states[0].power = level.power
-            states[0].lives = level.lives
-            states[0].bombs = level.bombs
+                first_player.score = previous_level.score
+                first_player.effective_score = previous_level.score
+            first_player.points = level.point_items
+            first_player.power = level.power
+            first_player.lives = level.lives
+            first_player.bombs = level.bombs
             difficulty = level.difficulty
         elif port == 0:
             prng = Random()
@@ -194,18 +194,18 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         if save_filename:
             if not replay:
                 save_replay.levels[stage_num - 1] = level = Level()
-                level.score = states[0].score
                 level.random_seed = prng.seed
-                level.point_items = states[0].points
-                level.power = states[0].power
-                level.lives = states[0].lives
-                level.bombs = states[0].bombs
+                level.score = first_player.score
+                level.point_items = first_player.points
+                level.power = first_player.power
+                level.lives = first_player.lives
+                level.bombs = first_player.bombs
                 level.difficulty = difficulty
             save_keystates = []
 
         hints_stage = hints.stages[stage_num - 1] if hints else None
 
-        game = game_class(resource_loader, states, stage_num, rank, difficulty,
+        game = game_class(resource_loader, stage_num, rank, difficulty,
                           common, prng=prng, hints=hints_stage,
                           friendly_fire=friendly_fire)
 
@@ -227,7 +227,6 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
             if not story or stage_num == (7 if boss_rush else 6 if rank > 0 else 5):
                 break
             stage_num += 1
-            states = [player.state for player in game.players]
         except GameOver:
             print('Game over')
             break

@@ -203,10 +203,10 @@ class ECLRunner(object):
                 return self._enemy.z
             elif value == -10018:
                 player = self._enemy.select_player()
-                return player.state.x
+                return player.x
             elif value == -10019:
                 player = self._enemy.select_player()
-                return player.state.y
+                return player.y
             elif value == -10021:
                 return self._enemy.get_player_angle()
             elif value == -10022:
@@ -214,7 +214,7 @@ class ECLRunner(object):
             elif value == -10024:
                 return self._enemy.life
             elif value == -10025:
-                return self._enemy.select_player().state.character #TODO
+                return self._enemy.select_player().character #TODO
             raise NotImplementedError(value) #TODO
         else:
             return value
@@ -932,7 +932,7 @@ class ECLRunner(object):
 
     @instruction(119)
     def drop_some_bonus(self, number):
-        if self._enemy.select_player().state.power < 128:
+        if self._enemy.select_player().power < 128:
             if number > 0:
                 #TODO: find the real formula in the binary.
                 self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_double() * 128,
@@ -981,7 +981,7 @@ class ECLRunner(object):
                       [2, 3, 4],
                       [1, 4, 0],
                       [4, 2, 3]]
-            character = self._enemy.select_player().state.character
+            character = self._enemy.select_player().character
             self.variables[1:4] = values[character]
         elif function == 4:
             if arg == 1:

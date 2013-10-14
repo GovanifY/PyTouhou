@@ -26,9 +26,11 @@ class GameOver(Exception):
     pass
 
 
-cdef class PlayerState:
-    def __init__(self, long number, long character=0, long score=0,
-                 long power=0, long lives=2, long bombs=3, long continues=0):
+cdef class Player(Element):
+    def __init__(self, long number, anm, long character=0, long power=0,
+                 long continues=0, long lives=2, long bombs=3, long score=0):
+        Element.__init__(self)
+
         self.number = number
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
 
@@ -36,8 +38,8 @@ cdef class PlayerState:
         self.effective_score = score
         self.lives = lives
         self.bombs = bombs
-        self.power = power
         self.continues = continues
+        self.power = power
 
         self.continues_used = 0
         self.miss = 0
@@ -55,12 +57,7 @@ cdef class PlayerState:
 
         self.power_bonus = 0 # Never goes over 30.
 
-
-cdef class Player(Element):
-    def __init__(self, PlayerState state, Game game, anm):
-        Element.__init__(self)
-
-        self._game = game
+        self._game = None
         self.anm = anm
 
         self.speeds = (self.sht.horizontal_vertical_speed,
@@ -70,7 +67,6 @@ cdef class Player(Element):
 
         self.fire_time = 0
 
-        self.state = state
         self.direction = 0
 
         self.set_anim(0)
@@ -88,33 +84,32 @@ cdef class Player(Element):
 
 
     cdef void collide(self):
-        if not self.state.invulnerable_time and not self.death_time and self.state.touchable: # Border Between Life and Death
+        if not self.invulnerable_time and not self.death_time and self.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
-            self._game.new_effect((self.state.x, self.state.y), 17)
+            self._game.new_effect((self.x, self.y), 17)
             self._game.modify_difficulty(-1600)
             self.play_sound('pldead00')
             for i in xrange(16):
-                self._game.new_particle((self.state.x, self.state.y), 11, 256) #TODO: find the real size and range.
+                self._game.new_particle((self.x, self.y), 11, 256) #TODO: find the real size and range.
 
 
     def start_focusing(self):
-        self.state.focused = True
+        self.focused = True
 
 
     def stop_focusing(self):
-        self.state.focused = False
+        self.focused = False
 
 
     cdef void fire(self):
-        cdef double x, y
         cdef long shot_power
 
-        sht = self.focused_sht if self.state.focused else self.sht
+        sht = self.focused_sht if self.focused else self.sht
 
         # Don’t use min() since sht.shots could be an empty dict.
         power = 999
         for shot_power in sht.shots:
-            if self.state.power < shot_power:
+            if self.power < shot_power:
                 power = power if power < shot_power else shot_power
 
         bullets = self._game.players_bullets
@@ -125,7 +120,7 @@ cdef class Player(Element):
             self.play_sound('plst00')
 
         for shot in sht.shots[power]:
-            origin = self.orbs[shot.orb - 1] if shot.orb else self.state
+            origin = <Element>(self.orbs[shot.orb - 1] if shot.orb else self)
             shot_type = <unsigned char>shot.type
 
             if shot_type == 3:
@@ -149,8 +144,8 @@ cdef class Player(Element):
             if nb_bullets_max != 0 and len(bullets) == nb_bullets_max:
                 break
 
-            x = origin.x + shot.pos[0]
-            y = origin.y + shot.pos[1]
+            x = origin.x + <double>shot.pos[0]
+            y = origin.y + <double>shot.pos[1]
 
             #TODO: find a better way to do that.
             bullet_type = BulletType(self.anm, shot.sprite % 256,
@@ -162,13 +157,13 @@ cdef class Player(Element):
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (-1, 0, 0, 0, 0.15, -pi/2., 0., 0.),
-                                      16, self, self._game, player=self.state.number,
+                                      16, self, self._game, player=self.number,
                                       damage=shot.damage, hitbox=shot.hitbox))
             else:
                 bullets.append(Bullet((x, y), bullet_type, 0,
                                       shot.angle, shot.speed,
                                       (0, 0, 0, 0, 0., 0., 0., 0.),
-                                      0, self, self._game, player=self.state.number,
+                                      0, self, self._game, player=self.number,
                                       damage=shot.damage, hitbox=shot.hitbox))
 
 
@@ -176,7 +171,7 @@ cdef class Player(Element):
         cdef double dx, dy
 
         if self.death_time == 0 or self._game.frame - self.death_time > 60:
-            speed, diag_speed = self.speeds[2:] if self.state.focused else self.speeds[:2]
+            speed, diag_speed = self.speeds[2:] if self.focused else self.speeds[:2]
             try:
                 dx, dy = {16: (0., -speed), 32: (0., speed), 64: (-speed, 0.), 128: (speed, 0.),
                           16|64: (-diag_speed, -diag_speed), 16|128: (diag_speed, -diag_speed),
@@ -194,32 +189,28 @@ cdef class Player(Element):
                 self.set_anim({-1: 2, +1: 4}[self.direction])
                 self.direction = 0
 
-            self.state.x += dx
-            self.state.y += dy
+            self.x += dx
+            self.y += dy
 
-            #XXX
-            self.x = self.state.x
-            self.y = self.state.y
+            if self.x < 8.:
+                self.x = 8.
+            if self.x > self._game.width - 8:
+                self.x = self._game.width - 8.
+            if self.y < 16.:
+                self.y = 16.
+            if self.y > self._game.height - 16:
+                self.y = self._game.height -16.
 
-            if self.state.x < 8.:
-                self.state.x = 8.
-            if self.state.x > self._game.width - 8:
-                self.state.x = self._game.width - 8.
-            if self.state.y < 16.:
-                self.state.y = 16.
-            if self.state.y > self._game.height - 16:
-                self.state.y = self._game.height -16.
-
-            if not self.state.focused and keystate & 4:
+            if not self.focused and keystate & 4:
                 self.start_focusing()
-            elif self.state.focused and not keystate & 4:
+            elif self.focused and not keystate & 4:
                 self.stop_focusing()
 
-            if self.state.invulnerable_time > 0:
-                self.state.invulnerable_time -= 1
+            if self.invulnerable_time > 0:
+                self.invulnerable_time -= 1
 
-                m = self.state.invulnerable_time % 8
-                if m == 7 or self.state.invulnerable_time == 0:
+                m = self.invulnerable_time % 8
+                if m == 7 or self.invulnerable_time == 0:
                     self.sprite.color = (255, 255, 255)
                     self.sprite.changed = True
                 elif m == 1:
@@ -243,43 +234,43 @@ cdef class Player(Element):
         if self.death_time:
             time = self._game.frame - self.death_time
             if time == 6: # too late, you are dead :(
-                self.state.touchable = False
-                if self.state.power > 16:
-                    self.state.power -= 16
+                self.touchable = False
+                if self.power > 16:
+                    self.power -= 16
                 else:
-                    self.state.power = 0
+                    self.power = 0
                 self._game.cancel_player_lasers()
 
-                self.state.miss += 1
-                self.state.lives -= 1
-                if self.state.lives < 0:
+                self.miss += 1
+                self.lives -= 1
+                if self.lives < 0:
                     #TODO: display a menu to ask the players if they want to continue.
-                    if self.state.continues == 0:
+                    if self.continues == 0:
                         raise GameOver
 
                     # Don’t decrement if it’s infinite.
-                    if self.state.continues >= 0:
-                        self.state.continues -= 1
-                    self.state.continues_used += 1
+                    if self.continues >= 0:
+                        self.continues -= 1
+                    self.continues_used += 1
 
                     for i in xrange(5):
-                        self._game.drop_bonus(self.state.x, self.state.y, 4,
+                        self._game.drop_bonus(self.x, self.y, 4,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
-                    self.state.score = 0
-                    self.state.effective_score = 0
-                    self.state.lives = 2 #TODO: use the right default.
-                    self.state.bombs = 3 #TODO: use the right default.
-                    self.state.power = 0
+                    self.score = 0
+                    self.effective_score = 0
+                    self.lives = 2 #TODO: use the right default.
+                    self.bombs = 3 #TODO: use the right default.
+                    self.power = 0
 
-                    self.state.graze = 0
-                    self.state.points = 0
+                    self.graze = 0
+                    self.points = 0
                 else:
-                    self._game.drop_bonus(self.state.x, self.state.y, 2,
+                    self._game.drop_bonus(self.x, self.y, 2,
                                           end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
                                                    self._game.prng.rand_double() * 192 - 64))        # @0x41f3
                     for i in xrange(5):
-                        self._game.drop_bonus(self.state.x, self.state.y, 0,
+                        self._game.drop_bonus(self.x, self.y, 0,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
 
@@ -295,8 +286,8 @@ cdef class Player(Element):
                 self._game.cancel_bullets()
 
             elif time == 32:
-                self.state.x = float(self._game.width) / 2. #TODO
-                self.state.y = float(self._game.width) #TODO
+                self.x = float(self._game.width) / 2. #TODO
+                self.y = float(self._game.width) #TODO
                 self.direction = 0
 
                 self.sprite = Sprite()
@@ -308,8 +299,8 @@ cdef class Player(Element):
                 self.sprite.scale_in(30, 1., 1.)
 
             elif time == 61: # respawned
-                self.state.touchable = True
-                self.state.invulnerable_time = 240
+                self.touchable = True
+                self.invulnerable_time = 240
                 self.sprite.blendfunc = 0
                 self.sprite.changed = True
 
