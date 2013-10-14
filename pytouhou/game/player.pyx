@@ -223,9 +223,14 @@ cdef class Player(Element):
                 self.fire()
                 self.fire_time -= 1
 
-            if keystate & 2 and self.bomb_time == 0:
+        if self.death_time == 0 or self.death_time < 6: #TODO: < or <=?
+            if keystate & 2 and self.bombs and self.bomb_time == 0:
                 self._game.set_player_bomb()
                 self.bomb_time = 240
+                self.bombs -= 1
+                self.bombs_used += 1
+                self.invulnerable_time = 240 #TODO: check the duration of bombs.
+                self.death_time = 0 # Deathbomb.
             if self.bomb_time > 0:
                 self.bomb_time -= 1
                 if self.bomb_time == 0:
@@ -239,6 +244,7 @@ cdef class Player(Element):
                     self.power -= 16
                 else:
                     self.power = 0
+                self.bombs = 3 #TODO: use the right default.
                 self._game.cancel_player_lasers()
 
                 self.miss += 1
