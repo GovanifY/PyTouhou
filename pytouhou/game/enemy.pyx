@@ -21,6 +21,27 @@ from pytouhou.game.laser cimport Laser, PlayerLaser
 from pytouhou.game.effect cimport Effect
 
 
+cdef class Callback:
+    def __init__(self, function=None, args=()):
+        self.function = function
+        self.args = args
+
+    def __nonzero__(self):
+        return self.function is not None
+
+    cpdef enable(self, function, tuple args):
+        self.function = function
+        self.args = args
+
+    cpdef disable(self):
+        self.function = None
+
+    cpdef fire(self):
+        if self.function is not None:
+            self.function(*self.args)
+            self.function = None
+
+
 cdef class Enemy(Element):
     def __init__(self, pos, long life, long _type, long bonus_dropped, long die_score, anms, Game game):
         Element.__init__(self)
@@ -50,13 +71,14 @@ cdef class Enemy(Element):
         self.laser_by_id = {}
         self.bullet_attributes = None
         self.bullet_launch_offset = (0, 0)
-        self.death_callback = -1
-        self.boss_callback = -1
-        self.low_life_callback = -1
         self.low_life_trigger = -1
         self.timeout = -1
-        self.timeout_callback = -1
         self.remaining_lives = 0
+
+        self.death_callback = Callback()
+        self.boss_callback = Callback()
+        self.low_life_callback = Callback()
+        self.timeout_callback = Callback()
 
         self.automatic_orientation = False
 
@@ -382,7 +404,7 @@ cdef class Enemy(Element):
         #TODO: implement missing callbacks and clean up!
         if self.life <= 0 and self.touchable:
             self.timeout = -1 #TODO: not really true, the timeout is frozen
-            self.timeout_callback = -1
+            self.timeout_callback.disable()
             death_flags = self.death_flags & 7
 
             self.die_anim()
@@ -428,14 +450,12 @@ cdef class Enemy(Element):
                     self.life = 1
                     self.death_flags = 0
 
-            if death_flags != 0 and self.death_callback > -1:
-                self.process.switch_to_sub(self.death_callback)
-                self.death_callback = -1
-        elif self.life <= self.low_life_trigger and self.low_life_callback > -1:
-            self.process.switch_to_sub(self.low_life_callback)
-            self.low_life_callback = -1
+            if death_flags != 0:
+                self.death_callback.fire()
+        elif self.life <= self.low_life_trigger and self.low_life_callback:
+            self.low_life_callback.fire()
             self.low_life_trigger = -1
-            self.timeout_callback = -1
+            self.timeout_callback.disable()
         elif self.timeout != -1 and self.frame == self.timeout:
             self.frame = 0
             self.timeout = -1
@@ -446,12 +466,11 @@ cdef class Enemy(Element):
                 self.life = self.low_life_trigger
                 self.low_life_trigger = -1
 
-            if self.timeout_callback > -1:
-                self.process.switch_to_sub(self.timeout_callback)
-                self.timeout_callback = -1
+            if self.timeout_callback:
+                self.timeout_callback.fire()
             #TODO: this is only done under certain (unknown) conditions!
             # but it shouldn't hurt anyway, as the only option left is to crash!
-            elif self.death_callback > -1:
+            elif self.death_callback:
                 self.life = 0 #TODO: do this next frame? Bypass self.touchable?
             else:
                 raise Exception('What the hell, man!')

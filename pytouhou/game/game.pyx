@@ -203,10 +203,9 @@ cdef class Game:
                 pass # Bosses are immune to 96
             elif enemy.touchable:
                 enemy.life = 0
-            elif enemy.death_callback > 0:
+            else:
                 #TODO: check
-                enemy.process.switch_to_sub(enemy.death_callback)
-                enemy.death_callback = -1
+                enemy.death_callback.fire()
 
 
     cpdef new_effect(self, pos, long anim, anm=None, long number=1):

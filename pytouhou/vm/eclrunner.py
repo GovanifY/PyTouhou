@@ -103,13 +103,11 @@ class ECLMainRunner(object):
 
     @instruction(10)
     def resume_ecl(self, sub, instr_type, unk1, unk2):
-        boss = self._game.boss
+        boss = self._game.boss._enemy
         self._game.msg_wait = False
-        if boss._enemy.boss_callback > -1:
-            boss.switch_to_sub(boss._enemy.boss_callback)
-            boss._enemy.boss_callback = -1
-        else:
+        if not boss.boss_callback:
             raise Exception #TODO
+        boss.boss_callback.fire()
 
 
     @instruction(12)
@@ -843,13 +841,13 @@ class ECLRunner(object):
 
     @instruction(108)
     def set_death_callback(self, sub):
-        self._enemy.death_callback = sub
+        self._enemy.death_callback.enable(self.switch_to_sub, (sub,))
 
 
     @instruction(109)
     def memory_write(self, value, index):
         if index == 0:
-            self._enemy.boss_callback = value
+            self._enemy.boss_callback.enable(self.switch_to_sub, (value,))
         else:
             raise Exception #TODO
 
@@ -880,7 +878,7 @@ class ECLRunner(object):
 
     @instruction(114)
     def set_low_life_callback(self, sub):
-        self._enemy.low_life_callback = sub
+        self._enemy.low_life_callback.enable(self.switch_to_sub, (sub,))
 
 
     @instruction(115)
@@ -891,7 +889,7 @@ class ECLRunner(object):
 
     @instruction(116)
     def set_timeout_callback(self, sub):
-        self._enemy.timeout_callback = sub
+        self._enemy.timeout_callback.enable(self.switch_to_sub, (sub,))
 
 
     @instruction(117)
@@ -1144,5 +1142,5 @@ class ECLRunner(object):
 
     @instruction(133)
     def copy_callbacks(self):
-        self._enemy.timeout_callback = self._enemy.death_callback
+        self._enemy.timeout_callback.enable(self.switch_to_sub, (self._enemy.death_callback.args[0],))
 

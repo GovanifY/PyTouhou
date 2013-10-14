@@ -3,11 +3,20 @@ from pytouhou.game.game cimport Game
 from pytouhou.game.player cimport Player
 from pytouhou.utils.interpolator cimport Interpolator
 
+cdef class Callback:
+    cdef function
+    cdef public tuple args  # XXX: public only for ECL’s copy_callbacks.
+
+    cpdef enable(self, function, tuple args)
+    cpdef disable(self)
+    cpdef fire(self)
+
 cdef class Enemy(Element):
     cdef public double z, angle, speed, rotation_speed, acceleration
-    cdef public long _type, bonus_dropped, die_score, frame, life, death_flags, current_laser_id, death_callback, boss_callback, low_life_callback, low_life_trigger, timeout, timeout_callback, remaining_lives, bullet_launch_interval, bullet_launch_timer, death_anim, direction, update_mode
+    cdef public long _type, bonus_dropped, die_score, frame, life, death_flags, current_laser_id, low_life_trigger, timeout, remaining_lives, bullet_launch_interval, bullet_launch_timer, death_anim, direction, update_mode
     cdef public bint visible, was_visible, touchable, collidable, damageable, boss, automatic_orientation, delay_attack
     cdef public tuple difficulty_coeffs, extended_bullet_attributes, bullet_attributes, bullet_launch_offset, movement_dependant_sprites, screen_box
+    cdef public Callback death_callback, boss_callback, low_life_callback, timeout_callback
     cdef public dict laser_by_id
     cdef public list aux_anm
     cdef public Interpolator interpolator, speed_interpolator
