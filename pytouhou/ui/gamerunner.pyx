@@ -49,7 +49,7 @@ cdef class GameRunner(Runner):
         self.game = game
         self.background = background
 
-        self.renderer.texture_manager.load(self.resource_loader.instanced_anms.values())
+        self.renderer.texture_manager.load(self.resource_loader.instanced_anms)
         self.renderer.load_background(background)
 
         self.set_input(replay)

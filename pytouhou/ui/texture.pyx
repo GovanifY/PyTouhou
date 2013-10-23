@@ -39,8 +39,8 @@ class TextureManager(object):
         self.renderer = renderer
 
 
-    def load(self, anm_list):
-        for anm in sorted(anm_list, key=lambda x: x[0].first_name.endswith('ascii.png')):
+    def load(self, anms):
+        for anm in sorted(anms.values(), key=lambda x: x[0].first_name.endswith('ascii.png')):
             for entry in anm:
                 if not hasattr(entry, 'texture'):
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
@@ -49,6 +49,7 @@ class TextureManager(object):
                     entry.texture = load_texture(entry.texture)
                 self.renderer.add_texture(entry.texture)
                 entry.texture.renderer = self.renderer
+        anms.clear()
 
 
 cdef class FontManager:

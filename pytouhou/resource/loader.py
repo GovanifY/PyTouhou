@@ -101,7 +101,8 @@ class Loader(object):
         self.exe_files = []
         self.game_dir = game_dir
         self.known_files = {}
-        self.instanced_anms = {} #TODO: remove it someday.
+        self.instanced_anms = {}  # Cache for the textures.
+        self.loaded_anms = []  # For the double loading warnings.
 
 
     def scan_archives(self, paths_lists):
@@ -136,10 +137,13 @@ class Loader(object):
 
 
     def get_anm(self, name):
-        if name not in self.instanced_anms:
-            file = self.get_file(name)
-            self.instanced_anms[name] = ANM0.read(file)
-        return self.instanced_anms[name]
+        if name in self.loaded_anms:
+            logger.warn('ANM0 %s already loaded', name)
+        file = self.get_file(name)
+        anm = ANM0.read(file)
+        self.instanced_anms[name] = anm
+        self.loaded_anms.append(name)
+        return anm
 
 
     def get_stage(self, name):
