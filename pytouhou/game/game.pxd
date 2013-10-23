@@ -21,7 +21,7 @@ cdef class Game:
     cpdef disable_spellcard_effect(self)
     cdef void set_player_bomb(self) except *
     cdef void unset_player_bomb(self) except *
-    cpdef drop_bonus(self, double x, double y, long _type, end_pos=*)
+    cpdef drop_bonus(self, double x, double y, long _type, end_pos=*, player=*)
     cdef void autocollect(self, Player player) except *
     cdef void cancel_bullets(self) except *
     cdef void cancel_player_lasers(self) except *

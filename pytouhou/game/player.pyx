@@ -260,7 +260,7 @@ cdef class Player(Element):
                     self.continues_used += 1
 
                     for i in xrange(5):
-                        self._game.drop_bonus(self.x, self.y, 4,
+                        self._game.drop_bonus(self.x, self.y, 4, player=self,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
                     self.score = 0
@@ -272,11 +272,11 @@ cdef class Player(Element):
                     self.graze = 0
                     self.points = 0
                 else:
-                    self._game.drop_bonus(self.x, self.y, 2,
+                    self._game.drop_bonus(self.x, self.y, 2, player=self,
                                           end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
                                                    self._game.prng.rand_double() * 192 - 64))        # @0x41f3
                     for i in xrange(5):
-                        self._game.drop_bonus(self.x, self.y, 0,
+                        self._game.drop_bonus(self.x, self.y, 0, player=self,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
 

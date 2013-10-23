@@ -19,6 +19,7 @@ cdef class Item(Element):
     cdef double angle, speed
     cdef Game _game
     cdef Player player
+    cdef Element target
     cdef Indicator indicator
     cdef Interpolator speed_interpolator, pos_interpolator
 

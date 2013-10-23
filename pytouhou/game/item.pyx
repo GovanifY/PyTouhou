@@ -33,7 +33,9 @@ cdef class Indicator(Element):
 
 
 cdef class Item(Element):
-    def __init__(self, start_pos, long _type, ItemType item_type, Game game, double angle=pi/2, Player player=None, end_pos=None):
+    def __init__(self, start_pos, long _type, ItemType item_type, Game game,
+                 double angle=pi/2, player=None, end_pos=None,
+                 target=None):
         Element.__init__(self, start_pos)
 
         self._game = game
@@ -45,19 +47,22 @@ cdef class Item(Element):
         self.angle = angle
         self.indicator = None
 
-        if player is not None:
-            self.autocollect(player)
-        else:
-            self.player = None
+        # The only player allowed to collect that item. If not None,
+        # autocollection is disabled too.
+        self.player = player
 
-            #TODO: find the formulae in the binary.
-            self.speed_interpolator = None
-            if end_pos:
-                self.pos_interpolator = Interpolator(start_pos, 0,
-                                                     end_pos, 60)
-            else:
-                self.speed_interpolator = Interpolator((-2.,), 0,
-                                                       (0.,), 60)
+        # The player who has autocollected that item.
+        # TODO: do we allow stealing in case another player is in the way?
+        self.target = target
+
+        #TODO: find the formulae in the binary.
+        self.speed_interpolator = None
+        if end_pos:
+            self.pos_interpolator = Interpolator(start_pos, 0,
+                                                 end_pos, 60)
+        else:
+            self.speed_interpolator = Interpolator((-2.,), 0,
+                                                   (0.,), 60)
 
         self.sprite.angle = angle
 
@@ -70,13 +75,16 @@ cdef class Item(Element):
 
 
     cdef void autocollect(self, Player player):
-        if self.player is None:
-            self.player = player
+        if self.target is None and self.player is None:
+            self.target = player
             self.speed = player.sht.autocollection_speed
 
 
     cdef void on_collect(self, Player player):
         cdef long level, poc
+
+        if not (self.player is None or self.player is player):
+            return
 
         old_power = player.power
         score = 0
@@ -163,8 +171,8 @@ cdef class Item(Element):
             self.speed_interpolator = Interpolator((0.,), 60,
                                                    (3.,), 180)
 
-        if self.player is not None:
-            self.angle = atan2(self.player.y - self.y, self.player.x - self.x)
+        if self.target is not None:
+            self.angle = atan2(self.target.y - self.y, self.target.x - self.x)
             self.x += cos(self.angle) * self.speed
             self.y += sin(self.angle) * self.speed
         elif self.speed_interpolator is None:

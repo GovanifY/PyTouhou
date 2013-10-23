@@ -129,13 +129,14 @@ cdef class Game:
         self.texts[4] = None
 
 
-    cpdef drop_bonus(self, double x, double y, long _type, end_pos=None):
+    cpdef drop_bonus(self, double x, double y, long _type, end_pos=None, player=None):
         if _type > 6:
             return
         if len(self.items) >= self.nb_bullets_max:
             return #TODO: check
         item_type = self.item_types[_type]
-        self.items.append(Item((x, y), _type, item_type, self, end_pos=end_pos))
+        self.items.append(Item((x, y), _type, item_type, self, end_pos=end_pos,
+                               player=player))
 
 
     cdef void autocollect(self, Player player):
@@ -165,15 +166,19 @@ cdef class Game:
         cdef Player player
         cdef Bullet bullet
         cdef Laser laser
+        cdef Item item
 
         player = min(self.players, key=select_player_key)
         item_type = self.item_types[6]
-        self.items.extend([Item((bullet.x, bullet.y), 6, item_type, self, player=player)
-                             for bullet in self.bullets])
+        items = [Item((bullet.x, bullet.y), 6, item_type, self)
+                 for bullet in self.bullets]
         for laser in self.lasers:
-            self.items.extend([Item(pos, 6, item_type, self, player=player)
-                                 for pos in laser.get_bullets_pos()])
+            items.extend([Item(pos, 6, item_type, self)
+                          for pos in laser.get_bullets_pos()])
             laser.cancel()
+        for item in items:
+            item.autocollect(player)
+        self.items.extend(items)
         self.bullets = []
 
 
