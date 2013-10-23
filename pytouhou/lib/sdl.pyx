@@ -12,6 +12,11 @@
 ## GNU General Public License for more details.
 ##
 
+from pytouhou.utils.helpers import get_logger
+
+logger = get_logger(__name__)
+
+
 GL_CONTEXT_MAJOR_VERSION = SDL_GL_CONTEXT_MAJOR_VERSION
 GL_CONTEXT_MINOR_VERSION = SDL_GL_CONTEXT_MINOR_VERSION
 GL_DOUBLEBUFFER = SDL_GL_DOUBLEBUFFER
@@ -56,8 +61,13 @@ class SDL(object):
 
         if self.sound:
             mix_init(0)
-            mix_open_audio(44100, MIX_DEFAULT_FORMAT, 2, 4096)
-            mix_allocate_channels(MAX_CHANNELS) #TODO: make it dependent on the SFX number.
+            try:
+                mix_open_audio(44100, MIX_DEFAULT_FORMAT, 2, 4096)
+            except SDLError as error:
+                logger.error(u'Impossible to set up audio subsystem: %s', error)
+                self.sound = False
+            else:
+                mix_allocate_channels(MAX_CHANNELS) #TODO: make it dependent on the SFX number.
 
     def __exit__(self, *args):
         if self.sound:
