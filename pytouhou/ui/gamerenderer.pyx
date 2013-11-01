@@ -24,6 +24,7 @@ from pytouhou.lib.opengl cimport \
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
+from .renderer cimport Texture
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -199,9 +200,9 @@ cdef class GameRenderer(Renderer):
             if label.shadow:
                 shadow_rect = Rect(label.x + 1, label.y + 1, label.width, label.height)
                 shadow = [black._replace(a=label.alpha)] * 4
-                self.render_quads([shadow_rect, rect], [shadow, gradient], label.texture)
+                self.render_quads([shadow_rect, rect], [shadow, gradient], (<Texture>label.texture).texture)
             else:
-                self.render_quads([rect], [gradient], label.texture)
+                self.render_quads([rect], [gradient], (<Texture>label.texture).texture)
 
 
     cdef void render_interface(self, interface, game_boss):

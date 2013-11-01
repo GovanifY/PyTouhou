@@ -16,55 +16,48 @@ from pytouhou.lib.opengl cimport \
          (glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER,
           GL_LINEAR, GL_BGRA, GL_RGBA, GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV,
-          glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint,
-          glDeleteTextures)
+          glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint)
 
-from pytouhou.lib.sdl cimport load_png, create_rgb_surface, Font
+from pytouhou.lib.sdl cimport load_png, create_rgb_surface
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 from pytouhou.game.text cimport NativeText
 
 import os
 
 
-class TextureId(int):
-    def __del__(self):
-        cdef GLuint texture = self
-        glDeleteTextures(1, &texture)
-        self.renderer.remove_texture(self)
-
-
-class TextureManager(object):
-    def __init__(self, loader=None, renderer=None):
+cdef class TextureManager:
+    def __init__(self, loader=None, renderer=None, texture_class=None):
         self.loader = loader
         self.renderer = renderer
+        self.texture_class = texture_class
 
 
-    def load(self, anms):
-        for anm in sorted(anms.values(), key=lambda x: x[0].first_name.endswith('ascii.png')):
+    cdef load(self, dict anms):
+        for anm in sorted(anms.values(), key=is_ascii):
             for entry in anm:
                 if not hasattr(entry, 'texture'):
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
-                    entry.texture = load_texture(texture)
-                elif not isinstance(entry.texture, TextureId):
-                    entry.texture = load_texture(entry.texture)
-                self.renderer.add_texture(entry.texture)
-                entry.texture.renderer = self.renderer
+                elif not isinstance(entry.texture, self.texture_class):
+                    texture = entry.texture
+                entry.texture = self.texture_class(load_texture(texture), self.renderer)
         anms.clear()
 
 
-cdef class FontManager:
-    cdef Font font
-    cdef object renderer
+def is_ascii(anm):
+    return anm[0].first_name.endswith('ascii.png')
 
-    def __init__(self, fontname, fontsize=16, renderer=None):
+
+cdef class FontManager:
+    def __init__(self, fontname, fontsize=16, renderer=None, texture_class=None):
         self.font = Font(fontname, fontsize)
         self.renderer = renderer
+        self.texture_class = texture_class
 
 
-    def load(self, label_list):
+    cdef load(self, list labels):
         cdef NativeText label
 
-        for label in label_list:
+        for label in labels:
             if label.texture is None:
                 surface = self.font.render(label.text)
                 label.width, label.height = surface.surface.w, surface.surface.h
@@ -77,8 +70,7 @@ cdef class FontManager:
                     assert label.align == 'left'
 
                 texture = Texture(label.width, label.height, -4, surface.pixels)
-                label.texture = load_texture(texture)
-                label.texture.renderer = self.renderer
+                label.texture = self.texture_class(load_texture(texture), self.renderer)
 
 
 cdef decode_png(loader, first_name, secondary_name):
@@ -102,7 +94,7 @@ cdef decode_png(loader, first_name, secondary_name):
     return Texture(width, height, -4, new_image.pixels)
 
 
-cdef load_texture(thtx):
+cdef GLuint load_texture(thtx):
     cdef GLuint texture
 
     if thtx.fmt == 1:
@@ -140,4 +132,4 @@ cdef load_texture(thtx):
                  format_, type_,
                  <char*>thtx.data)
 
-    return TextureId(texture)
+    return texture

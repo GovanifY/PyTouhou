@@ -92,8 +92,8 @@ cdef class BackgroundRenderer:
 
                 nb_vertices += 4
 
-        self.texture = key % MAX_TEXTURES
-        self.blendfunc = key // MAX_TEXTURES
+        self.texture = key >> 1
+        self.blendfunc = key & 1
         self.nb_vertices = nb_vertices
         self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))
 

@@ -31,20 +31,26 @@ from pytouhou.lib.opengl cimport \
           GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_RGBA, GL_RENDERBUFFER,
           GL_DEPTH_COMPONENT, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
           GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
-          GL_DEPTH_BUFFER_BIT)
+          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures)
 
 from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .texture import TextureManager, FontManager
 
 from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
 
 
-DEF MAX_ELEMENTS = 640*4*3
+cdef class Texture:
+    def __cinit__(self, GLuint texture, Renderer renderer):
+        self.texture = texture
+        for i in xrange(2):
+            renderer.indices[texture][i] = self.indices[i]
+
+    def __dealloc__(self):
+        glDeleteTextures(1, &self.texture)
 
 
 cdef long find_objects(Renderer self, object elements) except -1:
@@ -64,23 +70,17 @@ cdef long find_objects(Renderer self, object elements) except -1:
 
 
 cdef class Renderer:
-    def __cinit__(self):
-        self.vertex_buffer = <Vertex*> malloc(MAX_ELEMENTS * sizeof(Vertex))
-
-
     def __dealloc__(self):
-        free(self.vertex_buffer)
-
         if not self.use_fixed_pipeline:
             glDeleteBuffers(1, &self.framebuffer_vbo)
             glDeleteBuffers(1, &self.vbo)
 
 
     def __init__(self, resource_loader):
-        self.texture_manager = TextureManager(resource_loader, self)
+        self.texture_manager = TextureManager(resource_loader, self, Texture)
         font_name = join(resource_loader.game_dir, 'font.ttf')
         try:
-            self.font_manager = FontManager(font_name, 16, self)
+            self.font_manager = FontManager(font_name, 16, self, Texture)
         except SDLError:
             self.font_manager = None
             logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
@@ -90,36 +90,29 @@ cdef class Renderer:
             glGenBuffers(1, &self.framebuffer_vbo)
 
 
-    def add_texture(self, int texture):
-        for i in xrange(2):
-            self.indices[i][texture] = <unsigned short*> malloc(65536 * sizeof(unsigned short))
-
-
-    def remove_texture(self, int texture):
-        for i in xrange(2):
-            free(self.indices[i][texture])
-
-
     cdef void render_elements(self, elements):
         cdef int key
         cdef int x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, ox, oy
         cdef float left, right, bottom, top
         cdef unsigned char r, g, b, a
 
+        nb_elements = find_objects(self, elements)
+        if not nb_elements:
+            return
+
         nb_vertices = 0
         memset(self.last_indices, 0, sizeof(self.last_indices))
 
-        nb_elements = find_objects(self, elements)
         for element_idx in xrange(nb_elements):
             element = <object>self.elements[element_idx]
             sprite = element.sprite
             ox, oy = element.x, element.y
             key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
 
-            blendfunc = key // MAX_TEXTURES
-            texture = key % MAX_TEXTURES
+            blendfunc = key & 1
+            texture = key >> 1
 
-            rec = self.indices[blendfunc][texture]
+            rec = self.indices[texture][blendfunc]
             next_indice = self.last_indices[key]
 
             # Pack data in buffer
@@ -142,9 +135,6 @@ cdef class Renderer:
 
             nb_vertices += 4
 
-        if nb_vertices == 0:
-            return
-
         if self.use_fixed_pipeline:
             glVertexPointer(3, GL_INT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
@@ -161,23 +151,34 @@ cdef class Renderer:
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
             glEnableVertexAttribArray(2)
 
+        # Don’t change the state when it’s not needed.
+        previous_blendfunc = -1
+        previous_texture = -1
+
         for key in xrange(2 * MAX_TEXTURES):
             nb_indices = self.last_indices[key]
             if not nb_indices:
                 continue
 
-            blendfunc = key // MAX_TEXTURES
-            texture = key % MAX_TEXTURES
+            blendfunc = key & 1
+            texture = key >> 1
 
-            glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
-            glBindTexture(GL_TEXTURE_2D, texture)
-            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[blendfunc][texture])
+            if blendfunc != previous_blendfunc:
+                glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
+            if texture != previous_texture:
+                glBindTexture(GL_TEXTURE_2D, texture)
+            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
+
+            previous_blendfunc = blendfunc
+            previous_texture = texture
+
+        glBindTexture(GL_TEXTURE_2D, 0)
 
         if not self.use_fixed_pipeline:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cdef void render_quads(self, rects, colors, texture):
+    cdef void render_quads(self, rects, colors, GLuint texture):
         # There is nothing that batch more than two quads on the same texture, currently.
         cdef Vertex buf[8]
         cdef unsigned short indices[12]
