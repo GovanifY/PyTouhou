@@ -38,7 +38,7 @@ game_group.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, hel
 game_group.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 game_group.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses.')
 game_group.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
-game_group.add_argument('--interface', metavar='INTERFACE', choices=['EoSD'], default='EoSD', help='Select the interface to use.')
+game_group.add_argument('--interface', metavar='INTERFACE', choices=['EoSD', 'Sample'], default='EoSD', help='Select the interface to use.')
 game_group.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 
 replay_group = parser.add_argument_group('Replay options')
@@ -72,6 +72,8 @@ if args.game == 'EoSD':
 
 if args.interface == 'EoSD':
     from pytouhou.interfaces.eosd import EoSDInterface as Interface
+elif args.interface == 'Sample':
+    from pytouhou.interfaces.sample import SampleInterface as Interface
 
 
 from pytouhou.lib.sdl import SDL, show_simple_message_box

@@ -75,13 +75,15 @@ class GameRenderer(object):
 
 
     def render_interface(self, interface, boss):
-        interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
+        interface_labels = interface.labels
+        if 'framerate' in interface_labels:
+            interface_labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
 
         self.window.win.render_set_viewport(Rect(0, 0, interface.width, interface.height))
         self.window.win.render_set_clip_rect(Rect(0, 0, interface.width, interface.height))
 
         items = [item for item in interface.items if item.anmrunner and item.anmrunner.running]
-        labels = interface.labels.values()
+        labels = interface_labels.values()
 
         if items:
             # Redraw all the interface

@@ -165,8 +165,11 @@ cdef class GameRunner(Runner):
         else:
             self.game.run_iter([keystate])
 
-        if self.window is not None:
-            self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
+        labels = self.game.interface.labels
+        if self.window is not None and 'framerate' in labels:
+            labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
+
         if not self.skip and self.renderer is not None:
             self.renderer.render(self.game)
+
         return True
