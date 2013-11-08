@@ -13,7 +13,7 @@
 ##
 
 from pytouhou.game.sprite cimport Sprite
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 
 from pytouhou.game.game cimport Game
 

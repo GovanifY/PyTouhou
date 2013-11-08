@@ -15,7 +15,7 @@
 from libc.math cimport cos, sin, M_PI as pi
 
 from pytouhou.game.game cimport Game
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 
 
 cdef class LaserLaunchAnim(Element):

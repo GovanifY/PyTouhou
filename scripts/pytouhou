@@ -65,16 +65,10 @@ args = parser.parse_args()
 import sys
 import logging
 
-if args.backend == 'opengl':
-    try:
-        from pytouhou.ui.opengl.gamerenderer import GameRenderer
-        opengl = True
-    except ImportError:
-        args.backend = 'sdl'
 
-if args.backend == 'sdl':
-    from pytouhou.ui.sdl.gamerenderer import GameRenderer
-    opengl = False
+if args.game == 'EoSD':
+    from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
+
 
 from pytouhou.lib.sdl import SDL, show_simple_message_box
 from pytouhou.ui.window import Window
@@ -88,8 +82,16 @@ from pytouhou.formats.hint import Hint
 from pytouhou.network import Network
 
 
-if args.game == 'EoSD':
-    from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
+if args.backend == 'opengl':
+    try:
+        from pytouhou.ui.opengl.gamerenderer import GameRenderer
+        opengl = True
+    except ImportError:
+        args.backend = 'sdl'
+
+if args.backend == 'sdl':
+    from pytouhou.ui.sdl.gamerenderer import GameRenderer
+    opengl = False
 
 
 class GameBossRush(Game):

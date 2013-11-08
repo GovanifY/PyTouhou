@@ -15,7 +15,7 @@
 from libc.math cimport M_PI as pi
 
 from pytouhou.game.sprite cimport Sprite
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 from pytouhou.game.bullettype cimport BulletType
 from pytouhou.game.bullet cimport Bullet
 from pytouhou.game.lasertype cimport LaserType

@@ -14,7 +14,7 @@
 
 from libc.math cimport cos, sin, atan2, M_PI as pi
 
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 from pytouhou.game.sprite cimport Sprite
 
 

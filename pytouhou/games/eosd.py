@@ -24,7 +24,7 @@ from pytouhou.game.effect import Effect
 from pytouhou.game.text import Text, Counter, Gauge, NativeText
 from pytouhou.game.background import Background
 
-from pytouhou.vm.eclrunner import ECLMainRunner
+from pytouhou.vm import ECLMainRunner
 
 
 class EoSDCommon(object):

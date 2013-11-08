@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 
 
 class Glyph(Element):

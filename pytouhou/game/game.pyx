@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from pytouhou.vm.msgrunner import MSGRunner
+from pytouhou.vm import MSGRunner
 
 from pytouhou.game.element cimport Element
 from pytouhou.game.bullet cimport Bullet, LAUNCHED, CANCELLED

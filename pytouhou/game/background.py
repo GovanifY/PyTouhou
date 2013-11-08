@@ -14,7 +14,7 @@
 
 
 from pytouhou.utils.interpolator import Interpolator
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 

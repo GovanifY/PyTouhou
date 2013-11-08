@@ -16,7 +16,7 @@ from pytouhou.lib.opengl cimport \
          (glClearColor, glClear, GL_COLOR_BUFFER_BIT)
 
 from pytouhou.game.sprite import Sprite
-from pytouhou.vm.anmrunner import ANMRunner
+from pytouhou.vm import ANMRunner
 
 from pytouhou.utils.helpers import get_logger
 from pytouhou.utils.maths cimport perspective, setup_camera
