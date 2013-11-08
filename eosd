@@ -92,10 +92,10 @@ class GameBossRush(Game):
         if not (self.boss or self.msg_wait or boss_wait):
             self.enemies = [enemy for enemy in self.enemies
                             if enemy.boss_callback or enemy.frame > 1]
+            for laser in self.lasers:
+                if laser.frame <= 1:
+                    laser.removed = True
             self.lasers = [laser for laser in self.lasers if laser.frame > 1]
-            self.effects = [effect for effect in self.effects
-                            if not hasattr(effect, '_laser')
-                            or effect._laser in self.lasers]
             self.bullets = [bullet for bullet in self.bullets if bullet.frame > 1]
         Game.cleanup(self)
 
