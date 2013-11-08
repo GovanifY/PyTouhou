@@ -73,13 +73,13 @@ if args.game == 'EoSD':
 
 
 class GameBossRush(Game):
-    def run_iter(self, keystate):
+    def run_iter(self, keystates):
         for i in range(20):
             skip = not (self.enemies or self.items or self.lasers
                         or self.bullets or self.cancelled_bullets)
             if skip:
-                keystate &= ~1
-            Game.run_iter(self, keystate | 256 if i == 0 else 0)
+                keystates = [k & ~1 for k in keystates]
+            Game.run_iter(self, [0 if i else k | 256 for k in keystates])
             if not self.enemies and self.frame % 90 == 0:
                 for player in self.players:
                     if player.power < 128:
@@ -91,7 +91,7 @@ class GameBossRush(Game):
         boss_wait = any(ecl_runner.boss_wait for ecl_runner in self.ecl_runners)
         if not (self.boss or self.msg_wait or boss_wait):
             self.enemies = [enemy for enemy in self.enemies
-                            if enemy.boss_callback != -1 or enemy.frame > 1]
+                            if enemy.boss_callback or enemy.frame > 1]
             self.lasers = [laser for laser in self.lasers if laser.frame > 1]
             self.effects = [effect for effect in self.effects
                             if not hasattr(effect, '_laser')
