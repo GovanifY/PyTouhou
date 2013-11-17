@@ -396,6 +396,13 @@ cdef class Enemy(Element):
                 else:
                     damages //= 7
 
+            nb_players = len(self._game.players)
+            if nb_players > 1:
+                if damages <= nb_players:
+                    damages = 1 if damages else 0
+                else:
+                    damages //= nb_players
+
             # Apply damages
             self.life -= damages
 
