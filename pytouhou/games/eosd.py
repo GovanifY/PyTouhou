@@ -102,7 +102,7 @@ class EoSDCommon(object):
 
 class EoSDGame(Game):
     def __init__(self, resource_loader, stage, rank, difficulty,
-                 common, prng=None, hints=None, friendly_fire=True,
+                 common, prng, hints=None, friendly_fire=True,
                  nb_bullets_max=640):
 
         self.etama = common.etama #XXX

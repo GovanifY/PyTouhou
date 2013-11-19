@@ -30,9 +30,9 @@ cdef class GameRunner(Runner):
     cdef list save_keystates
     cdef bint skip
 
-    def __init__(self, Window window, common, resource_loader, bint skip=False,
-                 con=None):
-        self.renderer = GameRenderer(resource_loader, window.use_fixed_pipeline)
+    def __init__(self, Window window, GameRenderer renderer, common,
+                 resource_loader, bint skip=False, con=None):
+        self.renderer = renderer
         self.common = common
         self.resource_loader = resource_loader
 
@@ -49,8 +49,9 @@ cdef class GameRunner(Runner):
         self.game = game
         self.background = background
 
-        self.renderer.texture_manager.load(self.resource_loader.instanced_anms)
-        self.renderer.load_background(background)
+        if self.renderer is not None:
+            self.renderer.texture_manager.load(self.resource_loader.instanced_anms)
+            self.renderer.load_background(background)
 
         self.set_input(replay)
         if replay and replay.levels[game.stage - 1]:
@@ -81,28 +82,30 @@ cdef class GameRunner(Runner):
 
     @cython.cdivision(True)
     cdef void set_renderer_size(self, long width, long height) nogil:
-        runner_width = float(self.width)
-        runner_height = float(self.height)
+        if self.renderer is not None:
+            runner_width = float(self.width)
+            runner_height = float(self.height)
 
-        scale = min(width / runner_width,
-                    height / runner_height)
+            scale = min(width / runner_width,
+                        height / runner_height)
 
-        self.renderer.width = int(runner_width * scale)
-        self.renderer.height = int(runner_height * scale)
+            self.renderer.width = int(runner_width * scale)
+            self.renderer.height = int(runner_height * scale)
 
-        self.renderer.x = (width - self.renderer.width) // 2
-        self.renderer.y = (height - self.renderer.height) // 2
+            self.renderer.x = (width - self.renderer.width) // 2
+            self.renderer.y = (height - self.renderer.height) // 2
 
 
     cdef void start(self) except *:
-        self.set_renderer_size(self.width, self.height)
-        self.renderer.start(self.common)
+        if self.renderer is not None:
+            self.set_renderer_size(self.width, self.height)
+            self.renderer.start(self.common)
 
 
     cdef bint update(self) except *:
         cdef long keystate
 
-        if self.background:
+        if self.background is not None:
             self.background.update(self.game.frame)
         for event in sdl.poll_events():
             type_ = event[0]
@@ -116,47 +119,48 @@ cdef class GameRunner(Runner):
                 event_ = event[1]
                 if event_ == sdl.WINDOWEVENT_RESIZED:
                     self.set_renderer_size(event[2], event[3])
-                    self.window.set_size(event[2], event[3])
-        if self.game:
-            if self.replay_level is None:
-                #TODO: allow user settings
-                keys = sdl.get_keyboard_state()
+                    if self.window is not None:
+                        self.window.set_size(event[2], event[3])
+        if self.replay_level is None:
+            #TODO: allow user settings
+            keys = sdl.get_keyboard_state()
+            keystate = 0
+            if keys[sdl.SCANCODE_Z]:
+                keystate |= 1
+            if keys[sdl.SCANCODE_X]:
+                keystate |= 2
+            if keys[sdl.SCANCODE_LSHIFT]:
+                keystate |= 4
+            if keys[sdl.SCANCODE_UP]:
+                keystate |= 16
+            if keys[sdl.SCANCODE_DOWN]:
+                keystate |= 32
+            if keys[sdl.SCANCODE_LEFT]:
+                keystate |= 64
+            if keys[sdl.SCANCODE_RIGHT]:
+                keystate |= 128
+            if keys[sdl.SCANCODE_LCTRL]:
+                keystate |= 256
+        else:
+            try:
+                keystate = self.keys.next()
+            except StopIteration:
                 keystate = 0
-                if keys[sdl.SCANCODE_Z]:
-                    keystate |= 1
-                if keys[sdl.SCANCODE_X]:
-                    keystate |= 2
-                if keys[sdl.SCANCODE_LSHIFT]:
-                    keystate |= 4
-                if keys[sdl.SCANCODE_UP]:
-                    keystate |= 16
-                if keys[sdl.SCANCODE_DOWN]:
-                    keystate |= 32
-                if keys[sdl.SCANCODE_LEFT]:
-                    keystate |= 64
-                if keys[sdl.SCANCODE_RIGHT]:
-                    keystate |= 128
-                if keys[sdl.SCANCODE_LCTRL]:
-                    keystate |= 256
-            else:
-                try:
-                    keystate = self.keys.next()
-                except StopIteration:
-                    keystate = 0
-                    if self.skip:
-                        self.set_input()
-                        self.skip = False
-                        self.game.sfx_player = SFXPlayer(self.resource_loader)
+                if self.skip:
+                    self.set_input()
+                    self.skip = False
+                    self.game.sfx_player = SFXPlayer(self.resource_loader)
 
-            if self.save_keystates is not None:
-                self.save_keystates.append(keystate)
+        if self.save_keystates is not None:
+            self.save_keystates.append(keystate)
 
-            if self.con is not None:
-                self.con.run_iter(self.game, keystate)
-            else:
-                self.game.run_iter([keystate])
+        if self.con is not None:
+            self.con.run_iter(self.game, keystate)
+        else:
+            self.game.run_iter([keystate])
 
+        if self.window is not None:
             self.game.interface.labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
-        if not self.skip:
+        if not self.skip and self.renderer is not None:
             self.renderer.render(self.game)
         return True
