@@ -43,8 +43,8 @@ cdef class Particle(Effect):
         self.frame = 0
         self.duration = duration
 
-        random_pos = (self.x + amp * <double>game.prng.rand_double() - amp / 2,
-                      self.y + amp * <double>game.prng.rand_double() - amp / 2)
+        random_pos = (self.x + amp * game.prng.rand_double() - amp / 2,
+                      self.y + amp * game.prng.rand_double() - amp / 2)
 
         if not reverse:
             self.pos_interpolator = Interpolator((self.x, self.y), 0,

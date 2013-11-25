@@ -133,8 +133,11 @@ cdef class Enemy(Element):
 
 
     cpdef set_bullet_attributes(self, type_, anim, sprite_idx_offset,
-                                bullets_per_shot, number_of_shots, speed, speed2,
-                                launch_angle, angle, flags):
+                                unsigned long bullets_per_shot,
+                                unsigned long number_of_shots, double speed,
+                                double speed2, launch_angle, angle, flags):
+        cdef double speed_a, speed_b
+        cdef long nb_a, nb_b, shots_a, shots_b
 
         # Apply difficulty-specific modifiers
         speed_a, speed_b, nb_a, nb_b, shots_a, shots_b = self.difficulty_coeffs
@@ -142,8 +145,8 @@ cdef class Enemy(Element):
 
         speed += speed_a * (1. - diff_coeff) + speed_b * diff_coeff
         speed2 += (speed_a * (1. - diff_coeff) + speed_b * diff_coeff) / 2.
-        bullets_per_shot += int(nb_a * (1. - diff_coeff) + nb_b * diff_coeff)
-        number_of_shots += int(shots_a * (1. - diff_coeff) + shots_b * diff_coeff)
+        bullets_per_shot += <long>(nb_a * (1. - diff_coeff) + nb_b * diff_coeff)
+        number_of_shots += <long>(shots_a * (1. - diff_coeff) + shots_b * diff_coeff)
 
         self.bullet_attributes = (type_, anim, sprite_idx_offset, bullets_per_shot,
                                   number_of_shots, speed, speed2, launch_angle,
@@ -155,13 +158,16 @@ cdef class Enemy(Element):
     cpdef set_bullet_launch_interval(self, long value, unsigned long start=0):
         # Apply difficulty-specific modifiers:
         #TODO: check every value possible! Look around 102h.exe@0x408720
-        value -= value * (<long>self._game.difficulty - 16) // 80
+        value -= value * (self._game.difficulty - 16) // 80
 
         self.bullet_launch_interval = value
         self.bullet_launch_timer = start % value if value > 0 else 0
 
 
-    cpdef fire(self, offset=None, bullet_attributes=None, launch_pos=None):
+    cpdef fire(self, offset=None, bullet_attributes=None, tuple launch_pos=None):
+        cdef unsigned long type_, bullets_per_shot, number_of_shots
+        cdef double speed, speed2, launch_angle, angle
+
         (type_, type_idx, sprite_idx_offset, bullets_per_shot, number_of_shots,
          speed, speed2, launch_angle, angle, flags) = bullet_attributes or self.bullet_attributes
 
@@ -214,12 +220,16 @@ cdef class Enemy(Element):
                     bullet_angle += angle
 
 
-    cpdef new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
-                    start_offset, end_offset, max_length, width,
-                    start_duration, duration, end_duration,
+    cpdef new_laser(self, unsigned long variant, laser_type, sprite_idx_offset,
+                    double angle, speed, start_offset, end_offset, max_length,
+                    width, start_duration, duration, end_duration,
                     grazing_delay, grazing_extra_duration, unknown,
-                    offset=None):
-        ox, oy = offset or self.bullet_launch_offset
+                    tuple offset=None):
+        cdef double ox, oy
+
+        if offset is None:
+            offset = self.bullet_launch_offset
+        ox, oy = offset
         launch_pos = self.x + ox, self.y + oy
         if variant == 86:
             angle += self.get_player_angle(launch_pos)
@@ -272,13 +282,14 @@ cdef class Enemy(Element):
         self.aux_anm[number] = Effect((self.x, self.y), index, self._anms[entry])
 
 
-    cpdef set_pos(self, x, y, z):
+    cpdef set_pos(self, double x, double y, double z):
         self.x, self.y = x, y
         self.update_mode = 1
         self.interpolator = Interpolator((x, y), self._game.frame)
 
 
-    cpdef move_to(self, duration, x, y, z, formula):
+    cpdef move_to(self, unsigned long duration, double x, double y, double z,
+                  formula):
         frame = self._game.frame
         self.speed_interpolator = None
         self.update_mode = 1
@@ -289,7 +300,7 @@ cdef class Enemy(Element):
         self.angle = atan2(y - self.y, x - self.x)
 
 
-    cpdef stop_in(self, duration, formula):
+    cpdef stop_in(self, unsigned long duration, formula):
         frame = self._game.frame
         self.interpolator = None
         self.update_mode = 1

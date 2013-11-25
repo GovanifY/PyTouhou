@@ -29,7 +29,7 @@ class GameOver(Exception):
 cdef class Player(Element):
     def __init__(self, long number, anm, long character=0, long power=0,
                  long continues=0, long lives=2, long bombs=3, long score=0):
-        Element.__init__(self)
+        Element.__init__(self, (192, 384))
 
         self.number = number
         self.character = character # ReimuA/ReimuB/MarisaA/MarisaB/...
@@ -47,9 +47,6 @@ cdef class Player(Element):
 
         self.graze = 0
         self.points = 0
-
-        self.x = 192.0
-        self.y = 384.0
 
         self.invulnerable_time = 240
         self.touchable = True

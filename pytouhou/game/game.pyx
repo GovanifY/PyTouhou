@@ -26,8 +26,8 @@ from pytouhou.game.face import Face
 cdef class Game:
     def __init__(self, players, long stage, long rank, long difficulty, bullet_types,
                  laser_types, item_types, long nb_bullets_max=0, long width=384,
-                 long height=448, prng=None, interface=None, hints=None,
-                 friendly_fire=True):
+                 long height=448, Random prng=None, interface=None, hints=None,
+                 bint friendly_fire=True):
         self.width, self.height = width, height
 
         self.nb_bullets_max = nb_bullets_max
@@ -85,7 +85,7 @@ cdef class Game:
         return [laser for laser in self.players_lasers if laser is not None]
 
 
-    cdef void modify_difficulty(self, long diff):
+    cdef void modify_difficulty(self, long diff) nogil:
         self.difficulty_counter += diff
         while self.difficulty_counter < 0:
             self.difficulty -= 1
@@ -269,6 +269,7 @@ cdef class Game:
 
     cpdef run_iter(self, list keystates):
         cdef Laser laser
+        cdef long i
 
         # 1. VMs.
         for runner in self.ecl_runners:

@@ -28,20 +28,19 @@ It has been reverse engineered from 102h.exe."""
 
 from time import time
 
-class Random(object):
-    def __init__(self, seed=None):
-        if seed is None:
-            seed = int(time() % 65536)
+cdef class Random:
+    def __init__(self, long seed=-1):
+        if seed < 0:
+            seed = time()
+        self.set_seed(<unsigned short>(seed & 65535))
+
+
+    cdef void set_seed(self, unsigned short seed) nogil:
         self.seed = seed
         self.counter = 0
 
 
-    def set_seed(self, seed):
-        self.seed = seed
-        self.counter = 0
-
-
-    def rewind(self):
+    cdef unsigned short rewind(self) nogil:
         """Rewind the PRNG by 1 step. This is the reverse of rand_uint16.
         Might be useful for debugging purposes.
         """
@@ -52,7 +51,7 @@ class Random(object):
         return self.seed
 
 
-    def rand_uint16(self):
+    cpdef unsigned short rand_uint16(self):
         # 102h.exe@0x41e780
         x = ((self.seed ^ 0x9630) - 0x6553) & 0xffff
         self.seed = (((x & 0xc000) >> 14) | (x << 2)) & 0xffff
@@ -60,14 +59,13 @@ class Random(object):
         return self.seed
 
 
-    def rand_uint32(self):
+    cpdef unsigned int rand_uint32(self):
         # 102h.exe@0x41e7f0
         a = self.rand_uint16() << 16
         a |= self.rand_uint16()
         return a
 
 
-    def rand_double(self):
+    cpdef double rand_double(self):
         # 102h.exe@0x41e820
-        return float(self.rand_uint32()) / 0x100000000
-
+        return self.rand_uint32() / <double>0x100000000

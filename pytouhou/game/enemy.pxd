@@ -28,24 +28,25 @@ cdef class Enemy(Element):
     cpdef play_sound(self, index)
     cpdef set_hitbox(self, double width, double height)
     cpdef set_bullet_attributes(self, type_, anim, sprite_idx_offset,
-                                bullets_per_shot, number_of_shots, speed, speed2,
-                                launch_angle, angle, flags)
+                                unsigned long bullets_per_shot,
+                                unsigned long number_of_shots, double speed,
+                                double speed2, launch_angle, angle, flags)
     cpdef set_bullet_launch_interval(self, long value, unsigned long start=*)
-    cpdef fire(self, offset=*, bullet_attributes=*, launch_pos=*)
-    cpdef new_laser(self, variant, laser_type, sprite_idx_offset, angle, speed,
-                    start_offset, end_offset, max_length, width,
-                    start_duration, duration, end_duration,
+    cpdef fire(self, offset=*, bullet_attributes=*, tuple launch_pos=*)
+    cpdef new_laser(self, unsigned long variant, laser_type, sprite_idx_offset,
+                    double angle, speed, start_offset, end_offset, max_length,
+                    width, start_duration, duration, end_duration,
                     grazing_delay, grazing_extra_duration, unknown,
-                    offset=*)
+                    tuple offset=*)
     cpdef Player select_player(self, list players=*)
     cpdef double get_player_angle(self, tuple pos=*, Player player=*) except 42
     cpdef set_anim(self, index)
     cdef void die_anim(self) except *
     cdef void drop_particles(self, long number, long color) except *
     cpdef set_aux_anm(self, long number, long index)
-    cpdef set_pos(self, x, y, z)
-    cpdef move_to(self, duration, x, y, z, formula)
-    cpdef stop_in(self, duration, formula)
+    cpdef set_pos(self, double x, double y, double z)
+    cpdef move_to(self, unsigned long duration, double x, double y, double z, formula)
+    cpdef stop_in(self, unsigned long duration, formula)
     cdef bint is_visible(self, long screen_width, long screen_height) except? False
     cdef void check_collisions(self) except *
     cdef void handle_callbacks(self) except *

@@ -1,22 +1,25 @@
 from pytouhou.game.effect cimport Effect
 from pytouhou.game.player cimport Player
 from pytouhou.game.text cimport Text, NativeText
+from pytouhou.utils.random cimport Random
 
 cdef class Game:
-    cdef public long width, height, nb_bullets_max, stage, rank, difficulty, difficulty_counter, difficulty_min, difficulty_max, frame, last_keystate
+    cdef public long width, height, nb_bullets_max, stage, rank, difficulty, difficulty_min, difficulty_max, frame
     cdef public list bullet_types, laser_types, item_types, players, enemies, effects, bullets, lasers, cancelled_bullets, players_bullets, players_lasers, items, labels, faces, texts, hints, bonus_list
-    cdef public object interface, boss, msg_runner, prng, sfx_player
+    cdef public object interface, boss, msg_runner, sfx_player
+    cdef public Random prng
     cdef public double continues
     cdef public Effect spellcard_effect
     cdef public tuple spellcard
     cdef public bint time_stop, msg_wait
     cdef public unsigned short deaths_count, next_bonus
 
+    cdef long difficulty_counter, last_keystate
     cdef bint friendly_fire
 
     cdef list msg_sprites(self)
     cdef list lasers_sprites(self)
-    cdef void modify_difficulty(self, long diff) except *
+    cdef void modify_difficulty(self, long diff) nogil
     cpdef enable_spellcard_effect(self)
     cpdef disable_spellcard_effect(self)
     cdef void set_player_bomb(self) except *
