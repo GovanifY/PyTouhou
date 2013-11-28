@@ -17,7 +17,6 @@ cimport cython
 from pytouhou.lib cimport sdl
 
 from .window cimport Window, Runner
-from .gamerenderer cimport GameRenderer
 from .music import MusicPlayer, SFXPlayer, NullPlayer
 from pytouhou.game.game cimport Game
 
@@ -25,13 +24,16 @@ from pytouhou.game.game cimport Game
 cdef class GameRunner(Runner):
     cdef object background, con, resource_loader, keys, replay_level, common
     cdef Game game
-    cdef GameRenderer renderer
     cdef Window window
     cdef list save_keystates
     cdef bint skip
 
-    def __init__(self, Window window, GameRenderer renderer, common,
-                 resource_loader, bint skip=False, con=None):
+    # Since we want to support multiple renderers, don’t specify its type.
+    #TODO: find a way to still specify its interface.
+    cdef object renderer
+
+    def __init__(self, Window window, renderer, common, resource_loader,
+                 bint skip=False, con=None):
         self.renderer = renderer
         self.common = common
         self.resource_loader = resource_loader
@@ -45,12 +47,13 @@ cdef class GameRunner(Runner):
         self.height = common.interface.height
 
 
-    def load_game(self, Game game, background=None, bgms=None, replay=None, save_keystates=None):
+    def load_game(self, Game game, background=None, bgms=None, replay=None,
+                  save_keystates=None):
         self.game = game
         self.background = background
 
         if self.renderer is not None:
-            self.renderer.texture_manager.load(self.resource_loader.instanced_anms)
+            self.renderer.load_textures(self.resource_loader.instanced_anms)
             self.renderer.load_background(background)
 
         self.set_input(replay)
@@ -63,7 +66,7 @@ cdef class GameRunner(Runner):
         self.save_keystates = save_keystates
 
         null_player = NullPlayer()
-        if bgms:
+        if bgms is not None:
             game.music = MusicPlayer(self.resource_loader, bgms)
             game.music.play(0)
         else:
@@ -81,7 +84,7 @@ cdef class GameRunner(Runner):
 
 
     @cython.cdivision(True)
-    cdef void set_renderer_size(self, long width, long height) nogil:
+    cdef void set_renderer_size(self, long width, long height) except *:
         if self.renderer is not None:
             runner_width = float(self.width)
             runner_height = float(self.height)
@@ -89,11 +92,13 @@ cdef class GameRunner(Runner):
             scale = min(width / runner_width,
                         height / runner_height)
 
-            self.renderer.width = int(runner_width * scale)
-            self.renderer.height = int(runner_height * scale)
+            new_width = <long>(runner_width * scale)
+            new_height = <long>(runner_height * scale)
 
-            self.renderer.x = (width - self.renderer.width) // 2
-            self.renderer.y = (height - self.renderer.height) // 2
+            x = (width - new_width) // 2
+            y = (height - new_height) // 2
+
+            self.renderer.size = x, y, new_width, new_height
 
 
     cdef void start(self) except *:

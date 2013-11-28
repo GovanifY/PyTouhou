@@ -10,9 +10,6 @@ cdef class GameRenderer(Renderer):
     cdef Framebuffer framebuffer
     cdef BackgroundRenderer background_renderer
 
-    cdef void load_background(self, background) except *
-    cdef void start(self, common) except *
-    cdef void render(self, Game game) except *
     cdef void render_game(self, Game game) except *
     cdef void render_text(self, texts) except *
     cdef void render_interface(self, interface, game_boss) except *

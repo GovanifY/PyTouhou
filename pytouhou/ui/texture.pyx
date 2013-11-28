@@ -32,7 +32,7 @@ cdef class TextureManager:
         self.texture_class = texture_class
 
 
-    cdef load(self, dict anms):
+    cdef void load(self, dict anms):
         for anm in sorted(anms.values(), key=is_ascii):
             for entry in anm:
                 if not hasattr(entry, 'texture'):
@@ -54,7 +54,7 @@ cdef class FontManager:
         self.texture_class = texture_class
 
 
-    cdef load(self, list labels):
+    cdef void load(self, list labels):
         cdef NativeText label
 
         for label in labels:

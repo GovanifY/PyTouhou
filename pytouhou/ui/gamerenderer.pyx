@@ -46,7 +46,17 @@ cdef class GameRenderer(Renderer):
             self.framebuffer = Framebuffer(0, 0, 640, 480)
 
 
-    cdef void load_background(self, background):
+    property size:
+        # We never need to get back the computed size, so size is write-only.
+        def __set__(self, tuple size):
+            self.x, self.y, self.width, self.height = size
+
+
+    def load_textures(self, dict anms):
+        self.texture_manager.load(anms)
+
+
+    def load_background(self, background):
         if background is not None:
             self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
             self.background_renderer.load(background)
@@ -54,7 +64,7 @@ cdef class GameRenderer(Renderer):
             self.background_renderer = None
 
 
-    cdef void start(self, common):
+    def start(self, common):
         self.proj = perspective(30, float(common.width) / float(common.height),
                                 101010101./2010101., 101010101./10101.)
         game_view = setup_camera(0, 0, 1)
@@ -63,7 +73,7 @@ cdef class GameRenderer(Renderer):
                                       float(common.interface.height), 0.)
 
 
-    cdef void render(self, Game game):
+    def render(self, Game game):
         if not self.use_fixed_pipeline:
             self.framebuffer.bind()
 
