@@ -1,5 +1,4 @@
 from pytouhou.lib cimport sdl
-from .gamerenderer cimport GameRenderer
 
 
 cdef class Clock:

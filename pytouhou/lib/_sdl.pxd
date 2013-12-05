@@ -42,7 +42,6 @@ cdef extern from "SDL_video.h" nogil:
     ctypedef enum SDL_WindowFlags:
         SDL_WINDOWPOS_CENTERED
         SDL_WINDOW_OPENGL
-        SDL_WINDOW_SHOWN
         SDL_WINDOW_RESIZABLE
 
     ctypedef struct SDL_Window:
@@ -192,3 +191,35 @@ cdef extern from "SDL_ttf.h" nogil:
     TTF_Font *TTF_OpenFont(const char *filename, int ptsize)
     void TTF_CloseFont(TTF_Font *font)
     SDL_Surface *TTF_RenderUTF8_Blended(TTF_Font *font, const char *text, SDL_Color fg)
+
+
+cdef extern from "SDL_blendmode.h" nogil:
+    ctypedef enum SDL_BlendMode:
+        SDL_BLENDMODE_NONE
+        SDL_BLENDMODE_BLEND
+        SDL_BLENDMODE_ADD
+        SDL_BLENDMODE_MOD
+
+
+cdef extern from "SDL_render.h" nogil:
+    ctypedef struct SDL_Renderer:
+        pass
+
+    ctypedef struct SDL_Texture:
+        pass
+
+    ctypedef struct SDL_Point:
+        pass
+
+    SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, int index, Uint32 flags)
+    void SDL_RenderPresent(SDL_Renderer *renderer)
+    int SDL_RenderClear(SDL_Renderer *renderer)
+    SDL_Texture *SDL_CreateTextureFromSurface(SDL_Renderer *renderer, SDL_Surface *surface)
+    int SDL_RenderCopy(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect)
+    int SDL_RenderCopyEx(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect, double angle, const SDL_Point *center, bint flip)
+    int SDL_RenderSetClipRect(SDL_Renderer *renderer, const SDL_Rect *rect)
+    int SDL_RenderSetViewport(SDL_Renderer *renderer, const SDL_Rect *rect)
+
+    int SDL_SetTextureColorMod(SDL_Texture *texture, Uint8 r, Uint8 g, Uint8 b)
+    int SDL_SetTextureAlphaMod(SDL_Texture *texture, Uint8 alpha)
+    int SDL_SetTextureBlendMode(SDL_Texture *texture, SDL_BlendMode blend_mode)

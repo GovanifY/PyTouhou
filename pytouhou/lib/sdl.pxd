@@ -46,10 +46,36 @@ cdef SDL_EventType WINDOWEVENT
 cdef class Window:
     cdef SDL_Window *window
     cdef SDL_GLContext context
+    cdef SDL_Renderer *renderer
 
     cdef void gl_create_context(self) except *
-    cdef void gl_swap_window(self) nogil
+    cdef void present(self) nogil
     cdef void set_window_size(self, int width, int height) nogil
+
+    # The following functions are there for the pure SDL backend.
+    cdef void create_renderer(self, Uint32 flags)
+    cdef void render_clear(self)
+    cdef void render_copy(self, Texture texture, Rect srcrect, Rect dstrect)
+    cdef void render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip)
+    cdef void render_set_clip_rect(self, Rect rect)
+    cdef void render_set_viewport(self, Rect rect)
+    cdef Texture create_texture_from_surface(self, Surface surface)
+
+
+cdef class Texture:
+    cdef SDL_Texture *texture
+
+    cpdef set_color_mod(self, Uint8 r, Uint8 g, Uint8 b)
+    cpdef set_alpha_mod(self, Uint8 alpha)
+    cpdef set_blend_mode(self, SDL_BlendMode blend_mode)
+
+
+cdef class Rect:
+    cdef SDL_Rect rect
+
+
+cdef class Color:
+    cdef SDL_Color color
 
 
 cdef class Surface:

@@ -24,7 +24,6 @@ GL_DEPTH_SIZE = SDL_GL_DEPTH_SIZE
 
 WINDOWPOS_CENTERED = SDL_WINDOWPOS_CENTERED
 WINDOW_OPENGL = SDL_WINDOW_OPENGL
-WINDOW_SHOWN = SDL_WINDOW_SHOWN
 WINDOW_RESIZABLE = SDL_WINDOW_RESIZABLE
 
 SCANCODE_Z = SDL_SCANCODE_Z
@@ -96,11 +95,85 @@ cdef class Window:
         if self.context == NULL:
             raise SDLError(SDL_GetError())
 
-    cdef void gl_swap_window(self) nogil:
-        SDL_GL_SwapWindow(self.window)
+    cdef void present(self) nogil:
+        if self.renderer == NULL:
+            SDL_GL_SwapWindow(self.window)
+        else:
+            SDL_RenderPresent(self.renderer)
 
     cdef void set_window_size(self, int width, int height) nogil:
         SDL_SetWindowSize(self.window, width, height)
+
+    # The following functions are there for the pure SDL backend.
+    cdef void create_renderer(self, Uint32 flags):
+        self.renderer = SDL_CreateRenderer(self.window, -1, flags)
+        if self.renderer == NULL:
+            raise SDLError(SDL_GetError())
+
+    cdef void render_clear(self):
+        ret = SDL_RenderClear(self.renderer)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cdef void render_copy(self, Texture texture, Rect srcrect, Rect dstrect):
+        ret = SDL_RenderCopy(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cdef void render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip):
+        ret = SDL_RenderCopyEx(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect, angle, NULL, flip)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cdef void render_set_clip_rect(self, Rect rect):
+        ret = SDL_RenderSetClipRect(self.renderer, &rect.rect)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cdef void render_set_viewport(self, Rect rect):
+        ret = SDL_RenderSetViewport(self.renderer, &rect.rect)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cdef Texture create_texture_from_surface(self, Surface surface):
+        texture = Texture()
+        texture.texture = SDL_CreateTextureFromSurface(self.renderer, surface.surface)
+        if texture.texture == NULL:
+            raise SDLError(SDL_GetError())
+        return texture
+
+
+cdef class Texture:
+    cpdef set_color_mod(self, Uint8 r, Uint8 g, Uint8 b):
+        ret = SDL_SetTextureColorMod(self.texture, r, g, b)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cpdef set_alpha_mod(self, Uint8 alpha):
+        ret = SDL_SetTextureAlphaMod(self.texture, alpha)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+    cpdef set_blend_mode(self, SDL_BlendMode blend_mode):
+        ret = SDL_SetTextureBlendMode(self.texture, blend_mode)
+        if ret == -1:
+            raise SDLError(SDL_GetError())
+
+
+cdef class Rect:
+    def __init__(self, int x, int y, int w, int h):
+        self.rect.x = x
+        self.rect.y = y
+        self.rect.w = w
+        self.rect.h = h
+
+
+cdef class Color:
+    def __init__(self, Uint8 b, Uint8 g, Uint8 r, Uint8 a=255):
+        self.color.r = r
+        self.color.g = g
+        self.color.b = b
+        self.color.a = a
 
 
 cdef class Surface:

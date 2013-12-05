@@ -32,8 +32,8 @@ Color = namedtuple('Color', 'r g b a')
 
 
 cdef class GameRenderer(Renderer):
-    def __init__(self, resource_loader, use_fixed_pipeline):
-        self.use_fixed_pipeline = use_fixed_pipeline #XXX
+    def __init__(self, resource_loader, window):
+        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
 
         Renderer.__init__(self, resource_loader)
 

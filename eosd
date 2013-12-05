@@ -49,6 +49,7 @@ parser.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', 
 parser.add_argument('--port', metavar='PORT', type=int, default=0, help='Local port to use for netplay')
 parser.add_argument('--remote', metavar='REMOTE', default=None, help='Remote address')
 parser.add_argument('--no-friendly-fire', action='store_false', help='Allow friendly-fire during netplay.')
+parser.add_argument('--backend', metavar='BACKEND', choices=['opengl', 'sdl'], default='opengl', help='Which backend to use (opengl or sdl for now).')
 
 args = parser.parse_args()
 
@@ -56,11 +57,17 @@ args = parser.parse_args()
 import sys
 import logging
 
+if args.backend == 'opengl':
+    from pytouhou.ui.gamerenderer import GameRenderer
+    opengl = True
+elif args.backend == 'sdl':
+    from pytouhou.ui.sdl.gamerenderer import GameRenderer
+    opengl = False
+
 from pytouhou.lib.sdl import SDL
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
-from pytouhou.ui.gamerenderer import GameRenderer
 from pytouhou.game.player import GameOver
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
@@ -167,7 +174,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
     game_class = GameBossRush if boss_rush else Game
 
     common = Common(resource_loader, characters, continues, stage_num - 1)
-    renderer = GameRenderer(resource_loader, window.use_fixed_pipeline)
+    renderer = GameRenderer(resource_loader, window)
     runner = GameRunner(window, renderer, common, resource_loader, skip_replay, con)
     window.set_runner(runner)
 
@@ -250,7 +257,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 with SDL():
     window = Window(double_buffer=(not args.single_buffer),
                     fps_limit=args.fps_limit,
-                    fixed_pipeline=args.fixed_pipeline)
+                    fixed_pipeline=args.fixed_pipeline, opengl=opengl)
 
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,

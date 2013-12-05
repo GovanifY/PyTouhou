@@ -102,8 +102,9 @@ cdef class Window:
 
             flags |= sdl.WINDOW_OPENGL
 
-        if not self.use_fixed_pipeline:
-            flags |= sdl.WINDOW_RESIZABLE
+            #TODO: implement it in the SDL backend too.
+            if not self.use_fixed_pipeline:
+                flags |= sdl.WINDOW_RESIZABLE
 
         self.win = sdl.Window('PyTouhou',
                               sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
@@ -126,6 +127,8 @@ cdef class Window:
                 glEnableClientState(GL_COLOR_ARRAY)
                 glEnableClientState(GL_VERTEX_ARRAY)
                 glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        else:
+            self.win.create_renderer(0)
 
         self.clock = Clock(self.fps_limit)
 
@@ -152,7 +155,7 @@ cdef class Window:
         cdef bint running = False
         if self.runner is not None:
             running = self.runner.update()
-        self.win.gl_swap_window()
+        self.win.present()
         self.clock.tick()
         return running
 

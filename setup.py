@@ -37,11 +37,14 @@ def get_arguments(arg, libraries):
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
     packages.append(package)
-    if package not in ('pytouhou.game', 'pytouhou.lib', 'pytouhou.ui', 'pytouhou.utils'):
+    if package not in ('pytouhou.game', 'pytouhou.lib', 'pytouhou.ui', 'pytouhou.utils', 'pytouhou.ui.sdl'):
         continue
     if package == 'pytouhou.ui':
         compile_args = get_arguments('--cflags', ['gl'] + SDL_LIBRARIES)
         link_args = get_arguments('--libs', ['gl'] + SDL_LIBRARIES)
+    elif package == 'pytouhou.ui.sdl':
+        compile_args = get_arguments('--cflags', SDL_LIBRARIES)
+        link_args = get_arguments('--libs', SDL_LIBRARIES)
     else:
         compile_args = None
         link_args = None
