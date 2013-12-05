@@ -87,17 +87,21 @@ cdef class Runner:
 
 cdef class Window:
     def __init__(self, bint double_buffer=True, long fps_limit=-1,
-                 bint fixed_pipeline=False, bint sound=True):
+                 bint fixed_pipeline=False, bint sound=True, bint opengl=True):
         self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
         self.runner = None
 
-        sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
-        sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
-        sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
-        sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
+        flags = sdl.WINDOW_SHOWN
 
-        flags = sdl.WINDOW_OPENGL | sdl.WINDOW_SHOWN
+        if opengl:
+            sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
+            sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
+            sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
+            sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
+
+            flags |= sdl.WINDOW_OPENGL
+
         if not self.use_fixed_pipeline:
             flags |= sdl.WINDOW_RESIZABLE
 
@@ -105,21 +109,23 @@ cdef class Window:
                               sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
                               640, 480, #XXX
                               flags)
-        self.win.gl_create_context()
 
-        IF USE_GLEW:
-            if glewInit() != 0:
-                raise Exception('GLEW init fail!')
+        if opengl:
+            self.win.gl_create_context()
 
-        # Initialize OpenGL
-        glEnable(GL_BLEND)
-        if self.use_fixed_pipeline:
-            glEnable(GL_TEXTURE_2D)
-            glHint(GL_FOG_HINT, GL_NICEST)
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-            glEnableClientState(GL_COLOR_ARRAY)
-            glEnableClientState(GL_VERTEX_ARRAY)
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+            IF USE_GLEW:
+                if glewInit() != 0:
+                    raise Exception('GLEW init fail!')
+
+            # Initialize OpenGL
+            glEnable(GL_BLEND)
+            if self.use_fixed_pipeline:
+                glEnable(GL_TEXTURE_2D)
+                glHint(GL_FOG_HINT, GL_NICEST)
+                glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+                glEnableClientState(GL_COLOR_ARRAY)
+                glEnableClientState(GL_VERTEX_ARRAY)
+                glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         self.clock = Clock(self.fps_limit)
 
@@ -153,7 +159,3 @@ cdef class Window:
 
     cdef double get_fps(self) nogil:
         return self.clock.get_fps()
-
-
-    def del_runner(self):
-        self.runner = None
