@@ -16,7 +16,7 @@
 from libc.math cimport M_PI as pi
 
 
-cpdef object get_sprite_rendering_data(Sprite sprite):
+cpdef tuple get_sprite_rendering_data(Sprite sprite):
     cdef double x, y, tx, ty, tw, th, sx, sy, rz, tox, toy
 
     if not sprite.changed:

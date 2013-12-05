@@ -19,17 +19,14 @@ from pytouhou.utils.matrix cimport Matrix
 from .renderer cimport Texture #XXX
 
 
-cpdef object get_sprite_rendering_data(Sprite sprite):
+cpdef tuple get_sprite_rendering_data(Sprite sprite):
     cdef double tx, ty, tw, th, sx, sy, rx, ry, rz, tox, toy
-    cdef object tmp1, tmp2
 
     if not sprite.changed:
         return sprite._rendering_data
 
-    tmp1 = .5
-    tmp2 = -.5
-    vertmat = Matrix([tmp2, tmp1, tmp1, tmp2,
-                      tmp2, tmp2, tmp1, tmp1,
+    vertmat = Matrix([-.5,   .5,   .5,  -.5,
+                      -.5,  -.5,   .5,   .5,
                       0,    0,    0,    0,
                       1,    1,    1,    1])
 
@@ -59,8 +56,9 @@ cpdef object get_sprite_rendering_data(Sprite sprite):
     if sprite.corner_relative_placement: # Reposition
         vertmat.translate(width / 2, height / 2, 0)
 
-    x_1 = 1 / <double>sprite.anm.size[0]
-    y_1 = 1 / <double>sprite.anm.size[1]
+    size = sprite.anm.size
+    x_1 = 1 / <double>size[0]
+    y_1 = 1 / <double>size[1]
     tox, toy = sprite.texoffsets
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,
