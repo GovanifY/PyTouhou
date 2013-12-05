@@ -4,7 +4,7 @@ import os
 import sys
 from distutils.core import setup
 from distutils.extension import Extension
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 # Cython is needed
 try:
@@ -17,15 +17,28 @@ except ImportError:
 
 COMMAND = 'pkg-config'
 SDL_LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
+GL_LIBRARIES = ['gl']
 
 packages = []
 extension_names = []
 extensions = []
 
 
+# Check for gl.pc, and don’t compile the OpenGL backend if it isn’t present.
+try:
+    check_output([COMMAND] + GL_LIBRARIES)
+except CalledProcessError:
+    use_opengl = False
+else:
+    use_opengl = True
+
+
 def get_arguments(arg, libraries):
     try:
         return check_output([COMMAND, arg] + libraries).split()
+    except CalledProcessError:
+        # The error has already been displayed, just exit.
+        sys.exit(1)
     except OSError:
         print('You don’t seem to have pkg-config installed. Please get a copy '
               'from http://pkg-config.freedesktop.org/ and install it.\n'
@@ -34,32 +47,50 @@ def get_arguments(arg, libraries):
         sys.exit(1)
 
 
+try:
+    sdl_args = {'extra_compile_args': get_arguments('--cflags', SDL_LIBRARIES),
+                'extra_link_args': get_arguments('--libs', SDL_LIBRARIES)}
+
+    if use_opengl:
+        opengl_args = {'extra_compile_args': get_arguments('--cflags', GL_LIBRARIES + SDL_LIBRARIES),
+                       'extra_link_args': get_arguments('--libs', GL_LIBRARIES + SDL_LIBRARIES)}
+except CalledProcessError:
+    # The error has already been displayed, just exit.
+    sys.exit(1)
+except OSError:
+    # pkg-config is needed too.
+    print('You don’t seem to have pkg-config installed. Please get a copy '
+          'from http://pkg-config.freedesktop.org/ and install it.\n'
+          'If you prefer to use it from somewhere else, just modify the '
+          'setup.py script.')
+    sys.exit(1)
+
+
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
     packages.append(package)
-    if package not in ('pytouhou.game', 'pytouhou.lib', 'pytouhou.ui', 'pytouhou.utils', 'pytouhou.ui.sdl'):
+    if package not in ('pytouhou.game', 'pytouhou.lib', 'pytouhou.utils') and not package.startswith('pytouhou.ui'):
         continue
-    if package == 'pytouhou.ui':
-        compile_args = get_arguments('--cflags', ['gl'] + SDL_LIBRARIES)
-        link_args = get_arguments('--libs', ['gl'] + SDL_LIBRARIES)
-    elif package == 'pytouhou.ui.sdl':
-        compile_args = get_arguments('--cflags', SDL_LIBRARIES)
-        link_args = get_arguments('--libs', SDL_LIBRARIES)
+    if package == 'pytouhou.ui' or package == 'pytouhou.ui.sdl':
+        package_args = sdl_args
+    elif package == 'pytouhou.ui.opengl':
+        package_args = opengl_args
     else:
-        compile_args = None
-        link_args = None
+        package_args = {}
     for filename in files:
         if (filename.endswith('.pyx') or filename.endswith('.py') and
                 not filename == '__init__.py'):
             extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
             extension_names.append(extension_name)
             if extension_name == 'pytouhou.lib.sdl':
-                compile_args = get_arguments('--cflags', SDL_LIBRARIES)
-                link_args = get_arguments('--libs', SDL_LIBRARIES)
+                compile_args = sdl_args
+            elif extension_name == 'pytouhou.ui.window' and use_opengl:
+                compile_args = opengl_args
+            else:
+                compile_args = package_args
             extensions.append(Extension(extension_name,
                                         [os.path.join(directory, filename)],
-                                        extra_compile_args=compile_args,
-                                        extra_link_args=link_args))
+                                        **compile_args))
 
 
 # TODO: find a less-intrusive, cleaner way to do this...
@@ -87,6 +118,7 @@ setup(name='PyTouhou',
                             compile_time_env={'MAX_TEXTURES': 1024,
                                               'MAX_ELEMENTS': 640 * 4 * 3,
                                               'MAX_CHANNELS': 26,
+                                              'USE_OPENGL': use_opengl,
                                               'USE_GLEW': is_windows}),
       scripts=['eosd', 'anmviewer'],
       **extra)

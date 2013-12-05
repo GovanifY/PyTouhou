@@ -12,13 +12,14 @@
 ## GNU General Public License for more details.
 ##
 
-from pytouhou.lib.opengl cimport \
-         (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
-          GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
-          GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
+IF USE_OPENGL:
+    from pytouhou.lib.opengl cimport \
+             (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
+              GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
+              GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
-IF USE_GLEW:
-    from pytouhou.lib.opengl cimport glewInit
+    IF USE_GLEW:
+        from pytouhou.lib.opengl cimport glewInit
 
 
 cdef class Clock:
@@ -94,7 +95,7 @@ cdef class Window:
 
         flags = sdl.WINDOW_SHOWN
 
-        if opengl:
+        if USE_OPENGL and opengl:
             sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
             sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
             sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
@@ -111,7 +112,7 @@ cdef class Window:
                               640, 480, #XXX
                               flags)
 
-        if opengl:
+        if USE_OPENGL and opengl:
             self.win.gl_create_context()
 
             IF USE_GLEW:

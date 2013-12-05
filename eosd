@@ -58,7 +58,7 @@ import sys
 import logging
 
 if args.backend == 'opengl':
-    from pytouhou.ui.gamerenderer import GameRenderer
+    from pytouhou.ui.opengl.gamerenderer import GameRenderer
     opengl = True
 elif args.backend == 'sdl':
     from pytouhou.ui.sdl.gamerenderer import GameRenderer

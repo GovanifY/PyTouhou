@@ -13,7 +13,7 @@
 ##
 
 
-from pytouhou.ui.shader import Shader
+from ..shader import Shader
 
 
 class GameShader(Shader):

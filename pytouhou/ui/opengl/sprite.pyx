@@ -16,7 +16,7 @@
 from libc.math cimport M_PI as pi
 
 from pytouhou.utils.matrix cimport Matrix
-from pytouhou.ui.renderer cimport Texture #XXX
+from .renderer cimport Texture #XXX
 
 
 cpdef object get_sprite_rendering_data(Sprite sprite):
