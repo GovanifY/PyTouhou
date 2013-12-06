@@ -68,7 +68,7 @@ cdef class BackgroundRenderer:
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cdef void load(self, background):
+    cdef void load(self, background, Renderer renderer):
         cdef float ox, oy, oz, ox2, oy2, oz2
         cdef unsigned short nb_vertices = 0
         cdef Vertex* vertex_buffer
@@ -92,7 +92,7 @@ cdef class BackgroundRenderer:
 
                 nb_vertices += 4
 
-        self.texture = key >> 1
+        self.texture = renderer.textures[key >> 1]
         self.blendfunc = key & 1
         self.nb_vertices = nb_vertices
         self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))

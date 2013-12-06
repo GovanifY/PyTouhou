@@ -65,7 +65,7 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
            ty * y_1 + toy,
            (ty + th) * y_1 + toy)
 
-    key = ((<Texture>sprite.anm.texture).texture << 1) | sprite.blendfunc
+    key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc
     r, g, b = sprite.color
     values = tuple([x for x in vertmat.data[:12]]), uvs, (r, g, b, sprite.alpha)
     sprite._rendering_data = key, values

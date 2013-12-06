@@ -1,4 +1,5 @@
 from pytouhou.lib.opengl cimport GLuint
+from .renderer cimport Renderer
 
 cdef struct Vertex:
     float x, y, z
@@ -14,4 +15,4 @@ cdef class BackgroundRenderer:
     cdef object background
 
     cdef void render_background(self) except *
-    cdef void load(self, background) except *
+    cdef void load(self, background, Renderer renderer) except *

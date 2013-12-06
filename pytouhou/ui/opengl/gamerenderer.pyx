@@ -59,7 +59,7 @@ cdef class GameRenderer(Renderer):
     def load_background(self, background):
         if background is not None:
             self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
-            self.background_renderer.load(background)
+            self.background_renderer.load(background, self)
         else:
             self.background_renderer = None
 

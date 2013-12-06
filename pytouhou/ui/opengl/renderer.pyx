@@ -46,11 +46,27 @@ logger = get_logger(__name__)
 cdef class Texture:
     def __cinit__(self, GLuint texture, Renderer renderer):
         self.texture = texture
+
+        # Find an unused key in the textures array.
+        for key in xrange(MAX_TEXTURES):
+            if renderer.textures[key] == 0:
+                break
+        else:
+            raise MemoryError('Too many textures currently loaded, consider increasing MAX_TEXTURES (currently %d).' % MAX_TEXTURES)
+
+        self.key = key
+        self.pointer = &renderer.textures[key]
+        self.pointer[0] = texture
         for i in xrange(2):
-            renderer.indices[texture][i] = self.indices[i]
+            renderer.indices[key][i] = self.indices[i]
 
     def __dealloc__(self):
-        glDeleteTextures(1, &self.texture)
+        if self.texture:
+            glDeleteTextures(1, &self.texture)
+        if self.pointer != NULL:
+            self.pointer[0] = 0
+        # The dangling pointers in renderer.indices doesn’t matter, since we
+        # won’t use them if no texture is loaded in that slot.
 
 
 cdef long find_objects(Renderer self, object elements) except -1:
@@ -166,7 +182,7 @@ cdef class Renderer:
             if blendfunc != previous_blendfunc:
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             if texture != previous_texture:
-                glBindTexture(GL_TEXTURE_2D, texture)
+                glBindTexture(GL_TEXTURE_2D, self.textures[texture])
             glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
 
             previous_blendfunc = blendfunc

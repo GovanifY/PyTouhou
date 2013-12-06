@@ -14,7 +14,8 @@ cdef struct PassthroughVertex:
 
 
 cdef class Texture:
-    cdef GLuint texture
+    cdef long key
+    cdef GLuint texture, *pointer
     cdef unsigned short indices[2][65536]
 
 
@@ -27,6 +28,7 @@ cdef class Renderer:
 
     cdef bint use_fixed_pipeline #XXX
 
+    cdef GLuint textures[MAX_TEXTURES]
     cdef unsigned short *indices[MAX_TEXTURES][2]
     cdef unsigned short last_indices[2 * MAX_TEXTURES]
     cdef PyObject *elements[640*3]

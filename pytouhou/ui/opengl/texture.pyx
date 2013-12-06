@@ -94,26 +94,27 @@ cdef decode_png(loader, first_name, secondary_name):
     return Texture(width, height, -4, new_image.pixels)
 
 
-cdef GLuint load_texture(thtx):
+cdef GLuint load_texture(thtx) except? 65535:
     cdef GLuint texture
+    cdef long fmt = thtx.fmt
 
-    if thtx.fmt == 1:
+    if fmt == 1:
         format_ = GL_BGRA
         type_ = GL_UNSIGNED_BYTE
         composants = GL_RGBA
-    elif thtx.fmt == 3:
+    elif fmt == 3:
         format_ = GL_RGB
         type_ = GL_UNSIGNED_SHORT_5_6_5
         composants = GL_RGB
-    elif thtx.fmt == 5:
+    elif fmt == 5:
         format_ = GL_BGRA
         type_ = GL_UNSIGNED_SHORT_4_4_4_4_REV
         composants = GL_RGBA
-    elif thtx.fmt == 7:
+    elif fmt == 7:
         format_ = GL_LUMINANCE
         type_ = GL_UNSIGNED_BYTE
         composants = GL_LUMINANCE
-    elif thtx.fmt == -4: #XXX: non-standard
+    elif fmt == -4: #XXX: non-standard
         format_ = GL_RGBA
         type_ = GL_UNSIGNED_BYTE
         composants = GL_RGBA
