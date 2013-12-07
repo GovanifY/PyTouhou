@@ -9,6 +9,7 @@ cdef class GameRenderer(Renderer):
     cdef Shader game_shader, background_shader, interface_shader, passthrough_shader
     cdef Framebuffer framebuffer
     cdef BackgroundRenderer background_renderer
+    cdef object background
 
     cdef void render_game(self, Game game) except *
     cdef void render_text(self, dict texts) except *

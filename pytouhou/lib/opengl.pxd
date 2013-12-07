@@ -20,6 +20,7 @@ IF USE_GLEW:
 
 cdef extern from 'GL/gl.h' nogil:
     ctypedef unsigned int GLuint
+    ctypedef unsigned short GLushort
     ctypedef int GLint
     ctypedef float GLfloat
     ctypedef float GLclampf
@@ -32,6 +33,7 @@ cdef extern from 'GL/gl.h' nogil:
 
     ctypedef enum GLenum:
         GL_ARRAY_BUFFER
+        GL_ELEMENT_ARRAY_BUFFER
         GL_STATIC_DRAW
         GL_DYNAMIC_DRAW
         GL_UNSIGNED_BYTE

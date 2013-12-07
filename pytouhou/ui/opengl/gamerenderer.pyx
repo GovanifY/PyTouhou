@@ -57,6 +57,7 @@ cdef class GameRenderer(Renderer):
 
 
     def load_background(self, background):
+        self.background = background
         if background is not None:
             self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
             self.background_renderer.load(background, self)
@@ -114,7 +115,7 @@ cdef class GameRenderer(Renderer):
 
             self.render_elements([game.spellcard_effect])
         elif self.background_renderer is not None:
-            back = self.background_renderer.background
+            back = self.background
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values
             fog_b, fog_g, fog_r, fog_start, fog_end = back.fog_interpolator.values
