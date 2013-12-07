@@ -3,13 +3,13 @@ from pytouhou.lib.opengl cimport GLuint
 from .texture cimport TextureManager, FontManager
 
 cdef struct Vertex:
-    int x, y, z
+    short x, y, z, padding
     float u, v
     unsigned char r, g, b, a
 
 
 cdef struct PassthroughVertex:
-    int x, y
+    short x, y
     float u, v
 
 

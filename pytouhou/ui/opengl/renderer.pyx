@@ -21,7 +21,7 @@ from pytouhou.lib.opengl cimport \
           glVertexAttribPointer, glEnableVertexAttribArray, glBlendFunc,
           glBindTexture, glDrawElements, glBindBuffer, glBufferData,
           GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
-          GL_UNSIGNED_SHORT, GL_INT, GL_FLOAT, GL_SRC_ALPHA,
+          GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT, GL_SRC_ALPHA,
           GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO, GL_TEXTURE_2D, GL_TRIANGLES,
           glGenBuffers, glBindFramebuffer, glViewport, glDeleteBuffers,
           glGenTextures, glTexParameteri, glTexImage2D, glGenRenderbuffers,
@@ -108,7 +108,7 @@ cdef class Renderer:
 
     cdef void render_elements(self, elements):
         cdef int key
-        cdef int x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, ox, oy
+        cdef short x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, ox, oy
         cdef float left, right, bottom, top
         cdef unsigned char r, g, b, a
 
@@ -135,10 +135,10 @@ cdef class Renderer:
             x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = vertices
             left, right, bottom, top = uvs
             r, g, b, a = colors
-            self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, left, bottom, r, g, b, a)
-            self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, right, bottom, r, g, b, a)
-            self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, right, top, r, g, b, a)
-            self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, left, top, r, g, b, a)
+            self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, 0, left, bottom, r, g, b, a)
+            self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, 0, right, bottom, r, g, b, a)
+            self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, 0, right, top, r, g, b, a)
+            self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, 0, left, top, r, g, b, a)
 
             # Add indices
             rec[next_indice] = nb_vertices
@@ -152,7 +152,7 @@ cdef class Renderer:
             nb_vertices += 4
 
         if self.use_fixed_pipeline:
-            glVertexPointer(3, GL_INT, sizeof(Vertex), &self.vertex_buffer[0].x)
+            glVertexPointer(3, GL_SHORT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &self.vertex_buffer[0].r)
         else:
@@ -160,11 +160,11 @@ cdef class Renderer:
             glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), &self.vertex_buffer[0], GL_DYNAMIC_DRAW)
 
             #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
+            glVertexAttribPointer(0, 3, GL_SHORT, False, sizeof(Vertex), <void*>0)
             glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
             glEnableVertexAttribArray(2)
 
         # Don’t change the state when it’s not needed.
@@ -206,13 +206,13 @@ cdef class Renderer:
         for i, r in enumerate(rects):
             c1, c2, c3, c4 = colors[i]
 
-            buf[4*i] = Vertex(r.x, r.y, 0, 0, 0, c1.r, c1.g, c1.b, c1.a)
-            buf[4*i+1] = Vertex(r.x + r.w, r.y, 0, 1, 0, c2.r, c2.g, c2.b, c2.a)
-            buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
-            buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
+            buf[4*i] = Vertex(r.x, r.y, 0, 0, 0, 0, c1.r, c1.g, c1.b, c1.a)
+            buf[4*i+1] = Vertex(r.x + r.w, r.y, 0, 0, 1, 0, c2.r, c2.g, c2.b, c2.a)
+            buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
+            buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
 
         if self.use_fixed_pipeline:
-            glVertexPointer(3, GL_INT, sizeof(Vertex), &buf[0].x)
+            glVertexPointer(3, GL_SHORT, sizeof(Vertex), &buf[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &buf[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &buf[0].r)
         else:
@@ -220,11 +220,11 @@ cdef class Renderer:
             glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
 
             #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_INT, False, sizeof(Vertex), <void*>0)
+            glVertexAttribPointer(0, 3, GL_SHORT, False, sizeof(Vertex), <void*>0)
             glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
+            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
             glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
+            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
             glEnableVertexAttribArray(2)
 
         glBindTexture(GL_TEXTURE_2D, texture)
@@ -249,9 +249,9 @@ cdef class Renderer:
         glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
 
         #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-        glVertexAttribPointer(0, 2, GL_INT, False, sizeof(PassthroughVertex), <void*>0)
+        glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(PassthroughVertex), <void*>0)
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>8)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
         glEnableVertexAttribArray(1)
 
         buf[0] = PassthroughVertex(fb.x, fb.y, 0, 1)

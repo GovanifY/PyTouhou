@@ -36,7 +36,7 @@ cdef extern from 'GL/gl.h' nogil:
         GL_DYNAMIC_DRAW
         GL_UNSIGNED_BYTE
         GL_UNSIGNED_SHORT
-        GL_INT
+        GL_SHORT
         GL_FLOAT
         GL_SRC_ALPHA
         GL_ONE_MINUS_SRC_ALPHA
