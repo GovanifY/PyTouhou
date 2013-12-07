@@ -9,4 +9,4 @@ cdef class FontManager:
     cdef Font font
     cdef object renderer, texture_class
 
-    cdef void load(self, list labels) except *
+    cdef void load(self, dict labels) except *

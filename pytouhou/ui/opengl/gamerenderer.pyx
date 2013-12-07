@@ -195,24 +195,21 @@ cdef class GameRenderer(Renderer):
         if self.font_manager is None:
             return
 
-        labels = [label for label in texts.itervalues() if label is not None]
-        self.font_manager.load(labels)
+        self.font_manager.load(texts)
 
         black = Color(0, 0, 0, 255)
 
-        for label in labels:
-            if label is None:
-                continue
-
+        for label in texts.itervalues():
+            texture = (<Texture>label.texture).texture
             rect = Rect(label.x, label.y, label.width, label.height)
             gradient = [Color(*color, a=label.alpha) for color in label.gradient]
 
             if label.shadow:
                 shadow_rect = Rect(label.x + 1, label.y + 1, label.width, label.height)
                 shadow = [black._replace(a=label.alpha)] * 4
-                self.render_quads([shadow_rect, rect], [shadow, gradient], (<Texture>label.texture).texture)
+                self.render_quads([shadow_rect, rect], [shadow, gradient], texture)
             else:
-                self.render_quads([rect], [gradient], (<Texture>label.texture).texture)
+                self.render_quads([rect], [gradient], texture)
 
 
     cdef void render_interface(self, interface, game_boss):

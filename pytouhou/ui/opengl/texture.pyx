@@ -19,10 +19,14 @@ from pytouhou.lib.opengl cimport \
           glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint)
 
 from pytouhou.lib.sdl cimport load_png, create_rgb_surface
+from pytouhou.lib.sdl import SDLError
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 from pytouhou.game.text cimport NativeText
 
 import os
+
+from pytouhou.utils.helpers import get_logger
+logger = get_logger(__name__)
 
 
 cdef class TextureManager:
@@ -54,12 +58,18 @@ cdef class FontManager:
         self.texture_class = texture_class
 
 
-    cdef void load(self, list labels):
+    cdef void load(self, dict labels):
         cdef NativeText label
 
-        for label in labels:
+        for i, label in labels.items():
             if label.texture is None:
-                surface = self.font.render(label.text)
+                try:
+                    surface = self.font.render(label.text)
+                except SDLError as e:
+                    logger.error(u'Rendering of label “%s” failed: %s', label.text, e)
+                    del labels[i]  # Prevents it from retrying to render.
+                    continue
+
                 label.width, label.height = surface.surface.w, surface.surface.h
 
                 if label.align == 'center':
