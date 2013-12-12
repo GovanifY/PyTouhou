@@ -32,12 +32,14 @@ from pytouhou.lib.opengl cimport \
           GL_DEPTH_COMPONENT, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
           GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
           GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures,
-          GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
+          GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, glGenVertexArrays,
+          glDeleteVertexArrays, glBindVertexArray)
 
 from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
+from .backend cimport use_vao
 
 from pytouhou.utils.helpers import get_logger
 
@@ -95,6 +97,10 @@ cdef class Renderer:
             glDeleteBuffers(1, &self.framebuffer_vbo)
             glDeleteBuffers(1, &self.vbo)
 
+            if use_vao:
+                glDeleteVertexArrays(1, &self.vao)
+                glDeleteVertexArrays(1, &self.framebuffer_vao)
+
 
     def __init__(self, resource_loader):
         # Only used in modern GL.
@@ -118,6 +124,43 @@ cdef class Renderer:
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebuffer_indices), framebuffer_indices, GL_STATIC_DRAW)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+            if use_vao:
+                glGenVertexArrays(1, &self.vao)
+                glBindVertexArray(self.vao)
+                self.set_state()
+
+                glGenVertexArrays(1, &self.framebuffer_vao)
+                glBindVertexArray(self.framebuffer_vao)
+                self.set_framebuffer_state()
+                glBindVertexArray(0)
+
+
+    cdef void set_state(self) nogil:
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+
+        #TODO: find a way to use offsetof() instead of those ugly substractions.
+        glVertexAttribPointer(0, 3, GL_SHORT, False, sizeof(Vertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
+        glEnableVertexAttribArray(2)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    cdef void set_framebuffer_state(self) nogil:
+        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
+
+        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+        glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(PassthroughVertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
+        glEnableVertexAttribArray(1)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
     cdef void render_elements(self, elements):
@@ -168,14 +211,12 @@ cdef class Renderer:
         else:
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
             glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), &self.vertex_buffer[0], GL_DYNAMIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_SHORT, False, sizeof(Vertex), <void*>0)
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
-            glEnableVertexAttribArray(2)
+            if use_vao:
+                glBindVertexArray(self.vao)
+            else:
+                self.set_state()
 
         # Don’t change the state when it’s not needed.
         previous_blendfunc = -1
@@ -200,8 +241,8 @@ cdef class Renderer:
 
         glBindTexture(GL_TEXTURE_2D, 0)
 
-        if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
+        if not self.use_fixed_pipeline and use_vao:
+            glBindVertexArray(0)
 
 
     cdef void render_quads(self, rects, colors, GLuint texture):
@@ -228,21 +269,16 @@ cdef class Renderer:
         else:
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
             glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_SHORT, False, sizeof(Vertex), <void*>0)
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
-            glEnableVertexAttribArray(2)
+            if use_vao:
+                glBindVertexArray(self.vao)
+            else:
+                self.set_state()
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
         glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
-
-        if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
     cdef void render_framebuffer(self, Framebuffer fb):
@@ -255,27 +291,28 @@ cdef class Renderer:
         glBlendFunc(GL_ONE, GL_ZERO)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
-
-        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-        glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(PassthroughVertex), <void*>0)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
-        glEnableVertexAttribArray(1)
+        if use_vao:
+            glBindVertexArray(self.framebuffer_vao)
+        else:
+            self.set_framebuffer_state()
 
         buf[0] = PassthroughVertex(fb.x, fb.y, 0, 1)
         buf[1] = PassthroughVertex(fb.x + fb.width, fb.y, 1, 1)
         buf[2] = PassthroughVertex(fb.x + fb.width, fb.y + fb.height, 1, 0)
         buf[3] = PassthroughVertex(fb.x, fb.y + fb.height, 0, 0)
-        glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(PassthroughVertex), buf, GL_DYNAMIC_DRAW)
+
+        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
+        glBufferData(GL_ARRAY_BUFFER, sizeof(buf), buf, GL_DYNAMIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         glBindTexture(GL_TEXTURE_2D, fb.texture)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL)
         glBindTexture(GL_TEXTURE_2D, 0)
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        if use_vao:
+            glBindVertexArray(0)
+        else:
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
 
 cdef class Framebuffer:

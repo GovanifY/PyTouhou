@@ -11,7 +11,7 @@ GameRenderer = None
 
 
 def init(options):
-    global flavor, version, major, minor, double_buffer, is_legacy, shader_header, GameRenderer
+    global flavor, version, major, minor, double_buffer, is_legacy, use_vao, shader_header, GameRenderer
 
     flavor_name = options['flavor']
     assert flavor_name in ('core', 'es', 'compatibility', 'legacy')
@@ -26,6 +26,7 @@ def init(options):
 
     maybe_double_buffer = options['double-buffer']
     double_buffer = maybe_double_buffer if maybe_double_buffer is not None else -1
+    use_vao = (major == 3 and minor >= 1) or major > 3
 
     is_legacy = flavor_name == 'legacy'
 

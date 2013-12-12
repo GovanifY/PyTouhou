@@ -155,3 +155,7 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
     void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
     GLenum glCheckFramebufferStatus(GLenum target)
+
+    void glGenVertexArrays(GLsizei n, GLuint *arrays)
+    void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
+    void glBindVertexArray(GLuint array)

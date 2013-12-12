@@ -31,6 +31,7 @@ cdef class Renderer:
 
     # For modern GL.
     cdef GLuint vbo, framebuffer_vbo, framebuffer_ibo
+    cdef GLuint vao, framebuffer_vao
 
     cdef bint use_fixed_pipeline #XXX
 
@@ -39,8 +40,11 @@ cdef class Renderer:
     cdef unsigned short last_indices[2 * MAX_TEXTURES]
     cdef PyObject *elements[640*3]
 
+    cdef void set_state(self) nogil
     cdef void render_elements(self, elements) except *
     cdef void render_quads(self, rects, colors, GLuint texture) except *
+
+    cdef void set_framebuffer_state(self) nogil
     cdef void render_framebuffer(self, Framebuffer fb) except *
 
 

@@ -21,17 +21,26 @@ from pytouhou.lib.opengl cimport \
           GL_STATIC_DRAW, GL_UNSIGNED_BYTE, GL_FLOAT, GL_SRC_ALPHA,
           GL_ONE_MINUS_SRC_ALPHA, GL_TEXTURE_2D, glGenBuffers, glEnable,
           glDisable, GL_DEPTH_TEST, glDrawElements, GL_TRIANGLES,
-          GL_UNSIGNED_SHORT, GL_ELEMENT_ARRAY_BUFFER)
+          GL_UNSIGNED_SHORT, GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers,
+          glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray)
 
 from .sprite cimport get_sprite_rendering_data
+from .backend cimport use_vao
 
 
 cdef class BackgroundRenderer:
     def __dealloc__(self):
-        if self.vertex_buffer != NULL:
-            free(self.vertex_buffer)
-        if self.indices != NULL:
-            free(self.indices)
+        if self.use_fixed_pipeline:
+            if self.vertex_buffer != NULL:
+                free(self.vertex_buffer)
+            if self.indices != NULL:
+                free(self.indices)
+        else:
+            glDeleteBuffers(1, &self.vbo)
+            glDeleteBuffers(1, &self.ibo)
+
+            if use_vao:
+                glDeleteVertexArrays(1, &self.vao)
 
 
     def __init__(self, use_fixed_pipeline):
@@ -41,6 +50,26 @@ cdef class BackgroundRenderer:
             glGenBuffers(1, &self.vbo)
             glGenBuffers(1, &self.ibo)
 
+            if use_vao:
+                glGenVertexArrays(1, &self.vao)
+
+                glBindVertexArray(self.vao)
+                self.set_state()
+                glBindVertexArray(0)
+
+
+    cdef void set_state(self) nogil:
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ibo)
+
+        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
+        glVertexAttribPointer(0, 3, GL_FLOAT, False, sizeof(Vertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
+        glEnableVertexAttribArray(2)
+
 
     cdef void render_background(self):
         if self.use_fixed_pipeline:
@@ -49,17 +78,11 @@ cdef class BackgroundRenderer:
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &self.vertex_buffer[0].r)
         else:
-            glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ibo)
             indices = NULL
-
-            #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-            glVertexAttribPointer(0, 3, GL_FLOAT, False, sizeof(Vertex), <void*>0)
-            glEnableVertexAttribArray(0)
-            glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>12)
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>20)
-            glEnableVertexAttribArray(2)
+            if use_vao:
+                glBindVertexArray(self.vao)
+            else:
+                self.set_state()
 
         glEnable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -68,8 +91,11 @@ cdef class BackgroundRenderer:
         glDisable(GL_DEPTH_TEST)
 
         if not self.use_fixed_pipeline:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            if use_vao:
+                glBindVertexArray(0)
+            else:
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
 
     cdef void load(self, background, Renderer renderer):

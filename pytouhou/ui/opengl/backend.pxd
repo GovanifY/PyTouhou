@@ -6,4 +6,5 @@ cdef int major
 cdef int minor
 cdef int double_buffer
 cdef bint is_legacy
+cdef bint use_vao
 cdef str shader_header
