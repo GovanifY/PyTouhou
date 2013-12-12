@@ -22,9 +22,11 @@ cdef class Texture:
 cdef class Renderer:
     cdef TextureManager texture_manager
     cdef FontManager font_manager
-    cdef GLuint vbo, framebuffer_vbo
     cdef Vertex vertex_buffer[MAX_ELEMENTS]
     cdef long x, y, width, height
+
+    # For modern GL.
+    cdef GLuint vbo, framebuffer_vbo, framebuffer_ibo
 
     cdef bint use_fixed_pipeline #XXX
 

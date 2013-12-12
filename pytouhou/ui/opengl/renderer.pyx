@@ -31,7 +31,8 @@ from pytouhou.lib.opengl cimport \
           GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_RGBA, GL_RENDERBUFFER,
           GL_DEPTH_COMPONENT, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
           GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
-          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures)
+          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures,
+          GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
 
 from pytouhou.lib.sdl import SDLError
 
@@ -93,6 +94,9 @@ cdef class Renderer:
 
 
     def __init__(self, resource_loader):
+        # Only used in modern GL.
+        cdef unsigned short framebuffer_indices[6]
+
         self.texture_manager = TextureManager(resource_loader, self, Texture)
         font_name = join(resource_loader.game_dir, 'font.ttf')
         try:
@@ -102,8 +106,15 @@ cdef class Renderer:
             logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
 
         if not self.use_fixed_pipeline:
+            framebuffer_indices[:] = [0, 1, 2, 2, 3, 0]
+
             glGenBuffers(1, &self.vbo)
             glGenBuffers(1, &self.framebuffer_vbo)
+            glGenBuffers(1, &self.framebuffer_ibo)
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebuffer_indices), framebuffer_indices, GL_STATIC_DRAW)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
 
     cdef void render_elements(self, elements):
@@ -236,8 +247,6 @@ cdef class Renderer:
 
     cdef void render_framebuffer(self, Framebuffer fb):
         cdef PassthroughVertex[4] buf
-        cdef unsigned short indices[6]
-        indices[:] = [0, 1, 2, 2, 3, 0]
 
         assert not self.use_fixed_pipeline
 
@@ -247,6 +256,7 @@ cdef class Renderer:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
 
         #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
         glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(PassthroughVertex), <void*>0)
@@ -261,10 +271,11 @@ cdef class Renderer:
         glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(PassthroughVertex), buf, GL_DYNAMIC_DRAW)
 
         glBindTexture(GL_TEXTURE_2D, fb.texture)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL)
         glBindTexture(GL_TEXTURE_2D, 0)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
 
 cdef class Framebuffer:
