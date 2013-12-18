@@ -13,23 +13,13 @@
 ##
 
 from libc.math cimport sqrt
+cimport cython
 
 
-cdef class Vector:
-    def __init__(self, float x, float y, float z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-
-    cdef Vector sub(self, Vector other):
-        cdef float x, y, z
-
-        x = self.x - other.x
-        y = self.y - other.y
-        z = self.z - other.z
-
-        return Vector(x, y, z)
+cdef Vector sub(Vector vec1, Vector vec2):
+    return Vector(vec1.x - vec2.x,
+                  vec1.y - vec2.y,
+                  vec1.z - vec2.z)
 
 
 cdef Vector cross(Vector vec1, Vector vec2):
@@ -38,10 +28,11 @@ cdef Vector cross(Vector vec1, Vector vec2):
                   vec1.x * vec2.y - vec2.x * vec1.y)
 
 
-cdef float dot(Vector vec1, Vector vec2):
+cdef float dot(Vector vec1, Vector vec2) nogil:
     return vec1.x * vec2.x + vec2.y * vec1.y + vec1.z * vec2.z
 
 
+@cython.cdivision(True)
 cdef Vector normalize(Vector vec):
     cdef float normal
 

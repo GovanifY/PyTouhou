@@ -13,16 +13,18 @@
 ##
 
 from libc.math cimport tan, M_PI as pi
+cimport cython
 
 from .matrix cimport new_matrix, new_identity
-from .vector cimport Vector, normalize, cross, dot
+from .vector cimport Vector, sub, cross, dot, normalize
 
 
 cdef double radians(double degrees) nogil:
     return degrees * pi / 180
 
 
-cdef Matrix *ortho_2d(float left, float right, float bottom, float top):
+@cython.cdivision(True)
+cdef Matrix *ortho_2d(float left, float right, float bottom, float top) nogil:
     mat = new_identity()
     data = <float*>mat
     data[4*0+0] = 2 / (right - left)
@@ -36,7 +38,7 @@ cdef Matrix *ortho_2d(float left, float right, float bottom, float top):
 cdef Matrix *look_at(Vector eye, Vector center, Vector up):
     cdef Matrix mat
 
-    f = normalize(center.sub(eye))
+    f = normalize(sub(center, eye))
     u = normalize(up)
     s = normalize(cross(f, u))
     u = cross(s, f)
@@ -49,7 +51,8 @@ cdef Matrix *look_at(Vector eye, Vector center, Vector up):
     return new_matrix(&mat)
 
 
-cdef Matrix *perspective(float fovy, float aspect, float z_near, float z_far):
+@cython.cdivision(True)
+cdef Matrix *perspective(float fovy, float aspect, float z_near, float z_far) nogil:
     top = tan(radians(fovy / 2)) * z_near
     bottom = -top
     left = -top * aspect
