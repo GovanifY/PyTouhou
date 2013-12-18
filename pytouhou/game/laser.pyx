@@ -39,7 +39,7 @@ cdef class LaserLaunchAnim(Element):
         self.y = laser.base_pos[1] + offset * dy
 
         scale = laser.width / 10. - (offset - laser.start_offset) #TODO: check
-        self.sprite.rescale = (scale, scale)
+        self.sprite._rescale[:] = [scale, scale]
         self.sprite.changed = True
 
         if laser.removed or scale <= 0.:

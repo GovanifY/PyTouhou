@@ -11,7 +11,7 @@ cdef void mul(Matrix *mat1, Matrix *mat2) nogil
 cdef void flip(Matrix *mat) nogil
 cdef void scale(Matrix *mat, float x, float y, float z) nogil
 cdef void scale2d(Matrix *mat, float x, float y) nogil
-cdef void translate(Matrix *mat, float x, float y, float z) nogil
+cdef void translate(Matrix *mat, float[3] offset) nogil
 cdef void translate2d(Matrix *mat, float x, float y) nogil
 cdef void rotate_x(Matrix *mat, float angle) nogil
 cdef void rotate_y(Matrix *mat, float angle) nogil

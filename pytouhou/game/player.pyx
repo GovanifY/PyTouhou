@@ -208,10 +208,12 @@ cdef class Player(Element):
 
                 m = self.invulnerable_time % 8
                 if m == 7 or self.invulnerable_time == 0:
-                    self.sprite.color = (255, 255, 255)
+                    for i in xrange(3):
+                        self.sprite._color[i] = 255
                     self.sprite.changed = True
                 elif m == 1:
-                    self.sprite.color = (64, 64, 64)
+                    for i in xrange(3):
+                        self.sprite._color[i] = 64
                     self.sprite.changed = True
 
             if keystate & 1 and self.fire_time == 0:
@@ -280,7 +282,7 @@ cdef class Player(Element):
             elif time == 7:
                 self.sprite.mirrored = False
                 self.sprite.blendfunc = 0
-                self.sprite.rescale = 0.75, 1.5
+                self.sprite._rescale[:] = [0.75, 1.5]
                 self.sprite.fade(26, 96)
                 self.sprite.scale_in(26, 0., 2.5)
 
@@ -295,8 +297,8 @@ cdef class Player(Element):
 
                 self.sprite = Sprite()
                 self.anmrunner = ANMRunner(self.anm, 0, self.sprite)
-                self.sprite.alpha = 128
-                self.sprite.rescale = 0., 2.5
+                self.sprite._color[3] = 128
+                self.sprite._rescale[:] = [0., 2.5]
                 self.sprite.fade(30, 255)
                 self.sprite.blendfunc = 1
                 self.sprite.scale_in(30, 1., 1.)

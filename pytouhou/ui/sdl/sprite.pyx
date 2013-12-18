@@ -17,43 +17,42 @@ from libc.math cimport M_PI as pi
 
 
 cpdef tuple get_sprite_rendering_data(Sprite sprite):
-    cdef double x, y, tx, ty, tw, th, sx, sy, rz, tox, toy
-
     if not sprite.changed:
         return sprite._rendering_data
 
     x = 0
     y = 0
 
-    tx, ty, tw, th = sprite.texcoords
-    sx, sy = sprite.rescale
+    tx, ty, tw, th = sprite._texcoords[0], sprite._texcoords[1], sprite._texcoords[2], sprite._texcoords[3]
+    sx, sy = sprite._rescale[0], sprite._rescale[1]
     width = sprite.width_override or (tw * sx)
     height = sprite.height_override or (th * sy)
 
-    rz = sprite.rotations_3d[2]
+    rz = sprite._rotations_3d[2]
     if sprite.automatic_orientation:
         rz += pi/2. - sprite.angle
     elif sprite.force_rotation:
         rz += sprite.angle
 
     if sprite.allow_dest_offset:
-        x += sprite.dest_offset[0]
-        y += sprite.dest_offset[1]
+        x += sprite._dest_offset[0]
+        y += sprite._dest_offset[1]
     if not sprite.corner_relative_placement: # Reposition
         x -= width / 2
         y -= height / 2
 
     x_1 = sprite.anm.size_inv[0]
     y_1 = sprite.anm.size_inv[1]
-    tox, toy = sprite.texoffsets
+    tox, toy = sprite._texoffsets[0], sprite._texoffsets[1]
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,
            ty * y_1 + toy,
            (ty + th) * y_1 + toy)
 
+    r, g, b, a = sprite._color[0], sprite._color[1], sprite._color[2], sprite._color[3]
+
     key = sprite.blendfunc
-    r, g, b = sprite.color
-    values = (x, y, width, height), uvs, (r, g, b, sprite.alpha), -rz * 180 / pi, sprite.mirrored
+    values = (x, y, width, height), uvs, (r, g, b, a), -rz * 180 / pi, sprite.mirrored
     sprite._rendering_data = key, values
     sprite.changed = False
 

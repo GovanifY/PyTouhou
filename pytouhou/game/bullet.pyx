@@ -80,9 +80,7 @@ cdef class Bullet(Element):
 
 
     cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height):
-        cdef double tw, th
-
-        tw, th = self.sprite.texcoords[2:]
+        tw, th = self.sprite._texcoords[2], self.sprite._texcoords[3]
         x, y = self.x, self.y
 
         max_x = tw / 2

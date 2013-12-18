@@ -20,7 +20,6 @@ from .renderer cimport Texture #XXX
 
 
 cpdef tuple get_sprite_rendering_data(Sprite sprite):
-    cdef double tx, ty, tw, th, sx, sy, rx, ry, rz, tox, toy
     cdef Matrix vertmat
 
     if not sprite.changed:
@@ -31,8 +30,8 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
                      0,    0,    0,    0,
                      1,    1,    1,    1)
 
-    tx, ty, tw, th = sprite.texcoords
-    sx, sy = sprite.rescale
+    tx, ty, tw, th = sprite._texcoords[0], sprite._texcoords[1], sprite._texcoords[2], sprite._texcoords[3]
+    sx, sy = sprite._rescale[0], sprite._rescale[1]
     width = sprite.width_override or (tw * sx)
     height = sprite.height_override or (th * sy)
 
@@ -40,7 +39,7 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
     if sprite.mirrored:
         flip(&vertmat)
 
-    rx, ry, rz = sprite.rotations_3d
+    rx, ry, rz = sprite._rotations_3d[0], sprite._rotations_3d[1], sprite._rotations_3d[2]
     if sprite.automatic_orientation:
         rz += pi/2. - sprite.angle
     elif sprite.force_rotation:
@@ -53,21 +52,22 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
     if rz:
         rotate_z(&vertmat, -rz) #TODO: minus, really?
     if sprite.allow_dest_offset:
-        translate(&vertmat, sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
+        translate(&vertmat, sprite._dest_offset)
     if sprite.corner_relative_placement: # Reposition
         translate2d(&vertmat, width / 2, height / 2)
 
     x_1 = sprite.anm.size_inv[0]
     y_1 = sprite.anm.size_inv[1]
-    tox, toy = sprite.texoffsets
+    tox, toy = sprite._texoffsets[0], sprite._texoffsets[1]
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,
            ty * y_1 + toy,
            (ty + th) * y_1 + toy)
 
+    r, g, b, a = sprite._color[0], sprite._color[1], sprite._color[2], sprite._color[3]
+
     key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc
-    r, g, b = sprite.color
-    values = tuple([x for x in (<float*>&vertmat)[:12]]), uvs, (r, g, b, sprite.alpha)
+    values = tuple([x for x in (<float*>&vertmat)[:12]]), uvs, (r, g, b, a)
     sprite._rendering_data = key, values
     sprite.changed = False
 

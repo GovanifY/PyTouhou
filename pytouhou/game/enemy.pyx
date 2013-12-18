@@ -310,14 +310,12 @@ cdef class Enemy(Element):
 
 
     cdef bint is_visible(self, long screen_width, long screen_height):
-        cdef double tw, th
-
         if self.sprite is not None:
             if self.sprite.corner_relative_placement:
                 raise Exception #TODO
-            _, _, tw, th = self.sprite.texcoords
+            tw, th = self.sprite._texcoords[2], self.sprite._texcoords[3]
         else:
-            tw, th = 0, 0
+            tw, th = 0., 0.
 
         x, y = self.x, self.y
         max_x = tw / 2

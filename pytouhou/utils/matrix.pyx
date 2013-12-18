@@ -76,12 +76,8 @@ cdef void scale2d(Matrix *mat, float x, float y) nogil:
         data[4+i] *= y
 
 
-cdef void translate(Matrix *mat, float x, float y, float z) nogil:
-    cdef float offset[3], item[3]
-
-    offset[0] = x
-    offset[1] = y
-    offset[2] = z
+cdef void translate(Matrix *mat, float[3] offset) nogil:
+    cdef float item[3]
 
     data = <float*>mat
     for i in xrange(3):
@@ -93,7 +89,13 @@ cdef void translate(Matrix *mat, float x, float y, float z) nogil:
 
 
 cdef void translate2d(Matrix *mat, float x, float y) nogil:
-    translate(mat, x, y, 0)
+    cdef float[3] offset
+
+    offset[0] = x
+    offset[1] = y
+    offset[2] = 0
+
+    translate(mat, offset)
 
 
 cdef void rotate_x(Matrix *mat, float angle) nogil:

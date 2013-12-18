@@ -23,7 +23,7 @@ cdef class Indicator(Element):
         self.sprite = item._item_type.indicator_sprite.copy()
 
         self.x = self._item.x
-        self.y = self.sprite.texcoords[2] / 2.
+        self.y = self.sprite._texcoords[3] / 2.
 
 
     cdef void update(self) nogil:
@@ -185,7 +185,7 @@ cdef class Item(Element):
             self.x += dx
             self.y += dy
 
-        offscreen = self.y < -(<double>self.sprite.texcoords[2] / 2.)
+        offscreen = self.y < -self.sprite._texcoords[3] / 2.
         if offscreen:
             if self.indicator is None:
                 self.indicator = Indicator(self)
