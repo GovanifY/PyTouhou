@@ -24,6 +24,7 @@ extension_names = []
 extensions = []
 
 debug = False  # True to generate HTML annotations and display infered types.
+anmviewer = False  # It’s currently broken anyway.
 
 
 # Check for gl.pc, and don’t compile the OpenGL backend if it isn’t present.
@@ -88,6 +89,8 @@ for directory, _, files in os.walk('pytouhou'):
                 compile_args = sdl_args
             elif extension_name == 'pytouhou.ui.window' and use_opengl:
                 compile_args = opengl_args
+            elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
+                continue
             else:
                 compile_args = package_args
             extensions.append(Extension(extension_name,
@@ -123,5 +126,5 @@ setup(name='PyTouhou',
                                               'MAX_CHANNELS': 26,
                                               'USE_OPENGL': use_opengl,
                                               'USE_GLEW': is_windows}),
-      scripts=['eosd', 'anmviewer'],
+      scripts=['eosd'] + (['anmviewer'] if anmviewer else []),
       **extra)
