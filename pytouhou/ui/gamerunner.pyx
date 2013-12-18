@@ -17,8 +17,9 @@ cimport cython
 from pytouhou.lib cimport sdl
 
 from .window cimport Window, Runner
-from .music import MusicPlayer, SFXPlayer, NullPlayer
+from .music import BGMPlayer, SFXPlayer
 from pytouhou.game.game cimport Game
+from pytouhou.game.music cimport MusicPlayer
 
 
 cdef class GameRunner(Runner):
@@ -65,9 +66,9 @@ cdef class GameRunner(Runner):
 
         self.save_keystates = save_keystates
 
-        null_player = NullPlayer()
+        null_player = MusicPlayer()
         if bgms is not None:
-            game.music = MusicPlayer(self.resource_loader, bgms)
+            game.music = BGMPlayer(self.resource_loader, bgms)
             game.music.play(0)
         else:
             game.music = null_player

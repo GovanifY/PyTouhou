@@ -66,7 +66,9 @@ class SDL(object):
                 logger.error(u'Impossible to set up audio subsystem: %s', error)
                 self.sound = False
             else:
-                mix_allocate_channels(MAX_CHANNELS) #TODO: make it dependent on the SFX number.
+                # TODO: make it dependent on the number of sound files in the
+                # archives.
+                mix_allocate_channels(MAX_SOUNDS)
 
     def __exit__(self, *args):
         if self.sound:

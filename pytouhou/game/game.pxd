@@ -1,13 +1,15 @@
 from pytouhou.game.effect cimport Effect
 from pytouhou.game.player cimport Player
 from pytouhou.game.text cimport Text, NativeText
+from pytouhou.game.music cimport MusicPlayer
 from pytouhou.utils.random cimport Random
 
 cdef class Game:
     cdef public long width, height, nb_bullets_max, stage, rank, difficulty, difficulty_min, difficulty_max, frame
     cdef public list bullet_types, laser_types, item_types, players, enemies, effects, bullets, lasers, cancelled_bullets, players_bullets, players_lasers, items, labels, faces, hints, bonus_list
-    cdef public object interface, boss, msg_runner, sfx_player
+    cdef public object interface, boss, msg_runner
     cdef public dict texts
+    cdef public MusicPlayer sfx_player
     cdef public Random prng
     cdef public double continues
     cdef public Effect spellcard_effect

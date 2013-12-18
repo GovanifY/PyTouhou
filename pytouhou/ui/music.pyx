@@ -18,11 +18,14 @@ from glob import glob
 from pytouhou.lib import sdl
 from pytouhou.lib cimport sdl
 from pytouhou.utils.helpers import get_logger
+from pytouhou.game.music cimport MusicPlayer
 
 logger = get_logger(__name__)
 
 
-class MusicPlayer(object):
+cdef class BGMPlayer(MusicPlayer):
+    cdef list bgms
+
     def __init__(self, resource_loader, bgms):
         self.bgms = []
         for bgm in bgms:
@@ -53,14 +56,19 @@ class MusicPlayer(object):
                 self.bgms.append(None)
                 logger.warn(u'No working music file for “%s”, disabling bgm.', globname)
 
-    def play(self, index):
+    cpdef play(self, index):
         cdef sdl.Music bgm
         bgm = self.bgms[index]
         if bgm is not None:
             bgm.play(-1)
 
 
-class SFXPlayer(object):
+cdef class SFXPlayer(MusicPlayer):
+    cdef object loader
+    cdef dict channels, sounds
+    cdef float volume
+    cdef int next_channel
+
     def __init__(self, loader, volume=.42):
         self.loader = loader
         self.channels = {}
@@ -68,13 +76,13 @@ class SFXPlayer(object):
         self.volume = volume
         self.next_channel = 0
 
-    def get_channel(self, name):
+    cdef int get_channel(self, name):
         if name not in self.channels:
             self.channels[name] = self.next_channel
             self.next_channel += 1
         return self.channels[name]
 
-    def get_sound(self, name):
+    cdef sdl.Chunk get_sound(self, name):
         cdef sdl.Chunk chunk
         if name not in self.sounds:
             wave_file = self.loader.get_file(name)
@@ -88,20 +96,13 @@ class SFXPlayer(object):
             self.sounds[name] = chunk
         return self.sounds[name]
 
-    def play(self, name, volume=None):
-        cdef sdl.Chunk sound
+    cpdef play(self, name):
         sound = self.get_sound(name)
         if sound is None:
             return
         channel = self.get_channel(name)
-        if volume:
-            sdl.mix_volume(channel, volume)
         sound.play(channel, 0)
 
-
-class NullPlayer(object):
-    def __init__(self, loader=None, bgms=None):
-        pass
-
-    def play(self, name, volume=None):
-        pass
+    cpdef set_volume(self, name, float volume):
+        chunk = self.get_sound(name)
+        chunk.set_volume(volume)

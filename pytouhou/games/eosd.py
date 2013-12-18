@@ -282,7 +282,8 @@ class EoSDInterface(object):
                 else:
                     timeout_label.set_color('red')
                 if (boss.timeout - boss.frame) % 60 == 0 and boss.timeout != 0:
-                    self.game.sfx_player.play('timeout.wav', volume=1.)
+                    self.game.sfx_player.set_volume('timeout.wav', 1.)
+                    self.game.sfx_player.play('timeout.wav')
             timeout_label.set_text('%02d' % (timeout if timeout >= 0 else 0))
             timeout_label.changed = True
 
