@@ -14,6 +14,7 @@
 
 from libc.math cimport tan, M_PI as pi
 
+from .matrix cimport new_matrix, new_identity
 from .vector cimport Vector, normalize, cross, dot
 
 
@@ -21,11 +22,9 @@ cdef double radians(double degrees) nogil:
     return degrees * pi / 180
 
 
-cdef Matrix ortho_2d(float left, float right, float bottom, float top):
-    cdef float *data
-
-    mat = Matrix()
-    data = mat.data
+cdef Matrix *ortho_2d(float left, float right, float bottom, float top):
+    mat = new_identity()
+    data = <float*>mat
     data[4*0+0] = 2 / (right - left)
     data[4*1+1] = 2 / (top - bottom)
     data[4*2+2] = -1
@@ -34,28 +33,30 @@ cdef Matrix ortho_2d(float left, float right, float bottom, float top):
     return mat
 
 
-cdef Matrix look_at(Vector eye, Vector center, Vector up):
+cdef Matrix *look_at(Vector eye, Vector center, Vector up):
+    cdef Matrix mat
+
     f = normalize(center.sub(eye))
     u = normalize(up)
     s = normalize(cross(f, u))
     u = cross(s, f)
 
-    return Matrix([s.x, u.x, -f.x, 0,
-                   s.y, u.y, -f.y, 0,
-                   s.z, u.z, -f.z, 0,
-                   -dot(s, eye), -dot(u, eye), dot(f, eye), 1])
+    mat = Matrix(s.x, u.x, -f.x, 0,
+                 s.y, u.y, -f.y, 0,
+                 s.z, u.z, -f.z, 0,
+                 -dot(s, eye), -dot(u, eye), dot(f, eye), 1)
+
+    return new_matrix(&mat)
 
 
-cdef Matrix perspective(float fovy, float aspect, float z_near, float z_far):
-    cdef float *data
-
+cdef Matrix *perspective(float fovy, float aspect, float z_near, float z_far):
     top = tan(radians(fovy / 2)) * z_near
     bottom = -top
     left = -top * aspect
     right = top * aspect
 
-    mat = Matrix()
-    data = mat.data
+    mat = new_identity()
+    data = <float*>mat
     data[4*0+0] = (2 * z_near) / (right - left)
     data[4*1+1] = (2 * z_near) / (top - bottom)
     data[4*2+2] = -(z_far + z_near) / (z_far - z_near)
@@ -65,7 +66,7 @@ cdef Matrix perspective(float fovy, float aspect, float z_near, float z_far):
     return mat
 
 
-cdef Matrix setup_camera(float dx, float dy, float dz):
+cdef Matrix *setup_camera(float dx, float dy, float dz):
     # Some explanations on the magic constants:
     # 192. = 384. / 2. = width / 2.
     # 224. = 448. / 2. = height / 2.

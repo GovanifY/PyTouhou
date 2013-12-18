@@ -12,6 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
+from libc.stdlib cimport free
 from itertools import chain
 
 from pytouhou.lib.opengl cimport \
@@ -21,6 +22,7 @@ from pytouhou.lib.opengl cimport \
           GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat, glViewport, glScissor,
           GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT)
 
+from pytouhou.utils.matrix cimport mul, new_identity
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
@@ -46,6 +48,15 @@ cdef class GameRenderer(Renderer):
             self.framebuffer = Framebuffer(0, 0, 640, 480)
 
 
+    def __dealloc__(self):
+        if self.game_mvp != NULL:
+            free(self.game_mvp)
+        if self.interface_mvp != NULL:
+            free(self.interface_mvp)
+        if self.proj != NULL:
+            free(self.proj)
+
+
     property size:
         # We never need to get back the computed size, so size is write-only.
         def __set__(self, tuple size):
@@ -68,8 +79,8 @@ cdef class GameRenderer(Renderer):
     def start(self, common):
         self.proj = perspective(30, float(common.width) / float(common.height),
                                 101010101./2010101., 101010101./10101.)
-        game_view = setup_camera(0, 0, 1)
-        self.game_mvp = game_view * self.proj
+        self.game_mvp = setup_camera(0, 0, 1)
+        mul(self.game_mvp, self.proj)
         self.interface_mvp = ortho_2d(0., float(common.interface.width),
                                       float(common.interface.height), 0.)
 
@@ -92,7 +103,7 @@ cdef class GameRenderer(Renderer):
         cdef long game_x, game_y
         cdef float x, y, z, dx, dy, dz, fog_data[4], fog_start, fog_end
         cdef unsigned char fog_r, fog_g, fog_b
-        cdef Matrix mvp
+        cdef Matrix *mvp
 
         game_x, game_y = game.interface.game_pos
         glViewport(game_x, game_y, game.width, game.height)
@@ -107,7 +118,7 @@ cdef class GameRenderer(Renderer):
         if game is not None and game.spellcard_effect is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(self.game_mvp.data)
+                glLoadMatrixf(<GLfloat*>self.game_mvp)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
@@ -129,16 +140,19 @@ cdef class GameRenderer(Renderer):
             fog_start -= 101010101./2010101.
             fog_end -= 101010101./2010101.
 
-            model = Matrix()
-            model.data[12] = -x
-            model.data[13] = -y
-            model.data[14] = -z
+            mvp = new_identity()
+            mvp_data = <GLfloat*>mvp
+            mvp_data[12] = -x
+            mvp_data[13] = -y
+            mvp_data[14] = -z
             view = setup_camera(dx, dy, dz)
-            mvp = model * view * self.proj
+            mul(mvp, view)
+            free(view)
+            mul(mvp, self.proj)
 
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(mvp.data)
+                glLoadMatrixf(mvp_data)
 
                 glEnable(GL_FOG)
                 glFogi(GL_FOG_MODE, GL_LINEAR)
@@ -158,6 +172,7 @@ cdef class GameRenderer(Renderer):
                 self.background_shader.uniform_1('fog_end', fog_end)
                 self.background_shader.uniform_4('fog_color', fog_r / 255., fog_g / 255., fog_b / 255., 1.)
 
+            free(mvp)
             self.background_renderer.render_background()
         else:
             glClear(GL_COLOR_BUFFER_BIT)
@@ -165,7 +180,7 @@ cdef class GameRenderer(Renderer):
         if game is not None:
             if self.use_fixed_pipeline:
                 glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(self.game_mvp.data)
+                glLoadMatrixf(<GLfloat*>self.game_mvp)
                 glDisable(GL_FOG)
             else:
                 self.game_shader.bind()
@@ -220,7 +235,7 @@ cdef class GameRenderer(Renderer):
 
         if self.use_fixed_pipeline:
             glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf(self.interface_mvp.data)
+            glLoadMatrixf(<GLfloat*>self.interface_mvp)
             glDisable(GL_FOG)
         else:
             self.interface_shader.bind()

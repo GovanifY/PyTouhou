@@ -12,4 +12,4 @@ cdef class Shader:
     cdef void bind(self) nogil
     cdef void uniform_1(self, name, GLfloat val) except *
     cdef void uniform_4(self, name, GLfloat a, GLfloat b, GLfloat c, GLfloat d) except *
-    cdef void uniform_matrix(self, name, Matrix mat) except *
+    cdef void uniform_matrix(self, name, Matrix *mat) except *

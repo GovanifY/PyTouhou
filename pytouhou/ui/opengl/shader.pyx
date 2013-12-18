@@ -135,8 +135,8 @@ cdef class Shader:
     # upload a uniform matrix
     # works with matrices stored as lists,
     # as well as euclid matrices
-    cdef void uniform_matrix(self, name, Matrix mat):
+    cdef void uniform_matrix(self, name, Matrix *mat):
         # obtain the uniform location
         loc = self.get_uniform_location(name)
         # uplaod the 4x4 floating point matrix
-        glUniformMatrix4fv(loc, 1, False, mat.data)
+        glUniformMatrix4fv(loc, 1, False, <GLfloat*>mat)

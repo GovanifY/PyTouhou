@@ -15,29 +15,30 @@
 
 from libc.math cimport M_PI as pi
 
-from pytouhou.utils.matrix cimport Matrix
+from pytouhou.utils.matrix cimport Matrix, scale2d, flip, rotate_x, rotate_y, rotate_z, translate, translate2d
 from .renderer cimport Texture #XXX
 
 
 cpdef tuple get_sprite_rendering_data(Sprite sprite):
     cdef double tx, ty, tw, th, sx, sy, rx, ry, rz, tox, toy
+    cdef Matrix vertmat
 
     if not sprite.changed:
         return sprite._rendering_data
 
-    vertmat = Matrix([-.5,   .5,   .5,  -.5,
-                      -.5,  -.5,   .5,   .5,
-                      0,    0,    0,    0,
-                      1,    1,    1,    1])
+    vertmat = Matrix(-.5,   .5,   .5,  -.5,
+                     -.5,  -.5,   .5,   .5,
+                     0,    0,    0,    0,
+                     1,    1,    1,    1)
 
     tx, ty, tw, th = sprite.texcoords
     sx, sy = sprite.rescale
     width = sprite.width_override or (tw * sx)
     height = sprite.height_override or (th * sy)
 
-    vertmat.scale2d(width, height)
+    scale2d(&vertmat, width, height)
     if sprite.mirrored:
-        vertmat.flip()
+        flip(&vertmat)
 
     rx, ry, rz = sprite.rotations_3d
     if sprite.automatic_orientation:
@@ -46,15 +47,15 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
         rz += sprite.angle
 
     if rx:
-        vertmat.rotate_x(-rx)
+        rotate_x(&vertmat, -rx)
     if ry:
-        vertmat.rotate_y(ry)
+        rotate_y(&vertmat, ry)
     if rz:
-        vertmat.rotate_z(-rz) #TODO: minus, really?
+        rotate_z(&vertmat, -rz) #TODO: minus, really?
     if sprite.allow_dest_offset:
-        vertmat.translate(sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
+        translate(&vertmat, sprite.dest_offset[0], sprite.dest_offset[1], sprite.dest_offset[2])
     if sprite.corner_relative_placement: # Reposition
-        vertmat.translate(width / 2, height / 2, 0)
+        translate2d(&vertmat, width / 2, height / 2)
 
     size = sprite.anm.size
     x_1 = 1 / <double>size[0]
@@ -67,7 +68,7 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
 
     key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc
     r, g, b = sprite.color
-    values = tuple([x for x in vertmat.data[:12]]), uvs, (r, g, b, sprite.alpha)
+    values = tuple([x for x in (<float*>&vertmat)[:12]]), uvs, (r, g, b, sprite.alpha)
     sprite._rendering_data = key, values
     sprite.changed = False
 
