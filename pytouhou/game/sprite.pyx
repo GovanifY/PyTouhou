@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-class Sprite(object):
+cdef class Sprite:
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self.removed = False
@@ -34,61 +34,121 @@ class Sprite(object):
 
         self.blendfunc = 0 # 0 = Normal, 1 = saturate #TODO: proper constants
 
-        self.texcoords = (0, 0, 0, 0) # x, y, width, height
-        self.dest_offset = (0., 0., 0.)
+        self._texcoords[:] = [0, 0, 0, 0] # x, y, width, height
+        self._dest_offset[:] = [0., 0., 0.]
         self.allow_dest_offset = False
-        self.texoffsets = (0., 0.)
+        self._texoffsets[:] = [0., 0.]
         self.mirrored = False
-        self.rescale = (1., 1.)
-        self.scale_speed = (0., 0.)
-        self.rotations_3d = (0., 0., 0.)
-        self.rotations_speed_3d = (0., 0., 0.)
+        self._rescale[:] = [1., 1.]
+        self._scale_speed[:] = [0., 0.]
+        self._rotations_3d[:] = [0., 0., 0.]
+        self._rotations_speed_3d[:] = [0., 0., 0.]
         self.corner_relative_placement = False
         self.frame = 0
-        self.color = (255, 255, 255)
-        self.alpha = 255
+
+        # Cython treats unsigned char* variables as bytes, so we can’t use
+        # slicing here.
+        for i in xrange(4):
+            self._color[i] = 255
 
         self._rendering_data = None
 
 
-    def fade(self, duration, alpha, formula=None):
-        self.fade_interpolator = Interpolator((self.alpha,), self.frame,
+    property scale_speed:
+        def __get__(self):
+            return (self._scale_speed[0], self._scale_speed[1])
+        def __set__(self, value):
+            self._scale_speed[:] = [value[0], value[1]]
+
+    property texoffsets:
+        def __get__(self):
+            return (self._texoffsets[0], self._texoffsets[1])
+        def __set__(self, value):
+            self._texoffsets[:] = [value[0], value[1]]
+
+    property rescale:
+        def __get__(self):
+            return (self._rescale[0], self._rescale[1])
+        def __set__(self, value):
+            self._rescale[:] = [value[0], value[1]]
+
+    property dest_offset:
+        def __get__(self):
+            return (self._dest_offset[0], self._dest_offset[1], self._dest_offset[2])
+        def __set__(self, value):
+            self._dest_offset[:] = [value[0], value[1], value[2]]
+
+    property rotations_speed_3d:
+        def __get__(self):
+            return (self._rotations_speed_3d[0], self._rotations_speed_3d[1], self._rotations_speed_3d[2])
+        def __set__(self, value):
+            self._rotations_speed_3d[:] = [value[0], value[1], value[2]]
+
+    property rotations_3d:
+        def __get__(self):
+            return (self._rotations_3d[0], self._rotations_3d[1], self._rotations_3d[2])
+        def __set__(self, value):
+            self._rotations_3d[:] = [value[0], value[1], value[2]]
+
+    property color:
+        def __get__(self):
+            return (self._color[0], self._color[1], self._color[2])
+        def __set__(self, value):
+            self._color[0] = value[0]
+            self._color[1] = value[1]
+            self._color[2] = value[2]
+
+    property alpha:
+        def __get__(self):
+            return self._color[3]
+        def __set__(self, value):
+            self._color[3] = value
+
+    property texcoords:
+        def __get__(self):
+            return (self._texcoords[0], self._texcoords[1], self._texcoords[2], self._texcoords[3])
+        def __set__(self, value):
+            self._texcoords[:] = [value[0], value[1], value[2], value[3]]
+
+
+    cpdef fade(self, unsigned long duration, alpha, formula=None):
+        self.fade_interpolator = Interpolator((self._color[3],), self.frame,
                                               (alpha,), self.frame + duration,
                                               formula)
 
 
-    def scale_in(self, duration, sx, sy, formula=None):
+    cpdef scale_in(self, unsigned long duration, sx, sy, formula=None):
         self.scale_interpolator = Interpolator(self.rescale, self.frame,
                                                (sx, sy), self.frame + duration,
                                                formula)
 
 
-    def move_in(self, duration, x, y, z, formula=None):
+    cpdef move_in(self, unsigned long duration, x, y, z, formula=None):
         self.offset_interpolator = Interpolator(self.dest_offset, self.frame,
                                                 (x, y, z), self.frame + duration,
                                                 formula)
 
 
-    def rotate_in(self, duration, rx, ry, rz, formula=None):
+    cpdef rotate_in(self, unsigned long duration, rx, ry, rz, formula=None):
         self.rotation_interpolator = Interpolator(self.rotations_3d, self.frame,
                                                   (rx, ry, rz), self.frame + duration,
                                                   formula)
 
 
-    def change_color_in(self, duration, r, g, b, formula=None):
+    cpdef change_color_in(self, unsigned long duration, r, g, b, formula=None):
         self.color_interpolator = Interpolator(self.color, self.frame,
                                                (r, g, b), self.frame + duration,
                                                formula)
 
 
-    def update_orientation(self, angle_base=0., force_rotation=False):
+    cpdef update_orientation(self, double angle_base=0., bint force_rotation=False):
         if (self.angle != angle_base or self.force_rotation != force_rotation):
             self.angle = angle_base
             self.force_rotation = force_rotation
             self.changed = True
 
 
-    def copy(self):
+    cpdef Sprite copy(self):
         sprite = Sprite(self.width_override, self.height_override)
 
         sprite.blendfunc = self.blendfunc
@@ -126,28 +186,28 @@ class Sprite(object):
         return sprite
 
 
-    def update(self):
+    cpdef update(self):
         self.frame += 1
 
-        if self.rotations_speed_3d != (0., 0., 0.):
-            ax, ay, az = self.rotations_3d
-            sax, say, saz = self.rotations_speed_3d
-            self.rotations_3d = ax + sax, ay + say, az + saz
+        sax, say, saz = self._rotations_speed_3d[0], self._rotations_speed_3d[1], self._rotations_speed_3d[2] #XXX
+        if sax or say or saz:
+            ax, ay, az = self._rotations_3d[0], self._rotations_3d[1], self._rotations_3d[2] #XXX
+            self._rotations_3d[:] = [ax + sax, ay + say, az + saz]
             self.changed = True
         elif self.rotation_interpolator:
             self.rotation_interpolator.update(self.frame)
             self.rotations_3d = self.rotation_interpolator.values
             self.changed = True
 
-        if self.scale_speed != (0., 0.):
-            rx, ry = self.rescale
-            rsx, rsy = self.scale_speed
-            self.rescale = rx + rsx, ry + rsy
+        rsx, rsy = self._scale_speed[0], self._scale_speed[1] #XXX
+        if rsx or rsy:
+            rx, ry = self._rescale[0], self._rescale[1] #XXX
+            self._rescale[:] = [rx + rsx, ry + rsy]
             self.changed = True
 
         if self.fade_interpolator:
             self.fade_interpolator.update(self.frame)
-            self.alpha = self.fade_interpolator.values[0]
+            self._color[3] = self.fade_interpolator.values[0]
             self.changed = True
 
         if self.scale_interpolator:

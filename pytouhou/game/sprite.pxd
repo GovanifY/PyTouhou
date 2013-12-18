@@ -10,11 +10,17 @@ cdef class Sprite:
     cdef public Interpolator scale_interpolator, fade_interpolator
     cdef public Interpolator offset_interpolator, rotation_interpolator
     cdef public Interpolator color_interpolator
-    cdef public tuple texcoords, dest_offset, texoffsets, rescale, scale_speed
-    cdef public tuple rotations_3d, rotations_speed_3d, color
-    cdef public unsigned char alpha
     cdef public ANM anm
     cdef public object _rendering_data
+
+    cdef float _dest_offset[3]
+    cdef double _texcoords[4]
+    cdef double _texoffsets[2]
+    cdef double _rescale[2]
+    cdef double _scale_speed[2]
+    cdef double _rotations_3d[3]
+    cdef double _rotations_speed_3d[3]
+    cdef unsigned char _color[4]
 
     cpdef fade(self, unsigned long duration, alpha, formula=*)
     cpdef scale_in(self, unsigned long duration, sx, sy, formula=*)
