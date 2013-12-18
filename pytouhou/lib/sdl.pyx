@@ -351,3 +351,8 @@ cdef Uint32 get_ticks() nogil:
 
 cdef void delay(Uint32 ms) nogil:
     SDL_Delay(ms)
+
+
+cpdef int show_simple_message_box(unicode message):
+    text = message.encode('UTF-8')
+    return SDL_ShowSimpleMessageBox(1, 'PyTouhou', text, NULL)

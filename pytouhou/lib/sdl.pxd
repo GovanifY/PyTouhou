@@ -122,3 +122,4 @@ cdef Music load_music(const char *filename)
 cdef Chunk load_chunk(file_)
 cdef Uint32 get_ticks() nogil
 cdef void delay(Uint32 ms) nogil
+cpdef int show_simple_message_box(unicode message)

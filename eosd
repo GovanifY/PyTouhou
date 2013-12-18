@@ -64,7 +64,7 @@ elif args.backend == 'sdl':
     from pytouhou.ui.sdl.gamerenderer import GameRenderer
     opengl = False
 
-from pytouhou.lib.sdl import SDL
+from pytouhou.lib.sdl import SDL, show_simple_message_box
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
@@ -117,8 +117,8 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
     try:
         resource_loader.scan_archives(data)
     except IOError:
-        sys.stderr.write('Some data files were not found, did you forget the -p option?\n')
-        exit(1)
+        show_simple_message_box(u'Some data files were not found, did you forget the -p option?')
+        sys.exit(1)
 
     if stage_num is None:
         story = True
@@ -236,7 +236,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
                 break
             stage_num += 1
         except GameOver:
-            print('Game over')
+            show_simple_message_box(u'Game over!')
             break
         finally:
             if save_filename:

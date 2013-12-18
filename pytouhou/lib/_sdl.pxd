@@ -193,6 +193,10 @@ cdef extern from "SDL_ttf.h" nogil:
     SDL_Surface *TTF_RenderUTF8_Blended(TTF_Font *font, const char *text, SDL_Color fg)
 
 
+cdef extern from "SDL_messagebox.h" nogil:
+    int SDL_ShowSimpleMessageBox(Uint32 flags, const char *title, const char *message, SDL_Window *window)
+
+
 cdef extern from "SDL_blendmode.h" nogil:
     ctypedef enum SDL_BlendMode:
         SDL_BLENDMODE_NONE
