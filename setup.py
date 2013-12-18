@@ -23,6 +23,8 @@ packages = []
 extension_names = []
 extensions = []
 
+debug = False  # True to generate HTML annotations and display infered types.
+
 
 # Check for gl.pc, and don’t compile the OpenGL backend if it isn’t present.
 try:
@@ -112,9 +114,10 @@ setup(name='PyTouhou',
       url='http://pytouhou.linkmauve.fr/',
       license='GPLv3',
       packages=packages,
-      ext_modules=cythonize(extensions, nthreads=4,
+      ext_modules=cythonize(extensions, nthreads=4, annotate=debug,
                             compiler_directives={'infer_types': True,
-                                                 'infer_types.verbose': True},
+                                                 'infer_types.verbose': debug,
+                                                 'profile': debug},
                             compile_time_env={'MAX_TEXTURES': 128,
                                               'MAX_ELEMENTS': 640 * 4 * 3,
                                               'MAX_CHANNELS': 26,
