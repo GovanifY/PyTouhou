@@ -1,4 +1,5 @@
 from pytouhou.utils.interpolator cimport Interpolator
+from pytouhou.formats.anm0 cimport ANM
 
 cdef class Sprite:
     cdef public long blendfunc, frame
@@ -12,7 +13,8 @@ cdef class Sprite:
     cdef public tuple texcoords, dest_offset, texoffsets, rescale, scale_speed
     cdef public tuple rotations_3d, rotations_speed_3d, color
     cdef public unsigned char alpha
-    cdef public object anm, _rendering_data
+    cdef public ANM anm
+    cdef public object _rendering_data
 
     cpdef fade(self, unsigned long duration, alpha, formula=*)
     cpdef scale_in(self, unsigned long duration, sx, sy, formula=*)

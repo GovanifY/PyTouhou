@@ -39,6 +39,22 @@ class Script(list):
 
 
 
+cdef class ANM:
+    def __init__(self):
+        self.version = 0
+        self.size_inv[:] = [0, 0]
+        self.first_name = None
+        self.secondary_name = None
+        self.sprites = {}
+        self.scripts = {}
+
+    property size:
+        def __set__(self, tuple value):
+            width, height = value
+            self.size_inv[:] = [1. / <double>width, 1. / <double>height]
+
+
+
 class ANM0(object):
     _instructions = {0: {0: ('', 'delete'),
                          1: ('I', 'set_sprite'),
@@ -120,15 +136,6 @@ class ANM0(object):
                          80: ('I', None)}}
 
 
-    def __init__(self):
-        self.version = 0
-        self.size = (0, 0)
-        self.first_name = None
-        self.secondary_name = None
-        self.sprites = {}
-        self.scripts = {}
-
-
     @classmethod
     def read(cls, file):
         anm_list = []
@@ -156,7 +163,7 @@ class ANM0(object):
             sprite_offsets = [unpack('<I', file.read(4))[0] for i in range(nb_sprites)]
             script_offsets = [unpack('<II', file.read(8)) for i in range(nb_scripts)]
 
-            self = cls()
+            self = ANM()
 
             self.size = (width, height)
             self.version = version

@@ -39,7 +39,7 @@ cdef class TextureManager:
     cdef void load(self, dict anms):
         for anm in sorted(anms.values(), key=is_ascii):
             for entry in anm:
-                if not hasattr(entry, 'texture'):
+                if entry.texture is None:
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
                 elif not isinstance(entry.texture, self.texture_class):
                     texture = entry.texture

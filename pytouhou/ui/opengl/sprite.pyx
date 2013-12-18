@@ -57,9 +57,8 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
     if sprite.corner_relative_placement: # Reposition
         translate2d(&vertmat, width / 2, height / 2)
 
-    size = sprite.anm.size
-    x_1 = 1 / <double>size[0]
-    y_1 = 1 / <double>size[1]
+    x_1 = sprite.anm.size_inv[0]
+    y_1 = sprite.anm.size_inv[1]
     tox, toy = sprite.texoffsets
     uvs = (tx * x_1 + tox,
            (tx + tw) * x_1 + tox,

@@ -72,7 +72,7 @@ except OSError:
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
     packages.append(package)
-    if package not in ('pytouhou.game', 'pytouhou.lib', 'pytouhou.utils') and not package.startswith('pytouhou.ui'):
+    if package not in ('pytouhou.formats', 'pytouhou.game', 'pytouhou.lib', 'pytouhou.utils') and not package.startswith('pytouhou.ui'):
         continue
     if package == 'pytouhou.ui' or package == 'pytouhou.ui.sdl':
         package_args = sdl_args
@@ -90,6 +90,8 @@ for directory, _, files in os.walk('pytouhou'):
             elif extension_name == 'pytouhou.ui.window' and use_opengl:
                 compile_args = opengl_args
             elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
+                continue
+            elif package == 'pytouhou.formats' and extension_name != 'pytouhou.formats.anm0':
                 continue
             else:
                 compile_args = package_args
