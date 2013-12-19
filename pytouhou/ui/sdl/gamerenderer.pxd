@@ -1,5 +1,6 @@
 from pytouhou.game.game cimport Game
 from .texture cimport TextureManager
+from .sprite cimport get_sprite_rendering_data
 from pytouhou.ui.window cimport Window
 
 cdef class GameRenderer:

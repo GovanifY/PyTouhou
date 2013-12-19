@@ -15,7 +15,6 @@
 from itertools import chain
 
 from pytouhou.lib.sdl import Rect
-from .sprite import get_sprite_rendering_data
 
 from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
@@ -105,27 +104,26 @@ class GameRenderer(object):
             sprite = element.sprite
             if sprite and sprite.visible:
                 ox, oy = element.x, element.y
-                blendfunc, (vertices, uvs, colors, rotation, flip) = get_sprite_rendering_data(sprite)
-
-                # Pack data in buffer
-                x, y, width, height = vertices
-                left, right, bottom, top = uvs
-                r, g, b, a = colors #TODO: use it.
+                data = get_sprite_rendering_data(sprite)
 
                 #XXX
                 texture_width = 256
                 texture_height = 256
 
-                source = Rect(left * texture_width, bottom * texture_height, (right - left) * texture_width, (top - bottom) * texture_height)
-                dest = Rect(ox + x, oy + y, width, height)
+                source = Rect(data.left * texture_width,
+                              data.bottom * texture_height,
+                              (data.right - data.left) * texture_width,
+                              (data.top - data.bottom) * texture_height)
+
+                dest = Rect(ox + data.x, oy + data.y, data.width, data.height)
 
                 texture = sprite.anm.texture
-                texture.set_color_mod(r, g, b)
-                texture.set_alpha_mod(a)
-                texture.set_blend_mode(2 if blendfunc else 1)
+                texture.set_color_mod(data.r, data.g, data.b)
+                texture.set_alpha_mod(data.a)
+                texture.set_blend_mode(2 if data.blendfunc else 1)
 
-                if rotation or flip:
-                    self.window.win.render_copy_ex(texture, source, dest, rotation, flip)
+                if data.rotation or data.flip:
+                    self.window.win.render_copy_ex(texture, source, dest, data.rotation, data.flip)
                 else:
                     self.window.win.render_copy(texture, source, dest)
 

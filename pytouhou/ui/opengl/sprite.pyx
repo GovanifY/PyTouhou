@@ -13,22 +13,35 @@
 ##
 
 
+from libc.stdlib cimport malloc
+from libc.string cimport memcpy
 from libc.math cimport M_PI as pi
 
 from pytouhou.utils.matrix cimport Matrix, scale2d, flip, rotate_x, rotate_y, rotate_z, translate, translate2d
 from .renderer cimport Texture #XXX
 
 
-cpdef tuple get_sprite_rendering_data(Sprite sprite):
+cdef Matrix default
+default = Matrix(-.5,   .5,   .5,  -.5,
+                 -.5,  -.5,   .5,   .5,
+                 0,    0,    0,    0,
+                 1,    1,    1,    1)
+
+
+cdef RenderingData* get_sprite_rendering_data(Sprite sprite) nogil:
+    if sprite.changed:
+        render_sprite(sprite)
+    return <RenderingData*>sprite._rendering_data
+
+
+cdef void render_sprite(Sprite sprite) nogil:
     cdef Matrix vertmat
 
-    if not sprite.changed:
-        return sprite._rendering_data
+    if sprite._rendering_data == NULL:
+        sprite._rendering_data = malloc(sizeof(RenderingData))
 
-    vertmat = Matrix(-.5,   .5,   .5,  -.5,
-                     -.5,  -.5,   .5,   .5,
-                     0,    0,    0,    0,
-                     1,    1,    1,    1)
+    data = <RenderingData*>sprite._rendering_data
+    memcpy(&vertmat, &default, sizeof(Matrix))
 
     tx, ty, tw, th = sprite._texcoords[0], sprite._texcoords[1], sprite._texcoords[2], sprite._texcoords[3]
     sx, sy = sprite._rescale[0], sprite._rescale[1]
@@ -56,19 +69,18 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
     if sprite.corner_relative_placement: # Reposition
         translate2d(&vertmat, width / 2, height / 2)
 
+    memcpy(data.pos, &vertmat, 12 * sizeof(float))
+
     x_1 = sprite.anm.size_inv[0]
     y_1 = sprite.anm.size_inv[1]
     tox, toy = sprite._texoffsets[0], sprite._texoffsets[1]
-    uvs = (tx * x_1 + tox,
-           (tx + tw) * x_1 + tox,
-           ty * y_1 + toy,
-           (ty + th) * y_1 + toy)
+    data.left = tx * x_1 + tox
+    data.right = (tx + tw) * x_1 + tox
+    data.bottom = ty * y_1 + toy
+    data.top = (ty + th) * y_1 + toy
 
-    r, g, b, a = sprite._color[0], sprite._color[1], sprite._color[2], sprite._color[3]
+    for i in xrange(4):
+        data.color[i] = sprite._color[i]
 
-    key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc
-    values = tuple([x for x in (<float*>&vertmat)[:12]]), uvs, (r, g, b, a)
-    sprite._rendering_data = key, values
+    data.key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc
     sprite.changed = False
-
-    return sprite._rendering_data

@@ -118,10 +118,7 @@ cdef class Renderer:
 
 
     cdef void render_elements(self, elements):
-        cdef int key
-        cdef short x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, ox, oy
-        cdef float left, right, bottom, top
-        cdef unsigned char r, g, b, a
+        cdef Element element
 
         nb_elements = find_objects(self, elements)
         if not nb_elements:
@@ -132,9 +129,9 @@ cdef class Renderer:
 
         for element_idx in xrange(nb_elements):
             element = <object>self.elements[element_idx]
-            sprite = element.sprite
-            ox, oy = element.x, element.y
-            key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
+            ox, oy = <short>element.x, <short>element.y
+            data = get_sprite_rendering_data(element.sprite)
+            key = data.key
 
             blendfunc = key & 1
             texture = key >> 1
@@ -143,13 +140,12 @@ cdef class Renderer:
             next_indice = self.last_indices[key]
 
             # Pack data in buffer
-            x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = vertices
-            left, right, bottom, top = uvs
-            r, g, b, a = colors
-            self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, 0, left, bottom, r, g, b, a)
-            self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, 0, right, bottom, r, g, b, a)
-            self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, 0, right, top, r, g, b, a)
-            self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, 0, left, top, r, g, b, a)
+            x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = <short>data.pos[0], <short>data.pos[1], <short>data.pos[2], <short>data.pos[3], <short>data.pos[4], <short>data.pos[5], <short>data.pos[6], <short>data.pos[7], <short>data.pos[8], <short>data.pos[9], <short>data.pos[10], <short>data.pos[11]
+            r, g, b, a = data.color[0], data.color[1], data.color[2], data.color[3]
+            self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, 0, data.left, data.bottom, r, g, b, a)
+            self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, 0, data.right, data.bottom, r, g, b, a)
+            self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, 0, data.right, data.top, r, g, b, a)
+            self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, 0, data.left, data.top, r, g, b, a)
 
             # Add indices
             rec[next_indice] = nb_vertices

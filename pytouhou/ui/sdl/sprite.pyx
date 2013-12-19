@@ -13,12 +13,21 @@
 ##
 
 
+from libc.stdlib cimport malloc
 from libc.math cimport M_PI as pi
 
 
-cpdef tuple get_sprite_rendering_data(Sprite sprite):
-    if not sprite.changed:
-        return sprite._rendering_data
+cdef RenderingData* get_sprite_rendering_data(Sprite sprite) nogil:
+    if sprite.changed:
+        render_sprite(sprite)
+    return <RenderingData*>sprite._rendering_data
+
+
+cdef void render_sprite(Sprite sprite) nogil:
+    if sprite._rendering_data == NULL:
+        sprite._rendering_data = malloc(sizeof(RenderingData))
+
+    data = <RenderingData*>sprite._rendering_data
 
     x = 0
     y = 0
@@ -41,19 +50,23 @@ cpdef tuple get_sprite_rendering_data(Sprite sprite):
         x -= width / 2
         y -= height / 2
 
+    data.x = <int>x
+    data.y = <int>y
+    data.width = <int>width
+    data.height = <int>height
+
     x_1 = sprite.anm.size_inv[0]
     y_1 = sprite.anm.size_inv[1]
     tox, toy = sprite._texoffsets[0], sprite._texoffsets[1]
-    uvs = (tx * x_1 + tox,
-           (tx + tw) * x_1 + tox,
-           ty * y_1 + toy,
-           (ty + th) * y_1 + toy)
+    data.left = tx * x_1 + tox
+    data.right = (tx + tw) * x_1 + tox
+    data.bottom = ty * y_1 + toy
+    data.top = (ty + th) * y_1 + toy
 
-    r, g, b, a = sprite._color[0], sprite._color[1], sprite._color[2], sprite._color[3]
+    data.r, data.g, data.b, data.a = sprite._color[0], sprite._color[1], sprite._color[2], sprite._color[3]
 
-    key = sprite.blendfunc
-    values = (x, y, width, height), uvs, (r, g, b, a), -rz * 180 / pi, sprite.mirrored
-    sprite._rendering_data = key, values
+    data.blendfunc = sprite.blendfunc
+    data.rotation = -rz * 180 / pi
+    data.flip = sprite.mirrored
+
     sprite.changed = False
-
-    return sprite._rendering_data

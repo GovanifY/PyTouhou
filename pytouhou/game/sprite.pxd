@@ -11,7 +11,8 @@ cdef class Sprite:
     cdef public Interpolator offset_interpolator, rotation_interpolator
     cdef public Interpolator color_interpolator
     cdef public ANM anm
-    cdef public object _rendering_data
+
+    cdef void *_rendering_data
 
     cdef float _dest_offset[3]
     cdef double _texcoords[4]

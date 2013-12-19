@@ -82,16 +82,17 @@ cdef class BackgroundRenderer:
         for ox, oy, oz, model_id, model in background.object_instances:
             for ox2, oy2, oz2, width_override, height_override, sprite in model:
                 #TODO: view frustum culling
-                key, (vertices, uvs, colors) = get_sprite_rendering_data(sprite)
-                x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = vertices
-                left, right, bottom, top = uvs
-                r, g, b, a = colors
+                data = get_sprite_rendering_data(sprite)
+                key = data.key
+
+                x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4 = data.pos[0], data.pos[1], data.pos[2], data.pos[3], data.pos[4], data.pos[5], data.pos[6], data.pos[7], data.pos[8], data.pos[9], data.pos[10], data.pos[11]
+                r, g, b, a = data.color[0], data.color[1], data.color[2], data.color[3]
 
                 # Pack data
-                vertex_buffer[nb_vertices] = Vertex(x1 + ox + ox2, y1 + oy + oy2, z1 + oz + oz2, left, bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+1] = Vertex(x2 + ox + ox2, y2 + oy + oy2, z2 + oz + oz2, right, bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+2] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, right, top, r, g, b, a)
-                vertex_buffer[nb_vertices+3] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, left, top, r, g, b, a)
+                vertex_buffer[nb_vertices] = Vertex(x1 + ox + ox2, y1 + oy + oy2, z1 + oz + oz2, data.left, data.bottom, r, g, b, a)
+                vertex_buffer[nb_vertices+1] = Vertex(x2 + ox + ox2, y2 + oy + oy2, z2 + oz + oz2, data.right, data.bottom, r, g, b, a)
+                vertex_buffer[nb_vertices+2] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, data.right, data.top, r, g, b, a)
+                vertex_buffer[nb_vertices+3] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, data.left, data.top, r, g, b, a)
 
                 # Add indices
                 indices[nb_indices] = nb_vertices

@@ -12,7 +12,16 @@
 ## GNU General Public License for more details.
 ##
 
+from libc.stdlib cimport free
+from libc.string cimport memcpy
+
+
 cdef class Sprite:
+    def __dealloc__(self):
+        if self._rendering_data != NULL:
+            free(self._rendering_data)
+
+
     def __init__(self, width_override=0, height_override=0):
         self.anm = None
         self.removed = False
@@ -50,8 +59,6 @@ cdef class Sprite:
         # slicing here.
         for i in xrange(4):
             self._color[i] = 255
-
-        self._rendering_data = None
 
 
     property scale_speed:
@@ -181,7 +188,6 @@ cdef class Sprite:
 
         sprite.alpha = self.alpha
         sprite.anm = self.anm
-        sprite._rendering_data = self._rendering_data
 
         return sprite
 
