@@ -12,6 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
+cimport cython
+
 IF USE_OPENGL:
     from pytouhou.lib.opengl cimport \
              (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
@@ -29,7 +31,7 @@ cdef class Clock:
         self._ref_frame = 0
         self._fps_tick = 0
         self._fps_frame = 0
-        self._rate = 0
+        self.fps = 0
         self.set_target_fps(fps)
 
 
@@ -39,10 +41,7 @@ cdef class Clock:
         self._fps_tick = 0
 
 
-    cdef double get_fps(self) nogil:
-        return self._rate
-
-
+    @cython.cdivision(True)
     cdef void tick(self) nogil except *:
         current = sdl.get_ticks()
 
@@ -51,12 +50,12 @@ cdef class Clock:
             self._ref_frame = 0
 
         if self._fps_frame >= (self._target_fps if self._target_fps > 0 else 60):
-            self._rate = self._fps_frame * 1000. / (current - self._fps_tick)
+            self.fps = self._fps_frame * 1000. / (current - self._fps_tick)
             self._fps_tick = current
             self._fps_frame = 0
             # If we are relying on vsync, but vsync doesn't work or is higher
             # than 60 fps, limit ourselves to 60 fps.
-            if self._target_fps < 0 and self._rate > 64.:
+            if self._target_fps < 0 and self.fps > 64.:
                 self._target_fps = 60
 
         self._ref_frame += 1
@@ -162,4 +161,4 @@ cdef class Window:
 
 
     cdef double get_fps(self) nogil:
-        return self.clock.get_fps()
+        return self.clock.fps

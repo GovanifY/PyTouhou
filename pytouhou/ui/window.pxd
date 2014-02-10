@@ -4,10 +4,9 @@ from pytouhou.lib cimport sdl
 cdef class Clock:
     cdef unsigned long _ref_tick
     cdef long _target_fps, _ref_frame, _fps_tick, _fps_frame
-    cdef double _rate
+    cdef double fps
 
     cdef void set_target_fps(self, long fps) nogil
-    cdef double get_fps(self) nogil
     cdef void tick(self) nogil except *
 
 
