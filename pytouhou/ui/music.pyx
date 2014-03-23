@@ -104,5 +104,6 @@ cdef class SFXPlayer(MusicPlayer):
         sound.play(channel, 0)
 
     cpdef set_volume(self, name, float volume):
-        chunk = self.get_sound(name)
-        chunk.set_volume(volume)
+        sound = self.get_sound(name)
+        if sound is not None:
+            sound.set_volume(volume)
