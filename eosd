@@ -42,7 +42,7 @@ parser.add_argument('--debug', action='store_true', help='Set unlimited continue
 parser.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
 parser.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
 parser.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
-parser.add_argument('--no-music', action='store_false', help='Disable background music.')
+parser.add_argument('--no-sound', action='store_false', help='Disable music and SFX.')
 parser.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
 parser.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
@@ -110,7 +110,7 @@ class GameBossRush(Game):
 
 def main(window, path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, debug, enable_background, enable_particles,
-         enable_music, hints, verbosity, port, remote, friendly_fire):
+         hints, verbosity, port, remote, friendly_fire):
 
     resource_loader = Loader(path)
 
@@ -225,11 +225,10 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
             game.new_particle = new_particle
 
         background = game.background if enable_background else None
-        bgms = game.std.bgms if enable_music else None
+        runner.load_game(game, background, game.std.bgms, replay, save_keystates)
 
-        # Main loop
-        runner.load_game(game, background, bgms, replay, save_keystates)
         try:
+            # Main loop
             window.run()
             break
         except NextStage:
@@ -254,7 +253,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
             save_replay.write(file)
 
 
-with SDL():
+with SDL(sound=args.no_sound):
     window = Window(double_buffer=(not args.single_buffer),
                     fps_limit=args.fps_limit,
                     fixed_pipeline=args.fixed_pipeline, opengl=opengl)
@@ -262,7 +261,7 @@ with SDL():
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,
          args.boss_rush, args.debug, args.no_background, args.no_particles,
-         args.no_music, args.hints, args.verbosity, args.port, args.remote,
+         args.hints, args.verbosity, args.port, args.remote,
          args.no_friendly_fire)
 
     import gc
