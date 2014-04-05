@@ -36,9 +36,8 @@ cdef class BGMPlayer(MusicPlayer):
             try:
                 track = resource_loader.get_track(posname)
             except KeyError:
-                self.bgms.append(None)
-                logger.warn(u'Music description “%s” not found.', posname)
-                continue
+                track = None
+                logger.warn(u'Music description “%s” not found, continuing without looping data.', posname)
             globname = join(resource_loader.game_dir, bgm[1].encode('ascii')).replace('.mid', '.*')
             filenames = glob(globname)
             for filename in reversed(filenames):
@@ -48,7 +47,8 @@ cdef class BGMPlayer(MusicPlayer):
                     logger.debug(u'Music file “%s” unreadable: %s', filename, error)
                     continue
                 else:
-                    source.set_loop_points(track.start / 44100., track.end / 44100.) #TODO: retrieve the sample rate from the actual track.
+                    if track is not None:
+                        source.set_loop_points(track.start / 44100., track.end / 44100.) #TODO: retrieve the sample rate from the actual track.
                     self.bgms.append(source)
                     logger.debug(u'Music file “%s” opened.', filename)
                     break
