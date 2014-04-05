@@ -15,7 +15,6 @@
 import os
 from glob import glob
 from itertools import chain
-from io import BytesIO
 
 from pytouhou.formats import WrongFormatError
 from pytouhou.formats.pbg3 import PBG3
@@ -55,10 +54,8 @@ class Directory(object):
         return file_list
 
 
-    def extract(self, name):
-        with open(os.path.join(self.path, str(name)), 'rb') as file:
-            contents = file.read()
-        return contents
+    def get_file(self, name):
+        return open(os.path.join(self.path, str(name)), 'rb')
 
 
 
@@ -124,16 +121,9 @@ class Loader(object):
                     self.known_files[name] = archive_description
 
 
-    def get_file_data(self, name):
-        with self.known_files[name].open() as archive:
-            content = archive.extract(name)
-        return content
-
-
     def get_file(self, name):
         with self.known_files[name].open() as archive:
-            content = archive.extract(name)
-        return BytesIO(content)
+            return archive.get_file(name)
 
 
     def get_anm(self, name):

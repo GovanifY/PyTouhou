@@ -22,6 +22,7 @@ a file table, and LZSS-compressed files.
 """
 
 from collections import namedtuple
+from io import BytesIO
 
 from pytouhou.utils.bitstream import BitStream
 from pytouhou.utils import lzss
@@ -128,7 +129,7 @@ class PBG3(object):
         return self.entries.keys()
 
 
-    def extract(self, filename, check=False):
+    def get_file(self, filename, check=False):
         """Extract a given file.
 
         If “filename” is in the archive, extract it and return its contents.
@@ -151,5 +152,4 @@ class PBG3(object):
                 value &= 0xFFFFFFFF
             if value != checksum:
                 logger.warn('corrupted data!')
-        return data
-
+        return BytesIO(data)
