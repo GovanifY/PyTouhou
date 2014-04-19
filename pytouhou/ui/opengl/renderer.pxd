@@ -18,6 +18,9 @@ cdef class Texture:
     cdef GLuint texture, *pointer
     cdef unsigned short indices[2][65536]
 
+    #XXX: keep a reference so that when __dealloc__ is called self.pointer is still valid.
+    cdef Renderer renderer
+
 
 cdef class Renderer:
     cdef TextureManager texture_manager

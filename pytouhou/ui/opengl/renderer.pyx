@@ -61,6 +61,9 @@ cdef class Texture:
         for i in xrange(2):
             renderer.indices[key][i] = self.indices[i]
 
+        #XXX: keep a reference so that when __dealloc__ is called self.pointer is still valid.
+        self.renderer = renderer
+
     def __dealloc__(self):
         if self.texture:
             glDeleteTextures(1, &self.texture)
