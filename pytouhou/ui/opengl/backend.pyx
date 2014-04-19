@@ -6,9 +6,6 @@ from pytouhou.lib.opengl cimport \
           GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
           GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
 
-IF USE_GLEW:
-    from pytouhou.lib.opengl cimport glewInit
-
 
 GameRenderer = None
 
@@ -48,10 +45,6 @@ def create_window(title, x, y, width, height):
 
     window = Window(title, x, y, width, height, flags)
     window.gl_create_context()
-
-    if USE_GLEW:
-        if glewInit() != 0:
-            raise Exception('GLEW init fail!')
 
     # Initialize OpenGL
     glEnable(GL_BLEND)

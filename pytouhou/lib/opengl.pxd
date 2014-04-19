@@ -13,12 +13,7 @@
 ##
 
 
-IF USE_GLEW:
-    cdef extern from 'GL/glew.h' nogil:
-        GLenum glewInit()
-
-
-cdef extern from 'GL/gl.h' nogil:
+cdef extern from 'epoxy/gl.h' nogil:
     ctypedef unsigned int GLuint
     ctypedef unsigned short GLushort
     ctypedef int GLint
@@ -123,8 +118,8 @@ cdef extern from 'GL/gl.h' nogil:
     void glHint(GLenum target, GLenum mode)
     void glEnableClientState(GLenum cap)
 
+    # Here start non-1.x declarations.
 
-cdef extern from 'GL/glext.h' nogil:
     void glVertexAttribPointer(GLuint index, GLint size, GLenum type_, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
     void glEnableVertexAttribArray(GLuint index)
 

@@ -17,7 +17,7 @@ except ImportError:
 
 COMMAND = 'pkg-config'
 SDL_LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
-GL_LIBRARIES = ['gl']
+GL_LIBRARIES = ['epoxy']
 
 packages = []
 extension_names = []
@@ -45,11 +45,11 @@ default_libs = {
     'SDL2_image': '-lSDL2_image',
     'SDL2_mixer': '-lSDL2_mixer',
     'SDL2_ttf': '-lSDL2_ttf',
-    'gl': '-lGL'
+    'epoxy': '-lepoxy'
 }
 
 
-# Check for gl.pc, and don’t compile the OpenGL backend if it isn’t present.
+# Check for epoxy.pc, and don’t compile the OpenGL backend if it isn’t present.
 try:
     check_output([COMMAND] + GL_LIBRARIES)
 except CalledProcessError:
@@ -120,10 +120,8 @@ for directory, _, files in os.walk('pytouhou'):
 try:
     from cx_Freeze import setup, Executable
 except ImportError:
-    is_windows = False
     extra = {}
 else:
-    is_windows = True
     nthreads = None  # It seems Windows can’t compile in parallel.
     base = 'Win32GUI' if sys.platform == 'win32' else None
     extra = {'options': {'build_exe': {'includes': extension_names + ['glob', 'socket', 'select']}},
@@ -144,7 +142,6 @@ setup(name='PyTouhou',
                             compile_time_env={'MAX_TEXTURES': 128,
                                               'MAX_ELEMENTS': 640 * 4 * 3,
                                               'MAX_SOUNDS': 26,
-                                              'USE_OPENGL': use_opengl,
-                                              'USE_GLEW': is_windows}),
+                                              'USE_OPENGL': use_opengl}),
       scripts=['scripts/pytouhou'] + (['scripts/anmviewer'] if anmviewer else []),
       **extra)

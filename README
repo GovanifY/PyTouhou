@@ -15,6 +15,7 @@ Running:
     * Python2 (>= 2.6)
     * Cython
     * A working OpenGL driver
+    * libepoxy
     * SDL2
     * SDL2_image, SDL2_mixer, SDL2_ttf
     * A TTF font file, placed as “font.ttf” in the game directory.
