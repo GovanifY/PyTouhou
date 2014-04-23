@@ -70,6 +70,7 @@ cdef extern from "SDL_scancode.h" nogil:
     ctypedef enum SDL_Scancode:
         SDL_SCANCODE_Z
         SDL_SCANCODE_X
+        SDL_SCANCODE_P
         SDL_SCANCODE_LSHIFT
         SDL_SCANCODE_UP
         SDL_SCANCODE_DOWN
@@ -77,6 +78,7 @@ cdef extern from "SDL_scancode.h" nogil:
         SDL_SCANCODE_RIGHT
         SDL_SCANCODE_LCTRL
         SDL_SCANCODE_ESCAPE
+        SDL_SCANCODE_HOME
 
 
 cdef extern from "SDL_events.h" nogil:

@@ -108,8 +108,15 @@ cdef class GameRunner(Runner):
             self.renderer.start(self.common)
 
 
+    cdef void capture(self) except *:
+        if self.renderer is not None:
+            filename = 'screenshot/frame%06d.ppm' % self.game.frame
+            self.renderer.capture(filename, self.width, self.height)
+
+
     cpdef bint update(self) except? False:
         cdef long keystate
+        capture = False
 
         if self.background is not None:
             self.background.update(self.game.frame)
@@ -119,6 +126,8 @@ cdef class GameRunner(Runner):
                 scancode = event[1]
                 if scancode == sdl.SCANCODE_ESCAPE:
                     return False #TODO: implement the pause.
+                elif scancode == sdl.SCANCODE_P or scancode == sdl.SCANCODE_HOME:
+                    capture = True
             elif type_ == sdl.QUIT:
                 return False
             elif type_ == sdl.WINDOWEVENT:
@@ -171,5 +180,8 @@ cdef class GameRunner(Runner):
 
         if not self.skip and self.renderer is not None:
             self.renderer.render(self.game)
+
+        if capture:
+            self.capture()
 
         return True

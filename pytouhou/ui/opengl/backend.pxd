@@ -9,4 +9,5 @@ cdef bint use_debug_group
 cdef bint use_vao
 cdef bint use_framebuffer_blit
 cdef bint use_primitive_restart
+cdef bint use_pack_invert
 cdef bytes shader_header

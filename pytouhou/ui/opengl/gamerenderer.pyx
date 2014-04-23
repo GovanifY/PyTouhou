@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from libc.stdlib cimport free
+from libc.stdlib cimport malloc, free
 from itertools import chain
 
 from pytouhou.lib.opengl cimport \
@@ -21,14 +21,15 @@ from pytouhou.lib.opengl cimport \
           GL_FOG, GL_FOG_MODE, GL_LINEAR, GL_FOG_START, GL_FOG_END,
           GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat, glViewport, glScissor,
           GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup, glBindTexture,
+          glGetTexImage, GL_TEXTURE_2D, GL_RGB, GL_UNSIGNED_BYTE)
 
 from pytouhou.utils.matrix cimport mul, new_identity
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 from .renderer cimport Texture
-from .backend cimport is_legacy, use_debug_group
+from .backend cimport is_legacy, use_debug_group, use_pack_invert
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -103,6 +104,28 @@ cdef class GameRenderer(Renderer):
 
             if use_debug_group:
                 glPopDebugGroup()
+
+
+    def capture(self, filename, int width, int height):
+        capture_memory = <char*>malloc(width * height * 3)
+
+        glBindTexture(GL_TEXTURE_2D, self.framebuffer.texture)
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, capture_memory)
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        # TODO: output to PNG instead.
+
+        # PPM output, bottom to top.
+        with open(filename, 'wb') as ppm:
+            ppm.write(('P6\n%d %d\n 255\n' % (width, height)).encode())
+            if use_pack_invert:
+                ppm.write(capture_memory[:width * height * 3])
+            else:
+                for i in range(width * (height - 1), -1, -width):
+                    ppm.write(capture_memory[i * 3:(i + width) * 3])
+
+        # Cleanup.
+        free(capture_memory)
 
 
     cdef void render_game(self, Game game):

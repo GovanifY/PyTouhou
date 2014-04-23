@@ -8,7 +8,8 @@ from pytouhou.lib.opengl cimport \
           GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
           glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup,
           epoxy_gl_version, epoxy_is_desktop_gl, epoxy_has_gl_extension,
-          GL_PRIMITIVE_RESTART, glPrimitiveRestartIndex)
+          GL_PRIMITIVE_RESTART, glPrimitiveRestartIndex, glPixelStorei,
+          GL_PACK_INVERT_MESA)
 
 
 GameRenderer = None
@@ -47,7 +48,7 @@ def init(options):
 def discover_features():
     '''Discover which features are supported by our context.'''
 
-    global use_debug_group, use_vao, use_primitive_restart, shader_header
+    global use_debug_group, use_vao, use_primitive_restart, use_pack_invert, shader_header
 
     version = epoxy_gl_version()
     is_desktop = epoxy_is_desktop_gl()
@@ -56,6 +57,7 @@ def discover_features():
     use_vao = (is_desktop and version >= 30) or epoxy_has_gl_extension('GL_ARB_vertex_array_object')
     use_primitive_restart = (is_desktop and version >= 31)
     use_framebuffer_blit = (is_desktop and version >= 30)
+    use_pack_invert = epoxy_has_gl_extension('GL_MESA_pack_invert')
 
     if is_desktop:
         # gl_FragColor isn’t supported anymore starting with GLSL 4.2.
@@ -112,6 +114,9 @@ def create_window(title, x, y, width, height, swap_interval):
     if use_primitive_restart:
         glEnable(GL_PRIMITIVE_RESTART)
         glPrimitiveRestartIndex(0xFFFF);
+
+    if use_pack_invert:
+        glPixelStorei(GL_PACK_INVERT_MESA, True)
 
     if use_debug_group:
         glPopDebugGroup()

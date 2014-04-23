@@ -56,6 +56,9 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_TEXTURE_MIN_FILTER
         GL_TEXTURE_MAG_FILTER
 
+    ctypedef enum GLenum_store 'GLenum':
+        GL_PACK_INVERT_MESA
+
     ctypedef enum GLenum_client_state 'GLenum':
         GL_COLOR_ARRAY
         GL_VERTEX_ARRAY
@@ -143,6 +146,8 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glBindTexture(GLenum_textarget target, GLuint texture)
     void glTexParameteri(GLenum_textarget target, GLenum_texparam pname, GLint param)
     void glTexImage2D(GLenum_textarget target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum_format format_, GLenum_type type_, const GLvoid *data)
+    void glGetTexImage(GLenum_textarget target, GLint level, GLenum_format format_, GLenum_type type_, GLvoid *img)
+    void glPixelStorei(GLenum_store pname, GLint param)
 
     void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
     void glClear(GLbitfield mask)

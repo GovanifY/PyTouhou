@@ -33,6 +33,7 @@ cdef SDL_WindowFlags WINDOW_RESIZABLE
 #TODO: should be SDL_Scancode, but Cython doesn’t allow enum for array indexing.
 cdef long SCANCODE_Z
 cdef long SCANCODE_X
+cdef long SCANCODE_P
 cdef long SCANCODE_LSHIFT
 cdef long SCANCODE_UP
 cdef long SCANCODE_DOWN
@@ -40,6 +41,7 @@ cdef long SCANCODE_LEFT
 cdef long SCANCODE_RIGHT
 cdef long SCANCODE_LCTRL
 cdef long SCANCODE_ESCAPE
+cdef long SCANCODE_HOME
 
 cdef SDL_WindowEventID WINDOWEVENT_RESIZED
 
