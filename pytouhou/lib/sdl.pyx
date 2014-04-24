@@ -52,11 +52,15 @@ class SDL(object):
         self.sound = sound
 
     def __enter__(self):
+        global keyboard_state
+
         IF UNAME_SYSNAME == "Windows":
             SDL_SetMainReady()
         init(SDL_INIT_VIDEO)
         img_init(IMG_INIT_PNG)
         ttf_init()
+
+        keyboard_state = SDL_GetKeyboardState(NULL)
 
         if self.sound:
             mix_init(0)
@@ -283,10 +287,6 @@ cdef list poll_events():
         elif event.type == SDL_WINDOWEVENT:
             ret.append((event.type, event.window.event, event.window.data1, event.window.data2))
     return ret
-
-
-cdef const Uint8* get_keyboard_state() nogil:
-    return SDL_GetKeyboardState(NULL)
 
 
 cdef Surface load_png(file_):

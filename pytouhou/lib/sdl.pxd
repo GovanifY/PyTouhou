@@ -42,6 +42,8 @@ cdef SDL_EventType KEYDOWN
 cdef SDL_EventType QUIT
 cdef SDL_EventType WINDOWEVENT
 
+cdef const Uint8 *keyboard_state
+
 
 cdef class Window:
     cdef SDL_Window *window
@@ -111,7 +113,6 @@ cdef void mix_init(int flags) except *
 cdef void ttf_init() except *
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
 cdef list poll_events()
-cdef const Uint8* get_keyboard_state() nogil
 cdef Surface load_png(file_)
 cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)
 cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *

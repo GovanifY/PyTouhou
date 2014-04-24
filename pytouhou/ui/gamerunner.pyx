@@ -129,7 +129,7 @@ cdef class GameRunner(Runner):
                         self.window.set_size(event[2], event[3])
         if self.replay_level is None:
             #TODO: allow user settings
-            keys = sdl.get_keyboard_state()
+            keys = sdl.keyboard_state
             keystate = 0
             if keys[sdl.SCANCODE_Z]:
                 keystate |= 1
