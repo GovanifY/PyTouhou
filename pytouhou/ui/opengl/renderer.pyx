@@ -237,6 +237,7 @@ cdef class Renderer:
             glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
             glEnableVertexAttribArray(2)
 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
         glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
 
