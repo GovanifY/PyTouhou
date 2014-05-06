@@ -25,6 +25,16 @@ extensions = []
 
 debug = False  # True to generate HTML annotations and display infered types.
 anmviewer = False  # It’s currently broken anyway.
+use_opengl = True  # Compile the OpenGL backend if True
+nthreads = 4  # How many processes to use for Cython compilation.
+
+default_libs = {
+    'sdl2': '-lSDL2',
+    'SDL2_image': '-lSDL2_image',
+    'SDL2_mixer': '-lSDL2_mixer',
+    'SDL2_ttf': '-lSDL2_ttf',
+    'gl': '-lGL'
+}
 
 
 # Check for gl.pc, and don’t compile the OpenGL backend if it isn’t present.
@@ -32,8 +42,11 @@ try:
     check_output([COMMAND] + GL_LIBRARIES)
 except CalledProcessError:
     use_opengl = False
-else:
-    use_opengl = True
+except OSError:
+    # Assume GL is here if we can’t use pkg-config, but display a warning.
+    print('You don’t seem to have pkg-config installed. Please get a copy '
+          'from http://pkg-config.freedesktop.org/ and install it.\n'
+          'Continuing without it, assuming every dependency is available.')
 
 
 def get_arguments(arg, libraries):
@@ -43,38 +56,30 @@ def get_arguments(arg, libraries):
         # The error has already been displayed, just exit.
         sys.exit(1)
     except OSError:
-        print('You don’t seem to have pkg-config installed. Please get a copy '
-              'from http://pkg-config.freedesktop.org/ and install it.\n'
-              'If you prefer to use it from somewhere else, just modify the '
-              'setup.py script.')
-        sys.exit(1)
+        # We already said to the user pkg-config was suggested.
+        if arg == '--cflags':
+            return []
+        return [default_libs[library] for library in libraries]
 
 
-try:
-    sdl_args = {'extra_compile_args': get_arguments('--cflags', SDL_LIBRARIES),
-                'extra_link_args': get_arguments('--libs', SDL_LIBRARIES)}
+sdl_args = {'extra_compile_args': get_arguments('--cflags', SDL_LIBRARIES),
+            'extra_link_args': get_arguments('--libs', SDL_LIBRARIES)}
 
-    if use_opengl:
-        opengl_args = {'extra_compile_args': get_arguments('--cflags', GL_LIBRARIES + SDL_LIBRARIES),
-                       'extra_link_args': get_arguments('--libs', GL_LIBRARIES + SDL_LIBRARIES)}
-except CalledProcessError:
-    # The error has already been displayed, just exit.
-    sys.exit(1)
-except OSError:
-    # pkg-config is needed too.
-    print('You don’t seem to have pkg-config installed. Please get a copy '
-          'from http://pkg-config.freedesktop.org/ and install it.\n'
-          'If you prefer to use it from somewhere else, just modify the '
-          'setup.py script.')
-    sys.exit(1)
+if use_opengl:
+    opengl_args = {'extra_compile_args': get_arguments('--cflags', GL_LIBRARIES + SDL_LIBRARIES),
+                   'extra_link_args': get_arguments('--libs', GL_LIBRARIES + SDL_LIBRARIES)}
 
 
 for directory, _, files in os.walk('pytouhou'):
     package = directory.replace(os.path.sep, '.')
-    packages.append(package)
-    if package not in ('pytouhou.formats', 'pytouhou.game', 'pytouhou.lib', 'pytouhou.utils') and not package.startswith('pytouhou.ui'):
+    if not use_opengl and package in ('pytouhou.ui.opengl', 'pytouhou.ui.opengl.shaders'):
         continue
-    if package == 'pytouhou.ui' or package == 'pytouhou.ui.sdl':
+    packages.append(package)
+    if package not in ('pytouhou.formats', 'pytouhou.game', 'pytouhou.lib',
+                       'pytouhou.utils', 'pytouhou.ui', 'pytouhou.ui.opengl',
+                       'pytouhou.ui.sdl'):
+        continue
+    if package in ('pytouhou.ui', 'pytouhou.ui.sdl'):
         package_args = sdl_args
     elif package == 'pytouhou.ui.opengl':
         package_args = opengl_args
@@ -90,6 +95,7 @@ for directory, _, files in os.walk('pytouhou'):
             elif extension_name == 'pytouhou.ui.window' and use_opengl:
                 compile_args = opengl_args
             elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
+                extension_names.pop()
                 continue
             elif package == 'pytouhou.formats' and extension_name != 'pytouhou.formats.anm0':
                 continue
@@ -100,7 +106,7 @@ for directory, _, files in os.walk('pytouhou'):
                                         **compile_args))
 
 
-# TODO: find a less-intrusive, cleaner way to do this...
+# OS-specific setuptools options.
 try:
     from cx_Freeze import setup, Executable
 except ImportError:
@@ -108,8 +114,10 @@ except ImportError:
     extra = {}
 else:
     is_windows = True
-    extra = {'options': {'build_exe': {'includes': extension_names}},
-             'executables': [Executable(script='eosd', base='Win32GUI')]}
+    nthreads = None  # It seems Windows can’t compile in parallel.
+    base = 'Win32GUI' if sys.platform == 'win32' else None
+    extra = {'options': {'build_exe': {'includes': extension_names + ['glob', 'socket', 'select']}},
+             'executables': [Executable(script='eosd', base=base)]}
 
 
 setup(name='PyTouhou',
@@ -119,7 +127,7 @@ setup(name='PyTouhou',
       url='http://pytouhou.linkmauve.fr/',
       license='GPLv3',
       packages=packages,
-      ext_modules=cythonize(extensions, nthreads=4, annotate=debug,
+      ext_modules=cythonize(extensions, nthreads=nthreads, annotate=debug,
                             compiler_directives={'infer_types': True,
                                                  'infer_types.verbose': debug,
                                                  'profile': debug},
