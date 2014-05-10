@@ -28,7 +28,8 @@ cpdef bytes decompress(BitStream bitstream,
     cdef Py_ssize_t ptr, length
     cdef unsigned int dictionary_head
     cdef unsigned char byte
-    cdef char *out_data, *dictionary
+    cdef char *out_data
+    cdef char *dictionary
 
     out_data = <char*> malloc(size)
     dictionary = <char*> calloc(dictionary_size, 1)

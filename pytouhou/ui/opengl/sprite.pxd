@@ -1,7 +1,8 @@
 from pytouhou.game.sprite cimport Sprite
 
 cdef struct RenderingData:
-    float pos[12], left, right, bottom, top
+    float pos[12]
+    float left, right, bottom, top
     unsigned char color[4]
     long key
 

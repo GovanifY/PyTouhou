@@ -101,7 +101,9 @@ cdef class GameRenderer(Renderer):
 
     cdef void render_game(self, Game game):
         cdef long game_x, game_y
-        cdef float x, y, z, dx, dy, dz, fog_data[4], fog_start, fog_end
+        cdef float x, y, z, dx, dy, dz
+        cdef float fog_data[4]
+        cdef float fog_start, fog_end
         cdef unsigned char fog_r, fog_g, fog_b
         cdef Matrix *mvp
 

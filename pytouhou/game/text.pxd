@@ -65,7 +65,8 @@ cdef class NativeText(Element):
     cdef bint shadow
     cdef bytes align #TODO: use a proper enum.
     cdef unsigned long frame, timeout, duration, start
-    cdef double to[2], end[2]
+    cdef double to[2]
+    cdef double end[2]
     cdef list gradient
     cdef Interpolator fade_interpolator, offset_interpolator
     cdef object texture

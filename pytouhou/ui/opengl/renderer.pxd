@@ -15,7 +15,8 @@ cdef struct PassthroughVertex:
 
 cdef class Texture:
     cdef long key
-    cdef GLuint texture, *pointer
+    cdef GLuint texture
+    cdef GLuint *pointer
     cdef unsigned short indices[2][65536]
 
     #XXX: keep a reference so that when __dealloc__ is called self.pointer is still valid.

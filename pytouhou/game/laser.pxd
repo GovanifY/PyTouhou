@@ -18,7 +18,8 @@ cdef class Laser(Element):
 
     cdef unsigned long start_duration, duration, stop_duration, grazing_delay,
     cdef unsigned long grazing_extra_duration, sprite_idx_offset
-    cdef double base_pos[2], speed, start_offset, end_offset, max_length, width
+    cdef double base_pos[2]
+    cdef double speed, start_offset, end_offset, max_length, width
     cdef State state
     cdef LaserType _laser_type
 
@@ -33,7 +34,8 @@ cdef class Laser(Element):
 
 
 cdef class PlayerLaser(Element):
-    cdef double hitbox[2], angle, offset
+    cdef double hitbox[2]
+    cdef double angle, offset
     cdef unsigned long frame, duration, sprite_idx_offset, damage
     cdef Element origin
     cdef LaserType _laser_type

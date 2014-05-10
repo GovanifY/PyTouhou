@@ -1,7 +1,9 @@
 cdef class Interpolator:
     cdef unsigned long start_frame, end_frame, _frame
     cdef long _length
-    cdef double *_values, *start_values, *end_values
+    cdef double *_values
+    cdef double *start_values
+    cdef double *end_values
     cdef object _formula
 
     cpdef set_interpolation_start(self, unsigned long frame, tuple values)

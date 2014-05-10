@@ -334,7 +334,8 @@ cdef class Enemy(Element):
         cdef Player player
         cdef PlayerLaser laser
         cdef long damages
-        cdef double half_size[2], phalf_size
+        cdef double half_size[2]
+        cdef double phalf_size
 
         # Check for collisions
         ex, ey = self.x, self.y

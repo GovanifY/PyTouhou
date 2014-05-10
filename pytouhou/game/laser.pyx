@@ -101,7 +101,9 @@ cdef class Laser(Element):
 
 
     cdef bint _check_collision(self, double point[2], double border_size):
-        cdef double c1[2], c2[2], c3[2]
+        cdef double c1[2]
+        cdef double c2[2]
+        cdef double c3[2]
 
         x, y = point[0] - self.base_pos[0], point[1] - self.base_pos[1]
         dx, dy = cos(self.angle), sin(self.angle)
