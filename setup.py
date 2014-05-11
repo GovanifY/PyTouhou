@@ -28,6 +28,18 @@ anmviewer = False  # It’s currently broken anyway.
 use_opengl = True  # Compile the OpenGL backend if True
 nthreads = 4  # How many processes to use for Cython compilation.
 
+
+# Hack to prevent `setup.py clean` from compiling Cython files.
+if sys.argv[1] == 'clean':
+    import shutil
+    shutil.rmtree('build', ignore_errors=True)
+    for directory, _, files in os.walk('pytouhou'):
+        for filename in files:
+            if filename.endswith('.c'):
+                os.unlink(os.path.join(directory, filename))
+    sys.exit(0)
+
+
 default_libs = {
     'sdl2': '-lSDL2',
     'SDL2_image': '-lSDL2_image',
