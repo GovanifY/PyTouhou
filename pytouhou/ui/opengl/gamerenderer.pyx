@@ -78,7 +78,7 @@ cdef class GameRenderer(Renderer):
             self.framebuffer.bind()
 
         self.render_game(game)
-        self.render_text(game.texts + game.native_texts)
+        self.render_text(game.texts)
         self.render_interface(game.interface, game.boss)
 
         if not self.use_fixed_pipeline:
@@ -189,13 +189,13 @@ cdef class GameRenderer(Renderer):
         glDisable(GL_SCISSOR_TEST)
 
 
-    cdef void render_text(self, texts):
+    cdef void render_text(self, dict texts):
         cdef NativeText label
 
         if self.font_manager is None:
             return
 
-        labels = [label for label in texts if label is not None]
+        labels = [label for label in texts.itervalues() if label is not None]
         self.font_manager.load(labels)
 
         black = Color(0, 0, 0, 255)

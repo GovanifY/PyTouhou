@@ -11,5 +11,5 @@ cdef class GameRenderer(Renderer):
     cdef BackgroundRenderer background_renderer
 
     cdef void render_game(self, Game game) except *
-    cdef void render_text(self, texts) except *
+    cdef void render_text(self, dict texts) except *
     cdef void render_interface(self, interface, game_boss) except *

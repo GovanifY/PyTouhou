@@ -46,7 +46,7 @@ cdef class Game:
         self.items = []
         self.labels = []
         self.faces = [None, None]
-        self.texts = [None, None, None, None, None, None]
+        self.texts = {}
         self.interface = interface
         self.hints = hints
 
@@ -110,23 +110,24 @@ cdef class Game:
         face.sprite.anm, face.sprite.texcoords = self.msg_anm[1][self.spellcard[2]]
         self.effects.append(face)
 
-        self.texts[5] = self.new_native_text((384-24, 24), self.spellcard[1], align='right')
+        self.texts['enemy_spellcard'] = self.new_native_text((384-24, 24), self.spellcard[1], align='right')
 
 
     cpdef disable_spellcard_effect(self):
         self.spellcard_effect = None
-        self.texts[5] = None
+        if 'enemy_spellcard' in self.texts:
+            del self.texts['enemy_spellcard']
 
 
     cdef void set_player_bomb(self):
         face = Effect((-32, -16), 1, self.msg_anm[0][0][0])
         face.sprite.allow_dest_offset = True
         self.effects.append(face)
-        self.texts[4] = self.new_native_text((24, 24), u'Player Spellcard')
+        self.texts['player_spellcard'] = self.new_native_text((24, 24), u'Player Spellcard')
 
 
     cdef void unset_player_bomb(self):
-        self.texts[4] = None
+        del self.texts['player_spellcard']
 
 
     cpdef drop_bonus(self, double x, double y, long _type, end_pos=None, player=None):
@@ -307,10 +308,7 @@ cdef class Game:
             self.update_hints() # Not from this game, so unknown.
         for label in self.labels: #TODO: what priority is it?
             label.update()
-        for text in self.texts: #TODO: what priority is it?
-            if text is not None:
-                text.update()
-        for text in self.native_texts: #TODO: what priority is it?
+        for text in self.texts.itervalues(): #TODO: what priority is it?
             if text is not None:
                 text.update()
         self.update_faces() # Pri XXX
@@ -575,11 +573,10 @@ cdef class Game:
 
         self.effects = filter_removed(self.effects)
         self.labels = filter_removed(self.labels)
-        #self.native_texts = filter_removed(self.native_texts)
 
-        for i, text in enumerate(self.texts):
-            if text is not None and text.removed:
-                self.texts[i] = None
+        for key, text in self.texts.items():
+            if text.removed:
+                del self.texts[key]
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss._enemy.removed:

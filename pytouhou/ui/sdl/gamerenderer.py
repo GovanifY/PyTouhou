@@ -42,7 +42,7 @@ class GameRenderer(object):
 
     def render(self, game):
         self.render_game(game)
-        self.render_text(game.texts + game.native_texts)
+        self.render_text(game.texts)
         self.render_interface(game.interface, game.boss)
 
 

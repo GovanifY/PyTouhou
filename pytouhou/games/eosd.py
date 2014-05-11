@@ -136,13 +136,15 @@ class EoSDGame(Game):
         self.background = Background(self.std, background_anm)
 
         common.interface.start_stage(self, stage)
-        self.native_texts = [common.interface.stage_name, common.interface.song_name]
 
         Game.__init__(self, common.players, stage, rank, difficulty,
                       common.bullet_types, common.laser_types,
                       common.item_types, nb_bullets_max, common.width,
                       common.height, prng, common.interface, hints,
                       friendly_fire)
+
+        self.texts['stage_name'] = common.interface.stage_name
+        self.texts['song_name'] = common.interface.song_name
 
 
 
