@@ -309,6 +309,16 @@ cdef class Enemy(Element):
                                                formula)
 
 
+    cpdef set_boss(self, bint enable):
+        if enable:
+            self.boss = True
+            self._game.boss = self
+            self._game.interface.set_boss_life()
+        else:
+            self.boss = False
+            self._game.boss = None
+
+
     cdef bint is_visible(self, long screen_width, long screen_height):
         if self.sprite is not None:
             if self.sprite.corner_relative_placement:

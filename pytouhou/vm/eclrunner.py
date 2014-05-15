@@ -103,7 +103,7 @@ class ECLMainRunner(object):
 
     @instruction(10)
     def resume_ecl(self, sub, instr_type, unk1, unk2):
-        boss = self._game.boss._enemy
+        boss = self._game.boss
         self._game.msg_wait = False
         if not boss.boss_callback:
             raise Exception #TODO
@@ -801,12 +801,9 @@ class ECLRunner(object):
         #      only the last one has her life displayed,
         #      but standard enemies are blocked only until any of them is killed.
         if value == 0:
-            self._enemy.boss = True
-            self._game.boss = self
-            self._game.interface.set_boss_life()
+            self._enemy.set_boss(True)
         elif value == -1:
-            self._enemy.boss = False
-            self._game.boss = None
+            self._enemy.set_boss(False)
         else:
             raise Exception #TODO
 

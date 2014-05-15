@@ -47,6 +47,7 @@ cdef class Enemy(Element):
     cpdef set_pos(self, double x, double y, double z)
     cpdef move_to(self, unsigned long duration, double x, double y, double z, formula)
     cpdef stop_in(self, unsigned long duration, formula)
+    cpdef set_boss(self, bint enable)
     cdef bint is_visible(self, long screen_width, long screen_height) except? False
     cdef void check_collisions(self) except *
     cdef void handle_callbacks(self) except *

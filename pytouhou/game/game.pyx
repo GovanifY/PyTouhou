@@ -579,7 +579,7 @@ cdef class Game:
                 del self.texts[key]
 
         # Disable boss mode if it is dead/it has timeout
-        if self.boss and self.boss._enemy.removed:
+        if self.boss and self.boss.removed:
             self.boss = None
 
 
