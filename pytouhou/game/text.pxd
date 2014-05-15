@@ -60,16 +60,18 @@ cdef class NativeText(Element):
     cdef public object update
 
     cdef unicode text
-    cdef long width, height
-    cdef unsigned char alpha
-    cdef bint shadow
     cdef bytes align #TODO: use a proper enum.
     cdef unsigned long frame, timeout, duration, start
     cdef double to[2]
     cdef double end[2]
     cdef list gradient
     cdef Interpolator fade_interpolator, offset_interpolator
-    cdef object texture
+
+    #XXX
+    cdef public bint shadow
+    cdef public long width, height
+    cdef public unsigned char alpha
+    cdef public object texture
 
     #def normal_update(self)
     #def timeout_update(self)

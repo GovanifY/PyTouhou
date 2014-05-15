@@ -13,8 +13,9 @@
 ##
 
 from itertools import chain
+from os.path import join
 
-from pytouhou.lib.sdl import Rect
+from pytouhou.lib.sdl import Rect, SDLError
 
 from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
@@ -24,6 +25,12 @@ class GameRenderer(object):
     def __init__(self, resource_loader, window):
         self.window = window
         self.texture_manager = TextureManager(resource_loader, self.window.win)
+        font_name = join(resource_loader.game_dir, 'font.ttf')
+        try:
+            self.font_manager = FontManager(font_name, 16, self.window.win)
+        except SDLError:
+            self.font_manager = None
+            logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
 
 
     def load_textures(self, anms):
@@ -131,4 +138,25 @@ class GameRenderer(object):
 
 
     def render_text(self, texts):
-        pass
+        if self.font_manager is None:
+            return
+
+        self.font_manager.load(texts)
+
+        for label in texts.itervalues():
+            texture = label.texture
+
+            source = Rect(0, 0, label.width, label.height)
+            rect = Rect(label.x, label.y, label.width, label.height)
+
+            texture.set_alpha_mod(label.alpha)
+
+            if label.shadow:
+                shadow_rect = Rect(label.x + 1, label.y + 1, label.width, label.height)
+                texture.set_color_mod(0, 0, 0)
+                self.window.win.render_copy(label.texture, source, shadow_rect)
+                texture.set_color_mod(192, 192, 255)
+                self.window.win.render_copy(label.texture, source, rect)
+            else:
+                texture.set_color_mod(192, 192, 255)
+                self.window.win.render_copy(label.texture, source, rect)

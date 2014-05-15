@@ -13,8 +13,13 @@
 ##
 
 from pytouhou.lib.sdl cimport load_png, create_rgb_surface
+from pytouhou.lib.sdl import SDLError
+from pytouhou.game.text cimport NativeText
 
 import os
+
+from pytouhou.utils.helpers import get_logger
+logger = get_logger(__name__)
 
 
 cdef class TextureManager:
@@ -40,6 +45,36 @@ cdef class TextureManager:
 
 def is_ascii(anm):
     return anm[0].first_name.endswith('ascii.png')
+
+
+cdef class FontManager:
+    def __init__(self, fontname, fontsize=16, window=None):
+        self.font = Font(fontname, fontsize)
+        self.window = window
+
+
+    cdef void load(self, dict labels):
+        cdef NativeText label
+
+        for i, label in labels.items():
+            if label.texture is None:
+                try:
+                    surface = self.font.render(label.text)
+                except SDLError as e:
+                    logger.error(u'Rendering of label “%s” failed: %s', label.text, e)
+                    del labels[i]  # Prevents it from retrying to render.
+                    continue
+
+                label.width, label.height = surface.surface.w, surface.surface.h
+
+                if label.align == 'center':
+                    label.x -= label.width // 2
+                elif label.align == 'right':
+                    label.x -= label.width
+                else:
+                    assert label.align == 'left'
+
+                label.texture = self.window.create_texture_from_surface(surface)
 
 
 cdef Surface decode_png(loader, first_name, secondary_name):
