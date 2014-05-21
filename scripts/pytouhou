@@ -38,6 +38,7 @@ game_group.add_argument('-r', '--rank', metavar='RANK', type=int, default=0, hel
 game_group.add_argument('-c', '--character', metavar='CHARACTER', type=int, default=0, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
 game_group.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses.')
 game_group.add_argument('--game', metavar='GAME', choices=['EoSD'], default='EoSD', help='Select the game engine to use.')
+game_group.add_argument('--interface', metavar='INTERFACE', choices=['EoSD'], default='EoSD', help='Select the interface to use.')
 game_group.add_argument('--hints', metavar='HINTS', default=None, help='Hints file, to display text while playing.')
 
 replay_group = parser.add_argument_group('Replay options')
@@ -68,6 +69,9 @@ import logging
 
 if args.game == 'EoSD':
     from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
+
+if args.interface == 'EoSD':
+    from pytouhou.interfaces.eosd import EoSDInterface as Interface
 
 
 from pytouhou.lib.sdl import SDL, show_simple_message_box
@@ -188,6 +192,8 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
     game_class = GameBossRush if boss_rush else Game
 
     common = Common(resource_loader, characters, continues, stage_num - 1)
+    interface = Interface(resource_loader, common.players[0]) #XXX
+    common.interface = interface #XXX
     renderer = GameRenderer(resource_loader, window)
     runner = GameRunner(window, renderer, common, resource_loader, skip_replay, con)
     window.set_runner(runner)
