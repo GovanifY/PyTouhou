@@ -129,7 +129,7 @@ else:
     nthreads = None  # It seems Windows can’t compile in parallel.
     base = 'Win32GUI' if sys.platform == 'win32' else None
     extra = {'options': {'build_exe': {'includes': extension_names + ['glob', 'socket', 'select']}},
-             'executables': [Executable(script='eosd', base=base)]}
+             'executables': [Executable(script='scripts/pytouhou', base=base)]}
 
 
 setup(name='PyTouhou',
@@ -148,5 +148,5 @@ setup(name='PyTouhou',
                                               'MAX_SOUNDS': 26,
                                               'USE_OPENGL': use_opengl,
                                               'USE_GLEW': is_windows}),
-      scripts=['eosd'] + (['anmviewer'] if anmviewer else []),
+      scripts=['scripts/pytouhou'] + (['scripts/anmviewer'] if anmviewer else []),
       **extra)
