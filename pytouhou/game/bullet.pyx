@@ -12,6 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
+cimport cython
+
 from libc.math cimport cos, sin, atan2, M_PI as pi
 
 from pytouhou.vm import ANMRunner
@@ -124,17 +126,21 @@ cdef class Bullet(Element):
         self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
+    @cython.cdivision(True)
     cdef void cancel(self):
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
         if self.player >= 0:
             self.sprite.angle = self.angle - pi
+            divisor = 8.
         else:
             self.sprite.angle = self.angle
+            divisor = 2.
         self.anmrunner = ANMRunner(bt.anm, bt.cancel_anim_index,
                                    self.sprite, bt.launch_anim_offsets[self.sprite_idx_offset])
-        self.dx, self.dy = self.dx / 2., self.dy / 2.
+        self.dx /= divisor
+        self.dy /= divisor
 
         self.state = CANCELLED
 
