@@ -58,10 +58,7 @@ class GameRenderer(object):
         self.window.win.render_set_clip_rect(Rect(x, -y, game.width, game.height))
 
         if game is not None:
-            if game.spellcard_effect is not None:
-                self.render_elements([game.spellcard_effect])
-            else:
-                self.window.win.render_clear()
+            self.window.win.render_clear()
 
             self.render_elements([enemy for enemy in game.enemies if enemy.visible])
             self.render_elements(game.effects)
