@@ -88,7 +88,6 @@ cdef class Runner:
 cdef class Window:
     def __init__(self, bint double_buffer=True, long fps_limit=-1,
                  bint fixed_pipeline=False, bint sound=True, bint opengl=True):
-        self.fps_limit = fps_limit
         self.use_fixed_pipeline = fixed_pipeline
         self.runner = None
 
@@ -130,7 +129,7 @@ cdef class Window:
         else:
             self.win.create_renderer(0)
 
-        self.clock = Clock(self.fps_limit)
+        self.clock = Clock(fps_limit)
 
 
     cdef void set_size(self, int width, int height) nogil:
