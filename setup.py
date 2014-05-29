@@ -104,8 +104,6 @@ for directory, _, files in os.walk('pytouhou'):
             extension_names.append(extension_name)
             if extension_name == 'pytouhou.lib.sdl':
                 compile_args = sdl_args
-            elif extension_name == 'pytouhou.ui.window' and use_opengl:
-                compile_args = opengl_args
             elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
                 extension_names.pop()
                 continue

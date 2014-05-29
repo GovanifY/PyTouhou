@@ -27,6 +27,7 @@ from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 from .renderer cimport Texture
+from .backend cimport is_legacy
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -34,8 +35,8 @@ Color = namedtuple('Color', 'r g b a')
 
 
 cdef class GameRenderer(Renderer):
-    def __init__(self, resource_loader, window):
-        self.use_fixed_pipeline = window.use_fixed_pipeline #XXX
+    def __init__(self, resource_loader, _):
+        self.use_fixed_pipeline = is_legacy #XXX
 
         Renderer.__init__(self, resource_loader)
 

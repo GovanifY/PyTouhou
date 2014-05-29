@@ -52,13 +52,16 @@ netplay_group.add_argument('--remote', metavar='REMOTE', default=None, help='Rem
 netplay_group.add_argument('--friendly-fire', action='store_true', help='Allow friendly-fire during netplay.')
 
 graphics_group = parser.add_argument_group('Graphics options')
-graphics_group.add_argument('--backend', metavar='BACKEND', choices=['opengl', 'sdl'], default='opengl', help='Which backend to use (opengl or sdl for now).')
-graphics_group.add_argument('--fixed-pipeline', action='store_true', help='Use the fixed pipeline instead of the new programmable one.')
-graphics_group.add_argument('--single-buffer', action='store_true', help='Disable double buffering.')
+graphics_group.add_argument('--backend', metavar='BACKEND', choices=['opengl', 'sdl'], default=['opengl', 'sdl'], nargs='*', help='Which backend to use (opengl or sdl).')
 graphics_group.add_argument('--fps-limit', metavar='FPS', default=-1, type=int, help='Set fps limit. A value of 0 disables fps limiting, while a negative value limits to 60 fps if and only if vsync doesn’t work.')
 graphics_group.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
 graphics_group.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
 graphics_group.add_argument('--no-sound', action='store_false', help='Disable music and sound effects.')
+
+opengl_group = parser.add_argument_group('OpenGL backend options')
+opengl_group.add_argument('--single-buffer', action='store_true', help='Disable double buffering.')
+opengl_group.add_argument('--gl-flavor', choices=['core', 'es', 'compatibility', 'legacy'], default='compatibility', help='OpenGL profile to use.')
+opengl_group.add_argument('--gl-version', default=2.1, type=float, help='OpenGL version to use.')
 
 args = parser.parse_args()
 
@@ -88,16 +91,34 @@ from pytouhou.formats.hint import Hint
 from pytouhou.network import Network
 
 
-if args.backend == 'opengl':
-    try:
-        from pytouhou.ui.opengl.gamerenderer import GameRenderer
-        opengl = True
-    except ImportError:
-        args.backend = 'sdl'
+from importlib import import_module
+for backend in args.backend:
+    if backend == 'opengl':
+        options = {
+            'double-buffer': not args.single_buffer,
+            'flavor': args.gl_flavor,
+            'version': args.gl_version
+        }
+    else:
+        options = {}
 
-if args.backend == 'sdl':
-    from pytouhou.ui.sdl.gamerenderer import GameRenderer
-    opengl = False
+    try:
+        backend = import_module('pytouhou.ui.%s.backend' % backend)
+    except ImportError as e:
+        continue
+
+    try:
+        backend.init(options)
+    except Exception as e:
+        print('Backend', backend, 'failed to initialize:', e)
+        pass
+    else:
+        GameRenderer = backend.GameRenderer
+        break
+else:
+    show_simple_message_box(u'No graphical backend could be used, continuing with a windowless game.')
+    backend = None
+    GameRenderer = None
 
 
 class GameBossRush(Game):
@@ -196,7 +217,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
     common = Common(resource_loader, characters, continues, stage_num - 1)
     interface = Interface(resource_loader, common.players[0]) #XXX
     common.interface = interface #XXX
-    renderer = GameRenderer(resource_loader, window)
+    renderer = GameRenderer(resource_loader, window) if GameRenderer is not None else None
     runner = GameRunner(window, renderer, common, resource_loader, skip_replay, con)
     window.set_runner(runner)
 
@@ -276,9 +297,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
 
 with SDL(sound=args.no_sound):
-    window = Window(double_buffer=(not args.single_buffer),
-                    fps_limit=args.fps_limit,
-                    fixed_pipeline=args.fixed_pipeline, opengl=opengl)
+    window = Window(backend, fps_limit=args.fps_limit)
 
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,

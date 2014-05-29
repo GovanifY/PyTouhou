@@ -14,15 +14,6 @@
 
 cimport cython
 
-IF USE_OPENGL:
-    from pytouhou.lib.opengl cimport \
-             (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
-              GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
-              GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
-
-    IF USE_GLEW:
-        from pytouhou.lib.opengl cimport glewInit
-
 
 cdef class Clock:
     def __init__(self, long fps=-1):
@@ -86,48 +77,14 @@ cdef class Runner:
 
 
 cdef class Window:
-    def __init__(self, bint double_buffer=True, long fps_limit=-1,
-                 bint fixed_pipeline=False, bint sound=True, bint opengl=True):
-        self.use_fixed_pipeline = fixed_pipeline
+    def __init__(self, backend, long fps_limit=-1):
         self.runner = None
 
-        flags = sdl.WINDOW_SHOWN
-
-        if USE_OPENGL and opengl:
-            sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, 2)
-            sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, 1)
-            sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, int(double_buffer))
-            sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
-
-            flags |= sdl.WINDOW_OPENGL
-
-            #TODO: implement it in the SDL backend too.
-            if not self.use_fixed_pipeline:
-                flags |= sdl.WINDOW_RESIZABLE
-
-        self.win = sdl.Window('PyTouhou',
-                              sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
-                              640, 480, #XXX
-                              flags)
-
-        if USE_OPENGL and opengl:
-            self.win.gl_create_context()
-
-            IF USE_GLEW:
-                if glewInit() != 0:
-                    raise Exception('GLEW init fail!')
-
-            # Initialize OpenGL
-            glEnable(GL_BLEND)
-            if self.use_fixed_pipeline:
-                glEnable(GL_TEXTURE_2D)
-                glHint(GL_FOG_HINT, GL_NICEST)
-                glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-                glEnableClientState(GL_COLOR_ARRAY)
-                glEnableClientState(GL_VERTEX_ARRAY)
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        else:
-            self.win.create_renderer(0)
+        if backend is not None:
+            self.win = backend.create_window(
+                'PyTouhou',
+                sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+                640, 480) #XXX
 
         self.clock = Clock(fps_limit)
 
@@ -154,7 +111,8 @@ cdef class Window:
         cdef bint running = False
         if self.runner is not None:
             running = self.runner.update()
-        self.win.present()
+        if self.win is not None:
+            self.win.present()
         self.clock.tick()
         return running
 
