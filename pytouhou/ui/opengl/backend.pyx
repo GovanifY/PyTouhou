@@ -11,7 +11,7 @@ GameRenderer = None
 
 
 def init(options):
-    global flavor, version, major, minor, double_buffer, is_legacy, GameRenderer
+    global flavor, version, major, minor, double_buffer, is_legacy, shader_header, GameRenderer
 
     flavor_name = options['flavor']
     assert flavor_name in ('core', 'es', 'compatibility', 'legacy')
@@ -28,6 +28,12 @@ def init(options):
     double_buffer = maybe_double_buffer if maybe_double_buffer is not None else -1
 
     is_legacy = flavor_name == 'legacy'
+
+    try:
+        glsl_version = {'2.0': 110, '2.1': 120, '3.0': 130, '3.1': 140, '3.2': 150}[version]
+    except KeyError:
+        glsl_version = 100 * major + 10 * minor
+    shader_header = '#version %d\n' % glsl_version
 
     #TODO: check for framebuffer/renderbuffer support.
 

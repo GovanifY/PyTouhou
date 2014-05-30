@@ -18,6 +18,7 @@ from pytouhou.lib.opengl cimport \
           glUniform4fv, glUniformMatrix4fv, glBindAttribLocation)
 
 from libc.stdlib cimport malloc, free
+from .backend cimport shader_header
 
 
 class GLSLException(Exception):
@@ -51,13 +52,14 @@ cdef class Shader:
 
     cdef void create_shader(self, const GLchar *string, GLenum shader_type):
         cdef GLint temp
-        cdef const GLchar **strings = &string
+        cdef const GLchar *strings[2]
+        strings[:] = [shader_header, string]
 
         # create the shader handle
         shader = glCreateShader(shader_type)
 
         # upload the source strings
-        glShaderSource(shader, 1, strings, NULL)
+        glShaderSource(shader, 2, strings, NULL)
 
         # compile the shader
         glCompileShader(shader)

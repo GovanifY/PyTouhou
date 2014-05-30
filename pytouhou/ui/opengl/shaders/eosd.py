@@ -19,8 +19,6 @@ from ..shader import Shader
 class GameShader(Shader):
     def __init__(self):
         Shader.__init__(self, ['''
-            #version 120
-
             attribute vec3 in_position;
             attribute vec2 in_texcoord;
             attribute vec4 in_color;
@@ -37,8 +35,6 @@ class GameShader(Shader):
                 color = in_color;
             }
         '''], ['''
-            #version 120
-
             varying vec2 texcoord;
             varying vec4 color;
 
@@ -54,8 +50,6 @@ class GameShader(Shader):
 class BackgroundShader(Shader):
     def __init__(self):
         Shader.__init__(self, ['''
-            #version 120
-
             attribute vec3 in_position;
             attribute vec2 in_texcoord;
             attribute vec4 in_color;
@@ -72,8 +66,6 @@ class BackgroundShader(Shader):
                 color = in_color;
             }
         '''], ['''
-            #version 120
-
             varying vec2 texcoord;
             varying vec4 color;
 
@@ -95,8 +87,6 @@ class BackgroundShader(Shader):
 class PassthroughShader(Shader):
     def __init__(self):
         Shader.__init__(self, ['''
-            #version 120
-
             attribute vec2 in_position;
             attribute vec2 in_texcoord;
 
@@ -110,8 +100,6 @@ class PassthroughShader(Shader):
                 texcoord = in_texcoord;
             }
         '''], ['''
-            #version 120
-
             varying vec2 texcoord;
 
             uniform sampler2D color_map;
