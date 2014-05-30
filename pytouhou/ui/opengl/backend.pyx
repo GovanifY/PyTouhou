@@ -13,17 +13,21 @@ GameRenderer = None
 def init(options):
     global flavor, version, major, minor, double_buffer, is_legacy, GameRenderer
 
-    flavor = options['flavor']
-    assert flavor in ('core', 'es', 'compatibility', 'legacy')
+    flavor_name = options['flavor']
+    assert flavor_name in ('core', 'es', 'compatibility', 'legacy')
+    flavor = (sdl.GL_CONTEXT_PROFILE_CORE if flavor_name == 'core' else
+              sdl.GL_CONTEXT_PROFILE_ES if flavor_name == 'es' else
+              sdl.GL_CONTEXT_PROFILE_COMPATIBILITY)
 
-    version = options['version']
-    major = int(version)
-    minor = <int>(version * 10) % 10
+    version = str(options['version'])
+    assert len(version) == 3 and version[1] == '.'
+    major = int(version[0])
+    minor = int(version[2])
 
     maybe_double_buffer = options['double-buffer']
     double_buffer = maybe_double_buffer if maybe_double_buffer is not None else -1
 
-    is_legacy = flavor == 'legacy'
+    is_legacy = flavor_name == 'legacy'
 
     #TODO: check for framebuffer/renderbuffer support.
 
@@ -31,6 +35,7 @@ def init(options):
 
 
 def create_window(title, x, y, width, height):
+    sdl.gl_set_attribute(sdl.GL_CONTEXT_PROFILE_MASK, flavor)
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, major)
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, minor)
     sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)

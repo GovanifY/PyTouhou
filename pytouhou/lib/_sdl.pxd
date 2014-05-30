@@ -36,8 +36,14 @@ cdef extern from "SDL_video.h" nogil:
     ctypedef enum SDL_GLattr:
         SDL_GL_CONTEXT_MAJOR_VERSION
         SDL_GL_CONTEXT_MINOR_VERSION
+        SDL_GL_CONTEXT_PROFILE_MASK
         SDL_GL_DOUBLEBUFFER
         SDL_GL_DEPTH_SIZE
+
+    ctypedef enum SDL_GLprofile:
+        SDL_GL_CONTEXT_PROFILE_CORE
+        SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
+        SDL_GL_CONTEXT_PROFILE_ES
 
     ctypedef enum SDL_WindowFlags:
         SDL_WINDOWPOS_CENTERED
