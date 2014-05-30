@@ -39,7 +39,7 @@ from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport use_vao
+from .backend cimport is_legacy, use_vao
 
 from pytouhou.utils.helpers import get_logger
 
@@ -93,7 +93,7 @@ cdef long find_objects(Renderer self, object elements) except -1:
 
 cdef class Renderer:
     def __dealloc__(self):
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             glDeleteBuffers(1, &self.framebuffer_vbo)
             glDeleteBuffers(1, &self.vbo)
 
@@ -114,7 +114,7 @@ cdef class Renderer:
             self.font_manager = None
             logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
 
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             framebuffer_indices[:] = [0, 1, 2, 2, 3, 0]
 
             glGenBuffers(1, &self.vbo)
@@ -204,7 +204,7 @@ cdef class Renderer:
 
             nb_vertices += 4
 
-        if self.use_fixed_pipeline:
+        if is_legacy:
             glVertexPointer(3, GL_SHORT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &self.vertex_buffer[0].r)
@@ -241,7 +241,7 @@ cdef class Renderer:
 
         glBindTexture(GL_TEXTURE_2D, 0)
 
-        if not self.use_fixed_pipeline and use_vao:
+        if not is_legacy and use_vao:
             glBindVertexArray(0)
 
 
@@ -262,7 +262,7 @@ cdef class Renderer:
             buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
             buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
 
-        if self.use_fixed_pipeline:
+        if is_legacy:
             glVertexPointer(3, GL_SHORT, sizeof(Vertex), &buf[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &buf[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &buf[0].r)
@@ -284,7 +284,7 @@ cdef class Renderer:
     cdef void render_framebuffer(self, Framebuffer fb):
         cdef PassthroughVertex[4] buf
 
-        assert not self.use_fixed_pipeline
+        assert not is_legacy
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glViewport(self.x, self.y, self.width, self.height)

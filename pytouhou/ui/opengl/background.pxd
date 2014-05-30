@@ -10,7 +10,6 @@ cdef struct Vertex:
 cdef class BackgroundRenderer:
     cdef GLuint texture
     cdef GLsizei nb_indices
-    cdef unsigned int use_fixed_pipeline
 
     # For modern GL.
     cdef GLuint vbo, ibo

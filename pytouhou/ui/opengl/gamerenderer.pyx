@@ -36,11 +36,9 @@ Color = namedtuple('Color', 'r g b a')
 
 cdef class GameRenderer(Renderer):
     def __init__(self, resource_loader, _):
-        self.use_fixed_pipeline = is_legacy #XXX
-
         Renderer.__init__(self, resource_loader)
 
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             self.game_shader = GameShader()
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
@@ -71,7 +69,7 @@ cdef class GameRenderer(Renderer):
     def load_background(self, background):
         self.background = background
         if background is not None:
-            self.background_renderer = BackgroundRenderer(self.use_fixed_pipeline)
+            self.background_renderer = BackgroundRenderer()
             self.background_renderer.load(background, self)
         else:
             self.background_renderer = None
@@ -87,14 +85,14 @@ cdef class GameRenderer(Renderer):
 
 
     def render(self, Game game):
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             self.framebuffer.bind()
 
         self.render_game(game)
         self.render_text(game.texts)
         self.render_interface(game.interface, game.boss)
 
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
             self.render_framebuffer(self.framebuffer)
@@ -114,12 +112,12 @@ cdef class GameRenderer(Renderer):
         glScissor(game_x, game_y, game.width, game.height)
         glEnable(GL_SCISSOR_TEST)
 
-        if self.use_fixed_pipeline:
+        if is_legacy:
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
 
         if game is not None and game.spellcard_effect is not None:
-            if self.use_fixed_pipeline:
+            if is_legacy:
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(<GLfloat*>self.game_mvp)
                 glDisable(GL_FOG)
@@ -153,7 +151,7 @@ cdef class GameRenderer(Renderer):
             free(view)
             mul(mvp, self.proj)
 
-            if self.use_fixed_pipeline:
+            if is_legacy:
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(mvp_data)
 
@@ -181,7 +179,7 @@ cdef class GameRenderer(Renderer):
             glClear(GL_COLOR_BUFFER_BIT)
 
         if game is not None:
-            if self.use_fixed_pipeline:
+            if is_legacy:
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(<GLfloat*>self.game_mvp)
                 glDisable(GL_FOG)
@@ -236,7 +234,7 @@ cdef class GameRenderer(Renderer):
 
         elements = []
 
-        if self.use_fixed_pipeline:
+        if is_legacy:
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(<GLfloat*>self.interface_mvp)
             glDisable(GL_FOG)

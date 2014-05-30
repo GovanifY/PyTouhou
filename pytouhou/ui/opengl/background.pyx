@@ -25,12 +25,12 @@ from pytouhou.lib.opengl cimport \
           glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray)
 
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport use_vao
+from .backend cimport is_legacy, use_vao
 
 
 cdef class BackgroundRenderer:
     def __dealloc__(self):
-        if self.use_fixed_pipeline:
+        if is_legacy:
             if self.vertex_buffer != NULL:
                 free(self.vertex_buffer)
             if self.indices != NULL:
@@ -43,10 +43,8 @@ cdef class BackgroundRenderer:
                 glDeleteVertexArrays(1, &self.vao)
 
 
-    def __init__(self, use_fixed_pipeline):
-        self.use_fixed_pipeline = use_fixed_pipeline
-
-        if not use_fixed_pipeline:
+    def __init__(self):
+        if not is_legacy:
             glGenBuffers(1, &self.vbo)
             glGenBuffers(1, &self.ibo)
 
@@ -72,7 +70,7 @@ cdef class BackgroundRenderer:
 
 
     cdef void render_background(self):
-        if self.use_fixed_pipeline:
+        if is_legacy:
             indices = self.indices
             glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
@@ -90,7 +88,7 @@ cdef class BackgroundRenderer:
         glDrawElements(GL_TRIANGLES, self.nb_indices, GL_UNSIGNED_SHORT, indices)
         glDisable(GL_DEPTH_TEST)
 
-        if not self.use_fixed_pipeline:
+        if not is_legacy:
             if use_vao:
                 glBindVertexArray(0)
             else:
@@ -138,7 +136,7 @@ cdef class BackgroundRenderer:
         self.texture = renderer.textures[key >> 1]
         self.nb_indices = nb_indices
 
-        if self.use_fixed_pipeline:
+        if is_legacy:
             self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))
             self.indices = <GLushort*> realloc(indices, nb_indices * sizeof(GLushort))
         else:

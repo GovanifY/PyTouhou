@@ -33,8 +33,6 @@ cdef class Renderer:
     cdef GLuint vbo, framebuffer_vbo, framebuffer_ibo
     cdef GLuint vao, framebuffer_vao
 
-    cdef bint use_fixed_pipeline #XXX
-
     cdef GLuint textures[MAX_TEXTURES]
     cdef unsigned short *indices[MAX_TEXTURES][2]
     cdef unsigned short last_indices[2 * MAX_TEXTURES]
