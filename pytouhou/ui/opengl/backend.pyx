@@ -29,12 +29,18 @@ def init(options):
     use_vao = (major == 3 and minor >= 1) or major > 3
 
     is_legacy = flavor_name == 'legacy'
+    is_gles = flavor_name == 'es'
 
-    try:
-        glsl_version = {'2.0': 110, '2.1': 120, '3.0': 130, '3.1': 140, '3.2': 150}[version]
-    except KeyError:
-        glsl_version = 100 * major + 10 * minor
-    shader_header = '#version %d\n' % glsl_version
+    if not is_gles:
+        try:
+            glsl_version = {'2.0': 110, '2.1': 120, '3.0': 130, '3.1': 140, '3.2': 150}[version]
+        except KeyError:
+            assert (major == 3 and minor == 3) or major > 3
+            glsl_version = 100 * major + 10 * minor
+        shader_header = '#version %d\n' % glsl_version
+    else:
+        glsl_version = {'2.0': 100, '3.0': 300}[version]
+        shader_header = '#version %d\n\nprecision highp float;\n' % glsl_version
 
     #TODO: check for framebuffer/renderbuffer support.
 

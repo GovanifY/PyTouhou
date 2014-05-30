@@ -29,7 +29,7 @@ from pytouhou.lib.opengl cimport \
           glFramebufferTexture2D, glFramebufferRenderbuffer,
           glCheckFramebufferStatus, GL_FRAMEBUFFER, GL_TEXTURE_MIN_FILTER,
           GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_RGBA, GL_RENDERBUFFER,
-          GL_DEPTH_COMPONENT, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
+          GL_DEPTH_COMPONENT16, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
           GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
           GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures,
           GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, glGenVertexArrays,
@@ -336,7 +336,7 @@ cdef class Framebuffer:
 
         glGenRenderbuffers(1, &self.rbo)
         glBindRenderbuffer(GL_RENDERBUFFER, self.rbo)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height)
         glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
         glGenFramebuffers(1, &self.fbo)

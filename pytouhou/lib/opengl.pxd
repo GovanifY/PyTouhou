@@ -52,6 +52,7 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_RGB
         GL_LUMINANCE
         GL_UNSIGNED_SHORT_5_6_5
+        GL_UNSIGNED_SHORT_4_4_4_4
         GL_UNSIGNED_SHORT_4_4_4_4_REV
 
         GL_COLOR_BUFFER_BIT
@@ -83,7 +84,7 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_FRAMEBUFFER
         GL_COLOR_ATTACHMENT0
         GL_RENDERBUFFER
-        GL_DEPTH_COMPONENT
+        GL_DEPTH_COMPONENT16
         GL_DEPTH_ATTACHMENT
         GL_FRAMEBUFFER_COMPLETE
 

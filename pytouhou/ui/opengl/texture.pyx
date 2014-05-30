@@ -15,7 +15,7 @@
 from pytouhou.lib.opengl cimport \
          (glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER,
           GL_LINEAR, GL_BGRA, GL_RGBA, GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
-          GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV,
+          GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV, GL_UNSIGNED_SHORT_4_4_4_4,
           glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint)
 
 from pytouhou.lib.sdl cimport load_png, create_rgb_surface
@@ -109,7 +109,8 @@ cdef GLuint load_texture(thtx) except? 65535:
     cdef long fmt = thtx.fmt
 
     if fmt == 1:
-        format_ = GL_BGRA
+        #format_ = GL_BGRA
+        format_ = GL_RGBA #XXX: should be GL_BGRA
         type_ = GL_UNSIGNED_BYTE
         composants = GL_RGBA
     elif fmt == 3:
@@ -117,8 +118,10 @@ cdef GLuint load_texture(thtx) except? 65535:
         type_ = GL_UNSIGNED_SHORT_5_6_5
         composants = GL_RGB
     elif fmt == 5:
-        format_ = GL_BGRA
-        type_ = GL_UNSIGNED_SHORT_4_4_4_4_REV
+        #format_ = GL_BGRA
+        format_ = GL_RGBA #XXX: should be GL_BGRA
+        #type_ = GL_UNSIGNED_SHORT_4_4_4_4_REV
+        type_ = GL_UNSIGNED_SHORT_4_4_4_4 #XXX: should be GL_UNSIGNED_SHORT_4_4_4_4_REV
         composants = GL_RGBA
     elif fmt == 7:
         format_ = GL_LUMINANCE

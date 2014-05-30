@@ -78,7 +78,7 @@ class BackgroundShader(Shader):
             {
                 vec4 temp_color = texture2D(color_map, texcoord) * color;
                 float depth = gl_FragCoord.z / gl_FragCoord.w;
-                float fog_density = clamp((fog_end - depth) * fog_scale, 0.0f, 1.0f);
+                float fog_density = clamp((fog_end - depth) * fog_scale, 0.0, 1.0);
                 gl_FragColor = vec4(mix(fog_color, temp_color, fog_density).rgb, temp_color.a);
             }
         '''])
