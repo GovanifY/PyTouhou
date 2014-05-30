@@ -59,9 +59,12 @@ graphics_group.add_argument('--no-particles', action='store_false', help='Disabl
 graphics_group.add_argument('--no-sound', action='store_false', help='Disable music and sound effects.')
 
 opengl_group = parser.add_argument_group('OpenGL backend options')
-opengl_group.add_argument('--single-buffer', action='store_true', help='Disable double buffering.')
 opengl_group.add_argument('--gl-flavor', choices=['core', 'es', 'compatibility', 'legacy'], default='compatibility', help='OpenGL profile to use.')
 opengl_group.add_argument('--gl-version', default=2.1, type=float, help='OpenGL version to use.')
+
+double_buffer = opengl_group.add_mutually_exclusive_group()
+double_buffer.add_argument('--double-buffer', dest='double_buffer', action='store_true', default=None, help='Enable double buffering.')
+double_buffer.add_argument('--single-buffer', dest='double_buffer', action='store_false', default=None, help='Disable double buffering.')
 
 args = parser.parse_args()
 
@@ -95,9 +98,9 @@ from importlib import import_module
 for backend in args.backend:
     if backend == 'opengl':
         options = {
-            'double-buffer': not args.single_buffer,
             'flavor': args.gl_flavor,
-            'version': args.gl_version
+            'version': args.gl_version,
+            'double-buffer': args.double_buffer,
         }
     else:
         options = {}

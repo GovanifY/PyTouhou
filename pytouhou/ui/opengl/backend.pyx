@@ -23,7 +23,9 @@ def init(options):
     major = int(version)
     minor = <int>(version * 10) % 10
 
-    double_buffer = options['double-buffer']
+    maybe_double_buffer = options['double-buffer']
+    double_buffer = maybe_double_buffer if maybe_double_buffer is not None else -1
+
     is_legacy = flavor == 'legacy'
 
     #TODO: check for framebuffer/renderbuffer support.
@@ -34,8 +36,9 @@ def init(options):
 def create_window(title, x, y, width, height):
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, major)
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, minor)
-    sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, double_buffer)
     sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24)
+    if double_buffer >= 0:
+        sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, double_buffer)
 
     flags = sdl.WINDOW_SHOWN | sdl.WINDOW_OPENGL
 
