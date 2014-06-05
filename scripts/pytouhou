@@ -71,6 +71,11 @@ args = parser.parse_args()
 
 import sys
 import logging
+from pytouhou.utils.helpers import get_logger
+
+if args.verbosity is not None:
+    logging.basicConfig(level=getattr(logging, args.verbosity))
+logger = get_logger('pytouhou')
 
 
 if args.game == 'EoSD':
@@ -95,8 +100,8 @@ from pytouhou.network import Network
 
 
 from importlib import import_module
-for backend in args.backend:
-    if backend == 'opengl':
+for backend_name in args.backend:
+    if backend_name == 'opengl':
         options = {
             'flavor': args.gl_flavor,
             'version': args.gl_version,
@@ -106,18 +111,19 @@ for backend in args.backend:
         options = {}
 
     try:
-        backend = import_module('pytouhou.ui.%s.backend' % backend)
+        backend = import_module('pytouhou.ui.%s.backend' % backend_name)
     except ImportError as e:
+        logger.error('Failed to import backend %s: %s', backend_name, e)
         continue
 
     try:
         backend.init(options)
     except Exception as e:
-        print('Backend', backend, 'failed to initialize:', e)
-        pass
-    else:
-        GameRenderer = backend.GameRenderer
-        break
+        logger.error('Backend %s failed to initialize: %s', backend_name, e)
+        continue
+
+    GameRenderer = backend.GameRenderer
+    break
 else:
     show_simple_message_box(u'No graphical backend could be used, continuing with a windowless game.')
     backend = None
@@ -154,7 +160,7 @@ class GameBossRush(Game):
 
 def main(window, path, data, stage_num, rank, character, replay, save_filename,
          skip_replay, boss_rush, debug, enable_background, enable_particles,
-         hints, verbosity, port, remote, friendly_fire):
+         hints, port, remote, friendly_fire):
 
     resource_loader = Loader(path)
 
@@ -173,12 +179,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         continues = 0
 
     if debug:
-        if not verbosity:
-            verbosity = 'DEBUG'
         continues = -1  # Infinite lives
-
-    if verbosity:
-        logging.basicConfig(level=logging.__getattribute__(verbosity))
 
     if replay:
         with open(replay, 'rb') as file:
@@ -305,8 +306,7 @@ with SDL(sound=args.no_sound):
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,
          args.boss_rush, args.debug, args.no_background, args.no_particles,
-         args.hints, args.verbosity, args.port, args.remote,
-         args.friendly_fire)
+         args.hints, args.port, args.remote, args.friendly_fire)
 
     import gc
     gc.collect()
