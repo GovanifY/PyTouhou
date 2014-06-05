@@ -25,7 +25,6 @@ extensions = []
 
 debug = False  # True to generate HTML annotations and display infered types.
 anmviewer = False  # It’s currently broken anyway.
-use_opengl = True  # Compile the OpenGL backend if True
 nthreads = 4  # How many processes to use for Cython compilation.
 
 
@@ -40,6 +39,28 @@ if sys.argv[1] == 'clean':
     sys.exit(0)
 
 
+try:
+    sys.argv.remove('--disable-opengl')
+except ValueError:
+    use_opengl = True
+else:
+    use_opengl = False
+
+
+# Check for epoxy.pc, and don’t compile the OpenGL backend if it isn’t present.
+if use_opengl:
+    try:
+        check_output([COMMAND] + GL_LIBRARIES)
+    except CalledProcessError:
+        print('libepoxy not found.  Please install it or pass --disable-opengl')
+        sys.exit(1)
+    except OSError:
+        # Assume GL is here if we can’t use pkg-config, but display a warning.
+        print('You don’t seem to have pkg-config installed. Please get a copy '
+              'from http://pkg-config.freedesktop.org/ and install it.\n'
+              'Continuing without it, assuming every dependency is available.')
+
+
 default_libs = {
     'sdl2': '-lSDL2',
     'SDL2_image': '-lSDL2_image',
@@ -47,18 +68,6 @@ default_libs = {
     'SDL2_ttf': '-lSDL2_ttf',
     'epoxy': '-lepoxy'
 }
-
-
-# Check for epoxy.pc, and don’t compile the OpenGL backend if it isn’t present.
-try:
-    check_output([COMMAND] + GL_LIBRARIES)
-except CalledProcessError:
-    use_opengl = False
-except OSError:
-    # Assume GL is here if we can’t use pkg-config, but display a warning.
-    print('You don’t seem to have pkg-config installed. Please get a copy '
-          'from http://pkg-config.freedesktop.org/ and install it.\n'
-          'Continuing without it, assuming every dependency is available.')
 
 
 def get_arguments(arg, libraries):
