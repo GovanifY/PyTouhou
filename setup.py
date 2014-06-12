@@ -98,7 +98,7 @@ for directory, _, files in os.walk('pytouhou'):
     packages.append(package)
     if package not in ('pytouhou.formats', 'pytouhou.game', 'pytouhou.lib',
                        'pytouhou.utils', 'pytouhou.ui', 'pytouhou.ui.opengl',
-                       'pytouhou.ui.sdl'):
+                       'pytouhou.ui.opengl.shaders', 'pytouhou.ui.sdl'):
         continue
     if package in ('pytouhou.ui', 'pytouhou.ui.sdl'):
         package_args = sdl_args
