@@ -206,7 +206,8 @@ class ECLRunner(object):
                 player = self._enemy.select_player()
                 return player.y
             elif value == -10021:
-                return self._enemy.get_player_angle()
+                player = self._enemy.select_player()
+                return self._enemy.get_angle(player)
             elif value == -10022:
                 return self._enemy.frame
             elif value == -10024:
@@ -488,9 +489,11 @@ class ECLRunner(object):
     @instruction(51)
     def target_player(self, unknown, speed):
         #TODO: unknown
+        player = self._enemy.select_player()
+
         self._enemy.update_mode = 0
         self._enemy.speed = speed
-        self._enemy.angle = self._enemy.get_player_angle()
+        self._enemy.angle = self._enemy.get_angle(player)
 
 
     @instruction(52)

@@ -187,7 +187,7 @@ cdef class Enemy(Element):
         player = self.select_player()
 
         if type_ in (67, 69, 71):
-            launch_angle += self.get_player_angle(launch_pos, player)
+            launch_angle += self.get_angle(player, launch_pos)
         if type_ == 71 and bullets_per_shot % 2 or type_ in (69, 70) and not bullets_per_shot % 2:
             launch_angle += pi / bullets_per_shot
         if type_ != 75:
@@ -232,7 +232,8 @@ cdef class Enemy(Element):
         ox, oy = offset
         launch_pos = self.x + ox, self.y + oy
         if variant == 86:
-            angle += self.get_player_angle(launch_pos)
+            player = self.select_player()
+            angle += self.get_angle(player, launch_pos)
         laser = Laser(launch_pos, self._game.laser_types[laser_type],
                       sprite_idx_offset, angle, speed,
                       start_offset, end_offset, max_length, width,
@@ -248,12 +249,10 @@ cdef class Enemy(Element):
         return min(players, key=self.select_player_key)
 
 
-    cpdef double get_player_angle(self, tuple pos=None, Player player=None):
+    cpdef double get_angle(self, Element target, tuple pos=None):
         cdef double x, y
-        if player is None:
-            player = self.select_player()
         x, y = pos or (self.x, self.y)
-        return atan2(player.y - y, player.x - x)
+        return atan2(target.y - y, target.x - x)
 
 
     cpdef set_anim(self, index):

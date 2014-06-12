@@ -39,7 +39,7 @@ cdef class Enemy(Element):
                     grazing_delay, grazing_extra_duration, unknown,
                     tuple offset=*)
     cpdef Player select_player(self, list players=*)
-    cpdef double get_player_angle(self, tuple pos=*, Player player=*) except 42
+    cpdef double get_angle(self, Element target, tuple pos=*) except 42
     cpdef set_anim(self, index)
     cdef void die_anim(self) except *
     cdef void drop_particles(self, long number, long color) except *
