@@ -12,18 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
-
-from logging import StreamHandler, Formatter, getLogger
-
-
-def get_logger(name):
-    handler = StreamHandler()
-    formatter = Formatter(fmt='[%(name)s] [%(levelname)s]: %(message)s')
-    handler.setFormatter(formatter)
-    logger = getLogger(name)
-    logger.addHandler(handler)
-    logger.propagate = False
-    return logger
+#TODO: remove that someday.
+from logging import getLogger as get_logger
 
 
 def read_string(file, size, encoding=None):

@@ -25,14 +25,14 @@ defaults = {'data': default_data}
 from pytouhou.options import parse_arguments
 args = parse_arguments(defaults)
 
-import sys
+verbosity = args.verbosity or 'WARNING'
+
 import logging
-from pytouhou.utils.helpers import get_logger
+logging.basicConfig(level=getattr(logging, verbosity),
+                    format='[%(name)s] [%(levelname)s]: %(message)s')
 
-if args.verbosity is not None:
-    logging.basicConfig(level=getattr(logging, args.verbosity))
-logger = get_logger('pytouhou')
-
+logger = logging
+logger.root.name = 'pytouhou'
 
 if args.game == 'EoSD':
     from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
@@ -124,6 +124,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         resource_loader.scan_archives(data)
     except IOError:
         show_simple_message_box(u'Some data files were not found, did you forget the -p option?')
+        import sys
         sys.exit(1)
 
     if stage_num is None:
