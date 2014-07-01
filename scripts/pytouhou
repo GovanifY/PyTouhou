@@ -20,12 +20,24 @@ default_data = (pathsep.join(('CM.DAT', 'th06*_CM.DAT', '*CM.DAT', '*cm.dat')),
                 pathsep.join(('MD.DAT', 'th6*MD.DAT', '*MD.DAT', '*md.dat')),
                 pathsep.join(('102h.exe', '102*.exe', '東方紅魔郷.exe', '*.exe')))
 
-defaults = {'data': default_data}
+defaults = {'data': default_data,
+            'path': '.',
+            'rank': 0,
+            'character': 0,
+            'game': 'EoSD',
+            'interface': 'EoSD',
+            'port': 0,
+            'backend': ['opengl', 'sdl'],
+            'gl-flavor': 'compatibility',
+            'gl-version': 2.1,
+            'double-buffer': None,
+            'fps-limit': -1}
 
-from pytouhou.options import parse_arguments
-args = parse_arguments(defaults)
+from pytouhou.options import parse_config, parse_arguments
+options = parse_config('pytouhou', defaults)
+args = parse_arguments(options)
 
-verbosity = args.verbosity or 'WARNING'
+verbosity = args.verbosity or options.get('verbosity') or 'WARNING'
 
 import logging
 logging.basicConfig(level=getattr(logging, verbosity),
@@ -33,6 +45,8 @@ logging.basicConfig(level=getattr(logging, verbosity),
 
 logger = logging
 logger.root.name = 'pytouhou'
+
+logger.info('Configuration loaded from: %s', ', '.join(options.paths))
 
 if args.game == 'EoSD':
     from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
@@ -69,13 +83,13 @@ for backend_name in args.backend:
     try:
         backend = import_module('pytouhou.ui.%s.backend' % backend_name)
     except ImportError as e:
-        logger.error('Failed to import backend %s: %s', backend_name, e)
+        logger.exception('Failed to import backend %s:', backend_name)
         continue
 
     try:
         backend.init(options)
     except Exception as e:
-        logger.error('Backend %s failed to initialize: %s', backend_name, e)
+        logger.exception('Backend %s failed to initialize:', backend_name)
         continue
 
     GameRenderer = backend.GameRenderer
