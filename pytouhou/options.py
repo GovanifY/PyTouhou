@@ -15,7 +15,7 @@
 import os
 from ConfigParser import RawConfigParser, NoOptionError
 
-from pytouhou.utils.xdg import load_config_paths
+from pytouhou.utils.xdg import load_config_paths, save_config_path
 
 
 class Options(object):
@@ -23,6 +23,7 @@ class Options(object):
         load_paths = list(reversed([os.path.join(directory, '%s.cfg' % name)
                                     for directory
                                     in load_config_paths(name)]))
+        self.save_path = os.path.join(save_config_path(name), '%s.cfg' % name)
 
         self.config = RawConfigParser(defaults)
         self.paths = self.config.read(load_paths)
@@ -33,6 +34,18 @@ class Options(object):
             return self.config.get(self.section, option)
         except NoOptionError:
             return None
+
+    def set(self, option, value):
+        if value is not None:
+            self.config.set(self.section, option, value)
+        else:
+            self.config.remove_option(self.section, option)
+
+        defaults = self.config._defaults
+        self.config._defaults = None
+        with open(self.save_path, 'w') as save_file:
+            self.config.write(save_file)
+        self.config._defaults = defaults
 
 
 def patch_argument_parser():
@@ -105,6 +118,7 @@ def parse_arguments(defaults):
     parser.add_argument('-p', '--path', metavar='DIRECTORY', help='Game directory path.')
     parser.add_argument('--debug', action='store_true', help='Set unlimited continues, and perhaps other debug features.')
     parser.add_argument('--verbosity', metavar='VERBOSITY', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Select the wanted logging level.')
+    parser.add_argument('--no-menu', action='store_true', help='Disable the menu.')
 
     game_group = parser.add_argument_group('Game options')
     game_group.add_argument('-s', '--stage', metavar='STAGE', type=int, help='Stage, 1 to 7 (Extra), nothing means story mode.')

@@ -48,6 +48,10 @@ logger.root.name = 'pytouhou'
 
 logger.info('Configuration loaded from: %s', ', '.join(options.paths))
 
+if not args.no_menu:
+    from pytouhou.menu import menu
+    menu(options, args)
+
 if args.game == 'EoSD':
     from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
 
