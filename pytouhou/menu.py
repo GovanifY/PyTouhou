@@ -15,9 +15,10 @@
 from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 
 import sys
+import os
 import re
 
 GL_VERSION_REGEX = re.compile(r'^\d\.\d$')
@@ -293,7 +294,10 @@ def menu(config, args):
     handler = Handler(config, args)
 
     builder = Gtk.Builder()
-    builder.add_from_file('data/menu.glade')
+    try:
+        builder.add_from_file(os.path.join(os.path.dirname(__file__), 'data', 'menu.glade'))
+    except GLib.GError:
+        builder.add_from_file(os.path.join('data', 'menu.glade'))
     builder.connect_signals(handler)
 
     handler.init_gtk(builder)

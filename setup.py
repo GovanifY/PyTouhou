@@ -137,6 +137,13 @@ else:
              'executables': [Executable(script='scripts/pytouhou', base=base)]}
 
 
+# Create a link to the data files (for packaging purposes)
+current_dir = os.path.dirname(os.path.realpath(__file__))
+temp_data_dir = os.path.join(current_dir, 'pytouhou', 'data')
+if not os.path.exists(temp_data_dir):
+    os.symlink(os.path.join(current_dir, 'data'), temp_data_dir)
+
+
 setup(name='PyTouhou',
       version='0.1',
       author='Thibaut Girka',
@@ -153,4 +160,10 @@ setup(name='PyTouhou',
                                               'MAX_SOUNDS': 26,
                                               'USE_OPENGL': use_opengl}),
       scripts=['scripts/pytouhou'] + (['scripts/anmviewer'] if anmviewer else []),
+      package_data={'pytouhou': ['data/menu.glade']},
       **extra)
+
+
+# Remove the link afterwards
+if os.path.exists(temp_data_dir):
+    os.unlink(temp_data_dir)
