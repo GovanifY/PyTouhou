@@ -116,7 +116,9 @@ cdef class GameRenderer(Renderer):
             glMatrixMode(GL_PROJECTION)
             glLoadIdentity()
 
-        if game is not None and game.spellcard_effect is not None:
+        if self.background_renderer is None:
+            glClear(GL_COLOR_BUFFER_BIT)
+        elif game is not None and game.spellcard_effect is not None:
             if is_legacy:
                 glMatrixMode(GL_MODELVIEW)
                 glLoadMatrixf(<GLfloat*>self.game_mvp)
@@ -126,7 +128,7 @@ cdef class GameRenderer(Renderer):
                 self.game_shader.uniform_matrix('mvp', self.game_mvp)
 
             self.render_elements([game.spellcard_effect])
-        elif self.background_renderer is not None:
+        else:
             back = self.background
             x, y, z = back.position_interpolator.values
             dx, dy, dz = back.position2_interpolator.values
@@ -175,8 +177,6 @@ cdef class GameRenderer(Renderer):
 
             free(mvp)
             self.background_renderer.render_background()
-        else:
-            glClear(GL_COLOR_BUFFER_BIT)
 
         if game is not None:
             if is_legacy:
