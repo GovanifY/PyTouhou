@@ -129,7 +129,7 @@ cdef class Item(Element):
                 self._game.modify_difficulty(+30)
                 color = 'yellow'
             else:
-                #score =  #TODO: find the formula.
+                score = (728 - int(self.y)) * 100 #TODO: check the formula some more.
                 self._game.modify_difficulty(+3)
 
         elif self._type == 3: # bomb
