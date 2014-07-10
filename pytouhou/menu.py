@@ -15,11 +15,7 @@
 from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
-try:
-    from gi.repository import Gtk, Gdk
-except ImportError:
-    logger.error('GTK+ unavailable, disabling the GUI menu.')
-    raise
+from gi.repository import Gtk, Gdk
 
 import sys
 import re
