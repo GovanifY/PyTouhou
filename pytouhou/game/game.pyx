@@ -360,10 +360,17 @@ cdef class Game:
         for player, keystate in zip(self.players, keystates):
             player.update(keystate) #TODO: differentiate keystates (multiplayer mode)
 
+            old_effective_score = player.effective_score
             #XXX: Why 78910? Is it really the right value?
-            player.effective_score = min(player.effective_score + 78910,
+            player.effective_score = min(old_effective_score + 78910,
                                          player.score)
-            #TODO: give extra lives to the player
+            if self.stage < 7:
+                for i in [10000000, 20000000, 40000000, 60000000]:
+                    if player.effective_score >= i and old_effective_score < i:
+                        if player.lives < 8:
+                            player.lives += 1
+                        self.modify_difficulty(+2)
+                        player.play_sound('extend')
 
 
     cdef void update_effects(self):

@@ -262,7 +262,7 @@ cdef class Player(Element):
                         self._game.drop_bonus(self.x, self.y, 4, player=self,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
-                    self.score = 0
+                    self.score = self.continues_used if self.continues_used <= 9 else 9
                     self.effective_score = 0
                     self.lives = 2 #TODO: use the right default.
                     self.bombs = 3 #TODO: use the right default.
