@@ -88,10 +88,9 @@ class ANMRunner(object):
                 try:
                     callback = self.handlers[opcode]
                 except KeyError:
-                    logger.warn('unhandled opcode %d (args: %r)', opcode, args)
+                    logger.debug('[%d - %04d] unhandled opcode %d (args: %r)',
+                                 id(self), self.frame, opcode, args)
                 else:
-                    logger.debug('[%d - %04d] anm_%d%r', id(self),
-                                 self.frame, opcode, args)
                     callback(self, *args)
                     self._sprite.changed = True
 
