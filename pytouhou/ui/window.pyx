@@ -71,7 +71,7 @@ cdef class Runner:
     cdef void finish(self) except *:
         pass
 
-    cdef bint update(self) except *:
+    cpdef bint update(self) except? False:
         return False
 
 

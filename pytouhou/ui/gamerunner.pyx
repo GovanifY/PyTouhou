@@ -108,7 +108,7 @@ cdef class GameRunner(Runner):
             self.renderer.start(self.common)
 
 
-    cdef bint update(self) except *:
+    cpdef bint update(self) except? False:
         cdef long keystate
 
         if self.background is not None:

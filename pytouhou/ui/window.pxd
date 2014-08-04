@@ -15,7 +15,7 @@ cdef class Runner:
 
     cdef void start(self) except *
     cdef void finish(self) except *
-    cdef bint update(self) except *
+    cpdef bint update(self) except? False
 
 
 cdef class Window:
