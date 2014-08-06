@@ -20,10 +20,7 @@ from pytouhou.game.bullettype cimport BulletType
 from pytouhou.game.bullet cimport Bullet
 from pytouhou.game.lasertype cimport LaserType
 from pytouhou.game.laser cimport PlayerLaser
-
-
-class GameOver(Exception):
-    pass
+from pytouhou.game import GameOver
 
 
 cdef class Player(Element):

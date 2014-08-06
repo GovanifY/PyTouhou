@@ -16,12 +16,9 @@
 from pytouhou.utils.helpers import get_logger
 
 from pytouhou.vm.common import MetaRegistry, instruction
+from pytouhou.game import NextStage
 
 logger = get_logger(__name__)
-
-
-class NextStage(Exception):
-    pass
 
 
 class MSGRunner(object):

@@ -69,10 +69,9 @@ from pytouhou.lib.sdl import SDL, show_simple_message_box
 from pytouhou.ui.window import Window
 from pytouhou.resource.loader import Loader
 from pytouhou.ui.gamerunner import GameRunner
-from pytouhou.game.player import GameOver
+from pytouhou.game import NextStage, GameOver
 from pytouhou.formats.t6rp import T6RP, Level
 from pytouhou.utils.random import Random
-from pytouhou.vm.msgrunner import NextStage
 from pytouhou.formats.hint import Hint
 from pytouhou.network import Network
 
