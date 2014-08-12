@@ -29,7 +29,7 @@ nthreads = 4  # How many processes to use for Cython compilation.
 
 
 # Hack to prevent `setup.py clean` from compiling Cython files.
-if sys.argv[1] == 'clean':
+if len(sys.argv) > 1 and sys.argv[1] == 'clean':
     import shutil
     shutil.rmtree('build', ignore_errors=True)
     for directory, _, files in os.walk('pytouhou'):
