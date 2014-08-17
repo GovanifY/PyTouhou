@@ -22,7 +22,8 @@ from pytouhou.lib.opengl cimport \
           GL_ONE_MINUS_SRC_ALPHA, GL_TEXTURE_2D, glGenBuffers, glEnable,
           glDisable, GL_DEPTH_TEST, glDrawElements, GL_TRIANGLES,
           GL_UNSIGNED_SHORT, GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers,
-          glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray)
+          glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray,
+          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from .sprite cimport get_sprite_rendering_data
 from .backend cimport is_legacy, use_vao
@@ -45,15 +46,16 @@ cdef class BackgroundRenderer:
 
     def __init__(self):
         if not is_legacy:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background creation")
             glGenBuffers(1, &self.vbo)
             glGenBuffers(1, &self.ibo)
 
             if use_vao:
                 glGenVertexArrays(1, &self.vao)
-
                 glBindVertexArray(self.vao)
                 self.set_state()
                 glBindVertexArray(0)
+            glPopDebugGroup()
 
 
     cdef void set_state(self) nogil:
@@ -70,6 +72,7 @@ cdef class BackgroundRenderer:
 
 
     cdef void render_background(self):
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background drawing")
         if is_legacy:
             indices = self.indices
             glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].x)
@@ -94,6 +97,7 @@ cdef class BackgroundRenderer:
             else:
                 glBindBuffer(GL_ARRAY_BUFFER, 0)
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        glPopDebugGroup()
 
 
     cdef void load(self, background, Renderer renderer):
@@ -140,6 +144,7 @@ cdef class BackgroundRenderer:
             self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))
             self.indices = <GLushort*> realloc(indices, nb_indices * sizeof(GLushort))
         else:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background uploading")
             glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
             glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(Vertex), vertex_buffer, GL_STATIC_DRAW)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -147,3 +152,4 @@ cdef class BackgroundRenderer:
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ibo)
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLushort), indices, GL_STATIC_DRAW)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            glPopDebugGroup()

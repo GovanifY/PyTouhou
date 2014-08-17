@@ -15,7 +15,8 @@ from pytouhou.lib.opengl cimport \
           GL_COMPILE_STATUS, GL_INFO_LOG_LENGTH, glGetShaderInfoLog,
           glAttachShader, glLinkProgram, glGetProgramiv, glGetProgramInfoLog,
           GL_LINK_STATUS, glUseProgram, glGetUniformLocation, glUniform1fv,
-          glUniform4fv, glUniformMatrix4fv, glBindAttribLocation)
+          glUniform4fv, glUniformMatrix4fv, glBindAttribLocation,
+          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from libc.stdlib cimport malloc, free
 from .backend cimport shader_header
@@ -29,6 +30,8 @@ cdef class Shader:
     # vert and frag take arrays of source strings the arrays will be
     # concattenated into one string by OpenGL
     def __init__(self, vert=None, frag=None):
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Program creation")
+
         # create the program handle
         self.handle = glCreateProgram()
         # we are not linked yet
@@ -49,6 +52,8 @@ cdef class Shader:
 
         # attempt to link the program
         self.link()
+
+        glPopDebugGroup()
 
     cdef void create_shader(self, const GLchar *string, GLenum shader_type):
         cdef GLint temp

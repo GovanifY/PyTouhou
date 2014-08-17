@@ -88,6 +88,10 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_DEPTH_ATTACHMENT
         GL_FRAMEBUFFER_COMPLETE
 
+        # Debug
+
+        GL_DEBUG_SOURCE_APPLICATION
+
     void glVertexPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
     void glTexCoordPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
     void glColorPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
@@ -160,3 +164,8 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glGenVertexArrays(GLsizei n, GLuint *arrays)
     void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
     void glBindVertexArray(GLuint array)
+
+    # Debug
+
+    void glPushDebugGroup(GLenum source, GLuint id_, GLsizei length, const char *message)
+    void glPopDebugGroup()

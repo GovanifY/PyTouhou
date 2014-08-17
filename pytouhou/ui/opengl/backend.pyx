@@ -4,7 +4,8 @@ from pytouhou.lib.sdl cimport Window
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
           GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
-          GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY)
+          GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
+          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 
 GameRenderer = None
@@ -65,6 +66,7 @@ def create_window(title, x, y, width, height):
     window.gl_create_context()
 
     # Initialize OpenGL
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "OpenGL initialisation")
     glEnable(GL_BLEND)
     if is_legacy:
         glEnable(GL_TEXTURE_2D)
@@ -73,5 +75,6 @@ def create_window(title, x, y, width, height):
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+    glPopDebugGroup()
 
     return window

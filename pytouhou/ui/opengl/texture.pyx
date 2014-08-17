@@ -16,7 +16,8 @@ from pytouhou.lib.opengl cimport \
          (glTexParameteri, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER,
           GL_LINEAR, GL_BGRA, GL_RGBA, GL_RGB, GL_LUMINANCE, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4_REV, GL_UNSIGNED_SHORT_4_4_4_4,
-          glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint)
+          glGenTextures, glBindTexture, glTexImage2D, GL_TEXTURE_2D, GLuint,
+          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from pytouhou.lib.sdl cimport load_png, create_rgb_surface
 from pytouhou.lib.sdl import SDLError
@@ -37,13 +38,17 @@ cdef class TextureManager:
 
 
     cdef void load(self, dict anms):
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Texture loading")
         for anm in sorted(anms.values(), key=is_ascii):
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Loading textures from ANM %s" % anm)
             for entry in anm:
                 if entry.texture is None:
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
                 elif not isinstance(entry.texture, self.texture_class):
                     texture = entry.texture
                 entry.texture = self.texture_class(load_texture(texture), self.renderer)
+            glPopDebugGroup()
+        glPopDebugGroup()
         anms.clear()
 
 
@@ -61,6 +66,7 @@ cdef class FontManager:
     cdef void load(self, dict labels):
         cdef NativeText label
 
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text rendering")
         for i, label in labels.items():
             if label.texture is None:
                 try:
@@ -81,6 +87,7 @@ cdef class FontManager:
 
                 texture = Texture(label.width, label.height, -4, surface.pixels)
                 label.texture = self.texture_class(load_texture(texture), self.renderer)
+        glPopDebugGroup()
 
 
 cdef decode_png(loader, first_name, secondary_name):

@@ -20,7 +20,8 @@ from pytouhou.lib.opengl cimport \
           glEnable, glFogi, glFogf, glFogfv, GL_PROJECTION, GL_MODELVIEW,
           GL_FOG, GL_FOG_MODE, GL_LINEAR, GL_FOG_START, GL_FOG_END,
           GL_FOG_COLOR, GL_COLOR_BUFFER_BIT, GLfloat, glViewport, glScissor,
-          GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT)
+          GL_SCISSOR_TEST, GL_DEPTH_BUFFER_BIT, glPushDebugGroup,
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from pytouhou.utils.matrix cimport mul, new_identity
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
@@ -93,9 +94,11 @@ cdef class GameRenderer(Renderer):
         self.render_interface(game.interface, game.boss)
 
         if not is_legacy:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Scaled rendering")
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
             self.render_framebuffer(self.framebuffer)
+            glPopDebugGroup()
 
 
     cdef void render_game(self, Game game):
@@ -105,6 +108,8 @@ cdef class GameRenderer(Renderer):
         cdef float fog_start, fog_end
         cdef unsigned char fog_r, fog_g, fog_b
         cdef Matrix *mvp
+
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Game rendering")
 
         game_x, game_y = game.interface.game_pos
         glViewport(game_x, game_y, game.width, game.height)
@@ -204,6 +209,7 @@ cdef class GameRenderer(Renderer):
             self.render_quads([rect], [(color1, color1, color2, color2)], 0)
 
         glDisable(GL_SCISSOR_TEST)
+        glPopDebugGroup()
 
 
     cdef void render_text(self, dict texts):
@@ -234,6 +240,7 @@ cdef class GameRenderer(Renderer):
 
         elements = []
 
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Interface rendering")
         if is_legacy:
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(<GLfloat*>self.interface_mvp)
@@ -262,3 +269,4 @@ cdef class GameRenderer(Renderer):
         self.render_elements(elements)
         for label in labels:
             label.changed = False
+        glPopDebugGroup()
