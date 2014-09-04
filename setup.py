@@ -28,6 +28,10 @@ anmviewer = False  # It’s currently broken anyway.
 nthreads = 4  # How many processes to use for Cython compilation.
 
 
+# Hack to move us to the correct build directory.
+os.chdir(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
 # Hack to prevent `setup.py clean` from compiling Cython files.
 if len(sys.argv) > 1 and sys.argv[1] == 'clean':
     import shutil
