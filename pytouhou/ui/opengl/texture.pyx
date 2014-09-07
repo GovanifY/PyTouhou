@@ -40,7 +40,7 @@ cdef class TextureManager:
     cdef void load(self, dict anms):
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Texture loading")
         for anm in sorted(anms.values(), key=is_ascii):
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Loading textures from ANM %s" % anm)
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Loading textures from ANM")
             for entry in anm:
                 if entry.texture is None:
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
