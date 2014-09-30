@@ -229,7 +229,7 @@ cdef class GameRenderer(Renderer):
 
         black = Color(0, 0, 0, 255)
 
-        for label in texts.itervalues():
+        for label in texts.values():
             texture = (<Texture>label.texture).texture
             rect = Rect(label.x, label.y, label.width, label.height)
             gradient = [Color(*color, a=label.alpha) for color in label.gradient]

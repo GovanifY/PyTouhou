@@ -16,7 +16,7 @@
 from os.path import join
 from glob import glob
 from pytouhou.lib import sdl
-from pytouhou.lib cimport sdl
+from pytouhou.lib.sdl cimport load_music, Music, load_chunk, Chunk
 from pytouhou.utils.helpers import get_logger
 from pytouhou.game.music cimport MusicPlayer
 
@@ -37,27 +37,27 @@ cdef class BGMPlayer(MusicPlayer):
                 track = resource_loader.get_track(posname)
             except KeyError:
                 track = None
-                logger.warn(u'Music description “%s” not found, continuing without looping data.', posname)
-            globname = join(resource_loader.game_dir, bgm[1].encode('ascii')).replace('.mid', '.*')
+                logger.warn('Music description “%s” not found, continuing without looping data.', posname)
+            globname = join(resource_loader.game_dir, bgm[1]).replace('.mid', '.*')
             filenames = glob(globname)
             for filename in reversed(filenames):
                 try:
-                    source = sdl.load_music(filename)
+                    source = load_music(filename)
                 except sdl.SDLError as error:
-                    logger.debug(u'Music file “%s” unreadable: %s', filename, error)
+                    logger.debug('Music file “%s” unreadable: %s', filename, error)
                     continue
                 else:
                     if track is not None:
                         source.set_loop_points(track.start / 44100., track.end / 44100.) #TODO: retrieve the sample rate from the actual track.
                     self.bgms.append(source)
-                    logger.debug(u'Music file “%s” opened.', filename)
+                    logger.debug('Music file “%s” opened.', filename)
                     break
             else:
                 self.bgms.append(None)
-                logger.warn(u'No working music file for “%s”, disabling bgm.', globname)
+                logger.warn('No working music file for “%s”, disabling bgm.', globname)
 
     cpdef play(self, index):
-        cdef sdl.Music bgm
+        cdef Music bgm
         bgm = self.bgms[index]
         if bgm is not None:
             bgm.play(-1)
@@ -82,12 +82,12 @@ cdef class SFXPlayer(MusicPlayer):
             self.next_channel += 1
         return self.channels[name]
 
-    cdef sdl.Chunk get_sound(self, name):
-        cdef sdl.Chunk chunk
+    cdef Chunk get_sound(self, name):
+        cdef Chunk chunk
         if name not in self.sounds:
             wave_file = self.loader.get_file(name)
             try:
-                chunk = sdl.load_chunk(wave_file)
+                chunk = load_chunk(wave_file)
             except sdl.SDLError as error:
                 logger.warn(u'Sound “%s” not found: %s', name, error)
                 chunk = None

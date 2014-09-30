@@ -190,7 +190,7 @@ cdef class Game:
         score = 0
         bonus = 2000
         for bullet in self.bullets:
-            self.new_label((bullet.x, bullet.y), str(bonus))
+            self.new_label((bullet.x, bullet.y), str(bonus).encode())
             score += bonus
             bonus += 10
         self.bullets = []
@@ -216,13 +216,13 @@ cdef class Game:
 
     cpdef new_effect(self, pos, long anim, anm=None, long number=1):
         number = min(number, self.nb_bullets_max - len(self.effects))
-        for i in xrange(number):
+        for i in range(number):
             self.effects.append(Effect(pos, anim, anm or self.etama[1]))
 
 
     cpdef new_particle(self, pos, long anim, long amp, long number=1, bint reverse=False, long duration=24):
         number = min(number, self.nb_bullets_max - len(self.effects))
-        for i in xrange(number):
+        for i in range(number):
             self.effects.append(Particle(pos, anim, self.etama[1], amp, self, reverse=reverse, duration=duration))
 
 
@@ -295,7 +295,7 @@ cdef class Game:
         self.update_background() #TODO: Pri unknown
         if self.msg_runner is not None:
             self.update_msg(keystates[0]) # Pri ?
-            for i in xrange(len(keystates)):
+            for i in range(len(keystates)):
                 keystates[i] &= ~3 # Remove the ability to attack (keystates 1 and 2).
         self.update_players(keystates) # Pri 7
         self.update_enemies() # Pri 9
@@ -308,7 +308,7 @@ cdef class Game:
             self.update_hints() # Not from this game, so unknown.
         for label in self.labels: #TODO: what priority is it?
             label.update()
-        for text in self.texts.itervalues(): #TODO: what priority is it?
+        for text in self.texts.values(): #TODO: what priority is it?
             if text is not None:
                 text.update()
         self.update_faces() # Pri XXX
@@ -580,10 +580,7 @@ cdef class Game:
 
         self.effects = filter_removed(self.effects)
         self.labels = filter_removed(self.labels)
-
-        for key, text in self.texts.items():
-            if text.removed:
-                del self.texts[key]
+        self.texts = {key: text for key, text in self.texts.items() if not text.removed}
 
         # Disable boss mode if it is dead/it has timeout
         if self.boss and self.boss.removed:

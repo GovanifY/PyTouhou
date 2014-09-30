@@ -40,13 +40,13 @@ class EoSDInterface(object):
         self.level_start = []
 
         self.labels = {
-            'highscore': Text((500, 58), self.ascii_anm, front, text='0'),
-            'score': Text((500, 82), self.ascii_anm, front, text='0'),
+            'highscore': Text((500, 58), self.ascii_anm, front, text=b'0'),
+            'score': Text((500, 82), self.ascii_anm, front, text=b'0'),
             'player': Counter((500, 122), front, front, script=16, value=0),
             'bombs': Counter((500, 146), front, front, script=17, value=0),
-            'power': Text((500, 186), self.ascii_anm, front, text='0'),
-            'graze': Text((500, 206), self.ascii_anm, front, text='0'),
-            'points': Text((500, 226), self.ascii_anm, front, text='0'),
+            'power': Text((500, 186), self.ascii_anm, front, text=b'0'),
+            'graze': Text((500, 206), self.ascii_anm, front, text=b'0'),
+            'points': Text((500, 226), self.ascii_anm, front, text=b'0'),
             'framerate': Text((512, 464), self.ascii_anm, front),
             'debug?': Text((0, 464), self.ascii_anm, front),
 
@@ -68,13 +68,13 @@ class EoSDInterface(object):
     def start_stage(self, game, stage):
         self.game = game
         if stage < 6:
-            text = 'STAGE %d' % stage
+            text = ('STAGE %d' % stage).encode()
         elif stage == 6:
-            text = 'FINAL STAGE'
+            text = b'FINAL STAGE'
         elif stage == 7:
-            text = 'EXTRA STAGE'
+            text = b'EXTRA STAGE'
 
-        self.stage_name = NativeText((192, 200), unicode(game.std.name), shadow=True, align='center')
+        self.stage_name = NativeText((192, 200), game.std.name, shadow=True, align='center')
         self.stage_name.set_timeout(240, effect='fadeout', duration=60, start=120)
 
         self.set_song_name(game.std.bgms[0][0])
@@ -86,7 +86,7 @@ class EoSDInterface(object):
 
     def set_song_name(self, name):
         #TODO: use the correct animation.
-        self.song_name = NativeText((384, 432), u'♪ ' + name, shadow=True, align='right')
+        self.song_name = NativeText((384, 432), '♪ ' + name, shadow=True, align='right')
         self.song_name.set_timeout(240, effect='fadeout', duration=60, start=120)
 
 

@@ -21,8 +21,7 @@ from pytouhou.game import NextStage
 logger = get_logger(__name__)
 
 
-class MSGRunner(object):
-    __metaclass__ = MetaRegistry
+class MSGRunner(metaclass=MetaRegistry):
     __slots__ = ('_msg', '_game', 'frame', 'sleep_time', 'allow_skip',
                  'skipping', 'frozen', 'ended', 'instruction_pointer',
                  'handlers')

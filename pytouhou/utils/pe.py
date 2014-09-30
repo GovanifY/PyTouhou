@@ -65,7 +65,7 @@ class PEStructs:
         directory_format = Struct('<II')
         directory = []
         partial_header = format.unpack(file.read(format.size))
-        directory = [cls._IMAGE_DATA_DIRECTORY(*directory_format.unpack(file.read(directory_format.size))) for i in xrange(16)]
+        directory = [cls._IMAGE_DATA_DIRECTORY(*directory_format.unpack(file.read(directory_format.size))) for i in range(16)]
         return cls._IMAGE_OPTIONAL_HEADER(*(partial_header + (directory,)))
 
     _IMAGE_SECTION_HEADER = namedtuple('_IMAGE_SECTION_HEADER',
@@ -105,7 +105,7 @@ class PEFile(object):
         self.image_base = pe_optional_header.ImageBase
 
         self.sections = [PEStructs.read_image_section_header(file)
-                            for i in xrange(pe_file_header.NumberOfSections)]
+                            for i in range(pe_file_header.NumberOfSections)]
 
 
     def seek_to_va(self, va):

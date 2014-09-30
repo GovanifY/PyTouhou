@@ -83,7 +83,7 @@ cdef class Player(Element):
             self._game.new_effect((self.x, self.y), 17)
             self._game.modify_difficulty(-1600)
             self.play_sound('pldead00')
-            for i in xrange(16):
+            for i in range(16):
                 self._game.new_particle((self.x, self.y), 11, 256) #TODO: find the real size and range.
 
 
@@ -205,11 +205,11 @@ cdef class Player(Element):
 
                 m = self.invulnerable_time % 8
                 if m == 7 or self.invulnerable_time == 0:
-                    for i in xrange(3):
+                    for i in range(3):
                         self.sprite._color[i] = 255
                     self.sprite.changed = True
                 elif m == 1:
-                    for i in xrange(3):
+                    for i in range(3):
                         self.sprite._color[i] = 64
                     self.sprite.changed = True
 
@@ -255,7 +255,7 @@ cdef class Player(Element):
                         self.continues -= 1
                     self.continues_used += 1
 
-                    for i in xrange(5):
+                    for i in range(5):
                         self._game.drop_bonus(self.x, self.y, 4, player=self,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))
@@ -271,7 +271,7 @@ cdef class Player(Element):
                     self._game.drop_bonus(self.x, self.y, 2, player=self,
                                           end_pos=(self._game.prng.rand_double() * 288 + 48, # 102h.exe@0x41f3dc
                                                    self._game.prng.rand_double() * 192 - 64))        # @0x41f3
-                    for i in xrange(5):
+                    for i in range(5):
                         self._game.drop_bonus(self.x, self.y, 0, player=self,
                                               end_pos=(self._game.prng.rand_double() * 288 + 48,
                                                        self._game.prng.rand_double() * 192 - 64))

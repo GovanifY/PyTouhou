@@ -16,9 +16,9 @@
 class MetaRegistry(type):
     def __new__(mcs, name, bases, classdict):
         instruction_handlers = {}
-        for item in classdict.itervalues():
+        for item in classdict.values():
             if hasattr(item, '_instruction_ids'):
-                for version, instruction_ids in item._instruction_ids.iteritems():
+                for version, instruction_ids in item._instruction_ids.items():
                     for id_ in instruction_ids:
                         instruction_handlers.setdefault(version, {})[id_] = item
         classdict['_handlers'] = instruction_handlers

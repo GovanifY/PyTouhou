@@ -21,8 +21,7 @@ from pytouhou.vm.common import MetaRegistry, instruction
 logger = get_logger(__name__)
 
 
-class ANMRunner(object):
-    __metaclass__ = MetaRegistry
+class ANMRunner(metaclass=MetaRegistry):
     __slots__ = ('_anm', '_sprite', 'running', 'sprite_index_offset', 'script',
                  'instruction_pointer', 'frame', 'waiting', 'handlers',
                  'variables', 'version', 'timeout')

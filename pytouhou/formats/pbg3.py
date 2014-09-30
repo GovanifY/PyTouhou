@@ -118,7 +118,7 @@ class PBG3(object):
             checksum = bitstream.read_int() # Checksum of *compressed data*
             offset = bitstream.read_int()
             size = bitstream.read_int()
-            name = bitstream.read_string(255).decode('ascii')
+            name = bitstream.read_string(255)
             entries[name] = PBG3Entry(unknown1, unknown2, checksum, offset, size)
 
         return PBG3(entries, bitstream)
@@ -148,7 +148,7 @@ class PBG3(object):
             self.bitstream.seek(offset)
             value = 0
             for c in self.bitstream.io.read(compressed_size):
-                value += ord(c)
+                value += c
                 value &= 0xFFFFFFFF
             if value != checksum:
                 logger.warn('corrupted data!')

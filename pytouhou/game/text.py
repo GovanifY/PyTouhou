@@ -98,7 +98,7 @@ class GlyphCollection(Widget):
 
 
 class Text(GlyphCollection):
-    def __init__(self, pos, ascii_anm, back_anm=None, text='',
+    def __init__(self, pos, ascii_anm, back_anm=None, text=b'',
                  xspacing=14, shift=21, back_script=22, align='left'):
         GlyphCollection.__init__(self, pos, ascii_anm, back_anm,
                                  xspacing=xspacing, back_script=back_script)
@@ -119,7 +119,10 @@ class Text(GlyphCollection):
         if text == self.text:
             return
 
-        self.set_sprites([ord(c) - self.shift for c in text])
+        if isinstance(text, str):
+            text = text.encode()
+
+        self.set_sprites([c - self.shift for c in text])
         self.text = text
         self.changed = True
 

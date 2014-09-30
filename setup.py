@@ -76,7 +76,7 @@ default_libs = {
 
 def get_arguments(arg, libraries):
     try:
-        return check_output([COMMAND, arg] + libraries).split()
+        return check_output([COMMAND, arg] + libraries).decode().split()
     except CalledProcessError:
         # The error has already been displayed, just exit.
         sys.exit(1)
@@ -96,6 +96,8 @@ if use_opengl:
 
 
 for directory, _, files in os.walk('pytouhou'):
+    if directory.endswith('/__pycache__'):
+        continue
     package = directory.replace(os.path.sep, '.')
     if not use_opengl and package in ('pytouhou.ui.opengl', 'pytouhou.ui.opengl.shaders'):
         continue

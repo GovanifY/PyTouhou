@@ -41,10 +41,10 @@ cdef void mul(Matrix *mat1, Matrix *mat2) nogil:
     d1 = <float*>mat1
     d2 = <float*>mat2
     d3 = <float*>out
-    for i in xrange(4):
-        for j in xrange(4):
+    for i in range(4):
+        for j in range(4):
             d3[4*i+j] = 0
-            for k in xrange(4):
+            for k in range(4):
                 d3[4*i+j] += d1[4*i+k] * d2[4*k+j]
     memcpy(mat1, out, sizeof(Matrix))
     free(out)
@@ -52,7 +52,7 @@ cdef void mul(Matrix *mat1, Matrix *mat2) nogil:
 
 cdef void flip(Matrix *mat) nogil:
     data = <float*>mat
-    for i in xrange(4):
+    for i in range(4):
         data[i] = -data[i]
 
 
@@ -64,14 +64,14 @@ cdef void scale(Matrix *mat, float x, float y, float z) nogil:
     coordinate[1] = y
     coordinate[2] = z
 
-    for i in xrange(3):
-        for j in xrange(4):
+    for i in range(3):
+        for j in range(4):
             data[4*i+j] *= coordinate[i]
 
 
 cdef void scale2d(Matrix *mat, float x, float y) nogil:
     data = <float*>mat
-    for i in xrange(4):
+    for i in range(4):
         data[  i] *= x
         data[4+i] *= y
 
@@ -80,11 +80,11 @@ cdef void translate(Matrix *mat, float[3] offset) nogil:
     cdef float item[3]
 
     data = <float*>mat
-    for i in xrange(3):
+    for i in range(3):
         item[i] = data[12+i] * offset[i]
 
-    for i in xrange(3):
-        for j in xrange(4):
+    for i in range(3):
+        for j in range(4):
             data[4*i+j] += item[i]
 
 
@@ -105,9 +105,9 @@ cdef void rotate_x(Matrix *mat, float angle) nogil:
     data = <float*>mat
     cos_a = cos(angle)
     sin_a = sin(angle)
-    for i in xrange(8):
+    for i in range(8):
         lines[i] = data[i+4]
-    for i in xrange(4):
+    for i in range(4):
         data[4+i] = cos_a * lines[i] - sin_a * lines[4+i]
         data[8+i] = sin_a * lines[i] + cos_a * lines[4+i]
 
@@ -119,10 +119,10 @@ cdef void rotate_y(Matrix *mat, float angle) nogil:
     data = <float*>mat
     cos_a = cos(angle)
     sin_a = sin(angle)
-    for i in xrange(4):
+    for i in range(4):
         lines[i] = data[i]
         lines[i+4] = data[i+8]
-    for i in xrange(4):
+    for i in range(4):
         data[  i] =  cos_a * lines[i] + sin_a * lines[4+i]
         data[8+i] = -sin_a * lines[i] + cos_a * lines[4+i]
 
@@ -134,8 +134,8 @@ cdef void rotate_z(Matrix *mat, float angle) nogil:
     data = <float*>mat
     cos_a = cos(angle)
     sin_a = sin(angle)
-    for i in xrange(8):
+    for i in range(8):
         lines[i] = data[i]
-    for i in xrange(4):
+    for i in range(4):
         data[  i] = cos_a * lines[i] - sin_a * lines[4+i]
         data[4+i] = sin_a * lines[i] + cos_a * lines[4+i]

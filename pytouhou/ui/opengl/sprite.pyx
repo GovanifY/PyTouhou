@@ -79,7 +79,7 @@ cdef void render_sprite(Sprite sprite) nogil:
     data.bottom = ty * y_1 + toy
     data.top = (ty + th) * y_1 + toy
 
-    for i in xrange(4):
+    for i in range(4):
         data.color[i] = sprite._color[i]
 
     data.key = ((<Texture>sprite.anm.texture).key << 1) | sprite.blendfunc

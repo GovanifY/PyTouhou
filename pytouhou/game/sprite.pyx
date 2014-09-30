@@ -57,7 +57,7 @@ cdef class Sprite:
 
         # Cython treats unsigned char* variables as bytes, so we can’t use
         # slicing here.
-        for i in xrange(4):
+        for i in range(4):
             self._color[i] = 255
 
 

@@ -157,7 +157,7 @@ cdef class Item(Element):
         if score > 0:
             player.score += score
             if label is None:
-                label = self._game.new_label((self.x, self.y), str(score))
+                label = self._game.new_label((self.x, self.y), str(score).encode())
                 if color != 'white':
                     label.set_color(color)
 

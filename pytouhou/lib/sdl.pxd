@@ -125,7 +125,7 @@ cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunks
 cdef void mix_allocate_channels(int numchans) except *
 cdef int mix_volume(int channel, float volume) nogil
 cdef int mix_volume_music(float volume) nogil
-cdef Music load_music(const char *filename)
+cdef Music load_music(str filename)
 cdef Chunk load_chunk(file_)
 cdef Uint32 get_ticks() nogil
 cdef void delay(Uint32 ms) nogil

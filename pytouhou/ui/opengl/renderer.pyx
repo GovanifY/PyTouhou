@@ -44,7 +44,7 @@ cdef class Texture:
         self.texture = texture
 
         # Find an unused key in the textures array.
-        for key in xrange(MAX_TEXTURES):
+        for key in range(MAX_TEXTURES):
             if renderer.textures[key] == 0:
                 break
         else:
@@ -53,7 +53,7 @@ cdef class Texture:
         self.key = key
         self.pointer = &renderer.textures[key]
         self.pointer[0] = texture
-        for i in xrange(2):
+        for i in range(2):
             renderer.indices[key][i] = self.indices[i]
 
         #XXX: keep a reference so that when __dealloc__ is called self.pointer is still valid.
@@ -141,7 +141,7 @@ cdef class Renderer:
         nb_vertices = 0
         memset(self.last_indices, 0, sizeof(self.last_indices))
 
-        for element_idx in xrange(nb_elements):
+        for element_idx in range(nb_elements):
             element = <object>self.elements[element_idx]
             ox, oy = <short>element.x, <short>element.y
             data = get_sprite_rendering_data(element.sprite)
@@ -201,7 +201,7 @@ cdef class Renderer:
         previous_blendfunc = -1
         previous_texture = -1
 
-        for key in xrange(2 * MAX_TEXTURES):
+        for key in range(2 * MAX_TEXTURES):
             nb_indices = self.last_indices[key]
             if not nb_indices:
                 continue

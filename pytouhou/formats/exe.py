@@ -74,17 +74,17 @@ class SHT(object):
 
         format = Struct('<4f2I')
         data_section = [section for section in pe_file.sections
-                            if section.Name.startswith('.data')][0]
+                            if section.Name.startswith(b'.data')][0]
         text_section = [section for section in pe_file.sections
-                            if section.Name.startswith('.text')][0]
+                            if section.Name.startswith(b'.text')][0]
         data_va = pe_file.image_base + data_section.VirtualAddress
         data_size = data_section.SizeOfRawData
         text_va = pe_file.image_base + text_section.VirtualAddress
         text_size = text_section.SizeOfRawData
 
         # Search the whole data segment for 4 successive character definitions
-        for addr in xrange(data_va, data_va + data_size, 4):
-            for character_id in xrange(4):
+        for addr in range(data_va, data_va + data_size, 4):
+            for character_id in range(4):
                 pe_file.seek_to_va(addr + character_id * 24)
                 (speed1, speed2, speed3, speed4,
                  ptr1, ptr2) = format.unpack(pe_file.file.read(format.size))
@@ -101,7 +101,7 @@ class SHT(object):
                 # Now, make sure the shoot function wrappers pass valid addresses
 
                 # Search for the “push” instruction
-                for i in xrange(20):
+                for i in range(20):
                     # Find the “push” instruction
                     pe_file.seek_to_va(ptr1 + i)
                     instr1, shtptr1 = unpack('<BI', pe_file.file.read(5))
@@ -137,7 +137,7 @@ class SHT(object):
     def read(cls, file):
         pe_file = PEFile(file)
         data_section = [section for section in pe_file.sections
-                            if section.Name.startswith('.data')][0]
+                            if section.Name.startswith(b'.data')][0]
         data_va = pe_file.image_base + data_section.VirtualAddress
         data_size = data_section.SizeOfRawData
 
@@ -148,7 +148,7 @@ class SHT(object):
 
         characters = []
         shots_offsets = {}
-        for character in xrange(4):
+        for character in range(4):
             sht = cls()
 
             pe_file.seek_to_va(character_records_va + 6*4*character)
@@ -169,7 +169,7 @@ class SHT(object):
 
             for sht, func_offset in ((sht, shots_func_offset), (focused_sht, shots_func_offset_focused)):
                 # Search for the “push” instruction
-                for i in xrange(20):
+                for i in range(20):
                     # Find the “push” instruction
                     pe_file.seek_to_va(func_offset + i)
                     instr, offset = unpack('<BI', file.read(5))
@@ -184,12 +184,12 @@ class SHT(object):
                     shots_offsets[offset] = []
                 shots_offsets[offset].append(sht)
 
-        for shots_offset, shts in shots_offsets.iteritems():
+        for shots_offset, shts in shots_offsets.items():
             pe_file.seek_to_va(shots_offset)
 
             level_count = 9
             levels = []
-            for i in xrange(level_count):
+            for i in range(level_count):
                 shots_count, power, offset = unpack('<III', file.read(3*4))
                 levels.append((shots_count, power, offset))
 
@@ -199,7 +199,7 @@ class SHT(object):
                 shots[power] = []
                 pe_file.seek_to_va(offset)
 
-                for i in xrange(shots_count):
+                for i in range(shots_count):
                     shot = Shot()
 
                     data = unpack('<HH6fHBBhh', file.read(36))

@@ -42,9 +42,9 @@ cdef class Shader:
         self.location_cache = {}
 
         # create the vertex shader
-        self.create_shader(vert[0], GL_VERTEX_SHADER)
+        self.create_shader(vert[0].encode(), GL_VERTEX_SHADER)
         # create the fragment shader
-        self.create_shader(frag[0], GL_FRAGMENT_SHADER)
+        self.create_shader(frag[0].encode(), GL_FRAGMENT_SHADER)
 
         #TODO: put those elsewhere.
         glBindAttribLocation(self.handle, 0, 'in_position')
@@ -116,6 +116,8 @@ cdef class Shader:
             self.linked = True
 
     cdef GLint get_uniform_location(self, name):
+        if isinstance(name, str):
+            name = name.encode()
         if name not in self.location_cache:
             loc = glGetUniformLocation(self.handle, name)
             if loc == -1:

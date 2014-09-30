@@ -68,7 +68,7 @@ class SHT(object):
          sht.diagonal_speed, sht.diagonal_focused_speed) = data
 
         levels = []
-        for i in xrange(level_count):
+        for i in range(level_count):
             offset, power = unpack('<II', file.read(8))
             levels.append((power, offset))
 

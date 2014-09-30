@@ -60,7 +60,7 @@ class Directory(object):
 
 
 class ArchiveDescription(object):
-    _formats = {'PBG3': PBG3}
+    _formats = {b'PBG3': PBG3}
 
     def __init__(self, path, format_class, file_list=None):
         self.path = path

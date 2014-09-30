@@ -35,7 +35,7 @@ cdef class Text(GlyphCollection):
     cdef Interpolator fade_interpolator
     cdef unsigned char alpha
 
-    cpdef set_text(self, bytes text)
+    cpdef set_text(self, text)
     #def timeout_update(self)
     #def move_timeout_update(self)
     #def fadeout_timeout_update(self)
@@ -60,7 +60,7 @@ cdef class NativeText(Element):
     cdef public object update
 
     cdef unicode text
-    cdef bytes align #TODO: use a proper enum.
+    cdef str align #TODO: use a proper enum.
     cdef unsigned long frame, timeout, duration, start
     cdef double to[2]
     cdef double end[2]

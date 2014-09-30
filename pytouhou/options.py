@@ -13,7 +13,7 @@
 ##
 
 import os
-from ConfigParser import RawConfigParser, NoOptionError
+from configparser import RawConfigParser, NoOptionError
 
 from pytouhou.utils.xdg import load_config_paths, save_config_path
 

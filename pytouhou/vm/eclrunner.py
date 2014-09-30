@@ -23,8 +23,7 @@ logger = get_logger(__name__)
 
 
 
-class ECLMainRunner(object):
-    __metaclass__ = MetaRegistry
+class ECLMainRunner(metaclass=MetaRegistry):
     __slots__ = ('_main', '_subs', '_game', 'frame',
                  'instruction_pointer', 'boss_wait', 'handlers')
 
@@ -118,8 +117,7 @@ class ECLMainRunner(object):
 
 
 
-class ECLRunner(object):
-    __metaclass__ = MetaRegistry
+class ECLRunner(metaclass=MetaRegistry):
     __slots__ = ('_subs', '_enemy', '_game', '_pop_enemy', 'variables', 'sub',
                  'frame', 'instruction_pointer', 'comparison_reg', 'stack',
                  'running', 'handlers')
@@ -934,12 +932,12 @@ class ECLRunner(object):
                 self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_double() * 128,
                                       self._enemy.y - 64 + self._game.prng.rand_double() * 128,
                                       2)
-            for i in xrange(number - 1):
+            for i in range(number - 1):
                 self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_double() * 128,
                                       self._enemy.y - 64 + self._game.prng.rand_double() * 128,
                                       0)
         else:
-            for i in xrange(number):
+            for i in range(number):
                 self._game.drop_bonus(self._enemy.x - 64 + self._game.prng.rand_double() * 128,
                                       self._enemy.y - 64 + self._game.prng.rand_double() * 128,
                                       1)
@@ -986,7 +984,7 @@ class ECLRunner(object):
                 self._game.time_stop = False
         elif function == 7: # Remilia’s laser webs
             base_angle = self._game.prng.rand_double() * 2 * pi
-            for i in xrange(16):
+            for i in range(16):
                 delta = [+pi / 4., -pi / 4.][i % 2]
                 ox, oy = self._enemy.bullet_launch_offset
                 length = 32. #TODO: check

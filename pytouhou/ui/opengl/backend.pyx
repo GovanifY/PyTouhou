@@ -66,13 +66,13 @@ def discover_features():
         except KeyError:
             assert version >= 33
             glsl_version = version * 10
-        shader_header = '#version %d\n\n' % glsl_version
+        shader_header = ('#version %d\n\n' % glsl_version).encode()
     else:
         # The attribute keyword isn’t supported past GLSL ES 3.0.
         if version >= 30:
             version = 20
         glsl_version = {20: '100', 30: '300 es'}[version]
-        shader_header = '#version %s\n\nprecision highp float;\n\n' % glsl_version
+        shader_header = ('#version %s\n\nprecision highp float;\n\n' % glsl_version).encode()
 
 
 def create_window(title, x, y, width, height, swap_interval):

@@ -196,12 +196,12 @@ cdef class Enemy(Element):
         bullets = self._game.bullets
         nb_bullets_max = self._game.nb_bullets_max
 
-        for shot_nb in xrange(number_of_shots):
+        for shot_nb in range(number_of_shots):
             shot_speed = speed if shot_nb == 0 else speed + (speed2 - speed) * float(shot_nb) / float(number_of_shots)
             bullet_angle = launch_angle
             if type_ in (69, 70, 71, 74):
                 launch_angle += angle
-            for bullet_nb in xrange(bullets_per_shot):
+            for bullet_nb in range(bullets_per_shot):
                 if nb_bullets_max is not None and len(bullets) == nb_bullets_max:
                     break
 
@@ -272,7 +272,7 @@ cdef class Enemy(Element):
             if self._game.stage in [1, 2, 7]:
                 color = 3
         color += 9
-        for i in xrange(number):
+        for i in range(number):
             self._game.new_particle((self.x, self.y), color, 256) #TODO: find the real size.
 
 

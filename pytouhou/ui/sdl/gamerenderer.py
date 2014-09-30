@@ -142,7 +142,7 @@ class GameRenderer(object):
 
         self.font_manager.load(texts)
 
-        for label in texts.itervalues():
+        for label in texts.values():
             texture = label.texture
 
             source = Rect(0, 0, label.width, label.height)

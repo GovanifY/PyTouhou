@@ -90,8 +90,8 @@ class SDL(object):
 
 
 cdef class Window:
-    def __init__(self, const char *title, int x, int y, int w, int h, Uint32 flags):
-        self.window = SDL_CreateWindow(title, x, y, w, h, flags)
+    def __init__(self, str title, int x, int y, int w, int h, Uint32 flags):
+        self.window = SDL_CreateWindow(title.encode(), x, y, w, h, flags)
         if self.window == NULL:
             raise SDLError(SDL_GetError())
 
@@ -205,7 +205,7 @@ cdef class Surface:
         image = self.surface.pixels
         alpha = alpha_surface.surface.pixels
 
-        for i in xrange(nb_pixels):
+        for i in range(nb_pixels):
             # Only use the red value, assume the others are equal.
             image[3+4*i] = alpha[3*i]
 
@@ -236,8 +236,8 @@ cdef class Chunk:
 
 
 cdef class Font:
-    def __init__(self, const char *filename, int ptsize):
-        self.font = TTF_OpenFont(filename, ptsize)
+    def __init__(self, str filename, int ptsize):
+        self.font = TTF_OpenFont(filename.encode(), ptsize)
         if self.font == NULL:
             raise SDLError(SDL_GetError())
 
@@ -335,9 +335,9 @@ cdef int mix_volume_music(float volume) nogil:
     return Mix_VolumeMusic(int(volume * 128))
 
 
-cdef Music load_music(const char *filename):
+cdef Music load_music(str filename):
     music = Music()
-    music.music = Mix_LoadMUS(filename)
+    music.music = Mix_LoadMUS(filename.encode())
     if music.music == NULL:
         raise SDLError(SDL_GetError())
     return music

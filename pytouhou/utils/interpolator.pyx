@@ -22,11 +22,11 @@ cdef class Interpolator:
         self._values = <double*>malloc(self._length * sizeof(double))
         self.start_values = <double*>malloc(self._length * sizeof(double))
         self.end_values = <double*>malloc(self._length * sizeof(double))
-        for i in xrange(self._length):
+        for i in range(self._length):
             self._values[i] = values[i]
             self.start_values[i] = self._values[i]
         if end_values is not None:
-            for i in xrange(self._length):
+            for i in range(self._length):
                 self.end_values[i] = end_values[i]
         self.start_frame = start_frame
         self.end_frame = end_frame
@@ -42,7 +42,7 @@ cdef class Interpolator:
 
     property values:
         def __get__(self):
-            return tuple([self._values[i] for i in xrange(self._length)])
+            return tuple([self._values[i] for i in range(self._length)])
 
 
     def __nonzero__(self):
@@ -50,13 +50,13 @@ cdef class Interpolator:
 
 
     cpdef set_interpolation_start(self, unsigned long frame, tuple values):
-        for i in xrange(self._length):
+        for i in range(self._length):
             self.start_values[i] = values[i]
         self.start_frame = frame
 
 
     cpdef set_interpolation_end(self, unsigned long frame, tuple values):
-        for i in xrange(self._length):
+        for i in range(self._length):
             self.end_values[i] = values[i]
         self.end_frame = frame
 
@@ -66,7 +66,7 @@ cdef class Interpolator:
 
 
     cpdef set_interpolation_end_values(self, tuple values):
-        for i in xrange(self._length):
+        for i in range(self._length):
             self.end_values[i] = values[i]
 
 
@@ -76,7 +76,7 @@ cdef class Interpolator:
         self._frame = frame
         if frame + 1 >= self.end_frame: #XXX: skip the last interpolation step
             # This bug is replicated from the original game
-            for i in xrange(self._length):
+            for i in range(self._length):
                 self._values[i] = self.end_values[i]
                 self.start_values[i] = self.end_values[i]
             self.start_frame = frame
@@ -84,7 +84,7 @@ cdef class Interpolator:
             coeff = float(frame - self.start_frame) / float(self.end_frame - self.start_frame)
             if self._formula is not None:
                 coeff = self._formula(coeff)
-            for i in xrange(self._length):
+            for i in range(self._length):
                 start_value = self.start_values[i]
                 end_value = self.end_values[i]
                 self._values[i] = start_value + coeff * (end_value - start_value)
