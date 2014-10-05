@@ -12,7 +12,7 @@ GameRenderer = None
 
 
 def init(options):
-    global flavor, version, major, minor, double_buffer, is_legacy, use_vao, shader_header, GameRenderer
+    global flavor, version, major, minor, double_buffer, is_legacy, use_debug_group, use_vao, shader_header, GameRenderer
 
     flavor_name = options['flavor']
     assert flavor_name in ('core', 'es', 'compatibility', 'legacy')
@@ -27,6 +27,7 @@ def init(options):
 
     maybe_double_buffer = options['double-buffer']
     double_buffer = maybe_double_buffer if maybe_double_buffer is not None else -1
+    use_debug_group = (major == 4 and minor >= 3) or major > 4
     use_vao = (major == 3 and minor >= 1) or major > 3
 
     is_legacy = flavor_name == 'legacy'
@@ -65,8 +66,10 @@ def create_window(title, x, y, width, height):
     window = Window(title, x, y, width, height, flags)
     window.gl_create_context()
 
+    if use_debug_group:
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "OpenGL initialisation")
+
     # Initialize OpenGL
-    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "OpenGL initialisation")
     glEnable(GL_BLEND)
     if is_legacy:
         glEnable(GL_TEXTURE_2D)
@@ -75,6 +78,8 @@ def create_window(title, x, y, width, height):
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-    glPopDebugGroup()
+
+    if use_debug_group:
+        glPopDebugGroup()
 
     return window

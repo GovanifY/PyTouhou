@@ -40,7 +40,7 @@ from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport is_legacy, use_vao
+from .backend cimport is_legacy, use_debug_group, use_vao
 
 from pytouhou.utils.helpers import get_logger
 
@@ -118,7 +118,9 @@ cdef class Renderer:
         if not is_legacy:
             framebuffer_indices[:] = [0, 1, 2, 2, 3, 0]
 
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Renderer creation")
+            if use_debug_group:
+                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Renderer creation")
+
             glGenBuffers(1, &self.vbo)
             glGenBuffers(1, &self.framebuffer_vbo)
             glGenBuffers(1, &self.framebuffer_ibo)
@@ -136,7 +138,9 @@ cdef class Renderer:
                 glBindVertexArray(self.framebuffer_vao)
                 self.set_framebuffer_state()
                 glBindVertexArray(0)
-            glPopDebugGroup()
+
+            if use_debug_group:
+                glPopDebugGroup()
 
 
     cdef void set_state(self) nogil:
@@ -207,7 +211,9 @@ cdef class Renderer:
 
             nb_vertices += 4
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Elements drawing")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Elements drawing")
+
         if is_legacy:
             glVertexPointer(3, GL_SHORT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
@@ -247,7 +253,9 @@ cdef class Renderer:
 
         if not is_legacy and use_vao:
             glBindVertexArray(0)
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
     cdef void render_quads(self, rects, colors, GLuint texture):
@@ -267,7 +275,9 @@ cdef class Renderer:
             buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
             buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Quads drawing")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Quads drawing")
+
         if is_legacy:
             glVertexPointer(3, GL_SHORT, sizeof(Vertex), &buf[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &buf[0].u)
@@ -285,7 +295,9 @@ cdef class Renderer:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
         glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
     cdef void render_framebuffer(self, Framebuffer fb):
@@ -293,7 +305,8 @@ cdef class Renderer:
 
         assert not is_legacy
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glViewport(self.x, self.y, self.width, self.height)
@@ -322,7 +335,9 @@ cdef class Renderer:
             glBindVertexArray(0)
         else:
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
 cdef class Framebuffer:
@@ -332,7 +347,8 @@ cdef class Framebuffer:
         self.width = width
         self.height = height
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer creation")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer creation")
 
         glGenTextures(1, &self.texture)
         glBindTexture(GL_TEXTURE_2D, self.texture)
@@ -358,7 +374,8 @@ cdef class Framebuffer:
         assert glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        glPopDebugGroup()
+        if use_debug_group:
+            glPopDebugGroup()
 
     cpdef bind(self):
         glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)

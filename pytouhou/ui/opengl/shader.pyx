@@ -19,7 +19,7 @@ from pytouhou.lib.opengl cimport \
           glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from libc.stdlib cimport malloc, free
-from .backend cimport shader_header
+from .backend cimport shader_header, use_debug_group
 
 
 class GLSLException(Exception):
@@ -30,7 +30,8 @@ cdef class Shader:
     # vert and frag take arrays of source strings the arrays will be
     # concattenated into one string by OpenGL
     def __init__(self, vert=None, frag=None):
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Program creation")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Program creation")
 
         # create the program handle
         self.handle = glCreateProgram()
@@ -53,7 +54,8 @@ cdef class Shader:
         # attempt to link the program
         self.link()
 
-        glPopDebugGroup()
+        if use_debug_group:
+            glPopDebugGroup()
 
     cdef void create_shader(self, const GLchar *string, GLenum shader_type):
         cdef GLint temp

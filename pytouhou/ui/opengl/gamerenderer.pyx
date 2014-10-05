@@ -28,7 +28,7 @@ from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 from .renderer cimport Texture
-from .backend cimport is_legacy
+from .backend cimport is_legacy, use_debug_group
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -94,11 +94,15 @@ cdef class GameRenderer(Renderer):
         self.render_interface(game.interface, game.boss)
 
         if not is_legacy:
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Scaled rendering")
+            if use_debug_group:
+                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Scaled rendering")
+
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
             self.render_framebuffer(self.framebuffer)
-            glPopDebugGroup()
+
+            if use_debug_group:
+                glPopDebugGroup()
 
 
     cdef void render_game(self, Game game):
@@ -109,7 +113,8 @@ cdef class GameRenderer(Renderer):
         cdef unsigned char fog_r, fog_g, fog_b
         cdef Matrix *mvp
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Game rendering")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Game rendering")
 
         game_x, game_y = game.interface.game_pos
         glViewport(game_x, game_y, game.width, game.height)
@@ -209,7 +214,9 @@ cdef class GameRenderer(Renderer):
             self.render_quads([rect], [(color1, color1, color2, color2)], 0)
 
         glDisable(GL_SCISSOR_TEST)
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
     cdef void render_text(self, dict texts):
@@ -240,7 +247,9 @@ cdef class GameRenderer(Renderer):
 
         elements = []
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Interface rendering")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Interface rendering")
+
         if is_legacy:
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(<GLfloat*>self.interface_mvp)
@@ -269,4 +278,6 @@ cdef class GameRenderer(Renderer):
         self.render_elements(elements)
         for label in labels:
             label.changed = False
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()

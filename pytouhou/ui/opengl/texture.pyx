@@ -24,6 +24,8 @@ from pytouhou.lib.sdl import SDLError
 from pytouhou.formats.thtx import Texture #TODO: perhaps define that elsewhere?
 from pytouhou.game.text cimport NativeText
 
+from .backend cimport use_debug_group
+
 import os
 
 from pytouhou.utils.helpers import get_logger
@@ -38,18 +40,26 @@ cdef class TextureManager:
 
 
     cdef void load(self, dict anms):
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Texture loading")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Texture loading")
+
         for anm in sorted(anms.values(), key=is_ascii):
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Loading textures from ANM")
+            if use_debug_group:
+                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Loading textures from ANM")
+
             for entry in anm:
                 if entry.texture is None:
                     texture = decode_png(self.loader, entry.first_name, entry.secondary_name)
                 elif not isinstance(entry.texture, self.texture_class):
                     texture = entry.texture
                 entry.texture = self.texture_class(load_texture(texture), self.renderer)
-            glPopDebugGroup()
-        glPopDebugGroup()
+
+            if use_debug_group:
+                glPopDebugGroup()
         anms.clear()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
 def is_ascii(anm):
@@ -66,7 +76,9 @@ cdef class FontManager:
     cdef void load(self, dict labels):
         cdef NativeText label
 
-        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text rendering")
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Text rendering")
+
         for i, label in labels.items():
             if label.texture is None:
                 try:
@@ -87,7 +99,9 @@ cdef class FontManager:
 
                 texture = Texture(label.width, label.height, -4, surface.pixels)
                 label.texture = self.texture_class(load_texture(texture), self.renderer)
-        glPopDebugGroup()
+
+        if use_debug_group:
+            glPopDebugGroup()
 
 
 cdef decode_png(loader, first_name, secondary_name):
