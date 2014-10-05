@@ -169,3 +169,9 @@ cdef extern from 'epoxy/gl.h' nogil:
 
     void glPushDebugGroup(GLenum source, GLuint id_, GLsizei length, const char *message)
     void glPopDebugGroup()
+
+    # Non-OpenGL libepoxy functions.
+
+    int epoxy_gl_version()
+    bint epoxy_has_gl_extension(const char *extension)
+    bint epoxy_is_desktop_gl()

@@ -1,7 +1,6 @@
 from pytouhou.lib.sdl cimport SDL_GLprofile
 
-cdef SDL_GLprofile flavor
-cdef str version
+cdef SDL_GLprofile profile
 cdef int major
 cdef int minor
 cdef int double_buffer
