@@ -23,18 +23,11 @@ from pytouhou.lib.opengl cimport \
           GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT, GL_SRC_ALPHA,
           GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO, GL_TEXTURE_2D, GL_TRIANGLES,
-          glGenBuffers, glBindFramebuffer, glViewport, glDeleteBuffers,
-          glGenTextures, glTexParameteri, glTexImage2D, glGenRenderbuffers,
-          glBindRenderbuffer, glRenderbufferStorage, glGenFramebuffers,
-          glFramebufferTexture2D, glFramebufferRenderbuffer,
-          glCheckFramebufferStatus, GL_FRAMEBUFFER, GL_TEXTURE_MIN_FILTER,
-          GL_LINEAR, GL_TEXTURE_MAG_FILTER, GL_RGBA, GL_RENDERBUFFER,
-          GL_DEPTH_COMPONENT16, GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT,
-          GL_FRAMEBUFFER_COMPLETE, glClear, GL_COLOR_BUFFER_BIT,
-          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures,
-          GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, glGenVertexArrays,
+          GL_TRIANGLE_STRIP, glGenBuffers, glBindFramebuffer, glViewport,
+          glDeleteBuffers, GL_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
+          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures, glGenVertexArrays,
           glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup, GL_TRIANGLE_STRIP)
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from pytouhou.lib.sdl import SDLError
 
@@ -95,18 +88,13 @@ cdef long find_objects(Renderer self, object elements) except -1:
 cdef class Renderer:
     def __dealloc__(self):
         if not is_legacy:
-            glDeleteBuffers(1, &self.framebuffer_vbo)
             glDeleteBuffers(1, &self.vbo)
 
             if use_vao:
                 glDeleteVertexArrays(1, &self.vao)
-                glDeleteVertexArrays(1, &self.framebuffer_vao)
 
 
     def __init__(self, resource_loader):
-        # Only used in modern GL.
-        cdef unsigned short framebuffer_indices[6]
-
         self.texture_manager = TextureManager(resource_loader, self, Texture)
         font_name = join(resource_loader.game_dir, 'font.ttf')
         try:
@@ -116,28 +104,15 @@ cdef class Renderer:
             logger.error('Font file “%s” not found, disabling text rendering altogether.', font_name)
 
         if not is_legacy:
-            framebuffer_indices[:] = [0, 1, 2, 2, 3, 0]
-
             if use_debug_group:
                 glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Renderer creation")
 
             glGenBuffers(1, &self.vbo)
-            glGenBuffers(1, &self.framebuffer_vbo)
-            glGenBuffers(1, &self.framebuffer_ibo)
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(framebuffer_indices), framebuffer_indices, GL_STATIC_DRAW)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
             if use_vao:
                 glGenVertexArrays(1, &self.vao)
                 glBindVertexArray(self.vao)
                 self.set_state()
-
-                glGenVertexArrays(1, &self.framebuffer_vao)
-                glBindVertexArray(self.framebuffer_vao)
-                self.set_framebuffer_state()
-                glBindVertexArray(0)
 
             if use_debug_group:
                 glPopDebugGroup()
@@ -153,19 +128,6 @@ cdef class Renderer:
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
         glEnableVertexAttribArray(2)
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-
-    cdef void set_framebuffer_state(self) nogil:
-        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.framebuffer_ibo)
-
-        #TODO: find a way to use offsetof() instead of those ugly hardcoded values.
-        glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(PassthroughVertex), <void*>0)
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
-        glEnableVertexAttribArray(1)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -309,8 +271,6 @@ cdef class Renderer:
 
 
     cdef void render_framebuffer(self, Framebuffer fb):
-        cdef PassthroughVertex[4] buf
-
         assert not is_legacy
 
         if use_debug_group:
@@ -321,69 +281,7 @@ cdef class Renderer:
         glBlendFunc(GL_ONE, GL_ZERO)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        if use_vao:
-            glBindVertexArray(self.framebuffer_vao)
-        else:
-            self.set_framebuffer_state()
-
-        buf[0] = PassthroughVertex(fb.x, fb.y, 0, 1)
-        buf[1] = PassthroughVertex(fb.x + fb.width, fb.y, 1, 1)
-        buf[2] = PassthroughVertex(fb.x + fb.width, fb.y + fb.height, 1, 0)
-        buf[3] = PassthroughVertex(fb.x, fb.y + fb.height, 0, 0)
-
-        glBindBuffer(GL_ARRAY_BUFFER, self.framebuffer_vbo)
-        glBufferData(GL_ARRAY_BUFFER, sizeof(buf), buf, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-        glBindTexture(GL_TEXTURE_2D, fb.texture)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL)
-        glBindTexture(GL_TEXTURE_2D, 0)
-
-        if use_vao:
-            glBindVertexArray(0)
-        else:
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+        fb.render()
 
         if use_debug_group:
             glPopDebugGroup()
-
-
-cdef class Framebuffer:
-    def __init__(self, int x, int y, int width, int height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-        if use_debug_group:
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer creation")
-
-        glGenTextures(1, &self.texture)
-        glBindTexture(GL_TEXTURE_2D, self.texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_RGBA,
-                     width, height,
-                     0,
-                     GL_RGBA, GL_UNSIGNED_BYTE,
-                     NULL)
-        glBindTexture(GL_TEXTURE_2D, 0)
-
-        glGenRenderbuffers(1, &self.rbo)
-        glBindRenderbuffer(GL_RENDERBUFFER, self.rbo)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height)
-        glBindRenderbuffer(GL_RENDERBUFFER, 0)
-
-        glGenFramebuffers(1, &self.fbo)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.texture, 0)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, self.rbo)
-        assert glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        if use_debug_group:
-            glPopDebugGroup()
-
-    cpdef bind(self):
-        glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)

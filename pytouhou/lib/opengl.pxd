@@ -132,6 +132,7 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glColorPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
 
     void glBlendFunc(GLenum_blendfunc sfactor, GLenum_blendfunc dfactor)
+    void glDrawArrays(GLenum_mode mode, GLint first, GLsizei count)
     void glDrawElements(GLenum_mode mode, GLsizei count, GLenum_type type_, const GLvoid *indices)
     void glEnable(GLenum cap)
     void glDisable(GLenum cap)
@@ -187,9 +188,12 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 
     void glGenFramebuffers(GLsizei n, GLuint *ids)
+    void glDeleteFramebuffers(GLsizei n, GLuint *ids)
     void glBindFramebuffer(GLenum_framebuffer target, GLuint framebuffer)
     void glFramebufferTexture2D(GLenum_framebuffer target, GLenum_attachment attachment, GLenum_textarget textarget, GLuint texture, GLint level)
+
     void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
+    void glDeleteRenderbuffers(GLsizei n, GLuint *renderbuffers)
     void glBindRenderbuffer(GLenum_renderbuffer target, GLuint renderbuffer)
     void glRenderbufferStorage(GLenum_renderbuffer target, GLenum_renderbuffer_format internalformat, GLsizei width, GLsizei height)
     void glFramebufferRenderbuffer(GLenum_framebuffer target, GLenum_attachment attachment, GLenum_renderbuffer renderbuffertarget, GLuint renderbuffer)

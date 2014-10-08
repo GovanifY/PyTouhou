@@ -71,7 +71,7 @@ cdef class GameRenderer(Renderer):
         self.background = background
         if background is not None:
             self.background_renderer = BackgroundRenderer()
-            self.background_renderer.load(background, self)
+            self.background_renderer.load(background, self.textures)
         else:
             self.background_renderer = None
 

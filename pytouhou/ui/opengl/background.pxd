@@ -1,5 +1,4 @@
 from pytouhou.lib.opengl cimport GLuint, GLushort, GLsizei
-from .renderer cimport Renderer
 
 cdef struct Vertex:
     float x, y, z
@@ -21,4 +20,4 @@ cdef class BackgroundRenderer:
 
     cdef void set_state(self) nogil
     cdef void render_background(self) except *
-    cdef void load(self, background, Renderer renderer) except *
+    cdef void load(self, background, GLuint[MAX_TEXTURES] textures) except *

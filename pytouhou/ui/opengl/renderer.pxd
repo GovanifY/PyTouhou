@@ -1,16 +1,12 @@
 from cpython cimport PyObject
 from pytouhou.lib.opengl cimport GLuint
 from .texture cimport TextureManager, FontManager
+from .framebuffer cimport Framebuffer
 
 cdef struct Vertex:
     short x, y, z, padding
     float u, v
     unsigned char r, g, b, a
-
-
-cdef struct PassthroughVertex:
-    short x, y
-    float u, v
 
 
 cdef class Texture:
@@ -30,8 +26,8 @@ cdef class Renderer:
     cdef long x, y, width, height
 
     # For modern GL.
-    cdef GLuint vbo, framebuffer_vbo, framebuffer_ibo
-    cdef GLuint vao, framebuffer_vao
+    cdef GLuint vbo
+    cdef GLuint vao
 
     cdef GLuint textures[MAX_TEXTURES]
     cdef unsigned short *indices[MAX_TEXTURES][2]
@@ -41,13 +37,4 @@ cdef class Renderer:
     cdef void set_state(self) nogil
     cdef void render_elements(self, elements) except *
     cdef void render_quads(self, rects, colors, GLuint texture) except *
-
-    cdef void set_framebuffer_state(self) nogil
     cdef void render_framebuffer(self, Framebuffer fb) except *
-
-
-cdef class Framebuffer:
-    cdef GLuint fbo, texture, rbo
-    cdef int x, y, width, height
-
-    cpdef bind(self)

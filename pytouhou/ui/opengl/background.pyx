@@ -109,7 +109,7 @@ cdef class BackgroundRenderer:
             glPopDebugGroup()
 
 
-    cdef void load(self, background, Renderer renderer):
+    cdef void load(self, background, GLuint[MAX_TEXTURES] textures):
         cdef float ox, oy, oz, ox2, oy2, oz2
         cdef GLsizei nb_vertices = 0, nb_indices = 0
 
@@ -153,7 +153,7 @@ cdef class BackgroundRenderer:
         # either in RAM or in VRAM, they will never change until we implement
         # background animation.
 
-        self.texture = renderer.textures[key >> 1]
+        self.texture = textures[key >> 1]
         self.nb_indices = nb_indices
 
         if is_legacy:

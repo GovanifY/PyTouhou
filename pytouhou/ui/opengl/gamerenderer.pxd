@@ -1,7 +1,8 @@
 from pytouhou.utils.matrix cimport Matrix
 from pytouhou.game.game cimport Game
 from .background cimport BackgroundRenderer
-from .renderer cimport Renderer, Framebuffer
+from .renderer cimport Renderer
+from .framebuffer cimport Framebuffer
 from .shader cimport Shader
 
 cdef class GameRenderer(Renderer):
