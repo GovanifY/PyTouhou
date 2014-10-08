@@ -6,7 +6,8 @@ from pytouhou.lib.opengl cimport \
           GL_PERSPECTIVE_CORRECTION_HINT, GL_FOG_HINT, GL_NICEST,
           GL_COLOR_ARRAY, GL_VERTEX_ARRAY, GL_TEXTURE_COORD_ARRAY,
           glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup,
-          epoxy_gl_version, epoxy_is_desktop_gl, epoxy_has_gl_extension)
+          epoxy_gl_version, epoxy_is_desktop_gl, epoxy_has_gl_extension,
+          GL_PRIMITIVE_RESTART, glPrimitiveRestartIndex)
 
 
 GameRenderer = None
@@ -45,13 +46,14 @@ def init(options):
 def discover_features():
     '''Discover which features are supported by our context.'''
 
-    global use_debug_group, use_vao, shader_header
+    global use_debug_group, use_vao, use_primitive_restart, shader_header
 
     version = epoxy_gl_version()
     is_desktop = epoxy_is_desktop_gl()
 
     use_debug_group = (is_desktop and version >= 43) or epoxy_has_gl_extension('GL_KHR_debug')
     use_vao = (is_desktop and version >= 30) or epoxy_has_gl_extension('GL_ARB_vertex_array_object')
+    use_primitive_restart = (is_desktop and version >= 31)
 
     if is_desktop:
         # gl_FragColor isn’t supported anymore starting with GLSL 4.2.
@@ -104,6 +106,10 @@ def create_window(title, x, y, width, height):
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+
+    if use_primitive_restart:
+        glEnable(GL_PRIMITIVE_RESTART)
+        glPrimitiveRestartIndex(0xFFFF);
 
     if use_debug_group:
         glPopDebugGroup()

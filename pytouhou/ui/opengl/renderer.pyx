@@ -34,13 +34,13 @@ from pytouhou.lib.opengl cimport \
           GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures,
           GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, glGenVertexArrays,
           glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup, GL_TRIANGLE_STRIP)
 
 from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport is_legacy, use_debug_group, use_vao
+from .backend cimport is_legacy, use_debug_group, use_vao, use_primitive_restart
 
 from pytouhou.utils.helpers import get_logger
 
@@ -197,17 +197,25 @@ cdef class Renderer:
             r, g, b, a = data.color[0], data.color[1], data.color[2], data.color[3]
             self.vertex_buffer[nb_vertices] = Vertex(x1 + ox, y1 + oy, z1, 0, data.left, data.bottom, r, g, b, a)
             self.vertex_buffer[nb_vertices+1] = Vertex(x2 + ox, y2 + oy, z2, 0, data.right, data.bottom, r, g, b, a)
-            self.vertex_buffer[nb_vertices+2] = Vertex(x3 + ox, y3 + oy, z3, 0, data.right, data.top, r, g, b, a)
-            self.vertex_buffer[nb_vertices+3] = Vertex(x4 + ox, y4 + oy, z4, 0, data.left, data.top, r, g, b, a)
+            self.vertex_buffer[nb_vertices+2] = Vertex(x4 + ox, y4 + oy, z4, 0, data.left, data.top, r, g, b, a)
+            self.vertex_buffer[nb_vertices+3] = Vertex(x3 + ox, y3 + oy, z3, 0, data.right, data.top, r, g, b, a)
 
             # Add indices
-            rec[next_indice] = nb_vertices
-            rec[next_indice+1] = nb_vertices + 1
-            rec[next_indice+2] = nb_vertices + 2
-            rec[next_indice+3] = nb_vertices + 2
-            rec[next_indice+4] = nb_vertices + 3
-            rec[next_indice+5] = nb_vertices
-            self.last_indices[key] += 6
+            if use_primitive_restart:
+                rec[next_indice] = nb_vertices
+                rec[next_indice+1] = nb_vertices + 1
+                rec[next_indice+2] = nb_vertices + 2
+                rec[next_indice+3] = nb_vertices + 3
+                rec[next_indice+4] = 0xFFFF
+                self.last_indices[key] += 5
+            else:
+                rec[next_indice] = nb_vertices
+                rec[next_indice+1] = nb_vertices + 1
+                rec[next_indice+2] = nb_vertices + 2
+                rec[next_indice+3] = nb_vertices + 1
+                rec[next_indice+4] = nb_vertices + 2
+                rec[next_indice+5] = nb_vertices + 3
+                self.last_indices[key] += 6
 
             nb_vertices += 4
 
@@ -244,7 +252,7 @@ cdef class Renderer:
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             if texture != previous_texture:
                 glBindTexture(GL_TEXTURE_2D, self.textures[texture])
-            glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
+            glDrawElements(GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
 
             previous_blendfunc = blendfunc
             previous_texture = texture

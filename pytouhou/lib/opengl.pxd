@@ -80,6 +80,7 @@ cdef extern from 'epoxy/gl.h' nogil:
 
     ctypedef enum GLenum_mode 'GLenum':
         GL_TRIANGLES
+        GL_TRIANGLE_STRIP
 
     ctypedef enum GLenum_buffer 'GLenum':
         GL_ARRAY_BUFFER
@@ -124,6 +125,7 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_LINEAR
         GL_SCISSOR_TEST
         GL_FOG
+        GL_PRIMITIVE_RESTART
 
     void glVertexPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
     void glTexCoordPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
@@ -196,6 +198,8 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glGenVertexArrays(GLsizei n, GLuint *arrays)
     void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
     void glBindVertexArray(GLuint array)
+
+    void glPrimitiveRestartIndex(GLuint index)
 
     # Debug
 

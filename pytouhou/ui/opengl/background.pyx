@@ -23,10 +23,11 @@ from pytouhou.lib.opengl cimport \
           glDisable, GL_DEPTH_TEST, glDrawElements, GL_TRIANGLES,
           GL_UNSIGNED_SHORT, GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers,
           glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray,
-          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup,
+          GL_TRIANGLE_STRIP)
 
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport is_legacy, use_debug_group, use_vao
+from .backend cimport is_legacy, use_debug_group, use_vao, use_primitive_restart
 
 
 cdef class BackgroundRenderer:
@@ -94,7 +95,7 @@ cdef class BackgroundRenderer:
         glEnable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, self.texture)
-        glDrawElements(GL_TRIANGLES, self.nb_indices, GL_UNSIGNED_SHORT, indices)
+        glDrawElements(GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES, self.nb_indices, GL_UNSIGNED_SHORT, indices)
         glDisable(GL_DEPTH_TEST)
 
         if not is_legacy:
@@ -127,19 +128,26 @@ cdef class BackgroundRenderer:
                 # Pack data
                 vertex_buffer[nb_vertices] = Vertex(x1 + ox + ox2, y1 + oy + oy2, z1 + oz + oz2, data.left, data.bottom, r, g, b, a)
                 vertex_buffer[nb_vertices+1] = Vertex(x2 + ox + ox2, y2 + oy + oy2, z2 + oz + oz2, data.right, data.bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+2] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, data.right, data.top, r, g, b, a)
-                vertex_buffer[nb_vertices+3] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, data.left, data.top, r, g, b, a)
+                vertex_buffer[nb_vertices+2] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, data.left, data.top, r, g, b, a)
+                vertex_buffer[nb_vertices+3] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, data.right, data.top, r, g, b, a)
 
                 # Add indices
-                indices[nb_indices] = nb_vertices
-                indices[nb_indices+1] = nb_vertices + 1
-                indices[nb_indices+2] = nb_vertices + 2
-                indices[nb_indices+3] = nb_vertices + 2
-                indices[nb_indices+4] = nb_vertices + 3
-                indices[nb_indices+5] = nb_vertices
+                if use_primitive_restart:
+                    indices[nb_indices] = nb_vertices
+                    indices[nb_indices+1] = nb_vertices + 1
+                    indices[nb_indices+2] = nb_vertices + 2
+                    indices[nb_indices+3] = nb_vertices + 3
+                    indices[nb_indices+4] = 0xFFFF
+                else:
+                    indices[nb_indices] = nb_vertices
+                    indices[nb_indices+1] = nb_vertices + 1
+                    indices[nb_indices+2] = nb_vertices + 2
+                    indices[nb_indices+3] = nb_vertices + 1
+                    indices[nb_indices+4] = nb_vertices + 2
+                    indices[nb_indices+5] = nb_vertices + 3
 
                 nb_vertices += 4
-                nb_indices += 6
+                nb_indices += 5 if use_primitive_restart else 6
 
         # We only need to keep the rendered vertices and indices in memory,
         # either in RAM or in VRAM, they will never change until we implement
