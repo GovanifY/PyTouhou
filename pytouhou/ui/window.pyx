@@ -78,8 +78,6 @@ cdef class Runner:
 
 cdef class Window:
     def __init__(self, backend, long fps_limit=-1):
-        self.runner = None
-
         if backend is not None:
             self.win = backend.create_window(
                 'PyTouhou',
@@ -104,7 +102,8 @@ cdef class Window:
             while self.run_frame():
                 pass
         finally:
-            self.runner.finish()
+            if self.runner is not None:
+                self.runner.finish()
 
 
     cdef bint run_frame(self) except? False:
