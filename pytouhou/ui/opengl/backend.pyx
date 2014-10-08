@@ -54,6 +54,7 @@ def discover_features():
     use_debug_group = (is_desktop and version >= 43) or epoxy_has_gl_extension('GL_KHR_debug')
     use_vao = (is_desktop and version >= 30) or epoxy_has_gl_extension('GL_ARB_vertex_array_object')
     use_primitive_restart = (is_desktop and version >= 31)
+    use_framebuffer_blit = (is_desktop and version >= 30)
 
     if is_desktop:
         # gl_FragColor isn’t supported anymore starting with GLSL 4.2.

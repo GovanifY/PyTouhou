@@ -37,4 +37,3 @@ cdef class Renderer:
     cdef void set_state(self) nogil
     cdef void render_elements(self, elements) except *
     cdef void render_quads(self, rects, colors, GLuint texture) except *
-    cdef void render_framebuffer(self, Framebuffer fb) except *

@@ -101,6 +101,7 @@ cdef extern from 'epoxy/gl.h' nogil:
 
     ctypedef enum GLenum_framebuffer 'GLenum':
         GL_FRAMEBUFFER
+        GL_DRAW_FRAMEBUFFER
 
     ctypedef enum GLenum_renderbuffer 'GLenum':
         GL_RENDERBUFFER
@@ -198,6 +199,7 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glRenderbufferStorage(GLenum_renderbuffer target, GLenum_renderbuffer_format internalformat, GLsizei width, GLsizei height)
     void glFramebufferRenderbuffer(GLenum_framebuffer target, GLenum_attachment attachment, GLenum_renderbuffer renderbuffertarget, GLuint renderbuffer)
     GLenum_framebuffer_status glCheckFramebufferStatus(GLenum_framebuffer target)
+    void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter_)
 
     void glGenVertexArrays(GLsizei n, GLuint *arrays)
     void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)

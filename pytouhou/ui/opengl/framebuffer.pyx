@@ -26,9 +26,11 @@ from pytouhou.lib.opengl cimport \
           glDeleteBuffers, glBindBuffer, glBufferData, GL_ARRAY_BUFFER,
           GL_STATIC_DRAW, glGenVertexArrays, glDeleteVertexArrays,
           glBindVertexArray, glVertexAttribPointer, GL_SHORT, GL_FLOAT,
-          glEnableVertexAttribArray, glDrawArrays, GL_TRIANGLE_STRIP)
+          glEnableVertexAttribArray, glDrawArrays, GL_TRIANGLE_STRIP,
+          glBlitFramebuffer, GL_DRAW_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
+          GL_DEPTH_BUFFER_BIT, glViewport, glBlendFunc, GL_ONE, GL_ZERO)
 
-from .backend cimport use_debug_group, use_vao
+from .backend cimport use_debug_group, use_vao, use_framebuffer_blit
 
 cdef class Framebuffer:
     def __init__(self, int x, int y, int width, int height):
@@ -62,36 +64,43 @@ cdef class Framebuffer:
         assert glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        # We’ll use only those vertices, everytime.
-        self.buf[0] = PassthroughVertex(x, y, 0, 1)
-        self.buf[1] = PassthroughVertex(x + width, y, 1, 1)
-        self.buf[2] = PassthroughVertex(x, y + height, 0, 0)
-        self.buf[3] = PassthroughVertex(x + width, y + height, 1, 0)
+        if not use_framebuffer_blit:
+            # We’ll use only those vertices, everytime.
+            self.buf[0] = PassthroughVertex(x, y, 0, 1)
+            self.buf[1] = PassthroughVertex(x + width, y, 1, 1)
+            self.buf[2] = PassthroughVertex(x, y + height, 0, 0)
+            self.buf[3] = PassthroughVertex(x + width, y + height, 1, 0)
 
-        # Now we upload those vertices into a static vbo.
-        glGenBuffers(1, &self.vbo)
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-        glBufferData(GL_ARRAY_BUFFER, sizeof(self.buf), self.buf, GL_STATIC_DRAW)
+            # Now we upload those vertices into a static vbo.
+            glGenBuffers(1, &self.vbo)
+            glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+            glBufferData(GL_ARRAY_BUFFER, sizeof(self.buf), self.buf, GL_STATIC_DRAW)
 
-        # As a performance optimisation, if supported, store the rendering state into a vao.
-        if use_vao:
-            glGenVertexArrays(1, &self.vao)
-            glBindVertexArray(self.vao)
-            self.set_state()
-            glBindVertexArray(0)
+            # As a performance optimisation, if supported, store the rendering state into a vao.
+            if use_vao and not use_framebuffer_blit:
+                glGenVertexArrays(1, &self.vao)
+                glBindVertexArray(self.vao)
+                self.set_state()
+                glBindVertexArray(0)
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+        else:
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
 
         if use_debug_group:
             glPopDebugGroup()
 
     def __dealloc__(self):
-        if use_vao:
-            glDeleteVertexArrays(1, &self.vao)
+        if not use_framebuffer_blit:
+            glDeleteBuffers(1, &self.vbo)
+            if use_vao:
+                glDeleteVertexArrays(1, &self.vao)
         glDeleteTextures(1, &self.texture)
         glDeleteRenderbuffers(1, &self.rbo)
         glDeleteFramebuffers(1, &self.fbo)
-        glDeleteBuffers(1, &self.vbo)
 
     cpdef bind(self):
         glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
@@ -105,17 +114,34 @@ cdef class Framebuffer:
         glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
         glEnableVertexAttribArray(1)
 
-    cdef void render(self) nogil:
-        if use_vao:
-            glBindVertexArray(self.vao)
-        else:
-            self.set_state()
+    cdef void render(self, int x, int y, int width, int height) nogil:
+        if use_debug_group:
+            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
 
-        glBindTexture(GL_TEXTURE_2D, self.texture)
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
-        glBindTexture(GL_TEXTURE_2D, 0)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        if use_vao:
-            glBindVertexArray(0)
+        if use_framebuffer_blit:
+            glBlitFramebuffer(self.x, self.y, self.width, self.height,
+                              x, y, x + width, y + height,
+                              GL_COLOR_BUFFER_BIT, GL_LINEAR)
         else:
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glViewport(x, y, width, height)
+            glBlendFunc(GL_ONE, GL_ZERO)
+
+            if use_vao:
+                glBindVertexArray(self.vao)
+            else:
+                self.set_state()
+
+            glBindTexture(GL_TEXTURE_2D, self.texture)
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+            glBindTexture(GL_TEXTURE_2D, 0)
+
+            if use_vao:
+                glBindVertexArray(0)
+            else:
+                glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        if use_debug_group:
+            glPopDebugGroup()

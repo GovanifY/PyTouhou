@@ -99,7 +99,7 @@ cdef class GameRenderer(Renderer):
 
             self.passthrough_shader.bind()
             self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
-            self.render_framebuffer(self.framebuffer)
+            self.framebuffer.render(self.x, self.y, self.width, self.height)
 
             if use_debug_group:
                 glPopDebugGroup()

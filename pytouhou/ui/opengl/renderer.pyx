@@ -22,12 +22,11 @@ from pytouhou.lib.opengl cimport \
           glBindTexture, glDrawElements, glBindBuffer, glBufferData,
           GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT, GL_SRC_ALPHA,
-          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO, GL_TEXTURE_2D, GL_TRIANGLES,
-          GL_TRIANGLE_STRIP, glGenBuffers, glBindFramebuffer, glViewport,
-          glDeleteBuffers, GL_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
-          GL_DEPTH_BUFFER_BIT, GLuint, glDeleteTextures, glGenVertexArrays,
-          glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
+          GL_TRIANGLE_STRIP, glGenBuffers, glDeleteBuffers,
+          GLuint, glDeleteTextures, glGenVertexArrays, glDeleteVertexArrays,
+          glBindVertexArray, glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION,
+          glPopDebugGroup)
 
 from pytouhou.lib.sdl import SDLError
 
@@ -265,23 +264,6 @@ cdef class Renderer:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
         glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
-
-        if use_debug_group:
-            glPopDebugGroup()
-
-
-    cdef void render_framebuffer(self, Framebuffer fb):
-        assert not is_legacy
-
-        if use_debug_group:
-            glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glViewport(self.x, self.y, self.width, self.height)
-        glBlendFunc(GL_ONE, GL_ZERO)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        fb.render()
 
         if use_debug_group:
             glPopDebugGroup()
