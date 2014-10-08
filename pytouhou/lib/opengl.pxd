@@ -18,7 +18,6 @@ cdef extern from 'epoxy/gl.h' nogil:
     ctypedef unsigned short GLushort
     ctypedef int GLint
     ctypedef float GLfloat
-    ctypedef float GLclampf
     ctypedef char GLboolean
     ctypedef char GLchar
     ctypedef unsigned int GLsizei
@@ -26,123 +25,156 @@ cdef extern from 'epoxy/gl.h' nogil:
     ctypedef unsigned int GLbitfield
     ctypedef void GLvoid
 
-    ctypedef enum GLenum:
-        GL_ARRAY_BUFFER
-        GL_ELEMENT_ARRAY_BUFFER
-        GL_STATIC_DRAW
-        GL_DYNAMIC_DRAW
-        GL_UNSIGNED_BYTE
-        GL_UNSIGNED_SHORT
-        GL_SHORT
-        GL_FLOAT
+    ctypedef enum GLenum_blendfunc 'GLenum':
         GL_SRC_ALPHA
         GL_ONE_MINUS_SRC_ALPHA
         GL_ONE
         GL_ZERO
-        GL_TEXTURE_2D
-        GL_TRIANGLES
-        GL_DEPTH_TEST
-        GL_QUADS
 
-        GL_TEXTURE_MIN_FILTER
-        GL_TEXTURE_MAG_FILTER
-        GL_LINEAR
-        GL_BGRA
-        GL_RGBA
-        GL_RGB
-        GL_LUMINANCE
+    ctypedef enum GLenum_type 'GLenum':
+        GL_UNSIGNED_BYTE
+        GL_UNSIGNED_SHORT
+        GL_SHORT
+        GL_FLOAT
         GL_UNSIGNED_SHORT_5_6_5
         GL_UNSIGNED_SHORT_4_4_4_4
         GL_UNSIGNED_SHORT_4_4_4_4_REV
 
-        GL_COLOR_BUFFER_BIT
-        GL_SCISSOR_TEST
-        GL_MODELVIEW
-        GL_FOG
+    ctypedef enum GLenum_format 'GLenum':
+        GL_BGRA
+        GL_RGBA
+        GL_RGB
+        GL_LUMINANCE
 
+    ctypedef enum GLenum_bitfield 'GLenum':
+        GL_COLOR_BUFFER_BIT
         GL_DEPTH_BUFFER_BIT
+
+    ctypedef GLenum GLenum_textarget
+
+    ctypedef enum GLenum_texparam 'GLenum':
+        GL_TEXTURE_MIN_FILTER
+        GL_TEXTURE_MAG_FILTER
+
+    ctypedef enum GLenum_client_state 'GLenum':
+        GL_COLOR_ARRAY
+        GL_VERTEX_ARRAY
+        GL_TEXTURE_COORD_ARRAY
+
+    ctypedef enum GLenum_matrix 'GLenum':
+        GL_MODELVIEW
         GL_PROJECTION
+
+    ctypedef enum GLenum_fog 'GLenum':
         GL_FOG_MODE
         GL_FOG_START
         GL_FOG_END
         GL_FOG_COLOR
 
-        GL_BLEND
-        GL_PERSPECTIVE_CORRECTION_HINT
+    ctypedef enum GLenum_hint 'GLenum':
         GL_FOG_HINT
-        GL_NICEST
-        GL_COLOR_ARRAY
-        GL_VERTEX_ARRAY
-        GL_TEXTURE_COORD_ARRAY
+        GL_PERSPECTIVE_CORRECTION_HINT
 
+    ctypedef enum GLenum_quality 'GLenum':
+        GL_NICEST
+
+    ctypedef enum GLenum_mode 'GLenum':
+        GL_TRIANGLES
+
+    ctypedef enum GLenum_buffer 'GLenum':
+        GL_ARRAY_BUFFER
+        GL_ELEMENT_ARRAY_BUFFER
+
+    ctypedef enum GLenum_usage 'GLenum':
+        GL_STATIC_DRAW
+        GL_DYNAMIC_DRAW
+
+    ctypedef enum GLenum_shader 'GLenum':
         GL_VERTEX_SHADER
         GL_FRAGMENT_SHADER
+
+    ctypedef enum GLenum_shader_param 'GLenum':
         GL_INFO_LOG_LENGTH
         GL_COMPILE_STATUS
         GL_LINK_STATUS
 
+    ctypedef enum GLenum_framebuffer 'GLenum':
         GL_FRAMEBUFFER
-        GL_COLOR_ATTACHMENT0
+
+    ctypedef enum GLenum_renderbuffer 'GLenum':
         GL_RENDERBUFFER
+
+    ctypedef enum GLenum_renderbuffer_format 'GLenum':
         GL_DEPTH_COMPONENT16
+
+    ctypedef enum GLenum_attachment 'GLenum':
+        GL_COLOR_ATTACHMENT0
         GL_DEPTH_ATTACHMENT
+
+    ctypedef enum GLenum_framebuffer_status 'GLenum':
         GL_FRAMEBUFFER_COMPLETE
 
-        # Debug
-
+    ctypedef enum GLenum_debug 'GLenum':
         GL_DEBUG_SOURCE_APPLICATION
 
-    void glVertexPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
-    void glTexCoordPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
-    void glColorPointer(GLint size, GLenum type_, GLsizei stride, GLvoid *pointer)
+    ctypedef enum GLenum:
+        GL_BLEND
+        GL_TEXTURE_2D
+        GL_DEPTH_TEST
+        GL_LINEAR
+        GL_SCISSOR_TEST
+        GL_FOG
 
-    void glBlendFunc(GLenum sfactor, GLenum dfactor)
-    void glDrawArrays(GLenum mode, GLint first, GLsizei count)
-    void glDrawElements(GLenum mode, GLsizei count, GLenum type_, const GLvoid *indices)
+    void glVertexPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
+    void glTexCoordPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
+    void glColorPointer(GLint size, GLenum_type type_, GLsizei stride, GLvoid *pointer)
+
+    void glBlendFunc(GLenum_blendfunc sfactor, GLenum_blendfunc dfactor)
+    void glDrawElements(GLenum_mode mode, GLsizei count, GLenum_type type_, const GLvoid *indices)
     void glEnable(GLenum cap)
     void glDisable(GLenum cap)
 
     void glGenTextures(GLsizei n, GLuint *textures)
     void glDeleteTextures(GLsizei n, const GLuint *textures)
-    void glBindTexture(GLenum target, GLuint texture)
-    void glTexParameteri(GLenum target, GLenum pname, GLint param)
-    void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format_, GLenum type_, const GLvoid *data)
+    void glBindTexture(GLenum_textarget target, GLuint texture)
+    void glTexParameteri(GLenum_textarget target, GLenum_texparam pname, GLint param)
+    void glTexImage2D(GLenum_textarget target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum_format format_, GLenum_type type_, const GLvoid *data)
 
-    void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) #XXX
+    void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
     void glClear(GLbitfield mask)
     void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
-    void glMatrixMode(GLenum mode)
+    void glMatrixMode(GLenum_matrix mode)
     void glLoadIdentity()
     void glLoadMatrixf(const GLfloat * m)
 
-    void glFogi(GLenum pname, GLint param)
-    void glFogf(GLenum pname, GLfloat param)
-    void glFogfv(GLenum pname, const GLfloat * params)
+    void glFogi(GLenum_fog pname, GLint param)
+    void glFogf(GLenum_fog pname, GLfloat param)
+    void glFogfv(GLenum_fog pname, const GLfloat * params)
 
-    void glHint(GLenum target, GLenum mode)
-    void glEnableClientState(GLenum cap)
+    void glHint(GLenum_hint target, GLenum_quality mode)
+    void glEnableClientState(GLenum_client_state cap)
 
     # Here start non-1.x declarations.
 
-    void glVertexAttribPointer(GLuint index, GLint size, GLenum type_, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
+    void glVertexAttribPointer(GLuint index, GLint size, GLenum_type type_, GLboolean normalized, GLsizei stride, const GLvoid *pointer)
     void glEnableVertexAttribArray(GLuint index)
 
     void glGenBuffers(GLsizei n, GLuint * buffers)
     void glDeleteBuffers(GLsizei n, const GLuint * buffers)
-    void glBindBuffer(GLenum target, GLuint buffer_)
-    void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
+    void glBindBuffer(GLenum_buffer target, GLuint buffer_)
+    void glBufferData(GLenum_buffer target, GLsizeiptr size, const GLvoid *data, GLenum_usage usage)
 
     GLuint glCreateProgram()
-    GLuint glCreateShader(GLenum shaderType)
+    GLuint glCreateShader(GLenum_shader shaderType)
     void glLinkProgram(GLuint program)
     void glUseProgram(GLuint program)
-    void glGetProgramiv(GLuint program, GLenum pname, GLint *params)
+    void glGetProgramiv(GLuint program, GLenum_shader_param pname, GLint *params)
     void glGetProgramInfoLog(GLuint program, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
 
     void glShaderSource(GLuint shader, GLsizei count, const GLchar **string, const GLint *length)
     void glCompileShader(GLuint shader)
-    void glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
+    void glGetShaderiv(GLuint shader, GLenum_shader_param pname, GLint *params)
     void glGetShaderInfoLog(GLuint shader, GLsizei maxLength, GLsizei *length, GLchar *infoLog)
     void glAttachShader(GLuint program, GLuint shader)
 
@@ -153,13 +185,13 @@ cdef extern from 'epoxy/gl.h' nogil:
     void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 
     void glGenFramebuffers(GLsizei n, GLuint *ids)
-    void glBindFramebuffer(GLenum target, GLuint framebuffer)
-    void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+    void glBindFramebuffer(GLenum_framebuffer target, GLuint framebuffer)
+    void glFramebufferTexture2D(GLenum_framebuffer target, GLenum_attachment attachment, GLenum_textarget textarget, GLuint texture, GLint level)
     void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
-    void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
-    void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
-    void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
-    GLenum glCheckFramebufferStatus(GLenum target)
+    void glBindRenderbuffer(GLenum_renderbuffer target, GLuint renderbuffer)
+    void glRenderbufferStorage(GLenum_renderbuffer target, GLenum_renderbuffer_format internalformat, GLsizei width, GLsizei height)
+    void glFramebufferRenderbuffer(GLenum_framebuffer target, GLenum_attachment attachment, GLenum_renderbuffer renderbuffertarget, GLuint renderbuffer)
+    GLenum_framebuffer_status glCheckFramebufferStatus(GLenum_framebuffer target)
 
     void glGenVertexArrays(GLsizei n, GLuint *arrays)
     void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
@@ -167,7 +199,7 @@ cdef extern from 'epoxy/gl.h' nogil:
 
     # Debug
 
-    void glPushDebugGroup(GLenum source, GLuint id_, GLsizei length, const char *message)
+    void glPushDebugGroup(GLenum_debug source, GLuint id_, GLsizei length, const char *message)
     void glPopDebugGroup()
 
     # Non-OpenGL libepoxy functions.

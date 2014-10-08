@@ -57,7 +57,7 @@ cdef class Shader:
         if use_debug_group:
             glPopDebugGroup()
 
-    cdef void create_shader(self, const GLchar *string, GLenum shader_type):
+    cdef void create_shader(self, const GLchar *string, GLenum_shader shader_type):
         cdef GLint temp
         cdef const GLchar *strings[2]
         strings[:] = [shader_header, string]
