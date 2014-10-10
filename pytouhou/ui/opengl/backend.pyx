@@ -1,3 +1,4 @@
+from pytouhou.lib import sdl
 from pytouhou.lib cimport sdl
 from pytouhou.lib.sdl cimport Window
 
@@ -74,7 +75,7 @@ def discover_features():
         shader_header = '#version %s\n\nprecision highp float;\n\n' % glsl_version
 
 
-def create_window(title, x, y, width, height):
+def create_window(title, x, y, width, height, swap_interval):
     '''Create a window (using SDL) and an OpenGL context.'''
 
     sdl.gl_set_attribute(sdl.GL_CONTEXT_PROFILE_MASK, profile)
@@ -114,5 +115,11 @@ def create_window(title, x, y, width, height):
 
     if use_debug_group:
         glPopDebugGroup()
+
+    if swap_interval is not None:
+        try:
+            sdl.gl_set_swap_interval(swap_interval)
+        except sdl.SDLError:
+            pass
 
     return window

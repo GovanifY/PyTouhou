@@ -56,6 +56,7 @@ cdef extern from "SDL_video.h" nogil:
     ctypedef void *SDL_GLContext
 
     int SDL_GL_SetAttribute(SDL_GLattr attr, int value)
+    int SDL_GL_SetSwapInterval(int interval)
     SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int w, int h, Uint32 flags)
     SDL_GLContext SDL_GL_CreateContext(SDL_Window *window)
     void SDL_GL_SwapWindow(SDL_Window *window)

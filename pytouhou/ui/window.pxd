@@ -22,6 +22,7 @@ cdef class Window:
     cdef sdl.Window win
     cdef Runner runner
     cdef Clock clock
+    cdef int frame, frameskip
 
     cdef void set_size(self, int width, int height) nogil
     cpdef set_runner(self, Runner runner=*)

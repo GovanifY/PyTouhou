@@ -142,6 +142,7 @@ def parse_arguments(defaults):
     graphics_group = parser.add_argument_group('Graphics options')
     graphics_group.add_argument('--backend', metavar='BACKEND', choices=['opengl', 'sdl'], nargs='*', help='Which backend to use (opengl or sdl).')
     graphics_group.add_argument('--fps-limit', metavar='FPS', type=int, help='Set fps limit. A value of 0 disables fps limiting, while a negative value limits to 60 fps if and only if vsync doesn’t work.')
+    graphics_group.add_argument('--frameskip', metavar='FRAMESKIP', type=int, help='Set the frameskip, as 1/FRAMESKIP, or disabled if 0.')
     graphics_group.add_argument('--no-background', action='store_false', help='Disable background display (huge performance boost on slow systems).')
     graphics_group.add_argument('--no-particles', action='store_false', help='Disable particles handling (huge performance boost on slow systems).')
     graphics_group.add_argument('--no-sound', action='store_false', help='Disable music and sound effects.')

@@ -117,6 +117,7 @@ cdef void img_init(int flags) except *
 cdef void mix_init(int flags) except *
 cdef void ttf_init() except *
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
+cdef int gl_set_swap_interval(int interval) except *
 cdef list poll_events()
 cdef Surface load_png(file_)
 cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)

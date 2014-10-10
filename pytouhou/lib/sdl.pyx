@@ -280,6 +280,10 @@ cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:
     if SDL_GL_SetAttribute(attr, value) < 0:
         raise SDLError(SDL_GetError())
 
+cdef int gl_set_swap_interval(int interval) except *:
+    if SDL_GL_SetSwapInterval(interval) < 0:
+        raise SDLError(SDL_GetError())
+
 
 cdef list poll_events():
     cdef SDL_Event event

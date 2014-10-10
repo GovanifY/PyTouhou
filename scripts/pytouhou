@@ -31,7 +31,8 @@ defaults = {'data': default_data,
             'gl-flavor': 'compatibility',
             'gl-version': 2.1,
             'double-buffer': None,
-            'fps-limit': -1}
+            'fps-limit': -1,
+            'frameskip': 1}
 
 from pytouhou.options import parse_config, parse_arguments
 options = parse_config('pytouhou', defaults)
@@ -279,7 +280,8 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
 
 with SDL(sound=args.no_sound):
-    window = Window(backend, fps_limit=args.fps_limit)
+    window = Window(backend, fps_limit=args.fps_limit,
+                    frameskip=args.frameskip)
 
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,
