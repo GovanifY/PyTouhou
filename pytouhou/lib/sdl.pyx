@@ -49,7 +49,9 @@ WINDOWEVENT = SDL_WINDOWEVENT
 
 
 class SDLError(Exception):
-    pass
+    def __init__(self):
+        error = SDL_GetError()
+        Exception.__init__(self, error.decode())
 
 
 class SDL(object):
@@ -93,7 +95,7 @@ cdef class Window:
     def __init__(self, str title, int x, int y, int w, int h, Uint32 flags):
         self.window = SDL_CreateWindow(title.encode(), x, y, w, h, flags)
         if self.window == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     def __dealloc__(self):
         if self.context != NULL:
@@ -104,7 +106,7 @@ cdef class Window:
     cdef void gl_create_context(self) except *:
         self.context = SDL_GL_CreateContext(self.window)
         if self.context == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void present(self) nogil:
         if self.renderer == NULL:
@@ -119,38 +121,38 @@ cdef class Window:
     cdef void create_renderer(self, Uint32 flags):
         self.renderer = SDL_CreateRenderer(self.window, -1, flags)
         if self.renderer == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void render_clear(self):
         ret = SDL_RenderClear(self.renderer)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void render_copy(self, Texture texture, Rect srcrect, Rect dstrect):
         ret = SDL_RenderCopy(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip):
         ret = SDL_RenderCopyEx(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect, angle, NULL, flip)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void render_set_clip_rect(self, Rect rect):
         ret = SDL_RenderSetClipRect(self.renderer, &rect.rect)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void render_set_viewport(self, Rect rect):
         ret = SDL_RenderSetViewport(self.renderer, &rect.rect)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef Texture create_texture_from_surface(self, Surface surface):
         texture = Texture()
         texture.texture = SDL_CreateTextureFromSurface(self.renderer, surface.surface)
         if texture.texture == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
         return texture
 
 
@@ -158,17 +160,17 @@ cdef class Texture:
     cpdef set_color_mod(self, Uint8 r, Uint8 g, Uint8 b):
         ret = SDL_SetTextureColorMod(self.texture, r, g, b)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cpdef set_alpha_mod(self, Uint8 alpha):
         ret = SDL_SetTextureAlphaMod(self.texture, alpha)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cpdef set_blend_mode(self, SDL_BlendMode blend_mode):
         ret = SDL_SetTextureBlendMode(self.texture, blend_mode)
         if ret == -1:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
 
 cdef class Rect:
@@ -198,7 +200,7 @@ cdef class Surface:
 
     cdef void blit(self, Surface other):
         if SDL_BlitSurface(other.surface, NULL, self.surface, NULL) < 0:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     cdef void set_alpha(self, Surface alpha_surface) nogil:
         nb_pixels = self.surface.w * self.surface.h
@@ -239,7 +241,7 @@ cdef class Font:
     def __init__(self, str filename, int ptsize):
         self.font = TTF_OpenFont(filename.encode(), ptsize)
         if self.font == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
 
     def __dealloc__(self):
         if self.font != NULL:
@@ -252,37 +254,37 @@ cdef class Font:
         string = text.encode('utf-8')
         surface.surface = TTF_RenderUTF8_Blended(self.font, string, white)
         if surface.surface == NULL:
-            raise SDLError(SDL_GetError())
+            raise SDLError()
         return surface
 
 
 cdef void init(Uint32 flags) except *:
     if SDL_Init(flags) < 0:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef void img_init(int flags) except *:
     if IMG_Init(flags) != flags:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef void mix_init(int flags) except *:
     if Mix_Init(flags) != flags:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef void ttf_init() except *:
     if TTF_Init() < 0:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:
     if SDL_GL_SetAttribute(attr, value) < 0:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 cdef int gl_set_swap_interval(int interval) except *:
     if SDL_GL_SetSwapInterval(interval) < 0:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef list poll_events():
@@ -305,7 +307,7 @@ cdef Surface load_png(file_):
     surface.surface = IMG_LoadPNG_RW(rwops)
     SDL_RWclose(rwops)
     if surface.surface == NULL:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
     return surface
 
 
@@ -313,18 +315,18 @@ cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=0
     surface = Surface()
     surface.surface = SDL_CreateRGBSurface(0, width, height, depth, rmask, gmask, bmask, amask)
     if surface.surface == NULL:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
     return surface
 
 
 cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *:
     if Mix_OpenAudio(frequency, format_, channels, chunksize) < 0:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef void mix_allocate_channels(int numchans) except *:
     if Mix_AllocateChannels(numchans) != numchans:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
 
 
 cdef int mix_volume(int channel, float volume) nogil:
@@ -339,7 +341,7 @@ cdef Music load_music(str filename):
     music = Music()
     music.music = Mix_LoadMUS(filename.encode())
     if music.music == NULL:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
     return music
 
 
@@ -350,7 +352,7 @@ cdef Chunk load_chunk(file_):
     rwops = SDL_RWFromConstMem(<char*>data, len(data))
     chunk.chunk = Mix_LoadWAV_RW(rwops, 1)
     if chunk.chunk == NULL:
-        raise SDLError(SDL_GetError())
+        raise SDLError()
     return chunk
 
 
