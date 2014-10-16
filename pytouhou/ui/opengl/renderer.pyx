@@ -22,17 +22,16 @@ from pytouhou.lib.opengl cimport \
           glBindTexture, glDrawElements, glBindBuffer, glBufferData,
           GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, GL_UNSIGNED_BYTE,
           GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT, GL_SRC_ALPHA,
-          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, GL_TRIANGLES,
-          GL_TRIANGLE_STRIP, glGenBuffers, glDeleteBuffers,
-          GLuint, glDeleteTextures, glGenVertexArrays, glDeleteVertexArrays,
-          glBindVertexArray, glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION,
-          glPopDebugGroup)
+          GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, glGenBuffers,
+          glDeleteBuffers, GLuint, glDeleteTextures, glGenVertexArrays,
+          glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from pytouhou.lib.sdl import SDLError
 
 from pytouhou.game.element cimport Element
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport is_legacy, use_debug_group, use_vao, use_primitive_restart
+from .backend cimport primitive_mode, is_legacy, use_debug_group, use_vao, use_primitive_restart
 
 from pytouhou.utils.helpers import get_logger
 
@@ -213,7 +212,7 @@ cdef class Renderer:
                 glBlendFunc(GL_SRC_ALPHA, (GL_ONE_MINUS_SRC_ALPHA, GL_ONE)[blendfunc])
             if texture != previous_texture:
                 glBindTexture(GL_TEXTURE_2D, self.textures[texture])
-            glDrawElements(GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
+            glDrawElements(primitive_mode, nb_indices, GL_UNSIGNED_SHORT, self.indices[texture][blendfunc])
 
             previous_blendfunc = blendfunc
             previous_texture = texture
@@ -231,7 +230,10 @@ cdef class Renderer:
         # There is nothing that batch more than two quads on the same texture, currently.
         cdef Vertex buf[8]
         cdef unsigned short indices[12]
-        indices[:] = [0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4]
+        if use_primitive_restart:
+            indices[:] = [0, 1, 2, 3, 0xffff, 4, 5, 6, 7, 0, 0, 0]
+        else:
+            indices[:] = [0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4]
 
         length = len(rects)
         assert length == len(colors)
@@ -261,9 +263,10 @@ cdef class Renderer:
             else:
                 self.set_state()
 
+        nb_indices = 5 * length - 1 if use_primitive_restart else 6 * length
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
-        glDrawElements(GL_TRIANGLES, 6 * length, GL_UNSIGNED_SHORT, indices)
+        glDrawElements(primitive_mode, nb_indices, GL_UNSIGNED_SHORT, indices)
 
         if use_debug_group:
             glPopDebugGroup()

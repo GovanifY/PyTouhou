@@ -20,14 +20,13 @@ from pytouhou.lib.opengl cimport \
           glBindTexture, glBindBuffer, glBufferData, GL_ARRAY_BUFFER,
           GL_STATIC_DRAW, GL_UNSIGNED_BYTE, GL_FLOAT, GL_SRC_ALPHA,
           GL_ONE_MINUS_SRC_ALPHA, GL_TEXTURE_2D, glGenBuffers, glEnable,
-          glDisable, GL_DEPTH_TEST, glDrawElements, GL_TRIANGLES,
-          GL_UNSIGNED_SHORT, GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers,
-          glGenVertexArrays, glDeleteVertexArrays, glBindVertexArray,
-          glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup,
-          GL_TRIANGLE_STRIP)
+          glDisable, GL_DEPTH_TEST, glDrawElements, GL_UNSIGNED_SHORT,
+          GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers, glGenVertexArrays,
+          glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
 
 from .sprite cimport get_sprite_rendering_data
-from .backend cimport is_legacy, use_debug_group, use_vao, use_primitive_restart
+from .backend cimport primitive_mode, is_legacy, use_debug_group, use_vao, use_primitive_restart
 
 
 cdef class BackgroundRenderer:
@@ -95,7 +94,7 @@ cdef class BackgroundRenderer:
         glEnable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, self.texture)
-        glDrawElements(GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES, self.nb_indices, GL_UNSIGNED_SHORT, indices)
+        glDrawElements(primitive_mode, self.nb_indices, GL_UNSIGNED_SHORT, indices)
         glDisable(GL_DEPTH_TEST)
 
         if not is_legacy:
