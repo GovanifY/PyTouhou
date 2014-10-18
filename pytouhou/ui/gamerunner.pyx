@@ -114,7 +114,7 @@ cdef class GameRunner(Runner):
             self.renderer.capture(filename, self.width, self.height)
 
 
-    cpdef bint update(self) except? False:
+    cpdef bint update(self, bint render) except? False:
         cdef long keystate
         capture = False
 
@@ -178,7 +178,7 @@ cdef class GameRunner(Runner):
         if self.window is not None and 'framerate' in labels:
             labels['framerate'].set_text('%.2ffps' % self.window.get_fps())
 
-        if not self.skip and self.renderer is not None:
+        if render and not self.skip and self.renderer is not None:
             self.renderer.render(self.game)
 
         if capture:

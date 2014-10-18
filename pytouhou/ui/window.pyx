@@ -71,7 +71,7 @@ cdef class Runner:
     cdef void finish(self) except *:
         pass
 
-    cpdef bint update(self) except? False:
+    cpdef bint update(self, bint render) except? False:
         return False
 
 
@@ -109,14 +109,20 @@ cdef class Window:
                 self.runner.finish()
 
 
+    @cython.cdivision(True)
     cdef bint run_frame(self) except? False:
-        cdef bint running = False
+        cdef bint render = (self.win is not None and
+                            (self.frameskip <= 1 or not self.frame % self.frameskip))
+
+        running = False
         if self.runner is not None:
-            running = self.runner.update()
-        if self.win is not None and (self.frameskip <= 1 or not self.frame % self.frameskip):
+            running = self.runner.update(render)
+        if render:
             self.win.present()
+
         self.clock.tick()
         self.frame += 1
+
         return running
 
 
