@@ -23,7 +23,7 @@ from pytouhou.game.orb import Orb
 from pytouhou.game.background import Background
 
 from pytouhou.vm import PythonMainRunner
-from . import enemies
+from . import enemies, shots
 
 
 class Common(object):
@@ -78,7 +78,7 @@ class Common(object):
 
         default_power = [0, 64, 128, 128, 128, 128, 0][stage]
 
-        eosd_characters = resource_loader.get_eosd_characters()
+        sample_characters = shots.characters
         self.first_character = player_characters[0] // 2
         self.player_anms = {}
         self.players = [None] * len(player_characters)
@@ -92,7 +92,7 @@ class Common(object):
                 self.player_anms[character] = (anm, face)
 
             self.players[i] = Player(i, self.player_anms[character][0],
-                                     eosd_characters[player_character],
+                                     sample_characters[player_character],
                                      character, default_power, continues)
 
 
