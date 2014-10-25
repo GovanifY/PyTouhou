@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-class SampleInterface(object):
+class Interface(object):
     width = 384
     height = 448
     game_pos = (0, 0)

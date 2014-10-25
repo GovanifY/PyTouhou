@@ -14,18 +14,18 @@
 
 from pytouhou.utils.interpolator import Interpolator
 
-from pytouhou.game.game import Game
+from pytouhou.game.game import Game as GameBase
 from pytouhou.game.bullettype import BulletType
 from pytouhou.game.lasertype import LaserType
 from pytouhou.game.itemtype import ItemType
-from pytouhou.game.player import Player
+from pytouhou.game.player import Player as PlayerBase
 from pytouhou.game.orb import Orb
 from pytouhou.game.background import Background
 
 from pytouhou.vm import ECLMainRunner
 
 
-class EoSDCommon(object):
+class Common(object):
     def __init__(self, resource_loader, player_characters, continues, stage,
                  width=384, height=448):
         self.width, self.height = width, height
@@ -90,13 +90,13 @@ class EoSDCommon(object):
                 anm = resource_loader.get_single_anm('player0%d.anm' % character)
                 self.player_anms[character] = (anm, face)
 
-            self.players[i] = EoSDPlayer(i, self.player_anms[character][0],
-                                         eosd_characters[player_character],
-                                         character, default_power, continues)
+            self.players[i] = Player(i, self.player_anms[character][0],
+                                     eosd_characters[player_character],
+                                     character, default_power, continues)
 
 
 
-class EoSDGame(Game):
+class Game(GameBase):
     def __init__(self, resource_loader, stage, rank, difficulty,
                  common, prng, hints=None, friendly_fire=True,
                  nb_bullets_max=640):
@@ -133,11 +133,11 @@ class EoSDGame(Game):
 
         common.interface.start_stage(self, stage)
 
-        Game.__init__(self, common.players, stage, rank, difficulty,
-                      common.bullet_types, common.laser_types,
-                      common.item_types, nb_bullets_max, common.width,
-                      common.height, prng, common.interface, hints,
-                      friendly_fire)
+        GameBase.__init__(self, common.players, stage, rank, difficulty,
+                          common.bullet_types, common.laser_types,
+                          common.item_types, nb_bullets_max, common.width,
+                          common.height, prng, common.interface, hints,
+                          friendly_fire)
 
         try:
             self.texts['stage_name'] = common.interface.stage_name
@@ -151,12 +151,12 @@ class EoSDGame(Game):
 
 
 
-class EoSDPlayer(Player):
+class Player(PlayerBase):
     def __init__(self, number, anm, shts, character, power, continues):
         self.sht = shts[0]
         self.focused_sht = shts[1]
 
-        Player.__init__(self, number, anm, character, power, continues)
+        PlayerBase.__init__(self, number, anm, character, power, continues)
 
         self.orbs = [Orb(anm, 128, self),
                      Orb(anm, 129, self)]
@@ -192,7 +192,7 @@ class EoSDPlayer(Player):
 
 
     def update(self, keystate):
-        Player.update(self, keystate)
+        PlayerBase.update(self, keystate)
 
         if self.death_time == 0 or self._game.frame - self.death_time > 60:
             if self.orb_dx_interpolator:

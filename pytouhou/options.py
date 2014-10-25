@@ -125,8 +125,8 @@ def parse_arguments(defaults):
     game_group.add_argument('-r', '--rank', metavar='RANK', type=int, help='Rank, from 0 (Easy, default) to 3 (Lunatic).')
     game_group.add_argument('-c', '--character', metavar='CHARACTER', type=int, help='Select the character to use, from 0 (ReimuA, default) to 3 (MarisaB).')
     game_group.add_argument('-b', '--boss-rush', action='store_true', help='Fight only bosses.')
-    game_group.add_argument('--game', metavar='GAME', choices=['EoSD'], help='Select the game engine to use.')
-    game_group.add_argument('--interface', metavar='INTERFACE', choices=['EoSD', 'Sample'], help='Select the interface to use.')
+    game_group.add_argument('--game', metavar='GAME', help='Select the game engine to use.')
+    game_group.add_argument('--interface', metavar='INTERFACE', help='Select the interface to use.')
     game_group.add_argument('--hints', metavar='HINTS', help='Hints file, to display text while playing.')
 
     replay_group = parser.add_argument_group('Replay options')

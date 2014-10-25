@@ -24,8 +24,8 @@ defaults = {'data': default_data,
             'path': '.',
             'rank': 0,
             'character': 0,
-            'game': 'EoSD',
-            'interface': 'EoSD',
+            'game': 'eosd',
+            'interface': 'eosd',
             'port': 0,
             'backend': ['opengl', 'sdl'],
             'gl-flavor': 'compatibility',
@@ -57,14 +57,21 @@ if not args.no_menu:
     else:
         menu(options, args)
 
-if args.game == 'EoSD':
-    from pytouhou.games.eosd import EoSDCommon as Common, EoSDGame as Game
+import sys
+from importlib import import_module
 
-if args.interface == 'EoSD':
-    from pytouhou.interfaces.eosd import EoSDInterface as Interface
-elif args.interface == 'Sample':
-    from pytouhou.interfaces.sample import SampleInterface as Interface
+def load_module(type_, name, items=None):
+    try:
+        module = import_module('pytouhou.games.%s.%s' % (name, type_))
+    except ImportError:
+        logger.critical('Module “%s” doesn’t contain %s data, aborting.', name, type_)
+        sys.exit(1)
+    if items is None:
+        return module
+    return (getattr(module, item) for item in items)
 
+Game, Common = load_module('game', args.game, ['Game', 'Common'])
+Interface = load_module('interface', args.interface).Interface
 
 from pytouhou.lib.sdl import SDL, show_simple_message_box
 from pytouhou.ui.window import Window
@@ -77,7 +84,6 @@ from pytouhou.formats.hint import Hint
 from pytouhou.network import Network
 
 
-from importlib import import_module
 for backend_name in args.backend:
     if backend_name == 'opengl':
         options = {
@@ -146,7 +152,6 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
         resource_loader.scan_archives(data)
     except IOError:
         show_simple_message_box(u'Some data files were not found, did you forget the -p option?')
-        import sys
         sys.exit(1)
 
     if stage_num is None:
