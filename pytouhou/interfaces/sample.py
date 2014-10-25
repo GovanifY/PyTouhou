@@ -13,14 +13,14 @@
 ##
 
 class SampleInterface(object):
+    width = 384
+    height = 448
+    game_pos = (0, 0)
+
     def __init__(self, resource_loader, player_state):
         self.game = None
         self.player_state = player_state
         self.ascii_anm = resource_loader.get_single_anm('ascii.anm') #XXX
-
-        self.width = 384
-        self.height = 448
-        self.game_pos = (0, 32)
 
         self.items = []
         self.level_start = []

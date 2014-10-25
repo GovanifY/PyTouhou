@@ -27,6 +27,7 @@ from pytouhou.lib.opengl cimport \
 from pytouhou.utils.matrix cimport mul, new_identity
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
+from pytouhou.ui.window cimport Window
 from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
 from .renderer cimport Texture
 from .backend cimport is_legacy, use_debug_group, use_pack_invert
@@ -37,7 +38,7 @@ Color = namedtuple('Color', 'r g b a')
 
 
 cdef class GameRenderer(Renderer):
-    def __init__(self, resource_loader, _):
+    def __init__(self, resource_loader, Window window):
         Renderer.__init__(self, resource_loader)
 
         if not is_legacy:
@@ -46,7 +47,7 @@ cdef class GameRenderer(Renderer):
             self.interface_shader = self.game_shader
             self.passthrough_shader = PassthroughShader()
 
-            self.framebuffer = Framebuffer(0, 0, 640, 480)
+            self.framebuffer = Framebuffer(0, 0, window.width, window.height)
 
 
     def __dealloc__(self):

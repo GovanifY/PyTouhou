@@ -77,17 +77,19 @@ cdef class Runner:
 
 
 cdef class Window:
-    def __init__(self, backend, long fps_limit=-1, frameskip=1):
+    def __init__(self, backend, int width=640, int height=480, long fps_limit=-1, frameskip=1):
         if backend is not None:
             self.win = backend.create_window(
                 'PyTouhou',
                 sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
-                640, 480, #XXX
+                width, height,
                 frameskip)
 
         self.clock = Clock(fps_limit)
         self.frame = 0
         self.frameskip = frameskip
+        self.width = width
+        self.height = height
 
 
     cdef void set_size(self, int width, int height) nogil:

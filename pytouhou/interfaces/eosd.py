@@ -17,15 +17,15 @@ from pytouhou.game.text import Text, Counter, Gauge, NativeText
 
 
 class EoSDInterface(object):
+    width = 640
+    height = 480
+    game_pos = (32, 16)
+
     def __init__(self, resource_loader, player_state):
         self.game = None
         self.player_state = player_state
         front = resource_loader.get_single_anm('front.anm')
         self.ascii_anm = resource_loader.get_single_anm('ascii.anm')
-
-        self.width = 640
-        self.height = 480
-        self.game_pos = (32, 16)
 
         self.highscore = 1000000 #TODO: read score.dat
         self.items = ([Effect((0, 32 * i), 6, front) for i in range(15)] +

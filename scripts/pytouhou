@@ -280,8 +280,8 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
 
 with SDL(sound=args.no_sound):
-    window = Window(backend, fps_limit=args.fps_limit,
-                    frameskip=args.frameskip)
+    window = Window(backend, Interface.width, Interface.height,
+                    fps_limit=args.fps_limit, frameskip=args.frameskip)
 
     main(window, args.path, tuple(args.data), args.stage, args.rank,
          args.character, args.replay, args.save_replay, args.skip_replay,
