@@ -22,7 +22,8 @@ from pytouhou.game.player import Player as PlayerBase
 from pytouhou.game.orb import Orb
 from pytouhou.game.background import Background
 
-from pytouhou.vm import ECLMainRunner
+from pytouhou.vm import PythonMainRunner
+from . import enemies
 
 
 class Common(object):
@@ -107,8 +108,8 @@ class Game(GameBase):
                                                           'stg%denm2.anm' % stage))
         except KeyError:
             self.enm_anm = resource_loader.get_anm('stg%denm.anm' % stage)
-        ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
-        self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
+
+        self.ecl_runners = [PythonMainRunner(getattr(enemies, 'stage%d' % stage), self)]
 
         self.spellcard_effect_anm = resource_loader.get_single_anm('eff0%d.anm' % stage)
 
