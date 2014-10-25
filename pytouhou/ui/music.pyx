@@ -85,11 +85,11 @@ cdef class SFXPlayer(MusicPlayer):
     cdef Chunk get_sound(self, name):
         cdef Chunk chunk
         if name not in self.sounds:
-            wave_file = self.loader.get_file(name)
             try:
+                wave_file = self.loader.get_file(name)
                 chunk = load_chunk(wave_file)
-            except sdl.SDLError as error:
-                logger.warn(u'Sound “%s” not found: %s', name, error)
+            except (KeyError, sdl.SDLError) as error:
+                logger.warn('Sound “%s” not found: %s', name, error)
                 chunk = None
             else:
                 chunk.set_volume(self.volume)
