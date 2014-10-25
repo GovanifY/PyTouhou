@@ -8,7 +8,7 @@ ST.DAT: ST
 
 
 CM.DAT: ST
-	thdat c6 CM.DAT ST/etama*
+	thdat c6 CM.DAT ST/etama* ST/face00* ST/player*
 
 
 clean:

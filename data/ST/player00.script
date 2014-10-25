@@ -1,0 +1,50 @@
+ENTRY 0
+Name: data/player/player00.png
+Format: 1
+Width: 256
+Height: 256
+
+Sprite: 0 15*30+1+1
+Sprite: 1 8*8+40+40
+Sprite: 2 8*8+40+40
+
+# Player
+Script: 0
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+Script: 1
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+Script: 2
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+Script: 3
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+Script: 4
+Instruction: 0 0 1 0
+Instruction: 0 0 15
+
+# Bullet
+Script: 64
+Instruction: 0 0 1 1
+Instruction: 0 0 15
+
+# Bullet cancellation
+Script: 96
+Instruction: 0 0 1 1
+Instruction: 0 0 15
+
+# Orbs
+Script: 128
+Instruction: 0 0 1 2
+Instruction: 0 0 15
+
+Script: 129
+Instruction: 0 0 1 2
+Instruction: 0 0 15
+

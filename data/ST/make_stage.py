@@ -1,9 +1,8 @@
 from pytouhou.formats.std import Stage, Model
-from pytouhou.formats.anm0 import Animations
+from pytouhou.formats.anm0 import ANM0
 from pytouhou.vm.anmrunner import ANMRunner
 from pytouhou.game.sprite import Sprite
-from pytouhou.resource.anmwrapper import AnmWrapper
-from pytouhou.opengl.sprite import get_sprite_rendering_data
+from pytouhou.ui.opengl.sprite import get_sprite_vertices
 
 ground = Model(quads=[(14, -100.0, -46*3, 0.5, (192+100)*2, 46*3),
                       (0, 192.0 - 40, -46.0, 0.0, 0, 0),
@@ -71,14 +70,13 @@ instances = [(0, 0.0, -46*3*-1, 0.0),
 
 
 # Bounding boxes
-anm_wrapper = AnmWrapper([Animations.read(open('stg1bg.anm', 'rb'))])
+anm = ANM0.read(open('stg1bg.anm', 'rb'))[0]
 for model in models:
     vertices = []
     for script_index, ox2, oy2, oz2, width_override, height_override in model.quads:
         sprite = Sprite(width_override, height_override)
-        anmrunner = ANMRunner(anm_wrapper, script_index, sprite)
-        anmrunner.run_frame()
-        key, (vertices2, uvs2, colors2) = get_sprite_rendering_data(sprite)
+        anmrunner = ANMRunner(anm, script_index, sprite)
+        vertices2 = get_sprite_vertices(sprite)
         vertices.extend((x + ox2, y + oy2, z + oz2) for x, y, z in vertices2)
     xmin, ymin, zmin = min(x for x, y, z in vertices), min(y for x, y, z in vertices), min(z for x, y, z in vertices)
     xmax, ymax, zmax = max(x for x, y, z in vertices), max(y for x, y, z in vertices), max(z for x, y, z in vertices)

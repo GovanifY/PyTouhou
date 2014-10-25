@@ -34,6 +34,16 @@ cdef RenderingData* get_sprite_rendering_data(Sprite sprite) nogil:
     return <RenderingData*>sprite._rendering_data
 
 
+def get_sprite_vertices(Sprite sprite):
+    if sprite.changed:
+        render_sprite(sprite)
+    data = <RenderingData*>sprite._rendering_data
+    return [(data.pos[0], data.pos[1], data.pos[2]),
+            (data.pos[3], data.pos[4], data.pos[5]),
+            (data.pos[6], data.pos[7], data.pos[8]),
+            (data.pos[9], data.pos[10], data.pos[11])]
+
+
 cdef void render_sprite(Sprite sprite) nogil:
     cdef Matrix vertmat
 
