@@ -64,7 +64,7 @@ def load_module(type_, name, items=None):
     try:
         module = import_module('pytouhou.games.%s.%s' % (name, type_))
     except ImportError:
-        logger.critical('Module “%s” doesn’t contain %s data, aborting.', name, type_)
+        logger.exception('Module “%s” doesn’t contain %s data, aborting:', name, type_)
         sys.exit(1)
     if items is None:
         return module
@@ -96,13 +96,13 @@ for backend_name in args.backend:
 
     try:
         backend = import_module('pytouhou.ui.%s.backend' % backend_name)
-    except ImportError as e:
+    except ImportError:
         logger.exception('Failed to import backend %s:', backend_name)
         continue
 
     try:
         backend.init(options)
-    except Exception as e:
+    except Exception:
         logger.exception('Backend %s failed to initialize:', backend_name)
         continue
 
