@@ -95,7 +95,8 @@ class SDL(object):
 
 cdef class Window:
     def __init__(self, str title, int x, int y, int w, int h, Uint32 flags):
-        self.window = SDL_CreateWindow(title.encode(), x, y, w, h, flags)
+        title_bytes = title.encode()
+        self.window = SDL_CreateWindow(title_bytes, x, y, w, h, flags)
         if self.window == NULL:
             raise SDLError()
 
@@ -241,7 +242,8 @@ cdef class Chunk:
 
 cdef class Font:
     def __init__(self, str filename, int ptsize):
-        self.font = TTF_OpenFont(filename.encode(), ptsize)
+        path = filename.encode()
+        self.font = TTF_OpenFont(path, ptsize)
         if self.font == NULL:
             raise SDLError()
 
@@ -341,7 +343,8 @@ cdef int mix_volume_music(float volume) nogil:
 
 cdef Music load_music(str filename):
     music = Music()
-    music.music = Mix_LoadMUS(filename.encode())
+    path = filename.encode()
+    music.music = Mix_LoadMUS(path)
     if music.music == NULL:
         raise SDLError()
     return music

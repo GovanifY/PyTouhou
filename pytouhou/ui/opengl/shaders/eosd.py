@@ -18,7 +18,7 @@ from ..shader import Shader
 
 class GameShader(Shader):
     def __init__(self):
-        Shader.__init__(self, ['''
+        Shader.__init__(self, '''
             attribute vec3 in_position;
             attribute vec2 in_texcoord;
             attribute vec4 in_color;
@@ -34,7 +34,7 @@ class GameShader(Shader):
                 texcoord = in_texcoord;
                 color = in_color;
             }
-        '''], ['''
+        ''', '''
             varying vec2 texcoord;
             varying vec4 color;
 
@@ -44,12 +44,12 @@ class GameShader(Shader):
             {
                 gl_FragColor = texture2D(color_map, texcoord) * color;
             }
-        '''])
+        ''')
 
 
 class BackgroundShader(Shader):
     def __init__(self):
-        Shader.__init__(self, ['''
+        Shader.__init__(self, '''
             attribute vec3 in_position;
             attribute vec2 in_texcoord;
             attribute vec4 in_color;
@@ -65,7 +65,7 @@ class BackgroundShader(Shader):
                 texcoord = in_texcoord;
                 color = in_color;
             }
-        '''], ['''
+        ''', '''
             varying vec2 texcoord;
             varying vec4 color;
 
@@ -81,12 +81,12 @@ class BackgroundShader(Shader):
                 float fog_density = clamp((fog_end - depth) * fog_scale, 0.0, 1.0);
                 gl_FragColor = vec4(mix(fog_color, temp_color, fog_density).rgb, temp_color.a);
             }
-        '''])
+        ''')
 
 
 class PassthroughShader(Shader):
     def __init__(self):
-        Shader.__init__(self, ['''
+        Shader.__init__(self, '''
             attribute vec2 in_position;
             attribute vec2 in_texcoord;
 
@@ -99,7 +99,7 @@ class PassthroughShader(Shader):
                 gl_Position = mvp * vec4(in_position, 0.0, 1.0);
                 texcoord = in_texcoord;
             }
-        '''], ['''
+        ''', '''
             varying vec2 texcoord;
 
             uniform sampler2D color_map;
@@ -108,4 +108,4 @@ class PassthroughShader(Shader):
             {
                 gl_FragColor = texture2D(color_map, texcoord);
             }
-        '''])
+        ''')

@@ -27,8 +27,6 @@ class GLSLException(Exception):
 
 
 cdef class Shader:
-    # vert and frag take arrays of source strings the arrays will be
-    # concattenated into one string by OpenGL
     def __init__(self, vert=None, frag=None):
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Program creation")
@@ -42,9 +40,12 @@ cdef class Shader:
         self.location_cache = {}
 
         # create the vertex shader
-        self.create_shader(vert[0].encode(), GL_VERTEX_SHADER)
+        vert_src = vert.encode()
+        self.create_shader(vert_src, GL_VERTEX_SHADER)
+
         # create the fragment shader
-        self.create_shader(frag[0].encode(), GL_FRAGMENT_SHADER)
+        frag_src = frag.encode()
+        self.create_shader(frag_src, GL_FRAGMENT_SHADER)
 
         #TODO: put those elsewhere.
         glBindAttribLocation(self.handle, 0, 'in_position')
