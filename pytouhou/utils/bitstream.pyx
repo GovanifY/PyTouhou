@@ -33,7 +33,7 @@ cdef class BitStream:
         self.bits = 0
 
 
-    cdef bint read_bit(self):
+    cdef bint read_bit(self) except -1:
         cdef bytes byte
         if not self.bits:
             byte = self.io.read(1)
@@ -43,7 +43,7 @@ cdef class BitStream:
         return (self.byte >> self.bits) & 0x01
 
 
-    cpdef unsigned int read(self, unsigned int nb_bits):
+    cpdef unsigned int read(self, unsigned int nb_bits) except? 4242:
         cdef unsigned int value = 0, read = 0
         cdef unsigned int nb_bits2 = nb_bits
         cdef bytes byte

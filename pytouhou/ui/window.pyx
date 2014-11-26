@@ -71,7 +71,7 @@ cdef class Runner:
     cdef void finish(self) except *:
         pass
 
-    cpdef bint update(self, bint render) except? False:
+    cpdef bint update(self, bint render) except -1:
         return False
 
 
@@ -112,7 +112,7 @@ cdef class Window:
 
 
     @cython.cdivision(True)
-    cdef bint run_frame(self) except? False:
+    cdef bint run_frame(self) except -1:
         cdef bint render = (self.win is not None and
                             (self.frameskip <= 1 or not self.frame % self.frameskip))
 

@@ -19,5 +19,5 @@ cdef class BackgroundRenderer:
     cdef GLushort *indices
 
     cdef void set_state(self) nogil
-    cdef void render_background(self) except *
+    cdef void render_background(self) nogil
     cdef void load(self, background, GLuint[MAX_TEXTURES] textures) except *

@@ -22,7 +22,7 @@ cdef class Bullet(Element):
     cdef Game _game
     cdef long player
 
-    cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height) except? False
+    cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height) nogil
     cpdef set_anim(self, sprite_idx_offset=*)
     cdef void launch(self) except *
     cdef void collide(self) except *

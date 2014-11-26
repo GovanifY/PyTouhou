@@ -129,7 +129,7 @@ cdef class GameRenderer(Renderer):
         free(capture_memory)
 
 
-    cdef void render_game(self, Game game):
+    cdef void render_game(self, Game game) except *:
         cdef long game_x, game_y
         cdef float x, y, z, dx, dy, dz
         cdef float fog_data[4]
@@ -243,7 +243,7 @@ cdef class GameRenderer(Renderer):
             glPopDebugGroup()
 
 
-    cdef void render_text(self, dict texts):
+    cdef void render_text(self, dict texts) except *:
         cdef NativeText label
 
         if self.font_manager is None:
@@ -266,7 +266,7 @@ cdef class GameRenderer(Renderer):
                 self.render_quads([rect], [gradient], texture)
 
 
-    cdef void render_interface(self, interface, game_boss):
+    cdef void render_interface(self, interface, game_boss) except *:
         cdef GlyphCollection label
 
         elements = []

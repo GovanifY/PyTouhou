@@ -75,7 +75,7 @@ cdef class BackgroundRenderer:
         glEnableVertexAttribArray(2)
 
 
-    cdef void render_background(self):
+    cdef void render_background(self) nogil:
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background drawing")
 
@@ -108,7 +108,7 @@ cdef class BackgroundRenderer:
             glPopDebugGroup()
 
 
-    cdef void load(self, background, GLuint[MAX_TEXTURES] textures):
+    cdef void load(self, background, GLuint[MAX_TEXTURES] textures) except *:
         cdef float ox, oy, oz, ox2, oy2, oz2
         cdef GLsizei nb_vertices = 0, nb_indices = 0
 

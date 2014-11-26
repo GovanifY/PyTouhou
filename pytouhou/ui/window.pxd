@@ -15,7 +15,7 @@ cdef class Runner:
 
     cdef void start(self) except *
     cdef void finish(self) except *
-    cpdef bint update(self, bint render) except? False
+    cpdef bint update(self, bint render) except -1
 
 
 cdef class Window:
@@ -28,5 +28,5 @@ cdef class Window:
     cdef void set_size(self, int width, int height) nogil
     cpdef set_runner(self, Runner runner=*)
     cpdef run(self)
-    cdef bint run_frame(self) except? False
+    cdef bint run_frame(self) except -1
     cdef double get_fps(self) nogil

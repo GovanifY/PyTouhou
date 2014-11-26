@@ -74,13 +74,13 @@ cdef class Item(Element):
             return [self]
 
 
-    cdef void autocollect(self, Player player):
+    cdef void autocollect(self, Player player) except *:
         if self.target is None and self.player is None:
             self.target = player
             self.speed = player.sht.autocollection_speed
 
 
-    cdef void on_collect(self, Player player):
+    cdef void on_collect(self, Player player) except *:
         cdef long level, poc
 
         if not (self.player is None or self.player is player):

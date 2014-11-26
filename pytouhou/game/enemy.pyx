@@ -249,7 +249,7 @@ cdef class Enemy(Element):
         return min(players, key=self.select_player_key)
 
 
-    cpdef double get_angle(self, Element target, tuple pos=None):
+    cpdef double get_angle(self, Element target, tuple pos=None) except 42:
         cdef double x, y
         x, y = pos or (self.x, self.y)
         return atan2(target.y - y, target.x - x)
@@ -261,13 +261,13 @@ cdef class Enemy(Element):
         self.anmrunner = ANMRunner(self._anms[entry], index, self.sprite)
 
 
-    cdef void die_anim(self):
+    cdef void die_anim(self) except *:
         anim = {0: 3, 1: 4, 2: 5}[self.death_anim % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
         self._game.new_effect((self.x, self.y), anim)
         self._game.sfx_player.play('enep00.wav')
 
 
-    cdef void drop_particles(self, long number, long color):
+    cdef void drop_particles(self, long number, long color) except *:
         if color == 0:
             if self._game.stage in [1, 2, 7]:
                 color = 3
@@ -318,7 +318,7 @@ cdef class Enemy(Element):
             self._game.boss = None
 
 
-    cdef bint is_visible(self, long screen_width, long screen_height):
+    cdef bint is_visible(self, long screen_width, long screen_height) except -1:
         if self.sprite is not None:
             if self.sprite.corner_relative_placement:
                 raise Exception #TODO
@@ -338,7 +338,7 @@ cdef class Enemy(Element):
         return True
 
 
-    cdef void check_collisions(self):
+    cdef void check_collisions(self) except *:
         cdef Bullet bullet
         cdef Player player
         cdef PlayerLaser laser
@@ -426,7 +426,7 @@ cdef class Enemy(Element):
             self.life -= damages
 
 
-    cdef void handle_callbacks(self):
+    cdef void handle_callbacks(self) except *:
         #TODO: implement missing callbacks and clean up!
         if self.life <= 0 and self.touchable:
             self.timeout = -1 #TODO: not really true, the timeout is frozen
@@ -502,7 +502,7 @@ cdef class Enemy(Element):
                 raise Exception('What the hell, man!')
 
 
-    cdef void update(self):
+    cdef void update(self) except *:
         cdef double x, y, speed
 
         if self.process is not None:

@@ -114,7 +114,7 @@ cdef class GameRunner(Runner):
             self.renderer.capture(filename, self.width, self.height)
 
 
-    cpdef bint update(self, bint render) except? False:
+    cpdef bint update(self, bint render) except -1:
         cdef long keystate
         capture = False
 

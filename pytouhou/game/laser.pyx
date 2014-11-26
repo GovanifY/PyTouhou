@@ -85,7 +85,7 @@ cdef class Laser(Element):
         self.set_anim()
 
 
-    cdef void set_anim(self, long sprite_idx_offset=-1):
+    cdef void set_anim(self, long sprite_idx_offset=-1) except *:
         if sprite_idx_offset >= 0:
             self.sprite_idx_offset = sprite_idx_offset
 
@@ -221,7 +221,7 @@ cdef class PlayerLaser(Element):
         self.set_anim()
 
 
-    cdef void set_anim(self, long sprite_idx_offset=-1):
+    cdef void set_anim(self, long sprite_idx_offset=-1) except *:
         if sprite_idx_offset >= 0:
             self.sprite_idx_offset = sprite_idx_offset
 
@@ -232,11 +232,11 @@ cdef class PlayerLaser(Element):
         #self.sprite.blendfunc = 1 #XXX
 
 
-    cdef void cancel(self):
+    cdef void cancel(self) except *:
         self.anmrunner.interrupt(1)
 
 
-    cdef void update(self):
+    cdef void update(self) except *:
         if self.anmrunner is not None and not self.anmrunner.run_frame():
             self.anmrunner = None
             self.removed = True

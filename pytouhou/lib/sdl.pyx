@@ -201,7 +201,7 @@ cdef class Surface:
         def __get__(self):
             return bytes(self.surface.pixels[:self.surface.w * self.surface.h * 4])
 
-    cdef void blit(self, Surface other):
+    cdef void blit(self, Surface other) except *:
         if SDL_BlitSurface(other.surface, NULL, self.surface, NULL) < 0:
             raise SDLError()
 
