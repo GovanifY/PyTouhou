@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-from _sdl cimport *
+from ._sdl cimport *
 
 
 cdef SDL_GLattr GL_CONTEXT_MAJOR_VERSION
