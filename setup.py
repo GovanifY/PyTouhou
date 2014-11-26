@@ -122,7 +122,7 @@ for directory, _, files in os.walk('pytouhou'):
             elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
                 extension_names.pop()
                 continue
-            elif package == 'pytouhou.formats' and extension_name != 'pytouhou.formats.anm0':
+            elif package == 'pytouhou.formats' and extension_name != 'pytouhou.formats.animation':
                 continue
             else:
                 compile_args = package_args

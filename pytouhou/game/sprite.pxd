@@ -1,5 +1,5 @@
 from pytouhou.utils.interpolator cimport Interpolator
-from pytouhou.formats.anm0 cimport ANM
+from pytouhou.formats.animation cimport Animation
 
 cdef class Sprite:
     cdef public long blendfunc, frame
@@ -10,7 +10,7 @@ cdef class Sprite:
     cdef public Interpolator scale_interpolator, fade_interpolator
     cdef public Interpolator offset_interpolator, rotation_interpolator
     cdef public Interpolator color_interpolator
-    cdef public ANM anm
+    cdef public Animation anm
 
     cdef void *_rendering_data
 

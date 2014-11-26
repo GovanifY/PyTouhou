@@ -1,4 +1,4 @@
-cdef class ANM:
+cdef class Animation:
     cdef public long version
     cdef public unicode first_name, secondary_name
     cdef public dict sprites, scripts

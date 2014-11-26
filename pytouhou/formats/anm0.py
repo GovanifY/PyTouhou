@@ -24,6 +24,7 @@ from struct import pack, unpack
 from pytouhou.utils.helpers import read_string, get_logger
 
 from pytouhou.formats import WrongFormatError
+from pytouhou.formats.animation import Animation
 from pytouhou.formats.thtx import Texture
 
 
@@ -39,23 +40,7 @@ class Script(list):
 
 
 
-cdef class ANM:
-    def __init__(self):
-        self.version = 0
-        self.size_inv[:] = [0, 0]
-        self.first_name = None
-        self.secondary_name = None
-        self.sprites = {}
-        self.scripts = {}
-
-    property size:
-        def __set__(self, tuple value):
-            width, height = value
-            self.size_inv[:] = [1. / <double>width, 1. / <double>height]
-
-
-
-class ANM0(object):
+class ANM0(Animation):
     _instructions = {0: {0: ('', 'delete'),
                          1: ('I', 'set_sprite'),
                          2: ('ff', 'set_scale'),
@@ -163,7 +148,7 @@ class ANM0(object):
             sprite_offsets = [unpack('<I', file.read(4))[0] for i in range(nb_sprites)]
             script_offsets = [unpack('<II', file.read(8)) for i in range(nb_scripts)]
 
-            self = ANM()
+            self = cls()
 
             self.size = (width, height)
             self.version = version
