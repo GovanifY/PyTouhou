@@ -25,7 +25,7 @@ from pytouhou.lib.opengl cimport \
           GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_TEXTURE_2D, glGenBuffers,
           glDeleteBuffers, GLuint, glDeleteTextures, glGenVertexArrays,
           glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup, glDrawArrays)
 
 from pytouhou.lib.sdl import SDLError
 
@@ -161,7 +161,13 @@ cdef class Renderer:
             self.vertex_buffer[nb_vertices+3] = Vertex(x3 + ox, y3 + oy, z3, 0, data.right, data.top, r, g, b, a)
 
             # Add indices
-            if use_primitive_restart:
+            if is_legacy:
+                rec[next_indice] = nb_vertices
+                rec[next_indice+1] = nb_vertices + 1
+                rec[next_indice+2] = nb_vertices + 3
+                rec[next_indice+3] = nb_vertices + 2
+                self.last_indices[key] += 4
+            elif use_primitive_restart:
                 rec[next_indice] = nb_vertices
                 rec[next_indice+1] = nb_vertices + 1
                 rec[next_indice+2] = nb_vertices + 2
@@ -230,10 +236,12 @@ cdef class Renderer:
         # There is nothing that batch more than two quads on the same texture, currently.
         cdef Vertex buf[8]
         cdef unsigned short indices[12]
-        if use_primitive_restart:
-            indices[:] = [0, 1, 2, 3, 0xffff, 4, 5, 6, 7, 0, 0, 0]
-        else:
-            indices[:] = [0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4]
+
+        if not is_legacy:
+            if use_primitive_restart:
+                indices[:] = [0, 1, 2, 3, 0xffff, 4, 5, 6, 7, 0, 0, 0]
+            else:
+                indices[:] = [0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4]
 
         length = len(rects)
         assert length == len(colors)
@@ -263,10 +271,14 @@ cdef class Renderer:
             else:
                 self.set_state()
 
-        nb_indices = 5 * length - 1 if use_primitive_restart else 6 * length
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)
-        glDrawElements(primitive_mode, nb_indices, GL_UNSIGNED_SHORT, indices)
+
+        if is_legacy:
+            glDrawArrays(primitive_mode, 0, 4 * length)
+        else:
+            nb_indices = 5 * length - 1 if use_primitive_restart else 6 * length
+            glDrawElements(primitive_mode, nb_indices, GL_UNSIGNED_SHORT, indices)
 
         if use_debug_group:
             glPopDebugGroup()

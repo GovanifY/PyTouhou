@@ -9,7 +9,7 @@ from pytouhou.lib.opengl cimport \
           glPushDebugGroup, GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup,
           epoxy_gl_version, epoxy_is_desktop_gl, epoxy_has_gl_extension,
           GL_PRIMITIVE_RESTART, glPrimitiveRestartIndex, glPixelStorei,
-          GL_PACK_INVERT_MESA, GL_TRIANGLE_STRIP, GL_TRIANGLES)
+          GL_PACK_INVERT_MESA, GL_QUADS, GL_TRIANGLE_STRIP, GL_TRIANGLES)
 
 
 GameRenderer = None
@@ -65,7 +65,9 @@ cdef void discover_features() except *:
     use_pack_invert = epoxy_has_gl_extension('GL_MESA_pack_invert')
     use_scaled_rendering = not is_legacy  #TODO: try to use the EXT framebuffer extension.
 
-    primitive_mode = GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES
+    primitive_mode = (GL_QUADS if is_legacy else
+                      GL_TRIANGLE_STRIP if use_primitive_restart else
+                      GL_TRIANGLES)
 
     if not is_legacy:
         if is_desktop:

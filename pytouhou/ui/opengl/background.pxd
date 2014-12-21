@@ -16,7 +16,7 @@ cdef class BackgroundRenderer:
 
     # For fixed pipeline.
     cdef Vertex *vertex_buffer
-    cdef GLushort *indices
+    cdef GLushort nb_vertices
 
     cdef void set_state(self) nogil
     cdef void render_background(self) nogil

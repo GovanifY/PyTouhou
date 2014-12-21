@@ -23,7 +23,7 @@ from pytouhou.lib.opengl cimport \
           glDisable, GL_DEPTH_TEST, glDrawElements, GL_UNSIGNED_SHORT,
           GL_ELEMENT_ARRAY_BUFFER, glDeleteBuffers, glGenVertexArrays,
           glDeleteVertexArrays, glBindVertexArray, glPushDebugGroup,
-          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup)
+          GL_DEBUG_SOURCE_APPLICATION, glPopDebugGroup, glDrawArrays)
 
 from .sprite cimport get_sprite_rendering_data
 from .backend cimport primitive_mode, is_legacy, use_debug_group, use_vao, use_primitive_restart
@@ -34,8 +34,6 @@ cdef class BackgroundRenderer:
         if is_legacy:
             if self.vertex_buffer != NULL:
                 free(self.vertex_buffer)
-            if self.indices != NULL:
-                free(self.indices)
         else:
             glDeleteBuffers(1, &self.vbo)
             glDeleteBuffers(1, &self.ibo)
@@ -80,12 +78,10 @@ cdef class BackgroundRenderer:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background drawing")
 
         if is_legacy:
-            indices = self.indices
             glVertexPointer(3, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].x)
             glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &self.vertex_buffer[0].u)
             glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &self.vertex_buffer[0].r)
         else:
-            indices = NULL
             if use_vao:
                 glBindVertexArray(self.vao)
             else:
@@ -94,7 +90,10 @@ cdef class BackgroundRenderer:
         glEnable(GL_DEPTH_TEST)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, self.texture)
-        glDrawElements(primitive_mode, self.nb_indices, GL_UNSIGNED_SHORT, indices)
+        if is_legacy:
+            glDrawArrays(primitive_mode, 0, self.nb_vertices)
+        else:
+            glDrawElements(primitive_mode, self.nb_indices, GL_UNSIGNED_SHORT, NULL)
         glDisable(GL_DEPTH_TEST)
 
         if not is_legacy:
@@ -113,7 +112,9 @@ cdef class BackgroundRenderer:
         cdef GLsizei nb_vertices = 0, nb_indices = 0
 
         vertex_buffer = <Vertex*> malloc(65536 * sizeof(Vertex))
-        indices = <GLushort*> malloc(65536 * sizeof(GLushort))
+
+        if not is_legacy:
+            indices = <GLushort*> malloc(65536 * sizeof(GLushort))
 
         for ox, oy, oz, model_id, model in background.object_instances:
             for ox2, oy2, oz2, width_override, height_override, sprite in model:
@@ -127,37 +128,38 @@ cdef class BackgroundRenderer:
                 # Pack data
                 vertex_buffer[nb_vertices] = Vertex(x1 + ox + ox2, y1 + oy + oy2, z1 + oz + oz2, data.left, data.bottom, r, g, b, a)
                 vertex_buffer[nb_vertices+1] = Vertex(x2 + ox + ox2, y2 + oy + oy2, z2 + oz + oz2, data.right, data.bottom, r, g, b, a)
-                vertex_buffer[nb_vertices+2] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, data.left, data.top, r, g, b, a)
-                vertex_buffer[nb_vertices+3] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, data.right, data.top, r, g, b, a)
+                vertex_buffer[nb_vertices+2] = Vertex(x3 + ox + ox2, y3 + oy + oy2, z3 + oz + oz2, data.right, data.top, r, g, b, a)
+                vertex_buffer[nb_vertices+3] = Vertex(x4 + ox + ox2, y4 + oy + oy2, z4 + oz + oz2, data.left, data.top, r, g, b, a)
 
-                # Add indices
-                if use_primitive_restart:
-                    indices[nb_indices] = nb_vertices
-                    indices[nb_indices+1] = nb_vertices + 1
-                    indices[nb_indices+2] = nb_vertices + 2
-                    indices[nb_indices+3] = nb_vertices + 3
-                    indices[nb_indices+4] = 0xFFFF
-                else:
-                    indices[nb_indices] = nb_vertices
-                    indices[nb_indices+1] = nb_vertices + 1
-                    indices[nb_indices+2] = nb_vertices + 2
-                    indices[nb_indices+3] = nb_vertices + 1
-                    indices[nb_indices+4] = nb_vertices + 2
-                    indices[nb_indices+5] = nb_vertices + 3
+                if not is_legacy:
+                    # Add indices
+                    if use_primitive_restart:
+                        indices[nb_indices] = nb_vertices
+                        indices[nb_indices+1] = nb_vertices + 1
+                        indices[nb_indices+2] = nb_vertices + 3
+                        indices[nb_indices+3] = nb_vertices + 2
+                        indices[nb_indices+4] = 0xFFFF
+                    else:
+                        indices[nb_indices] = nb_vertices
+                        indices[nb_indices+1] = nb_vertices + 1
+                        indices[nb_indices+2] = nb_vertices + 3
+                        indices[nb_indices+3] = nb_vertices + 1
+                        indices[nb_indices+4] = nb_vertices + 2
+                        indices[nb_indices+5] = nb_vertices + 3
+
+                    nb_indices += 5 if use_primitive_restart else 6
 
                 nb_vertices += 4
-                nb_indices += 5 if use_primitive_restart else 6
+
+        self.texture = textures[key >> 1]
 
         # We only need to keep the rendered vertices and indices in memory,
         # either in RAM or in VRAM, they will never change until we implement
         # background animation.
 
-        self.texture = textures[key >> 1]
-        self.nb_indices = nb_indices
-
         if is_legacy:
             self.vertex_buffer = <Vertex*> realloc(vertex_buffer, nb_vertices * sizeof(Vertex))
-            self.indices = <GLushort*> realloc(indices, nb_indices * sizeof(GLushort))
+            self.nb_vertices = nb_vertices
         else:
             if use_debug_group:
                 glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Background uploading")
@@ -169,6 +171,8 @@ cdef class BackgroundRenderer:
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ibo)
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLushort), indices, GL_STATIC_DRAW)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+            self.nb_indices = nb_indices
 
             if use_debug_group:
                 glPopDebugGroup()

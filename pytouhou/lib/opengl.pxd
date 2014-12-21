@@ -82,6 +82,7 @@ cdef extern from 'epoxy/gl.h' nogil:
         GL_NICEST
 
     ctypedef enum GLenum_mode 'GLenum':
+        GL_QUADS
         GL_TRIANGLES
         GL_TRIANGLE_STRIP
 
