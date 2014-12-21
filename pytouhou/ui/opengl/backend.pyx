@@ -49,20 +49,21 @@ def init(options):
 cdef void discover_features() except *:
     '''Discover which features are supported by our context.'''
 
-    global use_debug_group, use_vao, use_primitive_restart, use_framebuffer_blit, use_pack_invert
+    global use_debug_group, use_vao, use_primitive_restart, use_framebuffer_blit, use_pack_invert, use_scaled_rendering
     global primitive_mode
     global shader_header
     global is_legacy
 
     version = epoxy_gl_version()
     is_desktop = epoxy_is_desktop_gl()
-    is_legacy = is_desktop and version < 20
+    is_legacy = is_legacy or (is_desktop and version < 20)
 
     use_debug_group = (is_desktop and version >= 43) or epoxy_has_gl_extension('GL_KHR_debug')
     use_vao = (is_desktop and version >= 30) or epoxy_has_gl_extension('GL_ARB_vertex_array_object')
     use_primitive_restart = (is_desktop and version >= 31)
     use_framebuffer_blit = (is_desktop and version >= 30)
     use_pack_invert = epoxy_has_gl_extension('GL_MESA_pack_invert')
+    use_scaled_rendering = not is_legacy  #TODO: try to use the EXT framebuffer extension.
 
     primitive_mode = GL_TRIANGLE_STRIP if use_primitive_restart else GL_TRIANGLES
 
@@ -96,6 +97,8 @@ def create_window(title, x, y, width, height, swap_interval):
         sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, double_buffer)
 
     flags = sdl.WINDOW_SHOWN | sdl.WINDOW_OPENGL
+
+    # Legacy contexts don’t support our required extensions for scaling.
     if not is_legacy:
         flags |= sdl.WINDOW_RESIZABLE
 
@@ -104,9 +107,9 @@ def create_window(title, x, y, width, height, swap_interval):
 
     discover_features()
 
-    #TODO: legacy could support one of the framebuffer extensions for resize,
-    # but for now set the window to a fixed size.
-    if is_legacy and flags & sdl.WINDOW_RESIZABLE:
+    # If we can’t use scaling but have previously created a resizable window,
+    # recreate it unresizable.
+    if not use_scaled_rendering and flags & sdl.WINDOW_RESIZABLE:
         flags &= ~sdl.WINDOW_RESIZABLE
         window = Window(title, x, y, width, height, flags)
         window.gl_create_context()

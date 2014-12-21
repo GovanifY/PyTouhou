@@ -28,9 +28,9 @@ from pytouhou.utils.matrix cimport mul, new_identity
 from pytouhou.utils.maths cimport perspective, setup_camera, ortho_2d
 from pytouhou.game.text cimport NativeText, GlyphCollection
 from pytouhou.ui.window cimport Window
-from .shaders.eosd import GameShader, BackgroundShader, PassthroughShader
+from .shaders.eosd import GameShader, BackgroundShader
 from .renderer cimport Texture
-from .backend cimport is_legacy, use_debug_group, use_pack_invert
+from .backend cimport is_legacy, use_debug_group, use_pack_invert, use_scaled_rendering
 
 from collections import namedtuple
 Rect = namedtuple('Rect', 'x y w h')
@@ -45,8 +45,8 @@ cdef class GameRenderer(Renderer):
             self.game_shader = GameShader()
             self.background_shader = BackgroundShader()
             self.interface_shader = self.game_shader
-            self.passthrough_shader = PassthroughShader()
 
+        if use_scaled_rendering:
             self.framebuffer = Framebuffer(0, 0, window.width, window.height)
 
 
@@ -88,23 +88,15 @@ cdef class GameRenderer(Renderer):
 
 
     def render(self, Game game):
-        if not is_legacy:
+        if use_scaled_rendering:
             self.framebuffer.bind()
 
         self.render_game(game)
         self.render_text(game.texts)
         self.render_interface(game.interface, game.boss)
 
-        if not is_legacy:
-            if use_debug_group:
-                glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Scaled rendering")
-
-            self.passthrough_shader.bind()
-            self.passthrough_shader.uniform_matrix('mvp', self.interface_mvp)
+        if use_scaled_rendering:
             self.framebuffer.render(self.x, self.y, self.width, self.height)
-
-            if use_debug_group:
-                glPopDebugGroup()
 
 
     def capture(self, filename, int width, int height):

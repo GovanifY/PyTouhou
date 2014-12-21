@@ -12,6 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
+from libc.stdlib cimport free
+
 from pytouhou.lib.opengl cimport \
          (glPushDebugGroup, glPopDebugGroup, GL_DEBUG_SOURCE_APPLICATION,
           glGenTextures, glDeleteTextures, glBindTexture, glTexParameteri,
@@ -30,6 +32,9 @@ from pytouhou.lib.opengl cimport \
           glBlitFramebuffer, GL_READ_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
           GL_DEPTH_BUFFER_BIT, glViewport, glBlendFunc, GL_ONE, GL_ZERO)
 
+from pytouhou.utils.maths cimport ortho_2d
+
+from .shaders.eosd import PassthroughShader
 from .backend cimport use_debug_group, use_vao, use_framebuffer_blit
 
 cdef class Framebuffer:
@@ -77,13 +82,17 @@ cdef class Framebuffer:
             glBufferData(GL_ARRAY_BUFFER, sizeof(self.buf), self.buf, GL_STATIC_DRAW)
 
             # As a performance optimisation, if supported, store the rendering state into a vao.
-            if use_vao and not use_framebuffer_blit:
+            if use_vao:
                 glGenVertexArrays(1, &self.vao)
                 glBindVertexArray(self.vao)
                 self.set_state()
                 glBindVertexArray(0)
 
             glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+            # And finally the shader we’ll use to display everything.
+            self.shader = PassthroughShader()
+            self.mvp = ortho_2d(0., float(width), float(height), 0.)
         else:
             self.x = x
             self.y = y
@@ -98,6 +107,8 @@ cdef class Framebuffer:
             glDeleteBuffers(1, &self.vbo)
             if use_vao:
                 glDeleteVertexArrays(1, &self.vao)
+            if self.mvp != NULL:
+                free(self.mvp)
         glDeleteTextures(1, &self.texture)
         glDeleteRenderbuffers(1, &self.rbo)
         glDeleteFramebuffers(1, &self.fbo)
@@ -114,7 +125,7 @@ cdef class Framebuffer:
         glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
         glEnableVertexAttribArray(1)
 
-    cdef void render(self, int x, int y, int width, int height) nogil:
+    cdef void render(self, int x, int y, int width, int height) except *:
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
 
@@ -127,6 +138,9 @@ cdef class Framebuffer:
                               x, y, x + width, y + height,
                               GL_COLOR_BUFFER_BIT, GL_LINEAR)
         else:
+            self.shader.bind()
+            self.shader.uniform_matrix('mvp', self.mvp)
+
             glViewport(x, y, width, height)
             glBlendFunc(GL_ONE, GL_ZERO)
 

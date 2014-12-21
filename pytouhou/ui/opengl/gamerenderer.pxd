@@ -9,7 +9,7 @@ cdef class GameRenderer(Renderer):
     cdef Matrix *game_mvp
     cdef Matrix *interface_mvp
     cdef Matrix *proj
-    cdef Shader game_shader, background_shader, interface_shader, passthrough_shader
+    cdef Shader game_shader, background_shader, interface_shader
     cdef Framebuffer framebuffer
     cdef BackgroundRenderer background_renderer
     cdef object background
