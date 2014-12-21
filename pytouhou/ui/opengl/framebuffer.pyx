@@ -27,7 +27,7 @@ from pytouhou.lib.opengl cimport \
           GL_STATIC_DRAW, glGenVertexArrays, glDeleteVertexArrays,
           glBindVertexArray, glVertexAttribPointer, GL_SHORT, GL_FLOAT,
           glEnableVertexAttribArray, glDrawArrays, GL_TRIANGLE_STRIP,
-          glBlitFramebuffer, GL_DRAW_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
+          glBlitFramebuffer, GL_READ_FRAMEBUFFER, glClear, GL_COLOR_BUFFER_BIT,
           GL_DEPTH_BUFFER_BIT, glViewport, glBlendFunc, GL_ONE, GL_ZERO)
 
 from .backend cimport use_debug_group, use_vao, use_framebuffer_blit
@@ -118,10 +118,11 @@ cdef class Framebuffer:
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glClear(GL_COLOR_BUFFER_BIT)
 
         if use_framebuffer_blit:
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, self.fbo)
             glBlitFramebuffer(self.x, self.y, self.width, self.height,
                               x, y, x + width, y + height,
                               GL_COLOR_BUFFER_BIT, GL_LINEAR)

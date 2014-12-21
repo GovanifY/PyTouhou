@@ -104,7 +104,7 @@ cdef extern from 'epoxy/gl.h' nogil:
 
     ctypedef enum GLenum_framebuffer 'GLenum':
         GL_FRAMEBUFFER
-        GL_DRAW_FRAMEBUFFER
+        GL_READ_FRAMEBUFFER
 
     ctypedef enum GLenum_renderbuffer 'GLenum':
         GL_RENDERBUFFER
