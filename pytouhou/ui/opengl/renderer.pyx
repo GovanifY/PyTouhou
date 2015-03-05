@@ -90,6 +90,7 @@ cdef class Renderer:
 
             if use_vao:
                 glDeleteVertexArrays(1, &self.vao)
+                glDeleteVertexArrays(1, &self.text_vao)
 
 
     def __init__(self, resource_loader):
@@ -106,11 +107,16 @@ cdef class Renderer:
                 glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Renderer creation")
 
             glGenBuffers(1, &self.vbo)
+            glGenBuffers(1, &self.text_vbo)
 
             if use_vao:
                 glGenVertexArrays(1, &self.vao)
                 glBindVertexArray(self.vao)
                 self.set_state()
+
+                glGenVertexArrays(1, &self.text_vao)
+                glBindVertexArray(self.text_vao)
+                self.set_text_state()
 
             if use_debug_group:
                 glPopDebugGroup()
@@ -125,6 +131,20 @@ cdef class Renderer:
         glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>8)
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>16)
+        glEnableVertexAttribArray(2)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+
+    cdef void set_text_state(self) nogil:
+        glBindBuffer(GL_ARRAY_BUFFER, self.text_vbo)
+
+        #TODO: find a way to use offsetof() instead of those ugly substractions.
+        glVertexAttribPointer(0, 2, GL_SHORT, False, sizeof(Vertex), <void*>0)
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(Vertex), <void*>4)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, True, sizeof(Vertex), <void*>12)
         glEnableVertexAttribArray(2)
 
         glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -234,7 +254,7 @@ cdef class Renderer:
 
     cdef bint render_quads(self, rects, colors, GLuint texture) except True:
         # There is nothing that batch more than two quads on the same texture, currently.
-        cdef Vertex buf[8]
+        cdef TextVertex buf[8]
         cdef unsigned short indices[12]
 
         if not is_legacy:
@@ -249,27 +269,27 @@ cdef class Renderer:
         for i, r in enumerate(rects):
             c1, c2, c3, c4 = colors[i]
 
-            buf[4*i] = Vertex(r.x, r.y, 0, 0, 0, 0, c1.r, c1.g, c1.b, c1.a)
-            buf[4*i+1] = Vertex(r.x + r.w, r.y, 0, 0, 1, 0, c2.r, c2.g, c2.b, c2.a)
-            buf[4*i+2] = Vertex(r.x + r.w, r.y + r.h, 0, 0, 1, 1, c3.r, c3.g, c3.b, c3.a)
-            buf[4*i+3] = Vertex(r.x, r.y + r.h, 0, 0, 0, 1, c4.r, c4.g, c4.b, c4.a)
+            buf[4*i] = TextVertex(r.x, r.y, 0, 0, c1.r, c1.g, c1.b, c1.a)
+            buf[4*i+1] = TextVertex(r.x + r.w, r.y, 1, 0, c2.r, c2.g, c2.b, c2.a)
+            buf[4*i+2] = TextVertex(r.x + r.w, r.y + r.h, 1, 1, c3.r, c3.g, c3.b, c3.a)
+            buf[4*i+3] = TextVertex(r.x, r.y + r.h, 0, 1, c4.r, c4.g, c4.b, c4.a)
 
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Quads drawing")
 
         if is_legacy:
-            glVertexPointer(3, GL_SHORT, sizeof(Vertex), &buf[0].x)
-            glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), &buf[0].u)
-            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), &buf[0].r)
+            glVertexPointer(2, GL_SHORT, sizeof(TextVertex), &buf[0].x)
+            glTexCoordPointer(2, GL_FLOAT, sizeof(TextVertex), &buf[0].u)
+            glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(TextVertex), &buf[0].r)
         else:
-            glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-            glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(Vertex), buf, GL_DYNAMIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, self.text_vbo)
+            glBufferData(GL_ARRAY_BUFFER, 4 * length * sizeof(TextVertex), buf, GL_DYNAMIC_DRAW)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
 
             if use_vao:
-                glBindVertexArray(self.vao)
+                glBindVertexArray(self.text_vao)
             else:
-                self.set_state()
+                self.set_text_state()
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glBindTexture(GL_TEXTURE_2D, texture)

@@ -9,6 +9,12 @@ cdef struct Vertex:
     unsigned char r, g, b, a
 
 
+cdef struct TextVertex:
+    short x, y
+    float u, v
+    unsigned char r, g, b, a
+
+
 cdef class Texture:
     cdef long key
     cdef GLuint texture
@@ -26,8 +32,8 @@ cdef class Renderer:
     cdef long x, y, width, height
 
     # For modern GL.
-    cdef GLuint vbo
-    cdef GLuint vao
+    cdef GLuint vbo, text_vbo
+    cdef GLuint vao, text_vao
 
     cdef GLuint textures[MAX_TEXTURES]
     cdef unsigned short *indices[MAX_TEXTURES][2]
@@ -35,5 +41,6 @@ cdef class Renderer:
     cdef PyObject *elements[640*3]
 
     cdef void set_state(self) nogil
+    cdef void set_text_state(self) nogil
     cdef bint render_elements(self, elements) except True
     cdef bint render_quads(self, rects, colors, GLuint texture) except True
