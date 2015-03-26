@@ -94,6 +94,9 @@ def create_window(title, x, y, width, height, swap_interval):
     sdl.gl_set_attribute(sdl.GL_CONTEXT_PROFILE_MASK, profile)
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, major)
     sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, minor)
+    sdl.gl_set_attribute(sdl.GL_RED_SIZE, 8)
+    sdl.gl_set_attribute(sdl.GL_GREEN_SIZE, 8)
+    sdl.gl_set_attribute(sdl.GL_BLUE_SIZE, 8)
     sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24 if is_legacy else 0)
     if double_buffer >= 0:
         sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, double_buffer)

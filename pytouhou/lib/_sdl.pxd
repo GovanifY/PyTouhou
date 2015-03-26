@@ -38,6 +38,9 @@ cdef extern from "SDL_video.h" nogil:
         SDL_GL_CONTEXT_MINOR_VERSION
         SDL_GL_CONTEXT_PROFILE_MASK
         SDL_GL_DOUBLEBUFFER
+        SDL_GL_RED_SIZE
+        SDL_GL_GREEN_SIZE
+        SDL_GL_BLUE_SIZE
         SDL_GL_DEPTH_SIZE
 
     ctypedef enum SDL_GLprofile:
