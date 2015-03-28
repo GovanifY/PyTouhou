@@ -21,7 +21,7 @@ from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
 
-class GameRenderer(object):
+class GameRenderer:
     def __init__(self, resource_loader, window):
         self.window = window
         self.texture_manager = TextureManager(resource_loader, self.window.win)

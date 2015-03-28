@@ -27,7 +27,7 @@ from pytouhou.utils.helpers import read_string, get_logger
 logger = get_logger(__name__)
 
 
-class Model(object):
+class Model:
     def __init__(self, unknown=0, bounding_box=None, quads=None):
         self.unknown = 0
         self.bounding_box = bounding_box or (0., 0., 0.,
@@ -36,7 +36,7 @@ class Model(object):
 
 
 
-class Stage(object):
+class Stage:
     """Handle Touhou 6 Stage Definition files.
 
     Stage Definition files are structured files describing non-gameplay aspects

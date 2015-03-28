@@ -26,7 +26,7 @@ from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
 
-class ECL(object):
+class ECL:
     """Handle Touhou 6 ECL files.
 
     ECL files are binary script files used to describe the behavior of enemies.

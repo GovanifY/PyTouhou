@@ -19,7 +19,7 @@ from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
 
-class Shot(object):
+class Shot:
     def __init__(self):
         self.interval = 0
         self.delay = 0
@@ -38,7 +38,7 @@ class Shot(object):
         self.unknown5 = None
 
 
-class SHT(object):
+class SHT:
     def __init__(self):
         self.unknown1 = None
         self.bombs = 0.

@@ -30,7 +30,7 @@ from pytouhou.formats import ChecksumError
 logger = get_logger(__name__)
 
 
-class Level(object):
+class Level:
     def __init__(self):
         self.score = 0
         self.random_seed = 0
@@ -55,7 +55,7 @@ class Level(object):
 
 
 
-class T6RP(object):
+class T6RP:
     def __init__(self):
         self.version = 0x102
         self.character = 0

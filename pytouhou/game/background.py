@@ -18,7 +18,7 @@ from pytouhou.vm import ANMRunner
 from pytouhou.game.sprite import Sprite
 
 
-class Background(object):
+class Background:
     def __init__(self, stage, anm):
         self.stage = stage
         self.anm = anm

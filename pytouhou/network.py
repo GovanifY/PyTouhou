@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 MSG_STRUCT = Struct('!HHH')
 
-class Network(object):
+class Network:
     def __init__(self, port=8080, dest=None, selected_player=0):
         self.frame = 0
         self.keystate = 0

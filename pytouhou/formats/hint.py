@@ -27,7 +27,7 @@ class Stage(list):
         self.number = number
 
 
-class Hint(object):
+class Hint:
     _fields = {'Stage': int,
                'Tips': None,
                'Remain': int,

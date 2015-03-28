@@ -69,7 +69,7 @@ PBG3Entry = namedtuple('PBG3Entry', 'unknown1 unknown2 checksum offset size')
 
 
 
-class PBG3(object):
+class PBG3:
     """Handle PBG3 archive files.
 
     PBG3 is a file archive format used in Touhou 6: EoSD.

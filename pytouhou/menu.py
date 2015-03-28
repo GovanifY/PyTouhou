@@ -24,7 +24,7 @@ import re
 GL_VERSION_REGEX = re.compile(r'^\d\.\d$')
 
 
-class Handler(object):
+class Handler:
     def __init__(self, config, args):
         self.config = config
         self.args = args

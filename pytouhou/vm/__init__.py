@@ -3,7 +3,7 @@ from .msgrunner import MSGRunner
 from .eclrunner import ECLMainRunner
 
 
-class PythonMainRunner(object):
+class PythonMainRunner:
     def __init__(self, main, game):
         self.main = main
         self.game = game
@@ -12,7 +12,7 @@ class PythonMainRunner(object):
         self.main(self.game)
 
 
-class EnemyRunner(object):
+class EnemyRunner:
     def __init__(self, enemy, game, sub):
         self.enemy = enemy
         self.game = game

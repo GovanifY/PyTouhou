@@ -18,7 +18,7 @@ from configparser import RawConfigParser, NoOptionError
 from pytouhou.utils.xdg import load_config_paths, save_config_path
 
 
-class Options(object):
+class Options:
     def __init__(self, name, defaults):
         load_paths = list(reversed([os.path.join(directory, '%s.cfg' % name)
                                     for directory

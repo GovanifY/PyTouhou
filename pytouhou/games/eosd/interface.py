@@ -16,7 +16,7 @@ from pytouhou.game.effect import Effect
 from pytouhou.game.text import Text, Counter, Gauge, NativeText
 
 
-class Interface(object):
+class Interface:
     width = 640
     height = 480
     game_pos = (32, 16)

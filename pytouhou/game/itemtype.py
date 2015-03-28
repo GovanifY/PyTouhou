@@ -1,4 +1,4 @@
-class ItemType(object):
+class ItemType:
     def __init__(self, anm, sprite_index, indicator_sprite_index):
         self.anm = anm
         self.sprite = Sprite()

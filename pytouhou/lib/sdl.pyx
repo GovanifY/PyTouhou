@@ -59,7 +59,7 @@ class SDLError(Exception):
         Exception.__init__(self, error.decode())
 
 
-class SDL(object):
+class SDL:
     def __init__(self, sound=True):
         self.sound = sound
 

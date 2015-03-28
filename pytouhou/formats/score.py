@@ -20,7 +20,7 @@ from io import BytesIO
 from pytouhou.formats import ChecksumError
 
 
-class TH6Score(object):
+class TH6Score:
     entry_types = {
         b'TH6K': (Struct('<I'),
                   namedtuple('TH6K', ('unknown',))),

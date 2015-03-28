@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-class Element(object):
+class Element:
     def __init__(self, pos=None):
         self.sprite = None
         self.anmrunner = None

@@ -16,7 +16,7 @@
 from struct import unpack
 
 
-class Track(object):
+class Track:
     def __init__(self):
         self.name = ''
 

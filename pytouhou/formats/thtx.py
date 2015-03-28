@@ -13,7 +13,7 @@
 ##
 
 
-class Texture(object):
+class Texture:
     def __init__(self, width, height, fmt, data):
         self.width = width
         self.height = height

@@ -1,4 +1,4 @@
-class BulletType(object):
+class BulletType:
     def __init__(self, anm, anim_index, cancel_anim_index,
                  launch_anim2_index, launch_anim4_index, launch_anim8_index,
                  hitbox_size,

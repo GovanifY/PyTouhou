@@ -84,7 +84,7 @@ class PEStructs:
 
 
 
-class PEFile(object):
+class PEFile:
     def __init__(self, file):
         self.file = file
 

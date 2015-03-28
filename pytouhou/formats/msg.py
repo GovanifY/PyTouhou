@@ -18,7 +18,7 @@ from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
 
-class MSG(object):
+class MSG:
     _instructions = {0: ('', None),
                      1: ('hh', None),
                      2: ('hh', 'change_face'),

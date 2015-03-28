@@ -1,4 +1,4 @@
-class MusicPlayer(object):
+class MusicPlayer:
     def play(self, name):
         pass
 

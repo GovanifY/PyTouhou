@@ -26,7 +26,7 @@ from pytouhou.vm import PythonMainRunner
 from . import enemies, shots
 
 
-class Common(object):
+class Common:
     default_power = [0, 64, 128, 128, 128, 128, 0]
 
     def __init__(self, resource_loader, player_characters, continues, *,

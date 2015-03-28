@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 
 
 
-class Directory(object):
+class Directory:
     def __init__(self, path):
         self.path = path
 
@@ -59,7 +59,7 @@ class Directory(object):
 
 
 
-class ArchiveDescription(object):
+class ArchiveDescription:
     _formats = {b'PBG3': PBG3}
 
     def __init__(self, path, format_class, file_list=None):
@@ -93,7 +93,7 @@ class ArchiveDescription(object):
 
 
 
-class Loader(object):
+class Loader:
     def __init__(self, game_dir=None):
         self.exe_files = []
         self.game_dir = game_dir
