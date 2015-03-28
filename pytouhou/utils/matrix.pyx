@@ -36,18 +36,17 @@ cdef Matrix *new_identity() nogil:
 
 cdef void mul(Matrix *mat1, Matrix *mat2) nogil:
     cdef float *d3
+    cdef Matrix out
 
-    out = <Matrix*> malloc(sizeof(Matrix))
     d1 = <float*>mat1
     d2 = <float*>mat2
-    d3 = <float*>out
+    d3 = <float*>&out
     for i in range(4):
         for j in range(4):
             d3[4*i+j] = 0
             for k in range(4):
                 d3[4*i+j] += d1[4*i+k] * d2[4*k+j]
-    memcpy(mat1, out, sizeof(Matrix))
-    free(out)
+    memcpy(mat1, &out, sizeof(Matrix))
 
 
 cdef void flip(Matrix *mat) nogil:
