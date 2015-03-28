@@ -58,7 +58,7 @@ cdef class Shader:
         if use_debug_group:
             glPopDebugGroup()
 
-    cdef void create_shader(self, const GLchar *string, GLenum_shader shader_type) except *:
+    cdef bint create_shader(self, const GLchar *string, GLenum_shader shader_type) except True:
         cdef GLint temp
         cdef const GLchar *strings[2]
         strings[:] = [shader_header, string]
@@ -91,7 +91,7 @@ cdef class Shader:
             # all is well, so attach the shader to the program
             glAttachShader(self.handle, shader)
 
-    cdef void link(self) except *:
+    cdef bint link(self) except True:
         cdef GLint temp
 
         # link the program
@@ -132,11 +132,11 @@ cdef class Shader:
 
     # upload a floating point uniform
     # this program must be currently bound
-    cdef void uniform_1(self, name, GLfloat val) except *:
+    cdef bint uniform_1(self, name, GLfloat val) except True:
         glUniform1fv(self.get_uniform_location(name), 1, &val)
 
     # upload a vec4 uniform
-    cdef void uniform_4(self, name, GLfloat a, GLfloat b, GLfloat c, GLfloat d) except *:
+    cdef bint uniform_4(self, name, GLfloat a, GLfloat b, GLfloat c, GLfloat d) except True:
         cdef GLfloat vals[4]
         vals[0] = a
         vals[1] = b
@@ -147,7 +147,7 @@ cdef class Shader:
     # upload a uniform matrix
     # works with matrices stored as lists,
     # as well as euclid matrices
-    cdef void uniform_matrix(self, name, Matrix *mat) except *:
+    cdef bint uniform_matrix(self, name, Matrix *mat) except True:
         # obtain the uniform location
         loc = self.get_uniform_location(name)
         # uplaod the 4x4 floating point matrix

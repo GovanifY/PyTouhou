@@ -23,6 +23,6 @@ cdef class Item(Element):
     cdef Indicator indicator
     cdef Interpolator speed_interpolator, pos_interpolator
 
-    cdef void autocollect(self, Player player) except *
-    cdef void on_collect(self, Player player) except *
+    cdef bint autocollect(self, Player player) except True
+    cdef bint on_collect(self, Player player) except True
     cpdef update(self)

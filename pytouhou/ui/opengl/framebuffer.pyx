@@ -125,7 +125,7 @@ cdef class Framebuffer:
         glVertexAttribPointer(1, 2, GL_FLOAT, False, sizeof(PassthroughVertex), <void*>4)
         glEnableVertexAttribArray(1)
 
-    cdef void render(self, int x, int y, int width, int height) except *:
+    cdef bint render(self, int x, int y, int width, int height) except True:
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Framebuffer drawing")
 

@@ -20,4 +20,4 @@ cdef class BackgroundRenderer:
 
     cdef void set_state(self) nogil
     cdef void render_background(self) nogil
-    cdef void load(self, background, GLuint[MAX_TEXTURES] textures) except *
+    cdef bint load(self, background, GLuint[MAX_TEXTURES] textures) except True

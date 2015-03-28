@@ -107,7 +107,7 @@ cdef class BackgroundRenderer:
             glPopDebugGroup()
 
 
-    cdef void load(self, background, GLuint[MAX_TEXTURES] textures) except *:
+    cdef bint load(self, background, GLuint[MAX_TEXTURES] textures) except True:
         cdef float ox, oy, oz, ox2, oy2, oz2
         cdef GLsizei nb_vertices = 0, nb_indices = 0
 

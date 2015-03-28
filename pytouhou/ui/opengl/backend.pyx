@@ -46,7 +46,7 @@ def init(options):
     from pytouhou.ui.opengl.gamerenderer import GameRenderer
 
 
-cdef void discover_features() except *:
+cdef bint discover_features() except True:
     '''Discover which features are supported by our context.'''
 
     global use_debug_group, use_vao, use_primitive_restart, use_framebuffer_blit, use_pack_invert, use_scaled_rendering

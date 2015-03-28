@@ -76,7 +76,7 @@ cdef class GameRunner(Runner):
         game.sfx_player = SFXPlayer(self.resource_loader) if not self.skip else null_player
 
 
-    cdef void set_input(self, replay=None) except *:
+    cdef bint set_input(self, replay=None) except True:
         if not replay or not replay.levels[self.game.stage-1]:
             self.replay_level = None
         else:
@@ -85,7 +85,7 @@ cdef class GameRunner(Runner):
 
 
     @cython.cdivision(True)
-    cdef void set_renderer_size(self, long width, long height) except *:
+    cdef bint set_renderer_size(self, long width, long height) except True:
         if self.renderer is not None:
             runner_width = float(self.width)
             runner_height = float(self.height)
@@ -102,13 +102,13 @@ cdef class GameRunner(Runner):
             self.renderer.size = x, y, new_width, new_height
 
 
-    cdef void start(self) except *:
+    cdef bint start(self) except True:
         if self.renderer is not None:
             self.set_renderer_size(self.width, self.height)
             self.renderer.start(self.common)
 
 
-    cdef void capture(self) except *:
+    cdef bint capture(self) except True:
         if self.renderer is not None:
             filename = 'screenshot/frame%06d.ppm' % self.game.frame
             self.renderer.capture(filename, self.width, self.height)

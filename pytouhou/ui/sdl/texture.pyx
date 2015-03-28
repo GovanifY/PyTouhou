@@ -28,7 +28,7 @@ cdef class TextureManager:
         self.window = window
 
 
-    cdef void load(self, dict anms) except *:
+    cdef bint load(self, dict anms) except True:
         for anm in sorted(anms.values(), key=is_ascii):
             for entry in anm:
                 if entry.texture is None:
@@ -53,7 +53,7 @@ cdef class FontManager:
         self.window = window
 
 
-    cdef void load(self, dict labels) except *:
+    cdef bint load(self, dict labels) except True:
         cdef NativeText label
 
         for i, label in labels.items():

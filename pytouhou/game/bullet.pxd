@@ -24,7 +24,7 @@ cdef class Bullet(Element):
 
     cdef bint is_visible(self, unsigned int screen_width, unsigned int screen_height) nogil
     cpdef set_anim(self, sprite_idx_offset=*)
-    cdef void launch(self) except *
-    cdef void collide(self) except *
-    cdef void cancel(self) except *
-    cdef void update(self) except *
+    cdef bint launch(self) except True
+    cdef bint collide(self) except True
+    cdef bint cancel(self) except True
+    cdef bint update(self) except True

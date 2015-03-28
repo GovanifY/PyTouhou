@@ -119,14 +119,14 @@ cdef class Game:
             del self.texts['enemy_spellcard']
 
 
-    cdef void set_player_bomb(self) except *:
+    cdef bint set_player_bomb(self) except True:
         face = Effect((-32, -16), 1, self.msg_anm[0][0][0])
         face.sprite.allow_dest_offset = True
         self.effects.append(face)
         self.texts['player_spellcard'] = self.new_native_text((24, 24), u'Player Spellcard')
 
 
-    cdef void unset_player_bomb(self) except *:
+    cdef bint unset_player_bomb(self) except True:
         del self.texts['player_spellcard']
 
 
@@ -140,14 +140,14 @@ cdef class Game:
                                player=player))
 
 
-    cdef void autocollect(self, Player player) except *:
+    cdef bint autocollect(self, Player player) except True:
         cdef Item item
 
         for item in self.items:
             item.autocollect(player)
 
 
-    cdef void cancel_bullets(self) except *:
+    cdef bint cancel_bullets(self) except True:
         cdef Bullet bullet
         cdef Laser laser
 
@@ -156,7 +156,7 @@ cdef class Game:
         for laser in self.lasers:
             laser.cancel()
 
-    cdef void cancel_player_lasers(self) except *:
+    cdef bint cancel_player_lasers(self) except True:
         cdef PlayerLaser laser
         for laser in self.players_lasers:
             if laser is not None:
@@ -319,22 +319,22 @@ cdef class Game:
         self.frame += 1
 
 
-    cdef void update_background(self) except *:
+    cdef bint update_background(self) except True:
         if self.time_stop:
-            return
+            return False
         if self.spellcard_effect is not None:
             self.spellcard_effect.update()
         #TODO: update the actual background here?
 
 
-    cdef void update_enemies(self) except *:
+    cdef bint update_enemies(self) except True:
         cdef Enemy enemy
 
         for enemy in self.enemies:
             enemy.update()
 
 
-    cdef void update_msg(self, long keystate) except *:
+    cdef bint update_msg(self, long keystate) except True:
         cdef long k
 
         for k in (1, 256):
@@ -346,13 +346,13 @@ cdef class Game:
         self.msg_runner.run_iteration()
 
 
-    cdef void update_players(self, list keystates) except *:
+    cdef bint update_players(self, list keystates) except True:
         cdef Bullet bullet
         cdef Player player
         cdef long keystate
 
         if self.time_stop:
-            return
+            return False
 
         for bullet in self.players_bullets:
             bullet.update()
@@ -373,26 +373,26 @@ cdef class Game:
                         player.play_sound('extend')
 
 
-    cdef void update_effects(self) except *:
+    cdef bint update_effects(self) except True:
         cdef Element effect
 
         for effect in self.effects:
             effect.update()
 
 
-    cdef void update_hints(self) except *:
+    cdef bint update_hints(self) except True:
         for hint in self.hints:
             if hint['Count'] == self.frame and hint['Base'] == 'start':
                 self.new_hint(hint)
 
 
-    cdef void update_faces(self) except *:
+    cdef bint update_faces(self) except True:
         for face in self.faces:
             if face:
                 face.update()
 
 
-    cdef void update_bullets(self) except *:
+    cdef bint update_bullets(self) except True:
         cdef Player player
         cdef Bullet bullet
         cdef Item item
@@ -402,7 +402,7 @@ cdef class Game:
         cdef double player_pos[2]
 
         if self.time_stop:
-            return
+            return False
 
         for bullet in self.cancelled_bullets:
             bullet.update()

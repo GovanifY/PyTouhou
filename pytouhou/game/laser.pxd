@@ -23,7 +23,7 @@ cdef class Laser(Element):
     cdef State state
     cdef LaserType _laser_type
 
-    cdef void set_anim(self, long sprite_idx_offset=*) except *
+    cdef bint set_anim(self, long sprite_idx_offset=*) except True
     cpdef set_base_pos(self, double x, double y)
     cdef bint _check_collision(self, double point[2], double border_size)
     cdef bint check_collision(self, double point[2])
@@ -40,6 +40,6 @@ cdef class PlayerLaser(Element):
     cdef Element origin
     cdef LaserType _laser_type
 
-    cdef void set_anim(self, long sprite_idx_offset=*) except *
-    cdef void cancel(self) except *
-    cdef void update(self) except *
+    cdef bint set_anim(self, long sprite_idx_offset=*) except True
+    cdef bint cancel(self) except True
+    cdef bint update(self) except True

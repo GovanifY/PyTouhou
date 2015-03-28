@@ -41,14 +41,14 @@ cdef class Enemy(Element):
     cpdef Player select_player(self, list players=*)
     cpdef double get_angle(self, Element target, tuple pos=*) except 42
     cpdef set_anim(self, index)
-    cdef void die_anim(self) except *
-    cdef void drop_particles(self, long number, long color) except *
+    cdef bint die_anim(self) except True
+    cdef bint drop_particles(self, long number, long color) except True
     cpdef set_aux_anm(self, long number, long index)
     cpdef set_pos(self, double x, double y, double z)
     cpdef move_to(self, unsigned long duration, double x, double y, double z, formula)
     cpdef stop_in(self, unsigned long duration, formula)
     cpdef set_boss(self, bint enable)
     cdef bint is_visible(self, long screen_width, long screen_height) except -1
-    cdef void check_collisions(self) except *
-    cdef void handle_callbacks(self) except *
-    cdef void update(self) except *
+    cdef bint check_collisions(self) except True
+    cdef bint handle_callbacks(self) except True
+    cdef bint update(self) except True

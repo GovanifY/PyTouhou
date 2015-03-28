@@ -261,13 +261,13 @@ cdef class Enemy(Element):
         self.anmrunner = ANMRunner(self._anms[entry], index, self.sprite)
 
 
-    cdef void die_anim(self) except *:
+    cdef bint die_anim(self) except True:
         anim = {0: 3, 1: 4, 2: 5}[self.death_anim % 256] # The TB is wanted, if index isn’t in these values the original game crashs.
         self._game.new_effect((self.x, self.y), anim)
         self._game.sfx_player.play('enep00.wav')
 
 
-    cdef void drop_particles(self, long number, long color) except *:
+    cdef bint drop_particles(self, long number, long color) except True:
         if color == 0:
             if self._game.stage in [1, 2, 7]:
                 color = 3
@@ -338,7 +338,7 @@ cdef class Enemy(Element):
         return True
 
 
-    cdef void check_collisions(self) except *:
+    cdef bint check_collisions(self) except True:
         cdef Bullet bullet
         cdef Player player
         cdef PlayerLaser laser
@@ -426,7 +426,7 @@ cdef class Enemy(Element):
             self.life -= damages
 
 
-    cdef void handle_callbacks(self) except *:
+    cdef bint handle_callbacks(self) except True:
         #TODO: implement missing callbacks and clean up!
         if self.life <= 0 and self.touchable:
             self.timeout = -1 #TODO: not really true, the timeout is frozen
@@ -459,7 +459,7 @@ cdef class Enemy(Element):
 
                 if death_flags == 0:
                     self.removed = True
-                    return
+                    return False
 
                 if death_flags == 1:
                     if self.boss:
@@ -502,7 +502,7 @@ cdef class Enemy(Element):
                 raise Exception('What the hell, man!')
 
 
-    cdef void update(self) except *:
+    cdef bint update(self) except True:
         cdef double x, y, speed
 
         if self.process is not None:

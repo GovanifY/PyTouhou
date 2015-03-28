@@ -25,12 +25,12 @@ cdef class Game:
     cdef void modify_difficulty(self, long diff) nogil
     cpdef enable_spellcard_effect(self)
     cpdef disable_spellcard_effect(self)
-    cdef void set_player_bomb(self) except *
-    cdef void unset_player_bomb(self) except *
+    cdef bint set_player_bomb(self) except True
+    cdef bint unset_player_bomb(self) except True
     cpdef drop_bonus(self, double x, double y, long _type, end_pos=*, player=*)
-    cdef void autocollect(self, Player player) except *
-    cdef void cancel_bullets(self) except *
-    cdef void cancel_player_lasers(self) except *
+    cdef bint autocollect(self, Player player) except True
+    cdef bint cancel_bullets(self) except True
+    cdef bint cancel_player_lasers(self) except True
     cpdef change_bullets_into_star_items(self)
     cpdef change_bullets_into_bonus(self)
     cpdef kill_enemies(self)
@@ -43,12 +43,12 @@ cdef class Game:
     cpdef Text new_hint(self, hint)
     cpdef new_face(self, side, effect)
     cpdef run_iter(self, list keystates)
-    cdef void update_background(self) except *
-    cdef void update_enemies(self) except *
-    cdef void update_msg(self, long keystate) except *
-    cdef void update_players(self, list keystates) except *
-    cdef void update_effects(self) except *
-    cdef void update_hints(self) except *
-    cdef void update_faces(self) except *
-    cdef void update_bullets(self) except *
+    cdef bint update_background(self) except True
+    cdef bint update_enemies(self) except True
+    cdef bint update_msg(self, long keystate) except True
+    cdef bint update_players(self, list keystates) except True
+    cdef bint update_effects(self) except True
+    cdef bint update_hints(self) except True
+    cdef bint update_faces(self) except True
+    cdef bint update_bullets(self) except True
     cpdef cleanup(self)

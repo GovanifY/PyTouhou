@@ -16,8 +16,8 @@ cdef class Player(Element):
     cdef tuple speeds
     cdef long fire_time, bomb_time, direction
 
-    cdef void set_anim(self, index) except *
-    cdef void play_sound(self, str name) except *
-    cdef void collide(self) except *
-    cdef void fire(self) except *
+    cdef bint set_anim(self, index) except True
+    cdef bint play_sound(self, str name) except True
+    cdef bint collide(self) except True
+    cdef bint fire(self) except True
     cpdef update(self, long keystate)

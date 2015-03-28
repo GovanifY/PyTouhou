@@ -130,12 +130,12 @@ cdef class Renderer:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
 
-    cdef void render_elements(self, elements) except *:
+    cdef bint render_elements(self, elements) except True:
         cdef Element element
 
         nb_elements = find_objects(self, elements)
         if not nb_elements:
-            return
+            return False
 
         nb_vertices = 0
         memset(self.last_indices, 0, sizeof(self.last_indices))
@@ -232,7 +232,7 @@ cdef class Renderer:
             glPopDebugGroup()
 
 
-    cdef void render_quads(self, rects, colors, GLuint texture) except *:
+    cdef bint render_quads(self, rects, colors, GLuint texture) except True:
         # There is nothing that batch more than two quads on the same texture, currently.
         cdef Vertex buf[8]
         cdef unsigned short indices[12]

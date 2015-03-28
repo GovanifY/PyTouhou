@@ -93,7 +93,7 @@ cdef class Color:
 cdef class Surface:
     cdef SDL_Surface *surface
 
-    cdef void blit(self, Surface other) except *
+    cdef bint blit(self, Surface other) except True
     cdef void set_alpha(self, Surface alpha_surface) nogil
 
 
@@ -117,17 +117,17 @@ cdef class Font:
     cdef Surface render(self, unicode text)
 
 
-cdef void init(Uint32 flags) except *
-cdef void img_init(int flags) except *
-cdef void mix_init(int flags) except *
-cdef void ttf_init() except *
-cdef void gl_set_attribute(SDL_GLattr attr, int value) except *
-cdef int gl_set_swap_interval(int interval) except *
+cdef bint init(Uint32 flags) except True
+cdef bint img_init(int flags) except True
+cdef bint mix_init(int flags) except True
+cdef bint ttf_init() except True
+cdef bint gl_set_attribute(SDL_GLattr attr, int value) except True
+cdef bint gl_set_swap_interval(int interval) except True
 cdef list poll_events()
 cdef Surface load_png(file_)
 cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)
-cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *
-cdef void mix_allocate_channels(int numchans) except *
+cdef bint mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except True
+cdef bint mix_allocate_channels(int numchans) except True
 cdef int mix_volume(int channel, float volume) nogil
 cdef int mix_volume_music(float volume) nogil
 cdef Music load_music(str filename)

@@ -39,7 +39,7 @@ cdef class TextureManager:
         self.texture_class = texture_class
 
 
-    cdef void load(self, dict anms) except *:
+    cdef bint load(self, dict anms) except True:
         if use_debug_group:
             glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "Texture loading")
 
@@ -73,7 +73,7 @@ cdef class FontManager:
         self.texture_class = texture_class
 
 
-    cdef void load(self, dict labels) except *:
+    cdef bint load(self, dict labels) except True:
         cdef NativeText label
 
         if use_debug_group:

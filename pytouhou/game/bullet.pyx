@@ -110,7 +110,7 @@ cdef class Bullet(Element):
                                    self.sprite, self.sprite_idx_offset)
 
 
-    cdef void launch(self) except *:
+    cdef bint launch(self) except True:
         self.state = LAUNCHED
         self.frame = 0
         self.set_anim()
@@ -121,13 +121,13 @@ cdef class Bullet(Element):
                                                    (self.speed,), 16)
 
 
-    cdef void collide(self) except *:
+    cdef bint collide(self) except True:
         self.cancel()
         self._game.new_particle((self.x, self.y), 10, 256) #TODO: find the real size.
 
 
     @cython.cdivision(True)
-    cdef void cancel(self) except *:
+    cdef bint cancel(self) except True:
         # Cancel animation
         bt = self._bullet_type
         self.sprite = Sprite()
@@ -145,7 +145,7 @@ cdef class Bullet(Element):
         self.state = CANCELLED
 
 
-    cdef void update(self) except *:
+    cdef bint update(self) except True:
         cdef int frame, count, game_width, game_height
         cdef double length, angle, speed, acceleration, angular_speed
 

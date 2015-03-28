@@ -5,11 +5,11 @@ cdef class TextureManager:
     cdef object loader
     cdef Window window
 
-    cdef void load(self, dict anms) except *
+    cdef bint load(self, dict anms) except True
     cdef load_texture(self, Surface texture)
 
 cdef class FontManager:
     cdef Font font
     cdef Window window
 
-    cdef void load(self, dict labels) except *
+    cdef bint load(self, dict labels) except True

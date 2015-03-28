@@ -74,17 +74,17 @@ cdef class Item(Element):
             return [self]
 
 
-    cdef void autocollect(self, Player player) except *:
+    cdef bint autocollect(self, Player player) except True:
         if self.target is None and self.player is None:
             self.target = player
             self.speed = player.sht.autocollection_speed
 
 
-    cdef void on_collect(self, Player player) except *:
+    cdef bint on_collect(self, Player player) except True:
         cdef long level, poc
 
         if not (self.player is None or self.player is player):
-            return
+            return False
 
         old_power = player.power
         score = 0

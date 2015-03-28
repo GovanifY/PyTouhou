@@ -204,7 +204,7 @@ cdef class Surface:
         def __get__(self):
             return bytes(self.surface.pixels[:self.surface.w * self.surface.h * 4])
 
-    cdef void blit(self, Surface other) except *:
+    cdef bint blit(self, Surface other) except True:
         if SDL_BlitSurface(other.surface, NULL, self.surface, NULL) < 0:
             raise SDLError()
 
@@ -265,31 +265,31 @@ cdef class Font:
         return surface
 
 
-cdef void init(Uint32 flags) except *:
+cdef bint init(Uint32 flags) except True:
     if SDL_Init(flags) < 0:
         raise SDLError()
 
 
-cdef void img_init(int flags) except *:
+cdef bint img_init(int flags) except True:
     if IMG_Init(flags) != flags:
         raise SDLError()
 
 
-cdef void mix_init(int flags) except *:
+cdef bint mix_init(int flags) except True:
     if Mix_Init(flags) != flags:
         raise SDLError()
 
 
-cdef void ttf_init() except *:
+cdef bint ttf_init() except True:
     if TTF_Init() < 0:
         raise SDLError()
 
 
-cdef void gl_set_attribute(SDL_GLattr attr, int value) except *:
+cdef bint gl_set_attribute(SDL_GLattr attr, int value) except True:
     if SDL_GL_SetAttribute(attr, value) < 0:
         raise SDLError()
 
-cdef int gl_set_swap_interval(int interval) except *:
+cdef bint gl_set_swap_interval(int interval) except True:
     if SDL_GL_SetSwapInterval(interval) < 0:
         raise SDLError()
 
@@ -326,12 +326,12 @@ cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=0
     return surface
 
 
-cdef void mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except *:
+cdef bint mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except True:
     if Mix_OpenAudio(frequency, format_, channels, chunksize) < 0:
         raise SDLError()
 
 
-cdef void mix_allocate_channels(int numchans) except *:
+cdef bint mix_allocate_channels(int numchans) except True:
     if Mix_AllocateChannels(numchans) != numchans:
         raise SDLError()
 

@@ -33,7 +33,7 @@ cdef class Clock:
 
 
     @cython.cdivision(True)
-    cdef void tick(self) nogil except *:
+    cdef bint tick(self) nogil except True:
         current = sdl.get_ticks()
 
         if not self._ref_tick:
@@ -65,10 +65,10 @@ cdef class Clock:
 
 
 cdef class Runner:
-    cdef void start(self) except *:
+    cdef bint start(self) except True:
         pass
 
-    cdef void finish(self) except *:
+    cdef bint finish(self) except True:
         pass
 
     cpdef bint update(self, bint render) except -1:

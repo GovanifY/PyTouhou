@@ -39,7 +39,7 @@ cdef class Text(GlyphCollection):
     #def timeout_update(self)
     #def move_timeout_update(self)
     #def fadeout_timeout_update(self)
-    cdef void fade(self, unsigned long duration, unsigned char alpha, formula=*) except *
+    cdef bint fade(self, unsigned long duration, unsigned char alpha, formula=*) except True
     cpdef set_timeout(self, unsigned long timeout, str effect=*, unsigned long duration=*, unsigned long start=*)
 
 
@@ -79,6 +79,6 @@ cdef class NativeText(Element):
     #def move_ex_timeout_update(self)
     #def fadeout_timeout_update(self)
 
-    cdef void fade(self, unsigned long duration, unsigned char alpha, formula=*) except *
-    cdef void move_in(self, unsigned long duration, double x, double y, formula=*) except *
+    cdef bint fade(self, unsigned long duration, unsigned char alpha, formula=*) except True
+    cdef bint move_in(self, unsigned long duration, double x, double y, formula=*) except True
     cpdef set_timeout(self, unsigned long timeout, str effect=*, unsigned long duration=*, unsigned long start=*, to=*, end=*)

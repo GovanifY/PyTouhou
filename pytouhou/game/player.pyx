@@ -68,16 +68,16 @@ cdef class Player(Element):
         self.death_time = 0
 
 
-    cdef void set_anim(self, index) except *:
+    cdef bint set_anim(self, index) except True:
         self.sprite = Sprite()
         self.anmrunner = ANMRunner(self.anm, index, self.sprite)
 
 
-    cdef void play_sound(self, str name) except *:
+    cdef bint play_sound(self, str name) except True:
         self._game.sfx_player.play('%s.wav' % name)
 
 
-    cdef void collide(self) except *:
+    cdef bint collide(self) except True:
         if not self.invulnerable_time and not self.death_time and self.touchable: # Border Between Life and Death
             self.death_time = self._game.frame
             self._game.new_effect((self.x, self.y), 17)
@@ -95,7 +95,7 @@ cdef class Player(Element):
         self.focused = False
 
 
-    cdef void fire(self) except *:
+    cdef bint fire(self) except True:
         cdef long shot_power
 
         sht = self.focused_sht if self.focused else self.sht

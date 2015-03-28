@@ -7,14 +7,14 @@ cdef class Clock:
     cdef double fps
 
     cdef void set_target_fps(self, long fps) nogil
-    cdef void tick(self) nogil except *
+    cdef bint tick(self) nogil except True
 
 
 cdef class Runner:
     cdef long width, height
 
-    cdef void start(self) except *
-    cdef void finish(self) except *
+    cdef bint start(self) except True
+    cdef bint finish(self) except True
     cpdef bint update(self, bint render) except -1
 
 

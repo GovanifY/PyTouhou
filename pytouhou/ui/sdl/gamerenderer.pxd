@@ -11,6 +11,6 @@ cdef class GameRenderer:
 
     cdef public size #XXX
 
-    cdef void render_game(self, Game game) except *
-    cdef void render_text(self, texts) except *
-    cdef void render_interface(self, interface, game_boss) except *
+    cdef bint render_game(self, Game game) except True
+    cdef bint render_text(self, texts) except True
+    cdef bint render_interface(self, interface, game_boss) except True

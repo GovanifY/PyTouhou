@@ -21,4 +21,4 @@ cdef class Framebuffer:
 
     cpdef bind(self)
     cdef void set_state(self) nogil
-    cdef void render(self, int x, int y, int width, int height) except *
+    cdef bint render(self, int x, int y, int width, int height) except True

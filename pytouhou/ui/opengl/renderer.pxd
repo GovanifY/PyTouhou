@@ -35,5 +35,5 @@ cdef class Renderer:
     cdef PyObject *elements[640*3]
 
     cdef void set_state(self) nogil
-    cdef void render_elements(self, elements) except *
-    cdef void render_quads(self, rects, colors, GLuint texture) except *
+    cdef bint render_elements(self, elements) except True
+    cdef bint render_quads(self, rects, colors, GLuint texture) except True
