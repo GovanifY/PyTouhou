@@ -76,7 +76,7 @@ cdef class SFXPlayer(MusicPlayer):
         self.volume = volume
         self.next_channel = 0
 
-    cdef int get_channel(self, name):
+    cdef int get_channel(self, name) except -1:
         if name not in self.channels:
             self.channels[name] = self.next_channel
             self.next_channel += 1

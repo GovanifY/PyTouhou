@@ -109,7 +109,7 @@ cdef class Window:
         if self.window != NULL:
             SDL_DestroyWindow(self.window)
 
-    cdef void gl_create_context(self) except *:
+    cdef bint gl_create_context(self) except True:
         self.context = SDL_GL_CreateContext(self.window)
         if self.context == NULL:
             raise SDLError()
@@ -124,32 +124,32 @@ cdef class Window:
         SDL_SetWindowSize(self.window, width, height)
 
     # The following functions are there for the pure SDL backend.
-    cdef void create_renderer(self, Uint32 flags):
+    cdef bint create_renderer(self, Uint32 flags) except True:
         self.renderer = SDL_CreateRenderer(self.window, -1, flags)
         if self.renderer == NULL:
             raise SDLError()
 
-    cdef void render_clear(self):
+    cdef bint render_clear(self) except True:
         ret = SDL_RenderClear(self.renderer)
         if ret == -1:
             raise SDLError()
 
-    cdef void render_copy(self, Texture texture, Rect srcrect, Rect dstrect):
+    cdef bint render_copy(self, Texture texture, Rect srcrect, Rect dstrect) except True:
         ret = SDL_RenderCopy(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect)
         if ret == -1:
             raise SDLError()
 
-    cdef void render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip):
+    cdef bint render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip) except True:
         ret = SDL_RenderCopyEx(self.renderer, texture.texture, &srcrect.rect, &dstrect.rect, angle, NULL, flip)
         if ret == -1:
             raise SDLError()
 
-    cdef void render_set_clip_rect(self, Rect rect):
+    cdef bint render_set_clip_rect(self, Rect rect) except True:
         ret = SDL_RenderSetClipRect(self.renderer, &rect.rect)
         if ret == -1:
             raise SDLError()
 
-    cdef void render_set_viewport(self, Rect rect):
+    cdef bint render_set_viewport(self, Rect rect) except True:
         ret = SDL_RenderSetViewport(self.renderer, &rect.rect)
         if ret == -1:
             raise SDLError()
@@ -372,6 +372,8 @@ cdef void delay(Uint32 ms) nogil:
     SDL_Delay(ms)
 
 
-cpdef int show_simple_message_box(unicode message):
+cpdef bint show_simple_message_box(unicode message) except True:
     text = message.encode('UTF-8')
-    return SDL_ShowSimpleMessageBox(1, 'PyTouhou', text, NULL)
+    ret = SDL_ShowSimpleMessageBox(1, 'PyTouhou', text, NULL)
+    if ret == -1:
+        raise SDLError()

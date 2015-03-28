@@ -60,17 +60,17 @@ cdef class Window:
     cdef SDL_GLContext context
     cdef SDL_Renderer *renderer
 
-    cdef void gl_create_context(self) except *
+    cdef bint gl_create_context(self) except True
     cdef void present(self) nogil
     cdef void set_window_size(self, int width, int height) nogil
 
     # The following functions are there for the pure SDL backend.
-    cdef void create_renderer(self, Uint32 flags)
-    cdef void render_clear(self)
-    cdef void render_copy(self, Texture texture, Rect srcrect, Rect dstrect)
-    cdef void render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip)
-    cdef void render_set_clip_rect(self, Rect rect)
-    cdef void render_set_viewport(self, Rect rect)
+    cdef bint create_renderer(self, Uint32 flags) except True
+    cdef bint render_clear(self) except True
+    cdef bint render_copy(self, Texture texture, Rect srcrect, Rect dstrect) except True
+    cdef bint render_copy_ex(self, Texture texture, Rect srcrect, Rect dstrect, double angle, bint flip) except True
+    cdef bint render_set_clip_rect(self, Rect rect) except True
+    cdef bint render_set_viewport(self, Rect rect) except True
     cdef Texture create_texture_from_surface(self, Surface surface)
 
 
@@ -134,4 +134,4 @@ cdef Music load_music(str filename)
 cdef Chunk load_chunk(file_)
 cdef Uint32 get_ticks() nogil
 cdef void delay(Uint32 ms) nogil
-cpdef int show_simple_message_box(unicode message)
+cpdef bint show_simple_message_box(unicode message) except True

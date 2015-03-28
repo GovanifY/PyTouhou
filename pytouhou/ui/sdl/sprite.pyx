@@ -12,7 +12,7 @@
 ## GNU General Public License for more details.
 ##
 
-
+cimport cython
 from libc.stdlib cimport malloc
 from libc.math cimport M_PI as pi
 
@@ -23,6 +23,7 @@ cdef RenderingData* get_sprite_rendering_data(Sprite sprite) nogil:
     return <RenderingData*>sprite._rendering_data
 
 
+@cython.cdivision(True)
 cdef void render_sprite(Sprite sprite) nogil:
     if sprite._rendering_data == NULL:
         sprite._rendering_data = malloc(sizeof(RenderingData))

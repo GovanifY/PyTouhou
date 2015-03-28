@@ -25,9 +25,11 @@ It has been reverse engineered from 102h.exe."""
 
 #TODO: maybe some post-processing is missing
 
-
+cimport cython
 from time import time
 
+
+@cython.final
 cdef class Random:
     def __init__(self, long seed=-1):
         if seed < 0:
