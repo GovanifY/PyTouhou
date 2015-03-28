@@ -26,7 +26,9 @@ from pytouhou.vm import ECLMainRunner
 
 
 class Common(object):
-    def __init__(self, resource_loader, player_characters, continues, stage,
+    default_power = [0, 64, 128, 128, 128, 128, 0]
+
+    def __init__(self, resource_loader, player_characters, continues, *,
                  width=384, height=448):
         self.width, self.height = width, height
 
@@ -75,8 +77,6 @@ class Common(object):
                            ('face09b.anm', 'face10a.anm', 'face10b.anm'),
                            ('face08a.anm', 'face12a.anm', 'face12b.anm', 'face12c.anm')]
 
-        default_power = [0, 64, 128, 128, 128, 128, 0][stage]
-
         eosd_characters = resource_loader.get_eosd_characters()
         self.first_character = player_characters[0] // 2
         self.player_anms = {}
@@ -92,7 +92,7 @@ class Common(object):
 
             self.players[i] = Player(i, self.player_anms[character][0],
                                      eosd_characters[player_character],
-                                     character, default_power, continues)
+                                     character, continues)
 
 
 
@@ -124,6 +124,8 @@ class Game(GameBase):
 
         for player in common.players:
             player._game = self
+            if player.power < 0:
+                player.power = common.default_power[stage - 1]
 
         # Load stage data
         self.std = resource_loader.get_stage('stage%d.std' % stage)
@@ -152,11 +154,11 @@ class Game(GameBase):
 
 
 class Player(PlayerBase):
-    def __init__(self, number, anm, shts, character, power, continues):
+    def __init__(self, number, anm, shts, character, continues):
         self.sht = shts[0]
         self.focused_sht = shts[1]
 
-        PlayerBase.__init__(self, number, anm, character, power, continues)
+        PlayerBase.__init__(self, number, anm, character, continues, power=-1)
 
         self.orbs = [Orb(anm, 128, self),
                      Orb(anm, 129, self)]

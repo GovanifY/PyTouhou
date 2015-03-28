@@ -24,8 +24,8 @@ from pytouhou.game import GameOver
 
 
 cdef class Player(Element):
-    def __init__(self, long number, anm, long character=0, long power=0,
-                 long continues=0, long lives=2, long bombs=3, long score=0):
+    def __init__(self, long number, anm, long character=0, long continues=0,
+                 long power=0, long lives=2, long bombs=3, long score=0):
         Element.__init__(self, (192, 384))
 
         self.number = number

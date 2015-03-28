@@ -202,7 +202,7 @@ def main(window, path, data, stage_num, rank, character, replay, save_filename,
 
     game_class = GameBossRush if boss_rush else Game
 
-    common = Common(resource_loader, characters, continues, stage_num - 1)
+    common = Common(resource_loader, characters, continues)
     interface = Interface(resource_loader, common.players[0]) #XXX
     common.interface = interface #XXX
     renderer = GameRenderer(resource_loader, window) if GameRenderer is not None else None
