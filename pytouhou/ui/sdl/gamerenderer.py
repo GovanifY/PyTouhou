@@ -138,7 +138,7 @@ class GameRenderer:
 
     def render_text(self, texts):
         if self.font_manager is None:
-            return
+            return False
 
         self.font_manager.load(texts)
 
