@@ -19,13 +19,11 @@ COMMAND = 'pkg-config'
 SDL_LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
 GL_LIBRARIES = ['epoxy']
 
-packages = []
-extension_names = []
-extensions = []
-
 debug = False  # True to generate HTML annotations and display infered types.
 anmviewer = False  # It’s currently broken anyway.
 nthreads = 4  # How many processes to use for Cython compilation.
+compile_everything = False  # Maybe improve running time a bit by wasting a lot
+                            # of CPU time during compilation, and disk space.
 
 
 # Hack to move us to the correct build directory.
@@ -95,40 +93,63 @@ if use_opengl:
                    'extra_link_args': get_arguments('--libs', GL_LIBRARIES + SDL_LIBRARIES)}
 
 
-for directory, _, files in os.walk('pytouhou'):
-    if directory.endswith('/__pycache__'):
-        continue
-    package = directory.replace(os.path.sep, '.')
-    if not use_opengl and package in ('pytouhou.ui.opengl', 'pytouhou.ui.opengl.shaders'):
-        continue
-    packages.append(package)
-    if package not in ('pytouhou.formats', 'pytouhou.game', 'pytouhou.lib',
-                       'pytouhou.utils', 'pytouhou.ui', 'pytouhou.ui.opengl',
-                       'pytouhou.ui.opengl.shaders', 'pytouhou.ui.sdl'):
-        continue
-    if package in ('pytouhou.ui', 'pytouhou.ui.sdl'):
-        package_args = sdl_args
-    elif package == 'pytouhou.ui.opengl':
-        package_args = opengl_args
-    else:
-        package_args = {}
-    for filename in files:
-        if (filename.endswith('.pyx') or filename.endswith('.py') and
-                not filename == '__init__.py'):
-            extension_name = '%s.%s' % (package, os.path.splitext(filename)[0])
-            extension_names.append(extension_name)
-            if extension_name == 'pytouhou.lib.sdl':
-                compile_args = sdl_args
-            elif extension_name == 'pytouhou.ui.anmrenderer' and not anmviewer:
-                extension_names.pop()
+def get_module_hierarchy(directory):
+    packages = {}
+    allowed_extensions = ('.py', '.pyx', '.pxd')
+    pycache = os.path.sep + '__pycache__'
+    for directory, _, files in os.walk(directory):
+        if directory.endswith(pycache):
+            continue
+        package_name = directory.replace(os.path.sep, '.')
+        package = packages.setdefault(package_name, {})
+        for filename in files:
+            module_name, file_ext = os.path.splitext(filename)
+            if file_ext not in allowed_extensions:
                 continue
-            elif package == 'pytouhou.formats' and extension_name != 'pytouhou.formats.animation':
-                continue
+            package.setdefault(module_name, []).append(file_ext)
+        for module_name, extensions in list(package.items()):
+            if '.pyx' not in extensions and '.py' not in extensions:
+                del package[module_name]
+    return packages
+
+
+def extract_module_types(packages):
+    py_modules = []
+    ext_modules = []
+    for package_name, package in packages.items():
+        if package_name in ('pytouhou.ui', 'pytouhou.ui.sdl'):
+            package_args = sdl_args
+        elif package_name == 'pytouhou.ui.opengl':
+            package_args = opengl_args
+        else:
+            package_args = {}
+        for module_name, extensions in package.items():
+            fully_qualified_name = '%s.%s' % (package_name, module_name)
+            if '.pyx' in extensions or '.pxd' in extensions or compile_everything:
+                if fully_qualified_name == 'pytouhou.lib.sdl':
+                    compile_args = sdl_args
+                else:
+                    compile_args = package_args
+                ext = 'pyx' if '.pyx' in extensions else 'py'
+                source = '%s.%s' % (fully_qualified_name.replace('.', os.path.sep), ext)
+                ext_modules.append(Extension(fully_qualified_name,
+                                             [source],
+                                             **compile_args))
             else:
-                compile_args = package_args
-            extensions.append(Extension(extension_name,
-                                        [os.path.join(directory, filename)],
-                                        **compile_args))
+                py_modules.append(fully_qualified_name)
+    return py_modules, ext_modules
+
+
+packages = get_module_hierarchy('pytouhou')
+
+if not use_opengl:
+    del packages['pytouhou.ui.opengl']
+    del packages['pytouhou.ui.opengl.shaders']
+
+if not anmviewer:
+    del packages['pytouhou.ui']['anmrenderer']
+
+py_modules, ext_modules = extract_module_types(packages)
 
 
 # OS-specific setuptools options.
@@ -156,8 +177,8 @@ setup(name='PyTouhou',
       author_email='thib@sitedethib.com',
       url='http://pytouhou.linkmauve.fr/',
       license='GPLv3',
-      packages=packages,
-      ext_modules=cythonize(extensions, nthreads=nthreads, annotate=debug,
+      py_modules=py_modules,
+      ext_modules=cythonize(ext_modules, nthreads=nthreads, annotate=debug,
                             language_level=3,
                             compiler_directives={'infer_types': True,
                                                  'infer_types.verbose': debug,
