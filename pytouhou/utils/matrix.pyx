@@ -55,19 +55,6 @@ cdef void flip(Matrix *mat) nogil:
         data[i] = -data[i]
 
 
-cdef void scale(Matrix *mat, float x, float y, float z) nogil:
-    cdef float coordinate[3]
-
-    data = <float*>mat
-    coordinate[0] = x
-    coordinate[1] = y
-    coordinate[2] = z
-
-    for i in range(3):
-        for j in range(4):
-            data[4*i+j] *= coordinate[i]
-
-
 cdef void scale2d(Matrix *mat, float x, float y) nogil:
     data = <float*>mat
     for i in range(4):
