@@ -102,11 +102,11 @@ class Game(GameBase):
                  nb_bullets_max=640):
 
         self.etama = common.etama #XXX
+        self.enm_anm = resource_loader.get_anm('stg%denm.anm' % stage)
         try:
-            self.enm_anm = resource_loader.get_multi_anm(('stg%denm.anm' % stage,
-                                                          'stg%denm2.anm' % stage))
+            self.enm_anm = self.enm_anm + resource_loader.get_anm('stg%denm2.anm' % stage)
         except KeyError:
-            self.enm_anm = resource_loader.get_anm('stg%denm.anm' % stage)
+            pass
         ecl = resource_loader.get_ecl('ecldata%d.ecl' % stage)
         self.ecl_runners = [ECLMainRunner(main, ecl.subs, self) for main in ecl.mains]
 
