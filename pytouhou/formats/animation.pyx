@@ -23,5 +23,6 @@ cdef class Animation:
 
     property size:
         def __set__(self, tuple value):
+            cdef double width, height
             width, height = value
-            self.size_inv[:] = [1. / <double>width, 1. / <double>height]
+            self.size_inv[:] = [1 / width, 1 / height]
