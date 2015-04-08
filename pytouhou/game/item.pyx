@@ -81,8 +81,6 @@ cdef class Item(Element):
 
 
     cdef bint on_collect(self, Player player) except True:
-        cdef long level, poc
-
         if not (self.player is None or self.player is player):
             return False
 
@@ -123,13 +121,13 @@ cdef class Item(Element):
 
         elif self._type == 1: # point
             player.points += 1
-            poc = player.sht.point_of_collection
+            poc = <long>player.sht.point_of_collection
             if player.y < poc:
                 score = 100000
                 self._game.modify_difficulty(+30)
                 color = 'yellow'
             else:
-                score = (728 - int(self.y)) * 100 #TODO: check the formula some more.
+                score = (728 - <int>(self.y)) * 100 #TODO: check the formula some more.
                 self._game.modify_difficulty(+3)
 
         elif self._type == 3: # bomb
