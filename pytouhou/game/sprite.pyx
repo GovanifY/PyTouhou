@@ -16,7 +16,7 @@ from libc.stdlib cimport free
 from libc.string cimport memcpy
 
 
-cdef class Sprite:
+cdef public class Sprite[object Sprite, type SpriteType]:
     def __dealloc__(self):
         if self._rendering_data != NULL:
             free(self._rendering_data)
@@ -118,31 +118,31 @@ cdef class Sprite:
             self._texcoords[:] = [value[0], value[1], value[2], value[3]]
 
 
-    cpdef fade(self, unsigned long duration, alpha, formula=None):
+    cpdef fade(self, unsigned int duration, alpha, formula=None):
         self.fade_interpolator = Interpolator((self._color[3],), self.frame,
                                               (alpha,), self.frame + duration,
                                               formula)
 
 
-    cpdef scale_in(self, unsigned long duration, sx, sy, formula=None):
+    cpdef scale_in(self, unsigned int duration, sx, sy, formula=None):
         self.scale_interpolator = Interpolator(self.rescale, self.frame,
                                                (sx, sy), self.frame + duration,
                                                formula)
 
 
-    cpdef move_in(self, unsigned long duration, x, y, z, formula=None):
+    cpdef move_in(self, unsigned int duration, x, y, z, formula=None):
         self.offset_interpolator = Interpolator(self.dest_offset, self.frame,
                                                 (x, y, z), self.frame + duration,
                                                 formula)
 
 
-    cpdef rotate_in(self, unsigned long duration, rx, ry, rz, formula=None):
+    cpdef rotate_in(self, unsigned int duration, rx, ry, rz, formula=None):
         self.rotation_interpolator = Interpolator(self.rotations_3d, self.frame,
                                                   (rx, ry, rz), self.frame + duration,
                                                   formula)
 
 
-    cpdef change_color_in(self, unsigned long duration, r, g, b, formula=None):
+    cpdef change_color_in(self, unsigned int duration, r, g, b, formula=None):
         self.color_interpolator = Interpolator(self.color, self.frame,
                                                (r, g, b), self.frame + duration,
                                                formula)
