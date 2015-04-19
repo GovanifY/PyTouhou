@@ -16,7 +16,7 @@ from libc.stdlib cimport free
 from libc.string cimport memcpy
 
 
-cdef public class Sprite[object Sprite, type SpriteType]:
+cdef class Sprite:
     def __dealloc__(self):
         if self._rendering_data != NULL:
             free(self._rendering_data)

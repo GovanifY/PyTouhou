@@ -1,7 +1,7 @@
 from pytouhou.utils.interpolator cimport Interpolator
 from pytouhou.formats.animation cimport Animation
 
-cdef public class Sprite[object Sprite, type SpriteType]:
+cdef class Sprite:
     cdef public int blendfunc, frame
     cdef public float width_override, height_override, angle
     cdef public bint removed, changed, visible, force_rotation
