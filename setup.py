@@ -158,9 +158,11 @@ try:
 except ImportError:
     extra = {}
 else:
-    nthreads = None  # It seems Windows can’t compile in parallel.
-    base = 'Win32GUI' if sys.platform == 'win32' else None
-    extra = {'options': {'build_exe': {'includes': [mod.name for mod in ext_modules] + ['glob', 'socket', 'select']}},
+    base = None
+    if sys.platform == 'win32':
+        nthreads = None  # It seems Windows can’t compile in parallel.
+        base = 'Win32GUI'
+    extra = {'options': {'build_exe': {'includes': [mod.name for mod in ext_modules] + py_modules}},
              'executables': [Executable(script='scripts/pytouhou', base=base)]}
 
 
