@@ -18,7 +18,7 @@ from pytouhou.game.element cimport Element
 from pytouhou.game.bullet cimport Bullet, LAUNCHED, CANCELLED
 from pytouhou.game.enemy cimport Enemy
 from pytouhou.game.item cimport Item
-from pytouhou.game.effect cimport Particle
+from pytouhou.game.particle cimport Particle
 from pytouhou.game.laser cimport Laser, PlayerLaser
 from pytouhou.game.face import Face
 
