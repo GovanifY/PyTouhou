@@ -172,7 +172,7 @@ if not os.path.exists(temp_data_dir):
 
 
 setup(name='PyTouhou',
-      version='0.1',
+      version=check_output(['hg', 'heads', '.', '-T', '{rev}']).decode(),
       author='Thibaut Girka',
       author_email='thib@sitedethib.com',
       url='http://pytouhou.linkmauve.fr/',
