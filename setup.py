@@ -190,6 +190,7 @@ setup(name='PyTouhou',
                                               'MAX_SOUNDS': 26,
                                               'USE_OPENGL': use_opengl}),
       scripts=['scripts/pytouhou'] + (['scripts/anmviewer'] if anmviewer else []),
+      packages=['pytouhou'],
       package_data={'pytouhou': ['data/menu.glade']},
       **extra)
 
