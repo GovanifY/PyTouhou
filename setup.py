@@ -21,7 +21,7 @@ GL_LIBRARIES = ['epoxy']
 
 debug = False  # True to generate HTML annotations and display infered types.
 anmviewer = False  # It’s currently broken anyway.
-nthreads = 4  # How many processes to use for Cython compilation.
+nthreads = os.cpu_count()  # How many processes to use for Cython compilation.
 compile_everything = False  # Maybe improve running time a bit by wasting a lot
                             # of CPU time during compilation, and disk space.
 
