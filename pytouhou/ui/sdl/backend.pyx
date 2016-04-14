@@ -1,4 +1,4 @@
-from pytouhou.lib cimport sdl
+cimport pytouhou.lib.sdl as sdl
 from pytouhou.lib.sdl cimport Window
 
 

@@ -1,7 +1,6 @@
-from pytouhou.lib.sdl cimport SDL_GLprofile
 from pytouhou.lib.opengl cimport GLenum_mode
 
-cdef SDL_GLprofile profile
+cdef str profile
 cdef int major
 cdef int minor
 cdef int double_buffer

@@ -1,6 +1,6 @@
-from pytouhou.lib import sdl
-from pytouhou.lib cimport sdl
-from pytouhou.lib.sdl cimport Window
+cimport pytouhou.lib.gui as gui
+from pytouhou.lib.gui import Error as GUIError
+from .backend_sdl import create_sdl_window
 
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
@@ -27,10 +27,7 @@ def init(options):
 
     flavor = options['flavor']
     assert flavor in ('core', 'es', 'compatibility', 'legacy')
-    profile = (sdl.GL_CONTEXT_PROFILE_CORE if flavor == 'core' else
-               sdl.GL_CONTEXT_PROFILE_ES if flavor == 'es' else
-               sdl.GL_CONTEXT_PROFILE_COMPATIBILITY)
-
+    profile = flavor
     version = str(options['version'])
     assert len(version) == 3 and version[1] == '.'
     major = int(version[0])
@@ -91,33 +88,10 @@ cdef bint discover_features() except True:
 def create_window(title, x, y, width, height, swap_interval):
     '''Create a window (using SDL) and an OpenGL context.'''
 
-    sdl.gl_set_attribute(sdl.GL_CONTEXT_PROFILE_MASK, profile)
-    sdl.gl_set_attribute(sdl.GL_CONTEXT_MAJOR_VERSION, major)
-    sdl.gl_set_attribute(sdl.GL_CONTEXT_MINOR_VERSION, minor)
-    sdl.gl_set_attribute(sdl.GL_RED_SIZE, 8)
-    sdl.gl_set_attribute(sdl.GL_GREEN_SIZE, 8)
-    sdl.gl_set_attribute(sdl.GL_BLUE_SIZE, 8)
-    sdl.gl_set_attribute(sdl.GL_DEPTH_SIZE, 24 if is_legacy else 0)
-    if double_buffer >= 0:
-        sdl.gl_set_attribute(sdl.GL_DOUBLEBUFFER, double_buffer)
-
-    flags = sdl.WINDOW_SHOWN | sdl.WINDOW_OPENGL
-
-    # Legacy contexts don’t support our required extensions for scaling.
-    if not is_legacy:
-        flags |= sdl.WINDOW_RESIZABLE
-
-    window = Window(title, x, y, width, height, flags)
-    window.gl_create_context()
-
+    cdef gui.Window window
+    window = create_sdl_window(title, x, y, width, height)
+    window.create_gl_context()
     discover_features()
-
-    # If we can’t use scaling but have previously created a resizable window,
-    # recreate it unresizable.
-    if not use_scaled_rendering and flags & sdl.WINDOW_RESIZABLE:
-        flags &= ~sdl.WINDOW_RESIZABLE
-        window = Window(title, x, y, width, height, flags)
-        window.gl_create_context()
 
     if use_debug_group:
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "OpenGL initialisation")
@@ -144,8 +118,8 @@ def create_window(title, x, y, width, height, swap_interval):
 
     if swap_interval is not None:
         try:
-            sdl.gl_set_swap_interval(swap_interval)
-        except sdl.SDLError:
+            window.set_swap_interval(swap_interval)
+        except GUIError:
             # The OpenGL context doesn’t support setting the swap interval,
             # we’ll probably fallback to SDL_Delay-based clocking.
             pass

@@ -14,6 +14,8 @@
 
 cimport cython
 
+cimport pytouhou.lib.sdl as sdl
+
 
 cdef class Clock:
     def __init__(self, long fps=-1):
@@ -130,3 +132,15 @@ cdef class Window:
 
     cdef double get_fps(self) nogil:
         return self.clock.fps
+
+
+    cdef list get_events(self):
+        return self.win.get_events()
+
+
+    cdef int get_keystate(self) nogil:
+        return self.win.get_keystate()
+
+
+    cdef void toggle_fullscreen(self) nogil:
+        self.win.toggle_fullscreen()

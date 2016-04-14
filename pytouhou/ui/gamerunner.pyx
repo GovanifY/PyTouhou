@@ -14,7 +14,7 @@
 
 cimport cython
 
-from pytouhou.lib cimport sdl
+from pytouhou.lib.gui cimport EXIT, PAUSE, SCREENSHOT, RESIZE, FULLSCREEN
 
 from .window cimport Window, Runner
 from .music import BGMPlayer, SFXPlayer
@@ -120,42 +120,22 @@ cdef class GameRunner(Runner):
 
         if self.background is not None:
             self.background.update(self.game.frame)
-        for event in sdl.poll_events():
-            type_ = event[0]
-            if type_ == sdl.KEYDOWN:
-                scancode = event[1]
-                if scancode == sdl.SCANCODE_ESCAPE:
-                    return False #TODO: implement the pause.
-                elif scancode == sdl.SCANCODE_P or scancode == sdl.SCANCODE_HOME:
-                    capture = True
-            elif type_ == sdl.QUIT:
+        for event, args in self.window.get_events():
+            if event == EXIT:
                 return False
-            elif type_ == sdl.WINDOWEVENT:
-                event_ = event[1]
-                if event_ == sdl.WINDOWEVENT_RESIZED:
-                    self.set_renderer_size(event[2], event[3])
-                    if self.window is not None:
-                        self.window.set_size(event[2], event[3])
+            elif event == PAUSE:
+                return False  # TODO: implement the pause.
+            elif event == FULLSCREEN:
+                self.window.toggle_fullscreen()
+            elif event == SCREENSHOT:
+                capture = True
+            elif event == RESIZE:
+                width, height = args
+                self.set_renderer_size(width, height)
+                if self.window is not None:
+                    self.window.set_size(width, height)
         if self.replay_level is None:
-            #TODO: allow user settings
-            keys = sdl.keyboard_state
-            keystate = 0
-            if keys[sdl.SCANCODE_Z]:
-                keystate |= 1
-            if keys[sdl.SCANCODE_X]:
-                keystate |= 2
-            if keys[sdl.SCANCODE_LSHIFT]:
-                keystate |= 4
-            if keys[sdl.SCANCODE_UP]:
-                keystate |= 16
-            if keys[sdl.SCANCODE_DOWN]:
-                keystate |= 32
-            if keys[sdl.SCANCODE_LEFT]:
-                keystate |= 64
-            if keys[sdl.SCANCODE_RIGHT]:
-                keystate |= 128
-            if keys[sdl.SCANCODE_LCTRL]:
-                keystate |= 256
+            keystate = self.window.get_keystate()
         else:
             try:
                 keystate = self.keys.next()

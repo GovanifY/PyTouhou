@@ -12,7 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
-from ._sdl cimport *
+from pytouhou.lib._sdl cimport *
+cimport pytouhou.lib.gui as gui
 
 
 cdef SDL_GLattr GL_CONTEXT_MAJOR_VERSION
@@ -55,14 +56,11 @@ cdef SDL_EventType WINDOWEVENT
 cdef const Uint8 *keyboard_state
 
 
-cdef class Window:
+cdef class Window(gui.Window):
     cdef SDL_Window *window
     cdef SDL_GLContext context
     cdef SDL_Renderer *renderer
-
-    cdef bint gl_create_context(self) except True
-    cdef void present(self) nogil
-    cdef void set_window_size(self, int width, int height) nogil
+    cdef bint is_fullscreen
 
     # The following functions are there for the pure SDL backend.
     cdef bint create_renderer(self, Uint32 flags) except True
@@ -122,8 +120,6 @@ cdef bint img_init(int flags) except True
 cdef bint mix_init(int flags) except True
 cdef bint ttf_init() except True
 cdef bint gl_set_attribute(SDL_GLattr attr, int value) except True
-cdef bint gl_set_swap_interval(int interval) except True
-cdef list poll_events()
 cdef Surface load_png(file_)
 cdef Surface create_rgb_surface(int width, int height, int depth, Uint32 rmask=*, Uint32 gmask=*, Uint32 bmask=*, Uint32 amask=*)
 cdef bint mix_open_audio(int frequency, Uint16 format_, int channels, int chunksize) except True

@@ -1,4 +1,4 @@
-from pytouhou.lib cimport sdl
+cimport pytouhou.lib.gui as gui
 
 
 cdef class Clock:
@@ -19,7 +19,7 @@ cdef class Runner:
 
 
 cdef class Window:
-    cdef sdl.Window win
+    cdef gui.Window win
     cdef Runner runner
     cdef Clock clock
     cdef int frame, frameskip
@@ -30,3 +30,6 @@ cdef class Window:
     cpdef run(self)
     cdef bint run_frame(self) except -1
     cdef double get_fps(self) nogil
+    cdef list get_events(self)
+    cdef int get_keystate(self) nogil
+    cdef void toggle_fullscreen(self) nogil

@@ -12,6 +12,8 @@
 ## GNU General Public License for more details.
 ##
 
+import pytouhou.lib.gui as gui
+
 from pytouhou.utils.helpers import get_logger
 
 logger = get_logger(__name__)
@@ -53,7 +55,7 @@ QUIT = SDL_QUIT
 WINDOWEVENT = SDL_WINDOWEVENT
 
 
-class SDLError(Exception):
+class SDLError(gui.Error):
     def __init__(self):
         error = SDL_GetError()
         Exception.__init__(self, error.decode())
@@ -96,7 +98,7 @@ class SDL:
         SDL_Quit()
 
 
-cdef class Window:
+cdef class Window(gui.Window):
     def __init__(self, str title, int x, int y, int w, int h, Uint32 flags):
         title_bytes = title.encode()
         self.window = SDL_CreateWindow(title_bytes, x, y, w, h, flags)
@@ -109,7 +111,7 @@ cdef class Window:
         if self.window != NULL:
             SDL_DestroyWindow(self.window)
 
-    cdef bint gl_create_context(self) except True:
+    cdef void create_gl_context(self) except *:
         self.context = SDL_GL_CreateContext(self.window)
         if self.context == NULL:
             raise SDLError()
@@ -122,6 +124,63 @@ cdef class Window:
 
     cdef void set_window_size(self, int width, int height) nogil:
         SDL_SetWindowSize(self.window, width, height)
+
+    cdef void set_swap_interval(self, int interval) except *:
+        if SDL_GL_SetSwapInterval(interval) < 0:
+            raise SDLError()
+
+    cdef list get_events(self):
+        cdef SDL_Event event
+        ret = []
+        while SDL_PollEvent(&event):
+            if event.type == SDL_KEYDOWN:
+                scancode = event.key.keysym.scancode
+                if scancode == SDL_SCANCODE_ESCAPE:
+                    ret.append((gui.PAUSE, None))
+                elif scancode in (SDL_SCANCODE_P, SDL_SCANCODE_HOME):
+                    ret.append((gui.SCREENSHOT, None))
+                elif scancode == SDL_SCANCODE_DOWN:
+                    ret.append((gui.DOWN, None))
+                elif scancode == SDL_SCANCODE_F11:
+                    ret.append((gui.FULLSCREEN, None))
+                elif scancode == SDL_SCANCODE_RETURN:
+                    mod = event.key.keysym.mod
+                    if mod & KMOD_ALT:
+                        ret.append((gui.FULLSCREEN, None))
+            elif event.type == SDL_QUIT:
+                ret.append((gui.EXIT, None))
+            elif event.type == SDL_WINDOWEVENT:
+                if event.window.event == SDL_WINDOWEVENT_RESIZED:
+                    ret.append((gui.RESIZE, (event.window.data1, event.window.data2)))
+        return ret
+
+    cdef int get_keystate(self) nogil:
+        cdef int keystate = 0
+        cdef const Uint8 *keys = keyboard_state
+        if keys[SCANCODE_Z]:
+            keystate |= 1
+        if keys[SCANCODE_X]:
+            keystate |= 2
+        if keys[SCANCODE_LSHIFT]:
+            keystate |= 4
+        if keys[SCANCODE_UP]:
+            keystate |= 16
+        if keys[SCANCODE_DOWN]:
+            keystate |= 32
+        if keys[SCANCODE_LEFT]:
+            keystate |= 64
+        if keys[SCANCODE_RIGHT]:
+            keystate |= 128
+        if keys[SCANCODE_LCTRL]:
+            keystate |= 256
+        return keystate
+
+    cdef void toggle_fullscreen(self) nogil:
+        ret = SDL_SetWindowFullscreen(self.window, 0 if self.is_fullscreen else SDL_WINDOW_FULLSCREEN_DESKTOP)
+        if ret == -1:
+            with gil:
+                raise SDLError()
+        self.is_fullscreen = not self.is_fullscreen
 
     # The following functions are there for the pure SDL backend.
     cdef bint create_renderer(self, Uint32 flags) except True:
@@ -288,23 +347,6 @@ cdef bint ttf_init() except True:
 cdef bint gl_set_attribute(SDL_GLattr attr, int value) except True:
     if SDL_GL_SetAttribute(attr, value) < 0:
         raise SDLError()
-
-cdef bint gl_set_swap_interval(int interval) except True:
-    if SDL_GL_SetSwapInterval(interval) < 0:
-        raise SDLError()
-
-
-cdef list poll_events():
-    cdef SDL_Event event
-    ret = []
-    while SDL_PollEvent(&event):
-        if event.type == SDL_KEYDOWN:
-            ret.append((event.type, event.key.keysym.scancode))
-        elif event.type == SDL_QUIT:
-            ret.append((event.type,))
-        elif event.type == SDL_WINDOWEVENT:
-            ret.append((event.type, event.window.event, event.window.data1, event.window.data2))
-    return ret
 
 
 cdef Surface load_png(file_):

@@ -52,6 +52,7 @@ cdef extern from "SDL_video.h" nogil:
         SDL_WINDOWPOS_CENTERED
         SDL_WINDOW_OPENGL
         SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_FULLSCREEN_DESKTOP
 
     ctypedef struct SDL_Window:
         pass
@@ -67,6 +68,7 @@ cdef extern from "SDL_video.h" nogil:
     void SDL_DestroyWindow(SDL_Window *window)
 
     void SDL_SetWindowSize(SDL_Window *window, int w, int h)
+    int SDL_SetWindowFullscreen(SDL_Window *window, Uint32 flags)
 
 
 cdef extern from "SDL_scancode.h" nogil:
@@ -82,6 +84,13 @@ cdef extern from "SDL_scancode.h" nogil:
         SDL_SCANCODE_LCTRL
         SDL_SCANCODE_ESCAPE
         SDL_SCANCODE_HOME
+        SDL_SCANCODE_RETURN
+        SDL_SCANCODE_F11
+
+
+cdef extern from "SDL_keycode.h" nogil:
+    ctypedef enum SDL_Keymod:
+        KMOD_ALT
 
 
 cdef extern from "SDL_events.h" nogil:
@@ -92,6 +101,7 @@ cdef extern from "SDL_events.h" nogil:
 
     ctypedef struct SDL_Keysym:
         SDL_Scancode scancode
+        Uint16 mod
 
     ctypedef struct SDL_KeyboardEvent:
         Uint32 type
