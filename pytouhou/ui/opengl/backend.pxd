@@ -1,5 +1,6 @@
 from pytouhou.lib.opengl cimport GLenum_mode
 
+cdef bint use_glfw
 cdef str profile
 cdef int major
 cdef int minor

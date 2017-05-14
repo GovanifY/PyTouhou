@@ -16,6 +16,7 @@ except ImportError:
 
 
 COMMAND = 'pkg-config'
+GLFW_LIBRARIES = ['glfw3']
 SDL_LIBRARIES = ['sdl2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
 GL_LIBRARIES = ['epoxy']
 
@@ -64,6 +65,7 @@ if use_opengl:
 
 
 default_libs = {
+    'glfw3': '-lglfw',
     'sdl2': '-lSDL2',
     'SDL2_image': '-lSDL2_image',
     'SDL2_mixer': '-lSDL2_mixer',
@@ -85,6 +87,8 @@ def get_arguments(arg, libraries):
         return [default_libs[library] for library in libraries]
 
 
+glfw_args = {'extra_compile_args': get_arguments('--cflags', GLFW_LIBRARIES),
+             'extra_link_args': get_arguments('--libs', GLFW_LIBRARIES)}
 sdl_args = {'extra_compile_args': get_arguments('--cflags', SDL_LIBRARIES),
             'extra_link_args': get_arguments('--libs', SDL_LIBRARIES)}
 
@@ -128,6 +132,8 @@ def extract_module_types(packages):
             if '.pyx' in extensions or '.pxd' in extensions or compile_everything:
                 if fully_qualified_name == 'pytouhou.lib.sdl':
                     compile_args = sdl_args
+                elif fully_qualified_name == 'pytouhou.lib.glfw':
+                    compile_args = glfw_args
                 else:
                     compile_args = package_args
                 ext = 'pyx' if '.pyx' in extensions else 'py'

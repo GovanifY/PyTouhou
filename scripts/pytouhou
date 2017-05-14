@@ -27,6 +27,7 @@ defaults = {'data': default_data,
             'game': 'eosd',
             'interface': 'eosd',
             'port': 0,
+            'frontend': 'glfw',
             'backend': ['opengl', 'sdl'],
             'gl-flavor': 'compatibility',
             'gl-version': 2.1,
@@ -90,6 +91,7 @@ for backend_name in args.backend:
             'flavor': args.gl_flavor,
             'version': args.gl_version,
             'double-buffer': args.double_buffer,
+            'frontend': args.frontend,
         }
     else:
         options = {}

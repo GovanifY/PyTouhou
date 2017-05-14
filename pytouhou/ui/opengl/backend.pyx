@@ -1,6 +1,7 @@
 cimport pytouhou.lib.gui as gui
 from pytouhou.lib.gui import Error as GUIError
 from .backend_sdl import create_sdl_window
+from .backend_glfw import create_glfw_window
 
 from pytouhou.lib.opengl cimport \
          (glEnable, glHint, glEnableClientState, GL_TEXTURE_2D, GL_BLEND,
@@ -23,8 +24,9 @@ def init(options):
 
     cdef str flavor
 
-    global profile, major, minor, double_buffer, is_legacy, GameRenderer
+    global profile, major, minor, double_buffer, is_legacy, GameRenderer, use_glfw
 
+    use_glfw = options['frontend'] == 'glfw'
     flavor = options['flavor']
     assert flavor in ('core', 'es', 'compatibility', 'legacy')
     profile = flavor
@@ -89,7 +91,10 @@ def create_window(title, x, y, width, height, swap_interval):
     '''Create a window (using SDL) and an OpenGL context.'''
 
     cdef gui.Window window
-    window = create_sdl_window(title, x, y, width, height)
+    if use_glfw:
+        window = create_glfw_window(title, width, height)
+    else:
+        window = create_sdl_window(title, x, y, width, height)
     window.create_gl_context()
     discover_features()
 
