@@ -1,0 +1,12 @@
+[package]
+name = "touhou"
+version = "0.1.0"
+authors = ["Emmanuel Gil Peyrot <linkmauve@linkmauve.fr>"]
+edition = "2018"
+description = "A collection of tools to work with Touhou data"
+homepage = "https://pytouhou.linkmauve.fr"
+license = "GPL-3.0-or-later"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
