@@ -3,33 +3,47 @@
 use nom::{
     IResult,
     bytes::complete::{tag, take_while_m_n},
-    number::complete::{le_u8, le_u16, le_u32, le_f32},
+    number::complete::{le_u8, le_u16, le_u32, le_i32, le_f32},
 };
 use std::collections::HashMap;
 
 /// Coordinates of a sprite into the image.
 #[derive(Debug, Clone)]
 pub struct Sprite {
-    index: u32,
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    /// Index inside the anm0.
+    pub index: u32,
+
+    /// X coordinate in the sprite sheet.
+    pub x: f32,
+
+    /// Y coordinate in the sprite sheet.
+    pub y: f32,
+
+    /// Width of the sprite.
+    pub width: f32,
+
+    /// Height of the sprite.
+    pub height: f32,
 }
 
 /// A single instruction, part of a `Script`.
 #[derive(Debug, Clone)]
-struct Instruction {
-    time: u16,
-    opcode: u8,
-    args: Vec<Arg>,
+pub struct Call {
+    /// Time at which this instruction will be called.
+    pub time: u16,
+
+    /// The instruction to call.
+    pub instr: Instruction,
 }
 
 /// Script driving an animation.
 #[derive(Debug, Clone)]
 pub struct Script {
-    instructions: Vec<Instruction>,
-    interrupts: HashMap<u32, u8>
+    /// List of instructions in this script.
+    pub instructions: Vec<Call>,
+
+    /// List of interrupts in this script.
+    pub interrupts: HashMap<i32, u8>
 }
 
 /// Main struct of the ANM0 animation format.
@@ -89,90 +103,67 @@ fn parse_sprite(i: &[u8]) -> IResult<&[u8], Sprite> {
     }))
 }
 
-#[derive(Debug, Clone, Copy)]
-enum Arg {
-    U8(u8),
-    U32(u32),
-    F32(f32),
-    Ptr(u8),
-}
-
-fn parse_u8_arg(i: &[u8]) -> IResult<&[u8], Arg> {
-    let (i, value) = le_u8(i)?;
-    Ok((i, Arg::U8(value)))
-}
-
-fn parse_u32_arg(i: &[u8]) -> IResult<&[u8], Arg> {
-    let (i, value) = le_u32(i)?;
-    Ok((i, Arg::U32(value)))
-}
-
-fn parse_f32_arg(i: &[u8]) -> IResult<&[u8], Arg> {
-    let (i, value) = le_f32(i)?;
-    Ok((i, Arg::F32(value)))
-}
-
 macro_rules! declare_anm_instructions {
-    ($($opcode:tt => fn $name:ident($($arg:ident: $arg_type:ty),*)),*,) => {
-        fn parse_instruction_args(input: &[u8], opcode: u8) -> IResult<&[u8], Vec<Arg>> {
-            let mut args = vec![];
+    ($($opcode:tt => fn $name:ident($($arg:ident: $arg_type:ident),*)),*,) => {
+        /// Available instructions in an `Anm0`.
+        #[allow(missing_docs)]
+        #[derive(Debug, Clone, Copy)]
+        pub enum Instruction {
+            $(
+                $name($($arg_type),*)
+            ),*
+        }
+
+        fn parse_instruction_args(input: &[u8], opcode: u8) -> IResult<&[u8], Instruction> {
             let mut i = &input[..];
-            match opcode {
+            let instr = match opcode {
                 $(
                     $opcode => {
                         $(
-                            let (i2, data) = match stringify!($arg_type) {
-                                "u8" => parse_u8_arg(i),
-                                "u32" => parse_u32_arg(i),
-                                "f32" => parse_f32_arg(i),
-                                "x8" => parse_u8_arg(i),
-                                _ => unreachable!(),
-                            }?;
+                            let (i2, $arg) = concat_idents!(le_, $arg_type)(i)?;
                             i = i2;
-                            if stringify!($arg_type) != "x8" {
-                                args.push(data);
-                            }
                         )*
+                        Instruction::$name($($arg),*)
                     }
                 )*
                 _ => unreachable!()
-            }
-            Ok((i, args))
+            };
+            Ok((i, instr))
         }
     };
 }
 
 declare_anm_instructions!{
-    0 => fn delete(),
-    1 => fn set_sprite(sprite_number: u32),
-    2 => fn set_scale(sx: f32, sy: f32),
-    3 => fn set_alpha(alpha: u32),
-    4 => fn set_color(red: u8, green: u8, blue: u8, XXX: x8),
-    5 => fn jump(instruction: u32),
-    7 => fn toggle_mirrored(),
-    9 => fn set_3d_rotations(x: f32, y: f32, z: f32),
-    10 => fn set_3d_rotations_speed(x: f32, y: f32, z: f32),
-    11 => fn set_scale_speed(sx: f32, sy: f32),
-    12 => fn fade(alpha: u32, duration: u32),
-    13 => fn set_blendmode_add(),
-    14 => fn set_blendmode_alphablend(),
-    15 => fn keep_still(),
-    16 => fn set_random_sprite(min_index: u32, amplitude: u32),
-    17 => fn set_3d_translation(x: f32, y: f32, z: f32),
-    18 => fn move_to_linear(x: f32, y: f32, z: f32, duration: u32),
-    19 => fn move_to_decel(x: f32, y: f32, z: f32, duration: u32),
-    20 => fn move_to_accel(x: f32, y: f32, z: f32, duration: u32),
-    21 => fn wait(),
-    22 => fn interrupt_label(label: u32),
-    23 => fn set_corner_relative_placement(),
-    24 => fn wait_ex(),
-    25 => fn set_allow_offset(allow: u32), // TODO: better name
-    26 => fn set_automatic_orientation(automatic: u32),
-    27 => fn shift_texture_x(dx: f32),
-    28 => fn shift_texture_y(dy: f32),
-    29 => fn set_visible(visible: u32),
-    30 => fn scale_in(sx: f32, sy: f32, duration: u32),
-    31 => fn TODO(TODO: u32),
+    0 => fn Delete(),
+    1 => fn LoadSprite(sprite_number: u32),
+    2 => fn SetScale(sx: f32, sy: f32),
+    3 => fn SetAlpha(alpha: u32),
+    4 => fn SetColor(red: u8, green: u8, blue: u8/*, XXX: x8*/),
+    5 => fn Jump(instruction: u32),
+    7 => fn ToggleMirrored(),
+    9 => fn SetRotations3d(x: f32, y: f32, z: f32),
+    10 => fn SetRotationsSpeed3d(x: f32, y: f32, z: f32),
+    11 => fn SetScaleSpeed(sx: f32, sy: f32),
+    12 => fn Fade(alpha: u32, duration: u32),
+    13 => fn SetBlendmodeAdd(),
+    14 => fn SetBlendmodeAlphablend(),
+    15 => fn KeepStill(),
+    16 => fn LoadRandomSprite(min_index: u32, amplitude: u32),
+    17 => fn Move(x: f32, y: f32, z: f32),
+    18 => fn MoveToLinear(x: f32, y: f32, z: f32, duration: u32),
+    19 => fn MoveToDecel(x: f32, y: f32, z: f32, duration: u32),
+    20 => fn MoveToAccel(x: f32, y: f32, z: f32, duration: u32),
+    21 => fn Wait(),
+    22 => fn InterruptLabel(label: i32),
+    23 => fn SetCornerRelativePlacement(),
+    24 => fn WaitEx(),
+    25 => fn SetAllowOffset(allow: u32), // TODO: better name
+    26 => fn SetAutomaticOrientation(automatic: u32),
+    27 => fn ShiftTextureX(dx: f32),
+    28 => fn ShiftTextureY(dy: f32),
+    29 => fn SetVisible(visible: u32),
+    30 => fn ScaleIn(sx: f32, sy: f32, duration: u32),
+    31 => fn Todo(todo: u32),
 }
 
 fn parse_anm0(input: &[u8]) -> IResult<&[u8], Vec<Anm0>> {
@@ -243,8 +234,8 @@ fn parse_anm0(input: &[u8]) -> IResult<&[u8], Vec<Anm0>> {
                 let (i2, opcode) = le_u8(i2)?;
                 // TODO: maybe check against the size of parsed data?
                 let (i2, _size) = le_u8(i2)?;
-                let (i2, args) = parse_instruction_args(i2, opcode)?;
-                instructions.push(Instruction { time, opcode, args });
+                let (i2, instr) = parse_instruction_args(i2, opcode)?;
+                instructions.push(Call { time, instr });
                 i = i2;
                 if opcode == 0 {
                     break;
@@ -252,29 +243,18 @@ fn parse_anm0(input: &[u8]) -> IResult<&[u8], Vec<Anm0>> {
             }
             let mut interrupts = HashMap::new();
             let mut j = 0;
-            for Instruction { time: _, opcode, args } in &mut instructions {
-                match opcode {
-                    5 => {
-                        let offset = match args[0] {
-                            Arg::U32(offset) => offset as usize,
-                            _ => panic!("Wrong argument type for jump!"),
-                        };
-                        let result = instruction_offsets.binary_search(&offset);
-                        let ptr = match result {
-                            Ok(ptr) => ptr as u8,
+            for Call { time: _, instr } in &mut instructions {
+                match instr {
+                    Instruction::Jump(ref mut offset) => {
+                        let result = instruction_offsets.binary_search(&(*offset as usize));
+                        match result {
+                            Ok(ptr) => *offset = ptr as u32,
                             // TODO: make that a recoverable error instead.
                             Err(ptr) => panic!("Instruction offset not found for pointer: {}", ptr),
-                        };
-                        args[0] = Arg::Ptr(ptr);
-                    }
-                    22 => {
-                        // TODO: maybe also remove this instruction, as the label is already
-                        // present.
-                        if let Arg::U32(interrupt) = args[0] {
-                            interrupts.insert(interrupt, j + 1);
-                        } else {
-                            panic!("Wrong argument type for interrupt!");
                         }
+                    }
+                    Instruction::InterruptLabel(interrupt) => {
+                        interrupts.insert(*interrupt, j + 1);
                     }
                     _ => ()
                 }
