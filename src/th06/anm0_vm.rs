@@ -51,13 +51,58 @@ pub struct Sprite {
 
 impl Sprite {
     /// Create a new sprite.
-    pub fn new() -> Sprite {
-        Default::default()
+    pub fn new(width_override: f32, height_override: f32) -> Sprite {
+        Sprite {
+            width_override,
+            height_override,
+            changed: true,
+            visible: true,
+            rescale: [1., 1.],
+            color: [255, 255, 255, 255],
+            ..Default::default()
+        }
     }
 
     /// Update sprite values from the interpolators.
     pub fn update(&mut self) {
-        self.changed = false;
+        self.frame += 1;
+
+        let [sax, say, saz] = self.rotations_speed_3d;
+        if sax != 0. || say != 0. || saz != 0. {
+            let [ax, ay, az] = self.rotations_3d;
+            self.rotations_3d = [ax + sax, ay + say, az + saz];
+            self.changed = true;
+        } else if let Some(ref interpolator) = self.rotation_interpolator {
+            unimplemented!();
+            self.changed = true;
+        }
+
+        let [rsx, rsy] = self.scale_speed;
+        if rsx != 0. || rsy != 0. {
+            let [rx, ry] = self.rescale;
+            self.rescale = [rx + rsx, ry + rsy];
+            self.changed = true;
+        }
+
+        if let Some(ref interpolator) = self.fade_interpolator {
+            unimplemented!();
+            self.changed = true;
+        }
+
+        if let Some(ref interpolator) = self.scale_interpolator {
+            unimplemented!();
+            self.changed = true;
+        }
+
+        if let Some(ref interpolator) = self.offset_interpolator {
+            unimplemented!();
+            self.changed = true;
+        }
+
+        if let Some(ref interpolator) = self.color_interpolator {
+            unimplemented!();
+            self.changed = true;
+        }
     }
 }
 
@@ -282,7 +327,7 @@ mod tests {
         let anm0 = Anm0::from_slice(&buf).unwrap();
         assert_eq!(anm0.size, (256, 256));
         assert_eq!(anm0.format, 5);
-        let sprite = Rc::new(RefCell::new(Sprite::new()));
+        let sprite = Rc::new(RefCell::new(Sprite::new(0., 0.)));
         let mut anm_runner = AnmRunner::new(&anm0, 1, sprite.clone(), 0);
         for _ in 0..50 {
             anm_runner.run_frame();
