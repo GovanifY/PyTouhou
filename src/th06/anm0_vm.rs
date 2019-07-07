@@ -9,8 +9,81 @@ use crate::th06::anm0::{
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
-struct Interpolator;
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Formula {
+    Linear,
+    Power2,
+    InvertPower2,
+}
+
+impl Formula {
+    fn apply(&self, x: f32) -> f32 {
+        match self {
+            Formula::Linear => x,
+            Formula::Power2 => x * x,
+            Formula::InvertPower2 => 2. * x - x * x,
+        }
+    }
+}
+
+macro_rules! generate_interpolator {
+    ($name:ident, $n:tt) => {
+        #[derive(Debug, Clone)]
+        struct $name<T> {
+            start_values: [T; $n],
+            end_values: [T; $n],
+            start_frame: u16,
+            end_frame: u16,
+            formula: Formula,
+        }
+
+        impl<T> $name<T>
+        where f32: From<T>,
+              T: From<f32>,
+              T: std::ops::Sub<Output = T>,
+              T: std::ops::Add<Output = T>,
+              T: Copy,
+              T: Default,
+        {
+            pub fn new(start_values: [T; $n], start_frame: u16, end_values: [T; $n], end_frame: u16, formula: Formula) -> $name<T> {
+                $name {
+                    start_values,
+                    end_values,
+                    start_frame,
+                    end_frame,
+                    formula,
+                }
+            }
+
+            // XXX: Make it return [T; $n] instead, we don’t want to only do f32 here.
+            pub fn values(&self, frame: u16) -> [f32; $n] {
+                if frame + 1 >= self.end_frame {
+                    // XXX: skip the last interpolation step.
+                    // This bug is replicated from the original game.
+                    //self.start_frame = self.end_frame;
+                    //self.end_values
+                    let mut values: [f32; $n] = [Default::default(); $n];
+                    for (i, value) in self.end_values.iter().enumerate() {
+                        values[i] = f32::from(*value);
+                    }
+                    values
+                } else {
+                    let mut coeff = (frame - self.start_frame) as f32 / (self.end_frame - self.start_frame) as f32;
+                    coeff = self.formula.apply(coeff);
+                    let mut values: [f32; $n] = [Default::default(); $n];
+                    for (i, (start, end)) in self.start_values.iter().zip(&self.end_values).enumerate() {
+                        values[i] = f32::from(*start + T::from(coeff * f32::from(*end - *start)));
+                    }
+                    values
+                }
+            }
+        }
+    };
+}
+
+generate_interpolator!(Interpolator1, 1);
+generate_interpolator!(Interpolator2, 2);
+generate_interpolator!(Interpolator3, 3);
 
 /// Base visual element.
 #[derive(Debug, Clone, Default)]
@@ -31,11 +104,11 @@ pub struct Sprite {
     mirrored: bool,
     corner_relative_placement: bool,
 
-    scale_interpolator: Option<Interpolator>,
-    fade_interpolator: Option<Interpolator>,
-    offset_interpolator: Option<Interpolator>,
-    rotation_interpolator: Option<Interpolator>,
-    color_interpolator: Option<Interpolator>,
+    scale_interpolator: Option<Interpolator2<f32>>,
+    fade_interpolator: Option<Interpolator1<f32>>, // XXX: should be u8!
+    offset_interpolator: Option<Interpolator3<f32>>,
+    rotation_interpolator: Option<Interpolator3<f32>>,
+    color_interpolator: Option<Interpolator3<f32>>, // XXX: should be u8!
 
     anm: Option<Anm0>,
 
@@ -73,7 +146,7 @@ impl Sprite {
             self.rotations_3d = [ax + sax, ay + say, az + saz];
             self.changed = true;
         } else if let Some(ref interpolator) = self.rotation_interpolator {
-            unimplemented!();
+            self.rotations_3d = interpolator.values(self.frame);
             self.changed = true;
         }
 
@@ -85,22 +158,26 @@ impl Sprite {
         }
 
         if let Some(ref interpolator) = self.fade_interpolator {
-            unimplemented!();
+            self.color[3] = interpolator.values(self.frame)[0] as u8;
             self.changed = true;
         }
 
         if let Some(ref interpolator) = self.scale_interpolator {
-            unimplemented!();
+            self.rescale = interpolator.values(self.frame);
             self.changed = true;
         }
 
         if let Some(ref interpolator) = self.offset_interpolator {
-            unimplemented!();
+            self.dest_offset = interpolator.values(self.frame);
             self.changed = true;
         }
 
         if let Some(ref interpolator) = self.color_interpolator {
-            unimplemented!();
+            let color = interpolator.values(self.frame);
+            // TODO: this can probably be made to look nicer.
+            self.color[0] = color[0] as u8;
+            self.color[1] = color[1] as u8;
+            self.color[2] = color[2] as u8;
             self.changed = true;
         }
     }
@@ -242,8 +319,7 @@ impl AnmRunner {
                 sprite.scale_speed = [ssx, ssy];
             }
             Instruction::Fade(new_alpha, duration) => {
-                // XXX: implement fade().
-                //sprite.fade(duration, new_alpha)
+                sprite.fade_interpolator = Some(Interpolator1::new([sprite.color[3] as f32], sprite.frame, [new_alpha as f32], sprite.frame + duration as u16, Formula::Linear));
             }
             Instruction::SetBlendmodeAlphablend() => {
                 sprite.blendfunc = 1;
@@ -255,28 +331,30 @@ impl AnmRunner {
                 self.running = false;
             }
             Instruction::LoadRandomSprite(min_index, amplitude) => {
-                //self.load_sprite(min_index + randrange(amp))
+                let sprite_index = min_index; // XXX: + randrange(amplitude);
+
+                // TODO: refactor that with Instruction::LoadSprite.
+                sprite.anm = Some(self.anm.clone());
+                let texcoords = &self.anm.sprites[(sprite_index + self.sprite_index_offset) as usize];
+                sprite.texcoords = [texcoords.x, texcoords.y, texcoords.width, texcoords.height];
             }
             Instruction::Move(x, y, z) => {
                 sprite.dest_offset = [x, y, z];
             }
             Instruction::MoveToLinear(x, y, z, duration) => {
-                // XXX: implement move_in().
-                //sprite.move_in(duration, x, y, z);
+                sprite.offset_interpolator = Some(Interpolator3::new(sprite.dest_offset, sprite.frame, [x, y, z], sprite.frame + duration as u16, Formula::Linear));
             }
             Instruction::MoveToDecel(x, y, z, duration) => {
-                // XXX: implement move_in().
-                //sprite.move_in(duration, x, y, z, 2*x - x**2);
+                sprite.offset_interpolator = Some(Interpolator3::new(sprite.dest_offset, sprite.frame, [x, y, z], sprite.frame + duration as u16, Formula::InvertPower2));
             }
             Instruction::MoveToAccel(x, y, z, duration) => {
-                // XXX: implement move_in().
-                //sprite.move_in(duration, x, y, z, x**2);
+                sprite.offset_interpolator = Some(Interpolator3::new(sprite.dest_offset, sprite.frame, [x, y, z], sprite.frame + duration as u16, Formula::Power2));
             }
             Instruction::Wait() => {
                 self.waiting = true;
             }
             // There is nothing to do here.
-            Instruction::InterruptLabel(label) => (),
+            Instruction::InterruptLabel(_label) => (),
             Instruction::SetCornerRelativePlacement() => {
                 sprite.corner_relative_placement = true;
             }
@@ -302,10 +380,9 @@ impl AnmRunner {
                 sprite.visible = (visible & 1) != 0;
             }
             Instruction::ScaleIn(sx, sy, duration) => {
-                // TODO: implement scale_in().
-                //sprite.scale_in(duration, sx, sy)
+                sprite.scale_interpolator = Some(Interpolator2::new(sprite.rescale, sprite.frame, [sx, sy], sprite.frame + duration as u16, Formula::Linear));
             }
-            Instruction::Todo(todo) => {
+            Instruction::Todo(_todo) => {
                 // TODO.
             }
         }
