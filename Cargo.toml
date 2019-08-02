@@ -11,3 +11,10 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 nom = "5"
+image = { version = "0.22", default-features = false, features = ["png_codec"] }
+luminance = { version = "*", path = "../luminance/luminance" }
+luminance-glfw = { version = "*", path = "../luminance/luminance-glfw", default-features = false }
+luminance-derive = { version = "*", path = "../luminance/luminance-derive" }
+
+[profile.dev]
+panic = "abort"

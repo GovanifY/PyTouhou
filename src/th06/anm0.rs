@@ -76,6 +76,12 @@ impl Anm0 {
         assert_eq!(anm0.len(), 1);
         Ok(anm0[0].clone())
     }
+
+    /// TODO
+    pub fn inv_size(&self) -> (f32, f32) {
+        let (x, y) = self.size;
+        (1. / x as f32, 1. / y as f32)
+    }
 }
 
 fn parse_name(i: &[u8], is_present: bool) -> IResult<&[u8], String> {

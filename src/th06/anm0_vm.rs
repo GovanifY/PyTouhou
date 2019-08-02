@@ -7,8 +7,21 @@ use crate::th06::anm0::{
     Instruction,
 };
 use crate::th06::interpolator::{Interpolator1, Interpolator2, Interpolator3, Formula};
+use crate::util::math::Mat4;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+/// TODO
+#[repr(C)]
+#[derive(Debug)]
+pub struct Vertex {
+    /// XXX
+    pub pos: [i16; 3],
+    /// XXX
+    pub uv: [f32; 2],
+    /// XXX
+    pub color: [u8; 4],
+}
 
 /// Base visual element.
 #[derive(Debug, Clone, Default)]
@@ -61,9 +74,88 @@ impl Sprite {
         }
     }
 
+    /// TODO
+    pub fn fill_vertices(&self, vertices: &mut [Vertex; 4]) {
+        let mut mat = Mat4::new([[-0.5, 0.5, 0.5, -0.5],
+                                 [-0.5, -0.5, 0.5, 0.5],
+                                 [0., 0., 0., 0.],
+                                 [1., 1., 1., 1.]]);
+
+        let [tx, ty, tw, th] = self.texcoords;
+        let [sx, sy] = self.rescale;
+        let width = if self.width_override > 0. { self.width_override } else { tw * sx };
+        let height = if self.height_override > 0. { self.height_override } else { th * sy };
+
+        mat.scale2d(width, height);
+        if self.mirrored {
+            mat.flip();
+        }
+
+        let [rx, ry, mut rz] = self.rotations_3d;
+        if self.automatic_orientation {
+            rz += std::f32::consts::PI / 2. - self.angle;
+        } else if self.force_rotation {
+            rz += self.angle;
+        }
+
+        if rx != 0. {
+            mat.rotate_x(-rx);
+        }
+        if ry != 0. {
+            mat.rotate_y(ry);
+        }
+        if rz != 0. {
+            mat.rotate_z(-rz);
+        }
+
+        if self.allow_dest_offset {
+            mat.translate(self.dest_offset);
+        }
+        if self.corner_relative_placement {
+            mat.translate_2d(width / 2., height / 2.);
+        }
+
+        let mat = mat.borrow_inner();
+        vertices[0].pos[0] = mat[0][0] as i16;
+        vertices[0].pos[1] = mat[1][0] as i16;
+        vertices[0].pos[2] = mat[2][0] as i16;
+        vertices[1].pos[0] = mat[0][1] as i16;
+        vertices[1].pos[1] = mat[1][1] as i16;
+        vertices[1].pos[2] = mat[2][1] as i16;
+        vertices[2].pos[0] = mat[0][2] as i16;
+        vertices[2].pos[1] = mat[1][2] as i16;
+        vertices[2].pos[2] = mat[2][2] as i16;
+        vertices[3].pos[0] = mat[0][3] as i16;
+        vertices[3].pos[1] = mat[1][3] as i16;
+        vertices[3].pos[2] = mat[2][3] as i16;
+
+        // XXX: don’t clone here.
+        let (x_1, y_1) = self.anm.clone().unwrap().inv_size();
+        let [tox, toy] = self.texoffsets;
+        let left = tx * x_1 + tox;
+        let right = (tx + tw) * x_1 + tox;
+        let bottom = ty * y_1 + toy;
+        let top = (ty + th) * y_1 + toy;
+
+        vertices[0].uv[0] = left;
+        vertices[0].uv[1] = bottom;
+        vertices[1].uv[0] = right;
+        vertices[1].uv[1] = bottom;
+        vertices[2].uv[0] = right;
+        vertices[2].uv[1] = top;
+        vertices[3].uv[0] = left;
+        vertices[3].uv[1] = top;
+
+        vertices[0].color = self.color;
+        vertices[1].color = self.color;
+        vertices[2].color = self.color;
+        vertices[3].color = self.color;
+    }
+
     /// Update sprite values from the interpolators.
     pub fn update(&mut self) {
         self.frame += 1;
+        self.corner_relative_placement = true;
 
         let [sax, say, saz] = self.rotations_speed_3d;
         if sax != 0. || say != 0. || saz != 0. {

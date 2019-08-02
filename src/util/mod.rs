@@ -2,6 +2,7 @@
 
 pub mod bitstream;
 pub mod lzss;
+pub mod math;
 
 #[cfg(test)]
 use std::io;
