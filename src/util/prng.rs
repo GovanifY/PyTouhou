@@ -18,7 +18,7 @@ impl Prng {
     ///
     /// RE’d from 102h.exe@0x41e780
     pub fn get_u16(&mut self) -> u16 {
-        let x = ((self.seed ^ 0x9630) - 0x6553) & 0xffff;
+        let x = (self.seed ^ 0x9630) - 0x6553;
         self.seed = (((x & 0xc000) >> 14) | (x << 2)) & 0xffff;
         self.seed
     }
