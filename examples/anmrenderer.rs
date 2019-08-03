@@ -13,6 +13,7 @@ use luminance_glfw::surface::{GlfwSurface, Surface, WindowDim, WindowOpt};
 use touhou::th06::anm0::Anm0;
 use touhou::th06::anm0_vm::{AnmRunner, Sprite, Vertex as FakeVertex};
 use touhou::util::math::{perspective, setup_camera};
+use touhou::util::prng::Prng;
 use std::cell::RefCell;
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -110,8 +111,11 @@ fn main() {
     // Create the sprite.
     let sprite = Rc::new(RefCell::new(Sprite::new(0., 0.)));
 
+    // TODO: seed this PRNG with a valid seed.
+    let prng = Rc::new(RefCell::new(Prng::new(0)));
+
     // Create the AnmRunner from the ANM and the sprite.
-    let mut anm_runner = AnmRunner::new(&anm0, script, sprite.clone(), 0);
+    let mut anm_runner = AnmRunner::new(&anm0, script, sprite.clone(), Rc::downgrade(&prng), 0);
 
     assert_eq!(std::mem::size_of::<Vertex>(), std::mem::size_of::<FakeVertex>());
     let mut vertices: [Vertex; 4] = unsafe { std::mem::uninitialized() };

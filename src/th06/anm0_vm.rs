@@ -8,8 +8,9 @@ use crate::th06::anm0::{
 };
 use crate::th06::interpolator::{Interpolator1, Interpolator2, Interpolator3, Formula};
 use crate::util::math::Mat4;
+use crate::util::prng::Prng;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 /// TODO
 #[repr(C)]
@@ -204,6 +205,7 @@ impl Sprite {
 pub struct AnmRunner {
     anm: Anm0,
     sprite: Rc<RefCell<Sprite>>,
+    prng: Weak<RefCell<Prng>>,
     running: bool,
     sprite_index_offset: u32,
     script: Script,
@@ -216,10 +218,11 @@ pub struct AnmRunner {
 
 impl AnmRunner {
     /// Create a new `AnmRunner`.
-    pub fn new(anm: &Anm0, script_id: u8, sprite: Rc<RefCell<Sprite>>, sprite_index_offset: u32) -> AnmRunner {
+    pub fn new(anm: &Anm0, script_id: u8, sprite: Rc<RefCell<Sprite>>, prng: Weak<RefCell<Prng>>, sprite_index_offset: u32) -> AnmRunner {
         let mut runner = AnmRunner {
             anm: anm.clone(),
             sprite: sprite,
+            prng,
             running: true,
             waiting: false,
 
@@ -347,8 +350,13 @@ impl AnmRunner {
             Instruction::KeepStill() => {
                 self.running = false;
             }
-            Instruction::LoadRandomSprite(min_index, amplitude) => {
-                let sprite_index = min_index; // XXX: + randrange(amplitude);
+            Instruction::LoadRandomSprite(min_index, mut amplitude) => {
+                if amplitude > 0 {
+                    let prng = self.prng.upgrade().unwrap();
+                    let rand = prng.borrow_mut().get_u16();
+                    amplitude = (rand as u32) % amplitude;
+                }
+                let sprite_index = min_index + amplitude;
 
                 // TODO: refactor that with Instruction::LoadSprite.
                 sprite.anm = Some(self.anm.clone());
