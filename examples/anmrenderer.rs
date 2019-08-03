@@ -134,8 +134,6 @@ fn main() {
         .unwrap();
 
     let mut back_buffer = Framebuffer::back_buffer(surface.size());
-    let mut frame = 0;
-    let mut i = 0;
 
     'app: loop {
         for event in surface.poll_events() {
