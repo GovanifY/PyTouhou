@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn file_present() {
-        let file = File::open("/home/linkmauve/games/pc/東方/TH06 ~ The Embodiment of Scarlet Devil/MD.DAT").unwrap();
+        let file = File::open("EoSD/MD.DAT").unwrap();
         let file = io::BufReader::new(file);
         let pbg3 = PBG3::from_file(file).unwrap();
         let files = pbg3.list_files().cloned().collect::<Vec<String>>();
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn check_all_files() {
-        let file = File::open("/home/linkmauve/games/pc/東方/TH06 ~ The Embodiment of Scarlet Devil/MD.DAT").unwrap();
+        let file = File::open("EoSD/MD.DAT").unwrap();
         let file = io::BufReader::new(file);
         let mut pbg3 = PBG3::from_file(file).unwrap();
         let files = pbg3.list_files().cloned().collect::<Vec<String>>();

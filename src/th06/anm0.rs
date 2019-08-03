@@ -296,7 +296,7 @@ mod tests {
 
     #[test]
     fn anm0() {
-        let file = File::open("/home/linkmauve/games/pc/東方/TH06 ~ The Embodiment of Scarlet Devil/CM/player01.anm").unwrap();
+        let file = File::open("EoSD/CM/player01.anm").unwrap();
         let mut file = io::BufReader::new(file);
         let mut buf = vec![];
         file.read_to_end(&mut buf).unwrap();
