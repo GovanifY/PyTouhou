@@ -19,3 +19,6 @@ luminance-derive = { version = "*", path = "../luminance/luminance-derive" }
 
 [profile.dev]
 panic = "abort"
+
+[profile.release]
+panic = "abort"
