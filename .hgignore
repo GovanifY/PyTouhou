@@ -6,3 +6,5 @@
 \.pyd$
 ^build$
 ^scripts$
+^Cargo\.lock$
+^target$
