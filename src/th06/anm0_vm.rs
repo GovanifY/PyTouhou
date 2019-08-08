@@ -63,7 +63,18 @@ pub struct Sprite {
 
 impl Sprite {
     /// Create a new sprite.
-    pub fn new(width_override: f32, height_override: f32) -> Sprite {
+    pub fn new() -> Sprite {
+        Sprite {
+            changed: true,
+            visible: true,
+            rescale: [1., 1.],
+            color: [255, 255, 255, 255],
+            ..Default::default()
+        }
+    }
+
+    /// Create a new sprite overriding its size.
+    pub fn with_size(width_override: f32, height_override: f32) -> Sprite {
         Sprite {
             width_override,
             height_override,
@@ -429,7 +440,7 @@ mod tests {
         let anm0 = Anm0::from_slice(&buf).unwrap();
         assert_eq!(anm0.size, (256, 256));
         assert_eq!(anm0.format, 5);
-        let sprite = Rc::new(RefCell::new(Sprite::new(0., 0.)));
+        let sprite = Rc::new(RefCell::new(Sprite::new()));
         let prng = Rc::new(RefCell::new(Prng::new(0)));
         let mut anm_runner = AnmRunner::new(&anm0, 1, sprite.clone(), Rc::downgrade(&prng), 0);
         for _ in 0..50 {

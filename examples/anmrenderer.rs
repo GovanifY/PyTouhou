@@ -109,7 +109,7 @@ fn main() {
     }
 
     // Create the sprite.
-    let sprite = Rc::new(RefCell::new(Sprite::new(0., 0.)));
+    let sprite = Rc::new(RefCell::new(Sprite::new()));
 
     // TODO: seed this PRNG with a valid seed.
     let prng = Rc::new(RefCell::new(Prng::new(0)));
