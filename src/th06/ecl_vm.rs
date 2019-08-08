@@ -108,14 +108,59 @@ use std::rc::{Rc, Weak};
                 var_id = self._getval(var_id) - 1
             }
             //25
+            Instruction::GetDirection(var_id, x1, y1, x2, y2) {
+                //__ctrandisp2 in ghidra, let's assume from pytouhou it's atan2
+                self._setval(var_id, atan2(self._getval(y2) - self._getval(y1), self._getval(x2) - self._getval(x1)));
+            }
 
+            // 26
+            Instruction::FloatToUnitCircle(var_id) {
+                // TODO: atan2(var_id, ??) is used by th06, maybe ?? is pi? 
+                // we suck at trigonometry so let's use pytouhou for now
+                self._setval(var_id, (self._getval(var_id) + pi) % (2*pi) - pi);
+            }
 
-
-
-
-            // 32
+            // 27(int), 28(float)
+            Instruction::Compare(a, b) {
+                a = self._getval(a);
+                b = self._getval(b);
+                if a < b {
+                    self.comparison_reg = -1 
+                }
+                else if  a == b {
+                    self.comparison_reg = 0 
+                }
+                else {
+                    self.comparison_reg = 1 
+                }
+            }
+            // 29 
+            Instruction::RelativeJumpIfLowerThan(frame, ip) {
+                if self.comparison_reg == -1 {
+                    Instruction::RelativeJump(); 
+                }
+            }
+            // 30 
+            Instruction::RelativeJumpIfLowerOrEqual(frame, ip) {
+                if self.comparison_reg != 1 {
+                    Instruction::RelativeJump(); 
+                }
+            }
+            // 31 
+            Instruction::RelativeJumpIfEqual(frame, ip) {
+                if self.comparison_reg == 0 {
+                    Instruction::RelativeJump(); 
+                }
+            }
+            // 32 
             Instruction::RelativeJumpIfGreaterThan(frame, ip) {
-                if self.comparison_reg == 1
+                if self.comparison_reg == 1 {
+                    Instruction::RelativeJump(); 
+                }
+            }
+            // 33
+            Instruction::RelativeJumpIfGreaterOrEqual(frame, ip) {
+                if self.comparison_reg != -1
                     Instruction::RelativeJump();
             }
             // 34
