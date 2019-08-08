@@ -2,7 +2,7 @@ use image::GenericImageView;
 use luminance::context::GraphicsContext;
 use luminance::framebuffer::Framebuffer;
 use luminance::pipeline::BoundTexture;
-use luminance::pixel::{RGB, Floating};
+use luminance::pixel::{NormRGB8UI, Floating};
 use luminance::render_state::RenderState;
 use luminance::shader::program::{Program, Uniform};
 use luminance::tess::{Mode, TessBuilder};
@@ -203,7 +203,7 @@ fn fill_vertices(sprite: Rc<RefCell<Sprite>>, vertices: &mut [Vertex; 4]) {
     sprite.borrow().fill_vertices(&mut fake_vertices);
 }
 
-fn load_from_disk(surface: &mut GlfwSurface, path: &Path) -> Option<Texture<Flat, Dim2, RGB>> {
+fn load_from_disk(surface: &mut GlfwSurface, path: &Path) -> Option<Texture<Flat, Dim2, NormRGB8UI>> {
     // load the texture into memory as a whole bloc (i.e. no streaming)
     match image::open(&path) {
         Ok(img) => {
