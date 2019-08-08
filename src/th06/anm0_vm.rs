@@ -430,7 +430,8 @@ mod tests {
         assert_eq!(anm0.size, (256, 256));
         assert_eq!(anm0.format, 5);
         let sprite = Rc::new(RefCell::new(Sprite::new(0., 0.)));
-        let mut anm_runner = AnmRunner::new(&anm0, 1, sprite.clone(), 0);
+        let prng = Rc::new(RefCell::new(Prng::new(0)));
+        let mut anm_runner = AnmRunner::new(&anm0, 1, sprite.clone(), Rc::downgrade(&prng), 0);
         for _ in 0..50 {
             anm_runner.run_frame();
         }
