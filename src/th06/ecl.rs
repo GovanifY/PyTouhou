@@ -97,9 +97,11 @@ macro_rules! declare_main_instructions {
     };
 }
 
-/// XXX
+/// Parse a SHIFT_JIS byte string of length 34 into a String.
 pub fn le_String(i: &[u8]) -> IResult<&[u8], String> {
-    let (string, encoding, replaced) = SHIFT_JIS.decode(i);
+    assert_eq!(i.len(), 34);
+    let data = i.splitn(2, |c| *c == b'\0').collect::<Vec<_>>()[0];
+    let (string, encoding, replaced) = SHIFT_JIS.decode(data);
     Ok((&i[34..], string.into_owned()))
 }
 
@@ -301,7 +303,6 @@ fn parse_ecl(input: &[u8]) -> IResult<&[u8], Ecl> {
             instructions.push(CallSub { time, rank_mask, param_mask, instr });
             i = &i[size as usize..];
         }
-        println!("{:#?}", instructions);
         subs.push(Sub { instructions });
     }
 
