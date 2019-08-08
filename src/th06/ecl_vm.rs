@@ -168,6 +168,55 @@ use std::rc::{Rc, Weak};
                 if self.comparison_reg != 0
                     Instruction::RelativeJump();
             }
+            // 35
+            Instruction::Call(sub, param1, param2) {
+                // does insane stuff with the stack, not implemented 
+            }
+ 
+            // 36
+            Instruction::Ret(frame, ip) {
+                // does insane stuff with the stack, not implemented 
+            }
+            // 37
+            Instruction::CallIfSuperior(sub, param1, param2, a, b) {
+                if(self._getval(b) <= self._getval(a)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+            // 38
+            Instruction::CallIfSuperiorOrEqual(sub, param1, param2, a, b) {
+                if(self._getval(b) <= self._getval(a)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+            // 39
+            Instruction::CallIfEqual(sub, param1, param2, a, b) {
+                if(self._getval(b) == self._getval(a)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+            // 40 
+            Instruction::CallIfEqual(sub, param1, param2, a, b) {
+                if(self._getval(b) == self._getval(a)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+            //41 
+            Instruction::CallIfInferior(sub, param1, param2, a, b) {
+                if(self._getval(a) < self._getval(b)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+            //42 
+            Instruction::CallIfInferiorOrEqual(sub, param1, param2, a, b) {
+                if(self._getval(a) <= self._getval(b)) {
+                    Instruction::Call(sub, param1, param2);
+                }
+            }
+
+
+
+
 
 
 
