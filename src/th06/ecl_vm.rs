@@ -213,6 +213,43 @@ use std::rc::{Rc, Weak};
                     Instruction::Call(sub, param1, param2);
                 }
             }
+            // 43 
+            Instruction::SetPos(x, y, z) {
+                self._enemy.set_pos(self._getval(x), self._getval(y), self._getval(z));
+            }
+            // 44 
+            Instruction::SetPosInterlacing(x, y, z) {
+                //TODO: almost the same as setpos, except with 3 different values and sets the
+                //interlacing, should double check 
+                self._enemy.set_pos(self._getval(x), self._getval(y), self._getval(z));
+            }
+            // 45
+            Instruction::SetAngleSpeed(angle, speed) {
+                self._enemy.update_mode = 0;
+                self._enemy.angle, self._enemy.speed = self._getval(angle), self._getval(speed);
+            }
+            // 46 
+            Instruction::SetRotationSpeed(speed) {
+                self._enemy.update_mode = 0
+                self._enemy.rotation_speed = self._getval(speed)
+            }
+            // 47 
+            Instruction::SetSpeed(speed) {
+                self._enemy.update_mode = 0
+                self._enemy.speed = self._getval(speed)
+            }
+            // 48 
+            Instruction::SetAcceleration(acceleration) {
+                self._enemy.update_mode = 0
+                self._enemy.acceleration = self._getval(acceleration)
+            }
+            // 49
+            Instruction::SetRandomAngle(min_angle, max_angle) {
+                angle = self._game.prng.rand_double() * (max_angle - min_angle) + min_angle
+                self._enemy.angle = angle
+            }
+
+            // 83 -> star items >>> life items
 
 
 
