@@ -165,7 +165,7 @@ fn main() {
             }
         }
 
-        if frame == 60 {
+        if ecl_runner.running == false {
             break;
         }
         frame += 1;
@@ -214,11 +214,11 @@ fn main() {
     }
 }
 
-fn fill_vertices_ptr(sprites: Vec<Rc<RefCell<Sprite>>>, vertices: *mut Vertex) {
+fn fill_vertices_ptr(sprites: Vec<(f32, f32, f32, Rc<RefCell<Sprite>>)>, vertices: *mut Vertex) {
     let mut fake_vertices = unsafe { std::mem::transmute::<*mut Vertex, &mut [FakeVertex; 4]>(vertices) };
-    for sprite in sprites {
+    for (x, y, z, sprite) in sprites {
         let sprite = sprite.borrow();
-        sprite.fill_vertices(&mut fake_vertices);
+        sprite.fill_vertices(&mut fake_vertices, x, y, z);
     }
 }
 

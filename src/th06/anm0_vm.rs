@@ -87,7 +87,7 @@ impl Sprite {
     }
 
     /// TODO
-    pub fn fill_vertices(&self, vertices: &mut [Vertex; 4]) {
+    pub fn fill_vertices(&self, vertices: &mut [Vertex; 4], x: f32, y: f32, z: f32) {
         let mut mat = Mat4::new([[-0.5, 0.5, 0.5, -0.5],
                                  [-0.5, -0.5, 0.5, 0.5],
                                  [0., 0., 0., 0.],
@@ -126,6 +126,8 @@ impl Sprite {
         if self.corner_relative_placement {
             mat.translate_2d(width / 2., height / 2.);
         }
+
+        mat.translate([x, y, z]);
 
         let mat = mat.borrow_inner();
         vertices[0].pos[0] = mat[0][0] as i16;

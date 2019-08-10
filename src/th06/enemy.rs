@@ -91,12 +91,14 @@ impl Game {
     }
 
     /// Returns a list of all sprites currently being displayed on screen.
-    pub fn get_sprites(&self) -> Vec<Rc<RefCell<Sprite>>> {
+    pub fn get_sprites(&self) -> Vec<(f32, f32, f32, Rc<RefCell<Sprite>>)> {
         let mut sprites = vec![];
-        for anmrunner in self.anmrunners.iter() {
+        for enemy in self.enemies.iter() {
+            let enemy = enemy.borrow();
+            let anmrunner = enemy.anmrunner.upgrade().unwrap();
             let anmrunner = anmrunner.borrow();
             let sprite = anmrunner.get_sprite();
-            sprites.push(sprite);
+            sprites.push((enemy.pos.x, enemy.pos.y, enemy.z, sprite));
         }
         sprites
     }
@@ -139,7 +141,7 @@ pub struct Enemy {
     pub(crate) remaining_lives: u32,
     pub(crate) bullet_launch_interval: u32,
     pub(crate) bullet_launch_timer: u32,
-    pub(crate) death_anim: u32,
+    pub(crate) death_anim: i32,
     pub(crate) direction: u32,
     pub(crate) update_mode: u32,
 
@@ -242,6 +244,18 @@ impl Enemy {
         let game = self.game.upgrade().unwrap();
         let game = game.borrow();
         game.difficulty
+    }
+}
+
+trait Renderable {
+    fn get_sprites(&self) -> Vec<Rc<RefCell<Sprite>>>;
+}
+
+impl Renderable for Enemy {
+    fn get_sprites(&self) -> Vec<Rc<RefCell<Sprite>>> {
+        let anmrunner = self.anmrunner.upgrade().unwrap();
+        let anmrunner = anmrunner.borrow();
+        vec![anmrunner.get_sprite()]
     }
 }
 

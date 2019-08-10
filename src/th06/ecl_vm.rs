@@ -14,7 +14,8 @@ pub struct EclRunner {
     enemy: Rc<RefCell<Enemy>>,
     ecl: Option<Ecl>,
     sub: u8,
-    running: bool,
+    /// XXX
+    pub running: bool,
     /// XXX
     pub frame: i32,
     ip: i32,
@@ -31,6 +32,7 @@ impl EclRunner {
             // XXX: no clone.
             ecl: Some(ecl.clone()),
             sub,
+            running: true,
             ..Default::default()
         }
     }
@@ -143,6 +145,7 @@ impl EclRunner {
     }
 
     fn run_instruction(&mut self, instruction: SubInstruction) {
+        println!("Running instruction {:?}", instruction);
         match instruction {
             SubInstruction::Noop() => {
                 // really
@@ -428,16 +431,19 @@ impl EclRunner {
             */
             // 45
             SubInstruction::SetAngleAndSpeed(angle, speed) => {
+                let angle = self.get_f32(angle);
+                let speed = self.get_f32(speed);
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.update_mode = 0;
-                enemy.angle = self.get_f32(angle);
-                enemy.speed = self.get_f32(speed);
+                enemy.angle = angle;
+                enemy.speed = speed;
             }
             // 46
             SubInstruction::SetRotationSpeed(speed) => {
+                let rotation_speed = self.get_f32(speed);
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.update_mode = 0;
-                enemy.rotation_speed = self.get_f32(speed);
+                enemy.rotation_speed = rotation_speed;
             }
             // 47
             SubInstruction::SetSpeed(speed) => {
@@ -459,6 +465,28 @@ impl EclRunner {
             }
 
             // 83 -> star items >>> life items
+
+            // 97
+            SubInstruction::SetAnim(index) => {
+                // TODO: check in ghidra!
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.set_anim(index as u8);
+            }
+
+            // 100
+            SubInstruction::SetDeathAnim(index) => {
+                // TODO: check in ghidra!
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.death_anim = index;
+            }
+
+            // 103
+            SubInstruction::SetHitbox(width, height, depth) => {
+                // TODO: check in ghidra!
+                assert_eq!(depth, 32.);
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.set_hitbox(width, height);
+            }
 
             _ => unimplemented!()
         }

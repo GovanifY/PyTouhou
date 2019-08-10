@@ -226,7 +226,7 @@ declare_sub_instructions!{
     100 => fn SetDeathAnim(sprite_index: i32),
     101 => fn SetBossMode(value: i32),
     102 => fn CreateSquares(UNK1: i32, UNK2: f32, UNK3: f32, UNK4: f32, UNK5: f32),
-    103 => fn SetEnemyHitbox(width: f32, height: f32, depth: f32),
+    103 => fn SetHitbox(width: f32, height: f32, depth: f32),
     104 => fn SetCollidable(collidable: i32),
     105 => fn SetDamageable(damageable: i32),
     106 => fn PlaySound(index: i32),
