@@ -11,7 +11,7 @@ use encoding_rs::SHIFT_JIS;
 #[derive(Debug, Clone)]
 pub struct CallSub {
     /// Time at which this instruction will be called.
-    pub time: u32,
+    pub time: i32,
 
     /// TODO
     pub rank_mask: u16,
@@ -149,19 +149,19 @@ declare_main_instructions!{
 declare_sub_instructions!{
     0 => fn Noop(),
     1 => fn Destroy(unused: u32),
-    2 => fn RelativeJump(frame: u32, ip: i32),
-    3 => fn RelativeJumpEx(frame: u32, ip: i32, variable_id: i32),
+    2 => fn RelativeJump(frame: i32, ip: i32),
+    3 => fn RelativeJumpEx(frame: i32, ip: i32, variable_id: i32),
     4 => fn SetInt(var: i32, value: i32),
     5 => fn SetFloat(var: i32, value: f32),
     6 => fn SetRandomInt(var: i32, max: i32),
     8 => fn SetRandomFloat(var: i32, max: f32),
-    9 => fn SetRandomFloat2(var: i32, amplitude: f32, min: f32),
+    9 => fn SetRandomFloatMin(var: i32, amplitude: f32, min: f32),
     10 => fn StoreX(var: i32),
     13 => fn AddInt(var: i32, a: i32, b: i32),
     14 => fn SubstractInt(var: i32, a: i32, b: i32),
     15 => fn MultiplyInt(var: i32, a: i32, b: i32),
     16 => fn DivideInt(var: i32, a: i32, b: i32),
-    17 => fn Modulo(var: i32, a: i32, b: i32),
+    17 => fn ModuloInt(var: i32, a: i32, b: i32),
     18 => fn Increment(var: i32),
     20 => fn AddFloat(var: i32, a: f32, b: f32),
     21 => fn SubstractFloat(var: i32, a: f32, b: f32),
@@ -287,9 +287,9 @@ fn parse_ecl(input: &[u8]) -> IResult<&[u8], Ecl> {
         let mut i = &input[offset..];
         let mut instructions = Vec::new();
         loop {
-            let (i2, time) = le_u32(i)?;
+            let (i2, time) = le_i32(i)?;
             let (i2, opcode) = le_u16(i2)?;
-            if time == 0xffffffff || opcode == 0xffff {
+            if time == -1 || opcode == 0xffff {
                 break;
             }
 

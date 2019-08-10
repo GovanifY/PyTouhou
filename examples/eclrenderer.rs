@@ -13,6 +13,7 @@ use luminance_glfw::surface::{GlfwSurface, Surface, WindowDim, WindowOpt};
 use touhou::th06::anm0::Anm0;
 use touhou::th06::anm0_vm::{Sprite, Vertex as FakeVertex};
 use touhou::th06::ecl::Ecl;
+use touhou::th06::ecl_vm::EclRunner;
 use touhou::th06::enemy::{Enemy, Game, Position};
 use touhou::util::math::{perspective, setup_camera};
 use touhou::util::prng::Prng;
@@ -127,8 +128,8 @@ fn main() {
     let game = Rc::new(RefCell::new(game));
 
     // And the enemy object.
-    let mut enemy = Enemy::new(Position::new(0., 0.), 500, 0, 640, Rc::downgrade(&anm0), Rc::downgrade(&game));
-    enemy.set_anim(0);
+    let enemy = Enemy::new(Position::new(0., 0.), 500, 0, 640, Rc::downgrade(&anm0), Rc::downgrade(&game));
+    let mut ecl_runner = EclRunner::new(&ecl, enemy.clone(), 0);
 
     assert_eq!(std::mem::size_of::<Vertex>(), std::mem::size_of::<FakeVertex>());
     let vertices: [Vertex; 4] = unsafe { std::mem::uninitialized() };
@@ -174,6 +175,7 @@ fn main() {
                 .as_slice_mut()
                 .unwrap();
 
+            ecl_runner.run_frame();
             let mut game = game.borrow_mut();
             game.run_frame();
             let sprites = game.get_sprites();

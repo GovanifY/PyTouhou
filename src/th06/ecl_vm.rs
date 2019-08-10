@@ -1,29 +1,159 @@
 //! ECL runner.
 
-use crate::th06::anm0::{
-    Script,
-    Anm0,
-    Call,
-    Instruction,
-};
-use crate::th06::interpolator::{Interpolator1, Interpolator2, Interpolator3, Formula};
-use crate::util::math::Mat4;
+use crate::th06::ecl::{Ecl, SubInstruction};
+use crate::th06::enemy::Enemy;
 use crate::util::prng::Prng;
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
-    fn run_instruction(&mut self, instruction: Instruction) {
-        let mut sprite = self.sprite.borrow_mut();
+type Variables = ([i32; 4], [f32; 4], [i32; 4]);
+
+/// Interpreter for enemy scripts.
+#[derive(Default)]
+pub struct EclRunner {
+    enemy: Rc<RefCell<Enemy>>,
+    ecl: Option<Ecl>,
+    sub: u8,
+    running: bool,
+    /// XXX
+    pub frame: i32,
+    ip: i32,
+    variables: Variables,
+    comparison_reg: i8,
+    stack: Vec<Variables>,
+}
+
+impl EclRunner {
+    /// Create a new ECL runner.
+    pub fn new(ecl: &Ecl, enemy: Rc<RefCell<Enemy>>, sub: u8) -> EclRunner {
+        EclRunner {
+            enemy,
+            // XXX: no clone.
+            ecl: Some(ecl.clone()),
+            sub,
+            ..Default::default()
+        }
+    }
+
+    /// Advance the ECL of a single frame.
+    pub fn run_frame(&mut self) {
+        while self.running {
+            let ecl = self.ecl.clone().unwrap();
+            let sub = &ecl.subs[self.sub as usize];
+            let call = match sub.instructions.get(self.ip as usize) {
+                Some(call) => call,
+                None => {
+                    self.running = false;
+                    break;
+                }
+            };
+
+            if call.time > self.frame {
+                break;
+            }
+            self.ip += 1;
+
+            let rank = self.enemy.borrow().get_rank();
+            if call.rank_mask & (0x100 << rank) == 0 {
+                continue;
+            }
+
+            if call.time == self.frame {
+                self.run_instruction(call.instr.clone());
+            }
+        }
+        self.frame += 1;
+    }
+
+    fn get_i32(&self, var: i32) -> i32 {
+        let enemy = self.enemy.borrow();
+        match var {
+            -10001 => self.variables.0[0],
+            -10002 => self.variables.0[1],
+            -10003 => self.variables.0[2],
+            -10004 => self.variables.0[3],
+            -10005 => self.variables.1[0] as i32,
+            -10006 => self.variables.1[1] as i32,
+            -10007 => self.variables.1[2] as i32,
+            -10008 => self.variables.1[3] as i32,
+            -10009 => self.variables.2[0],
+            -10010 => self.variables.2[1],
+            -10011 => self.variables.2[2],
+            -10012 => self.variables.2[3],
+            -10013 => enemy.get_rank(),
+            -10014 => enemy.get_difficulty(),
+            -10015 => enemy.pos.x as i32,
+            -10016 => enemy.pos.y as i32,
+            -10017 => enemy.z as i32,
+            -10018 => unimplemented!(),
+            -10019 => unimplemented!(),
+            -10020 => unreachable!(),
+            -10021 => unimplemented!(),
+            -10022 => enemy.frame as i32,
+            -10023 => unreachable!(),
+            -10024 => enemy.life as i32,
+            -10025 => unimplemented!(),
+            _ => var
+        }
+    }
+
+    fn get_f32(&self, var: f32) -> f32 {
+        let enemy = self.enemy.borrow();
+        match var {
+            -10001.0 => self.variables.0[0] as f32,
+            -10002.0 => self.variables.0[1] as f32,
+            -10003.0 => self.variables.0[2] as f32,
+            -10004.0 => self.variables.0[3] as f32,
+            -10005.0 => self.variables.1[0],
+            -10006.0 => self.variables.1[1],
+            -10007.0 => self.variables.1[2],
+            -10008.0 => self.variables.1[3],
+            -10009.0 => self.variables.2[0] as f32,
+            -10010.0 => self.variables.2[1] as f32,
+            -10011.0 => self.variables.2[2] as f32,
+            -10012.0 => self.variables.2[3] as f32,
+            -10013.0 => enemy.get_rank() as f32,
+            -10014.0 => enemy.get_difficulty() as f32,
+            -10015.0 => enemy.pos.x,
+            -10016.0 => enemy.pos.y,
+            -10017.0 => enemy.z,
+            -10018.0 => unimplemented!(),
+            -10019.0 => unimplemented!(),
+            -10020.0 => unreachable!(),
+            -10021.0 => unimplemented!(),
+            -10022.0 => enemy.frame as f32,
+            -10023.0 => unreachable!(),
+            -10024.0 => enemy.life as f32,
+            -10025.0 => unimplemented!(),
+            _ => var
+        }
+    }
+
+    fn set_i32(&mut self, var: i32, value: i32) {
+        unimplemented!()
+    }
+
+    fn set_f32(&mut self, var: f32, value: f32) {
+        unimplemented!()
+    }
+
+    fn get_prng(&mut self) -> Rc<RefCell<Prng>> {
+        let enemy = self.enemy.borrow();
+        enemy.prng.upgrade().unwrap()
+    }
+
+    fn run_instruction(&mut self, instruction: SubInstruction) {
         match instruction {
-            Instruction::Noop() {
+            SubInstruction::Noop() => {
                 // really
             }
             // 1
-            Instruction::Stop() {
-                self._enemy.removed = true;
+            SubInstruction::Destroy(_unused) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.removed = true;
             }
-            // 2 
-            Instruction::RelativeJump(frame, ip) {
+            // 2
+            SubInstruction::RelativeJump(frame, ip) => {
                 self.frame = frame;
                 // ip = ip + flag in th06
                 self.ip = ip;
@@ -31,232 +161,306 @@ use std::rc::{Rc, Weak};
             }
             // 3
             // GHIDRA SAYS THERE IS A COMPARISON_REG BUFFER BUT THERE IS NOT!!!
-            // 
-            // MOV        ECX,dword ptr [EBP + 0x8]                     jumptable 00407544 case 31 
+            //
+            // MOV        ECX,dword ptr [EBP + 0x8]                     jumptable 00407544 case 31
             // CMP        dword ptr [0x9d4 + ECX],0x0
             // JLE        LAB_00407abb
             // aka ECX = enemy pointer
             // ECX->9d4 (aka enemy_pointer_copy->comparison_reg) == 0
             // only the pointer is copied, not the value, thus we are safe
-            Instruction::RelativeJumpEx(frame, ip, var_id) {
+            SubInstruction::RelativeJumpEx(frame, ip, var_id) => {
                 // TODO: counter_value is a field of "enemy" in th06, to check
-                counter_value = self._getval(var_id) - 1
-                    if counter_value > 0 {
-                        Instruction::RelativeJump(frame, ip);
-                    }
+                let counter_value = self.get_i32(var_id) - 1;
+                if counter_value > 0 {
+                    SubInstruction::RelativeJump(frame, ip);
+                }
             }
-
-            //4, 5
-            Instruction::SetVariable(var_id, value) {
-                self._setval(var_id, value);
+            // 4
+            SubInstruction::SetInt(var_id, value) => {
+                self.set_i32(var_id, value);
+            }
+            // 5
+            SubInstruction::SetFloat(var_id, value) => {
+                self.set_f32(var_id as f32, value);
             }
             // 6
-            Instruction::SetRandomInt(var_id, maxval) {
-                self._setval(var_id, self._game.prng.rand_32()%self._getval(maxval));
+            SubInstruction::SetRandomInt(var_id, maxval) => {
+                let random = self.get_prng().borrow_mut().get_u32() as i32;
+                self.set_i32(var_id, random % self.get_i32(maxval));
             }
             // 7
-            Instruction::SetRandomIntMin(var_id, maxval, minval) {
-                self._setval(var_id, (self._game.prng.rand_32()%self._getval(maxval))+self._getval(minval));
+            /*
+            SubInstruction::SetRandomIntMin(var_id, maxval, minval) => {
+                self.set_i32(var_id, (self.get_prng().borrow_mut().get_u32() % self.get_i32(maxval)) + self.get_i32(minval));
             }
+            */
             // 8
-            Instruction::SetRandomFloat(var_id, maxval) {
-                self._setval(var_id, self._getval(maxval) * self._game.prng.rand_double())
+            SubInstruction::SetRandomFloat(var_id, maxval) => {
+                let random = self.get_prng().borrow_mut().get_f64() as f32;
+                self.set_f32(var_id as f32, self.get_f32(maxval) * random)
             }
             // 9
-            Instruction::SetRandomFloatMin(var_id, maxval, minval) {
-                self._setval(var_id, (self._getval(maxval) * self._game.prng.rand_double())+self._getval(minval))
+            SubInstruction::SetRandomFloatMin(var_id, maxval, minval) => {
+                let random = self.get_prng().borrow_mut().get_f64() as f32;
+                self.set_f32(var_id as f32, self.get_f32(maxval) * random + self.get_f32(minval))
             }
             // 10
-            Instruction::StoreX(var_id) {
-                self._setval(var_id, self._enemy.x);
+            SubInstruction::StoreX(var_id) => {
+                let x = {
+                    let enemy = self.enemy.borrow();
+                    enemy.pos.x
+                };
+                // TODO: is this really an i32?
+                self.set_i32(var_id, x as i32);
             }
             // 11
-            Instruction::StoreY(var_id) {
-                self._setval(var_id, self._enemy.y);
+            /*
+            SubInstruction::StoreY(var_id) => {
+                let enemy = self.enemy.borrow();
+                self.set_i32(var_id, enemy.pos.y);
             }
+            */
             // 12
-            Instruction::StoreZ(var_id) {
-                self._setval(var_id, self._enemy.z);
+            /*
+            SubInstruction::StoreZ(var_id) => {
+                let enemy = self.enemy.borrow();
+                self.set_i32(var_id, enemy.z);
             }
+            */
             // 13(int), 20(float), same impl in th06
-            Instruction::Add(var_id, a, b) {
-                self._setval(var_id, self._getval(a) + self._getval(b));
+            SubInstruction::AddInt(var_id, a, b) => {
+                self.set_i32(var_id, self.get_i32(a) + self.get_i32(b));
+            }
+            SubInstruction::AddFloat(var_id, a, b) => {
+                self.set_f32(var_id as f32, self.get_f32(a) + self.get_f32(b));
             }
             // 14(int), 21(float), same impl in th06
-            Instruction::Substract(var_id, a, b) {
-                self._setval(var_id, self._getval(a) - self._getval(b));
+            SubInstruction::SubstractInt(var_id, a, b) => {
+                self.set_i32(var_id, self.get_i32(a) - self.get_i32(b));
+            }
+            SubInstruction::SubstractFloat(var_id, a, b) => {
+                self.set_f32(var_id as f32, self.get_f32(a) - self.get_f32(b));
             }
             // 15(int), 22(unused)
-            Instruction::Multiply(var_id, a, b) {
-                self._setval(var_id, self._getval(a) * self._getval(b));
+            SubInstruction::MultiplyInt(var_id, a, b) => {
+                self.set_i32(var_id, self.get_i32(a) * self.get_i32(b));
             }
+            /*
+            SubInstruction::MultiplyFloat(var_id, a, b) => {
+                self.set_f32(var_id as f32, self.get_f32(a) * self.get_f32(b));
+            }
+            */
              // 16(int), 23(unused)
-            Instruction::Divide(var_id, a, b) {
-                self._setval(var_id, self._getval(a) / self._getval(b));
+            SubInstruction::DivideInt(var_id, a, b) => {
+                self.set_i32(var_id, self.get_i32(a) / self.get_i32(b));
             }
+            /*
+            SubInstruction::Divide(var_id, a, b) => {
+                self.set_f32(var_id as f32, self.get_f32(a) / self.get_f32(b));
+            }
+            */
             // 17(int) 24(unused)
-            Instruction::Divide(var_id, a, b) {
-                self._setval(var_id, self._getval(a) % self._getval(b));
+            SubInstruction::ModuloInt(var_id, a, b) => {
+                self.set_i32(var_id, self.get_i32(a) % self.get_i32(b));
             }
+            /*
+            SubInstruction::ModuloFloat(var_id, a, b) => {
+                self.set_f32(var_id as f32, self.get_f32(a) % self.get_f32(b));
+            }
+            */
             // 18
             // setval used by pytouhou, but not in game(???)
-            Instruction::Increment(var_id) {
-                var_id = self._getval(var_id) + 1
+            SubInstruction::Increment(var_id) => {
+                self.set_i32(var_id, self.get_i32(var_id) + 1);
             }
             // 19
-            Instruction::Decrement(var_id) {
-                var_id = self._getval(var_id) - 1
+            /*
+            SubInstruction::Decrement(var_id) => {
+                self.set_i32(var_id, self.get_i32(var_id) - 1);
             }
+            */
             //25
-            Instruction::GetDirection(var_id, x1, y1, x2, y2) {
+            SubInstruction::GetDirection(var_id, x1, y1, x2, y2) => {
                 //__ctrandisp2 in ghidra, let's assume from pytouhou it's atan2
-                self._setval(var_id, atan2(self._getval(y2) - self._getval(y1), self._getval(x2) - self._getval(x1)));
+                self.set_f32(var_id as f32, (self.get_f32(y2) - self.get_f32(y1)).atan2(self.get_f32(x2) - self.get_f32(x1)));
             }
 
             // 26
-            Instruction::FloatToUnitCircle(var_id) {
-                // TODO: atan2(var_id, ??) is used by th06, maybe ?? is pi? 
+            SubInstruction::FloatToUnitCircle(var_id) => {
+                // TODO: atan2(var_id, ??) is used by th06, maybe ?? is pi?
                 // we suck at trigonometry so let's use pytouhou for now
-                self._setval(var_id, (self._getval(var_id) + pi) % (2*pi) - pi);
+                self.set_f32(var_id as f32, (self.get_f32(var_id as f32) + std::f32::consts::PI) % (2. * std::f32::consts::PI) - std::f32::consts::PI);
             }
 
             // 27(int), 28(float)
-            Instruction::Compare(a, b) {
-                a = self._getval(a);
-                b = self._getval(b);
+            SubInstruction::CompareInts(a, b) => {
+                let a = self.get_i32(a);
+                let b = self.get_i32(b);
                 if a < b {
-                    self.comparison_reg = -1 
+                    self.comparison_reg = -1;
                 }
                 else if  a == b {
-                    self.comparison_reg = 0 
+                    self.comparison_reg = 0;
                 }
                 else {
-                    self.comparison_reg = 1 
+                    self.comparison_reg = 1;
                 }
             }
-            // 29 
-            Instruction::RelativeJumpIfLowerThan(frame, ip) {
+            SubInstruction::CompareFloats(a, b) => {
+                let a = self.get_f32(a);
+                let b = self.get_f32(b);
+                if a < b {
+                    self.comparison_reg = -1;
+                }
+                else if  a == b {
+                    self.comparison_reg = 0;
+                }
+                else {
+                    self.comparison_reg = 1;
+                }
+            }
+            // 29
+            SubInstruction::RelativeJumpIfLowerThan(frame, ip) => {
                 if self.comparison_reg == -1 {
-                    Instruction::RelativeJump(); 
+                    SubInstruction::RelativeJump(frame, ip);
                 }
             }
-            // 30 
-            Instruction::RelativeJumpIfLowerOrEqual(frame, ip) {
+            // 30
+            SubInstruction::RelativeJumpIfLowerOrEqual(frame, ip) => {
                 if self.comparison_reg != 1 {
-                    Instruction::RelativeJump(); 
+                    SubInstruction::RelativeJump(frame, ip);
                 }
             }
-            // 31 
-            Instruction::RelativeJumpIfEqual(frame, ip) {
+            // 31
+            SubInstruction::RelativeJumpIfEqual(frame, ip) => {
                 if self.comparison_reg == 0 {
-                    Instruction::RelativeJump(); 
+                    SubInstruction::RelativeJump(frame, ip);
                 }
             }
-            // 32 
-            Instruction::RelativeJumpIfGreaterThan(frame, ip) {
+            // 32
+            SubInstruction::RelativeJumpIfGreaterThan(frame, ip) => {
                 if self.comparison_reg == 1 {
-                    Instruction::RelativeJump(); 
+                    SubInstruction::RelativeJump(frame, ip);
                 }
             }
             // 33
-            Instruction::RelativeJumpIfGreaterOrEqual(frame, ip) {
-                if self.comparison_reg != -1
-                    Instruction::RelativeJump();
+            SubInstruction::RelativeJumpIfGreaterOrEqual(frame, ip) => {
+                if self.comparison_reg != -1 {
+                    SubInstruction::RelativeJump(frame, ip);
+                }
             }
             // 34
-            Instruction::RelativeJumpIfNotEqual(frame, ip) {
-                if self.comparison_reg != 0
-                    Instruction::RelativeJump();
+            SubInstruction::RelativeJumpIfNotEqual(frame, ip) => {
+                if self.comparison_reg != 0 {
+                    SubInstruction::RelativeJump(frame, ip);
+                }
             }
             // 35
-            Instruction::Call(sub, param1, param2) {
-                // does insane stuff with the stack, not implemented 
+            SubInstruction::Call(sub, param1, param2) => {
+                // does insane stuff with the stack, not implemented
+                unimplemented!()
             }
- 
+
             // 36
-            Instruction::Ret(frame, ip) {
-                // does insane stuff with the stack, not implemented 
+            SubInstruction::Return() => {
+                // does insane stuff with the stack, not implemented
+                unimplemented!()
             }
             // 37
-            Instruction::CallIfSuperior(sub, param1, param2, a, b) {
-                if(self._getval(b) <= self._getval(a)) {
-                    Instruction::Call(sub, param1, param2);
+            /*
+            SubInstruction::CallIfSuperior(sub, param1, param2, a, b) => {
+                if self.get_i32(b) <= self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
+            */
             // 38
-            Instruction::CallIfSuperiorOrEqual(sub, param1, param2, a, b) {
-                if(self._getval(b) <= self._getval(a)) {
-                    Instruction::Call(sub, param1, param2);
+            /*
+            SubInstruction::CallIfSuperiorOrEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(b) <= self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
+            */
             // 39
-            Instruction::CallIfEqual(sub, param1, param2, a, b) {
-                if(self._getval(b) == self._getval(a)) {
-                    Instruction::Call(sub, param1, param2);
+            SubInstruction::CallIfEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(b) == self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
-            // 40 
-            Instruction::CallIfEqual(sub, param1, param2, a, b) {
-                if(self._getval(b) == self._getval(a)) {
-                    Instruction::Call(sub, param1, param2);
+            // 40
+            /*
+            SubInstruction::CallIfEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(b) == self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
-            //41 
-            Instruction::CallIfInferior(sub, param1, param2, a, b) {
-                if(self._getval(a) < self._getval(b)) {
-                    Instruction::Call(sub, param1, param2);
+            */
+            //41
+            /*
+            SubInstruction::CallIfInferior(sub, param1, param2, a, b) => {
+                if self.get_i32(a) < self.get_i32(b) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
-            //42 
-            Instruction::CallIfInferiorOrEqual(sub, param1, param2, a, b) {
-                if(self._getval(a) <= self._getval(b)) {
-                    Instruction::Call(sub, param1, param2);
+            */
+            //42
+            /*
+            SubInstruction::CallIfInferiorOrEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(a) <= self.get_i32(b) {
+                    SubInstruction::Call(sub, param1, param2);
                 }
             }
-            // 43 
-            Instruction::SetPos(x, y, z) {
-                self._enemy.set_pos(self._getval(x), self._getval(y), self._getval(z));
+            */
+            // 43
+            SubInstruction::SetPosition(x, y, z) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.set_pos(self.get_f32(x), self.get_f32(y), self.get_f32(z));
             }
-            // 44 
-            Instruction::SetPosInterlacing(x, y, z) {
+            // 44
+            /*
+            SubInstruction::SetPositionInterlacing(x, y, z) => {
                 //TODO: almost the same as setpos, except with 3 different values and sets the
-                //interlacing, should double check 
-                self._enemy.set_pos(self._getval(x), self._getval(y), self._getval(z));
+                //interlacing, should double check
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.set_pos(self.get_f32(x), self.get_f32(y), self.get_f32(z));
             }
+            */
             // 45
-            Instruction::SetAngleSpeed(angle, speed) {
-                self._enemy.update_mode = 0;
-                self._enemy.angle, self._enemy.speed = self._getval(angle), self._getval(speed);
+            SubInstruction::SetAngleAndSpeed(angle, speed) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.update_mode = 0;
+                enemy.angle = self.get_f32(angle);
+                enemy.speed = self.get_f32(speed);
             }
-            // 46 
-            Instruction::SetRotationSpeed(speed) {
-                self._enemy.update_mode = 0
-                self._enemy.rotation_speed = self._getval(speed)
+            // 46
+            SubInstruction::SetRotationSpeed(speed) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.update_mode = 0;
+                enemy.rotation_speed = self.get_f32(speed);
             }
-            // 47 
-            Instruction::SetSpeed(speed) {
-                self._enemy.update_mode = 0
-                self._enemy.speed = self._getval(speed)
+            // 47
+            SubInstruction::SetSpeed(speed) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.update_mode = 0;
+                enemy.speed = self.get_f32(speed);
             }
-            // 48 
-            Instruction::SetAcceleration(acceleration) {
-                self._enemy.update_mode = 0
-                self._enemy.acceleration = self._getval(acceleration)
+            // 48
+            SubInstruction::SetAcceleration(acceleration) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.update_mode = 0;
+                enemy.acceleration = self.get_f32(acceleration);
             }
             // 49
-            Instruction::SetRandomAngle(min_angle, max_angle) {
-                angle = self._game.prng.rand_double() * (max_angle - min_angle) + min_angle
-                self._enemy.angle = angle
+            SubInstruction::SetRandomAngle(min_angle, max_angle) => {
+                let angle = self.get_prng().borrow_mut().get_f64() as f32 * (max_angle - min_angle) + min_angle;
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.angle = angle;
             }
 
             // 83 -> star items >>> life items
 
-
-
-
-
-
-
-
-
-
+            _ => unimplemented!()
+        }
+    }
+}

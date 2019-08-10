@@ -11,8 +11,8 @@ use std::rc::{Rc, Weak};
 /// The 2D position of an object in the game.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Position {
-    x: f32,
-    y: f32,
+    pub(crate) x: f32,
+    pub(crate) y: f32,
 }
 
 /// An offset which can be added to a Position.
@@ -60,6 +60,8 @@ pub struct Game {
     enemies: Vec<Rc<RefCell<Enemy>>>,
     anmrunners: Vec<Rc<RefCell<AnmRunner>>>,
     prng: Rc<RefCell<Prng>>,
+    rank: i32,
+    difficulty: i32,
 }
 
 impl Game {
@@ -69,6 +71,8 @@ impl Game {
             enemies: Vec::new(),
             anmrunners: Vec::new(),
             prng,
+            rank: 0,
+            difficulty: 0,
         }
     }
 
@@ -109,52 +113,53 @@ struct Element {
 #[derive(Default)]
 pub struct Enemy {
     // Common to all elements in game.
-    pos: Position,
-    removed: bool,
-    anmrunner: Weak<RefCell<AnmRunner>>,
+    pub(crate) pos: Position,
+    pub(crate) removed: bool,
+    pub(crate) anmrunner: Weak<RefCell<AnmRunner>>,
 
     // Specific to enemy.
     // Floats.
-    z: f32,
-    angle: f32,
-    speed: f32,
-    rotation_speed: f32,
-    acceleration: f32,
+    pub(crate) z: f32,
+    pub(crate) angle: f32,
+    pub(crate) speed: f32,
+    pub(crate) rotation_speed: f32,
+    pub(crate) acceleration: f32,
 
     // Ints.
-    type_: u32,
-    bonus_dropped: u32,
-    die_score: u32,
-    frame: u32,
-    life: u32,
-    death_flags: u32,
-    current_laser_id: u32,
-    low_life_trigger: Option<u32>,
-    timeout: Option<u32>,
-    remaining_lives: u32,
-    bullet_launch_interval: u32,
-    bullet_launch_timer: u32,
-    death_anim: u32,
-    direction: u32,
-    update_mode: u32,
+    pub(crate) type_: u32,
+    pub(crate) bonus_dropped: u32,
+    pub(crate) die_score: u32,
+    /// XXX
+    pub frame: u32,
+    pub(crate) life: u32,
+    pub(crate) death_flags: u32,
+    pub(crate) current_laser_id: u32,
+    pub(crate) low_life_trigger: Option<u32>,
+    pub(crate) timeout: Option<u32>,
+    pub(crate) remaining_lives: u32,
+    pub(crate) bullet_launch_interval: u32,
+    pub(crate) bullet_launch_timer: u32,
+    pub(crate) death_anim: u32,
+    pub(crate) direction: u32,
+    pub(crate) update_mode: u32,
 
     // Bools.
-    visible: bool,
-    was_visible: bool,
-    touchable: bool,
-    collidable: bool,
-    damageable: bool,
-    boss: bool,
-    automatic_orientation: bool,
-    delay_attack: bool,
+    pub(crate) visible: bool,
+    pub(crate) was_visible: bool,
+    pub(crate) touchable: bool,
+    pub(crate) collidable: bool,
+    pub(crate) damageable: bool,
+    pub(crate) boss: bool,
+    pub(crate) automatic_orientation: bool,
+    pub(crate) delay_attack: bool,
 
     // Tuples.
-    difficulty_coeffs: (f32, f32, u32, u32, u32, u32),
-    extended_bullet_attributes: Option<(u32, u32, u32, u32, f32, f32, f32, f32)>,
-    bullet_attributes: Option<(i16, i16, u32, u32, u32, f32, f32, f32, f32, u32)>,
-    bullet_launch_offset: Offset,
-    movement_dependant_sprites: Option<(f32, f32, f32, f32)>,
-    screen_box: Option<(f32, f32, f32, f32)>,
+    pub(crate) difficulty_coeffs: (f32, f32, u32, u32, u32, u32),
+    pub(crate) extended_bullet_attributes: Option<(u32, u32, u32, u32, f32, f32, f32, f32)>,
+    pub(crate) bullet_attributes: Option<(i16, i16, u32, u32, u32, f32, f32, f32, f32, u32)>,
+    pub(crate) bullet_launch_offset: Offset,
+    pub(crate) movement_dependant_sprites: Option<(f32, f32, f32, f32)>,
+    pub(crate) screen_box: Option<(f32, f32, f32, f32)>,
 
     // Callbacks.
     death_callback: Option<Callback>,
@@ -170,21 +175,22 @@ pub struct Enemy {
     options: Vec<Element>,
 
     // Interpolators.
-    interpolator: Option<Interpolator2<f32>>,
-    speed_interpolator: Option<Interpolator1<f32>>,
+    pub(crate) interpolator: Option<Interpolator2<f32>>,
+    pub(crate) speed_interpolator: Option<Interpolator1<f32>>,
 
     // Misc stuff, do we need them?
-    anm0: Weak<RefCell<Anm0>>,
+    pub(crate) anm0: Weak<RefCell<Anm0>>,
     process: Rc<RefCell<Process>>,
-    game: Weak<RefCell<Game>>,
-    prng: Weak<RefCell<Prng>>,
-    hitbox_half_size: [f32; 2],
+    pub(crate) game: Weak<RefCell<Game>>,
+    pub(crate) prng: Weak<RefCell<Prng>>,
+    pub(crate) hitbox_half_size: [f32; 2],
 }
 
 impl Enemy {
     /// Create a new enemy.
-    pub fn new(pos: Position, life: i32, bonus_dropped: u32, die_score: u32, anm0: Weak<RefCell<Anm0>>, game: Weak<RefCell<Game>>) -> Enemy {
-        Enemy {
+    pub fn new(pos: Position, life: i32, bonus_dropped: u32, die_score: u32, anm0: Weak<RefCell<Anm0>>, game: Weak<RefCell<Game>>) -> Rc<RefCell<Enemy>> {
+        let game_rc = game.upgrade().unwrap();
+        let enemy = Enemy {
             pos,
             anm0,
             game,
@@ -197,7 +203,10 @@ impl Enemy {
             damageable: true,
             difficulty_coeffs: (-0.5, 0.5, 0, 0, 0, 0),
             ..Default::default()
-        }
+        };
+        let enemy = Rc::new(RefCell::new(enemy));
+        game_rc.borrow_mut().enemies.push(enemy.clone());
+        enemy
     }
 
     /// Sets the animation to the one indexed by index in the current anm0.
@@ -211,9 +220,28 @@ impl Enemy {
         (*game.borrow_mut()).anmrunners.push(anmrunner);
     }
 
+    /// Sets the current position of the enemy.
+    pub fn set_pos(&mut self, x: f32, y: f32, z: f32) {
+        self.pos.x = x;
+        self.pos.y = y;
+        self.z = z;
+    }
+
     /// Sets the hitbox around the enemy.
     pub fn set_hitbox(&mut self, width: f32, height: f32) {
         self.hitbox_half_size = [width, height];
+    }
+
+    pub(crate) fn get_rank(&self) -> i32 {
+        let game = self.game.upgrade().unwrap();
+        let game = game.borrow();
+        game.rank
+    }
+
+    pub(crate) fn get_difficulty(&self) -> i32 {
+        let game = self.game.upgrade().unwrap();
+        let game = game.borrow();
+        game.difficulty
     }
 }
 
