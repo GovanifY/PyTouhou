@@ -252,6 +252,11 @@ impl AnmRunner {
         runner
     }
 
+    /// Get a Rc from the inner Sprite.
+    pub fn get_sprite(&self) -> Rc<RefCell<Sprite>> {
+        self.sprite.clone()
+    }
+
     /// Trigger an interrupt.
     pub fn interrupt(&mut self, interrupt: i32) -> bool {
         let mut new_ip = self.script.interrupts.get(&interrupt);
