@@ -112,6 +112,19 @@ struct Element {
     anmrunner: AnmRunner,
 }
 
+#[derive(PartialEq)]
+pub(crate) enum Direction {
+    Left,
+    Center,
+    Right,
+}
+
+impl Default for Direction {
+    fn default() -> Direction {
+        Direction::Center
+    }
+}
+
 /// The enemy struct, containing everything pertaining to an enemy.
 #[derive(Default)]
 pub struct Enemy {
@@ -143,7 +156,7 @@ pub struct Enemy {
     pub(crate) bullet_launch_interval: u32,
     pub(crate) bullet_launch_timer: u32,
     pub(crate) death_anim: i32,
-    pub(crate) direction: u32,
+    pub(crate) direction: Direction,
     pub(crate) update_mode: u32,
 
     // Bools.
@@ -161,7 +174,7 @@ pub struct Enemy {
     pub(crate) extended_bullet_attributes: Option<(u32, u32, u32, u32, f32, f32, f32, f32)>,
     pub(crate) bullet_attributes: Option<(i16, i16, u32, u32, u32, f32, f32, f32, f32, u32)>,
     pub(crate) bullet_launch_offset: Offset,
-    pub(crate) movement_dependant_sprites: Option<(f32, f32, f32, f32)>,
+    pub(crate) movement_dependant_sprites: Option<(u8, u8, u8, u8)>,
     pub(crate) screen_box: Option<(f32, f32, f32, f32)>,
 
     // Callbacks.
@@ -257,6 +270,24 @@ impl Enemy {
             x += dx;
         }
         y += dy;
+
+        if let Some((end_left, end_right, left, right)) = self.movement_dependant_sprites {
+            if x < self.pos.x && self.direction != Direction::Left {
+                self.set_anim(left);
+                self.direction = Direction::Left;
+            } else if x > self.pos.x && self.direction != Direction::Right {
+                self.set_anim(right);
+                self.direction = Direction::Right;
+            } else if x == self.pos.x && self.direction != Direction::Center {
+                let anim = if self.direction == Direction::Left {
+                    end_left
+                } else {
+                    end_right
+                };
+                self.set_anim(anim);
+                self.direction = Direction::Center;
+            }
+        }
 
         self.pos = Position { x, y };
 

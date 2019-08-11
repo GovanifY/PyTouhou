@@ -528,6 +528,17 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.set_anim(index as u8);
             }
+            // 98
+            SubInstruction::SetMultipleAnims(default, end_left, end_right, left, right, _unused) => {
+                // TODO: check in ghidra!
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.movement_dependant_sprites = if left == -1 {
+                    None
+                } else {
+                    enemy.set_anim(default as u8);
+                    Some((end_left as u8, end_right as u8, left as u8, right as u8))
+                };
+            }
 
             // 100
             SubInstruction::SetDeathAnim(index) => {
