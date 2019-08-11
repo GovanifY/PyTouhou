@@ -2,6 +2,7 @@
 
 use crate::th06::anm0::Anm0;
 use crate::th06::anm0_vm::{Sprite, AnmRunner};
+use crate::th06::ecl::Rank;
 use crate::th06::interpolator::{Interpolator1, Interpolator2};
 use crate::util::prng::Prng;
 use std::cell::RefCell;
@@ -60,18 +61,18 @@ pub struct Game {
     enemies: Vec<Rc<RefCell<Enemy>>>,
     anmrunners: Vec<Rc<RefCell<AnmRunner>>>,
     prng: Rc<RefCell<Prng>>,
-    rank: i32,
+    rank: Rank,
     difficulty: i32,
 }
 
 impl Game {
     /// Create said god struct.
-    pub fn new(prng: Rc<RefCell<Prng>>) -> Game {
+    pub fn new(prng: Rc<RefCell<Prng>>, rank: Rank) -> Game {
         Game {
             enemies: Vec::new(),
             anmrunners: Vec::new(),
             prng,
-            rank: 0,
+            rank,
             difficulty: 0,
         }
     }
@@ -262,7 +263,7 @@ impl Enemy {
         self.frame += 1;
     }
 
-    pub(crate) fn get_rank(&self) -> i32 {
+    pub(crate) fn get_rank(&self) -> Rank {
         let game = self.game.upgrade().unwrap();
         let game = game.borrow();
         game.rank

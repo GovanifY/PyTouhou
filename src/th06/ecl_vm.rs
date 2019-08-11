@@ -1,6 +1,6 @@
 //! ECL runner.
 
-use crate::th06::ecl::{Ecl, SubInstruction};
+use crate::th06::ecl::{Ecl, SubInstruction, Rank};
 use crate::th06::enemy::Enemy;
 use crate::util::prng::Prng;
 use std::cell::RefCell;
@@ -56,7 +56,7 @@ impl EclRunner {
             self.ip += 1;
 
             let rank = self.enemy.borrow().get_rank();
-            if call.rank_mask & (0x100 << rank) == 0 {
+            if (call.rank_mask & rank).is_empty() {
                 continue;
             }
 
@@ -82,7 +82,7 @@ impl EclRunner {
             -10010 => self.variables.2[1],
             -10011 => self.variables.2[2],
             -10012 => self.variables.2[3],
-            -10013 => enemy.get_rank(),
+            -10013 => enemy.get_rank().bits() as i32,
             -10014 => enemy.get_difficulty(),
             -10015 => enemy.pos.x as i32,
             -10016 => enemy.pos.y as i32,
@@ -114,7 +114,7 @@ impl EclRunner {
             -10010.0 => self.variables.2[1] as f32,
             -10011.0 => self.variables.2[2] as f32,
             -10012.0 => self.variables.2[3] as f32,
-            -10013.0 => enemy.get_rank() as f32,
+            -10013.0 => enemy.get_rank().bits() as f32,
             -10014.0 => enemy.get_difficulty() as f32,
             -10015.0 => enemy.pos.x,
             -10016.0 => enemy.pos.y,

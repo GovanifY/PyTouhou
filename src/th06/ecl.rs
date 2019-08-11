@@ -6,6 +6,27 @@ use nom::{
     number::complete::{le_u8, le_u16, le_u32, le_i16, le_i32, le_f32},
 };
 use encoding_rs::SHIFT_JIS;
+use bitflags::bitflags;
+
+bitflags! {
+    /// Bit flags describing the current difficulty level.
+    pub struct Rank: u16 {
+        /// Easy mode.
+        const Easy = 0x100;
+
+        /// Normal mode.
+        const Normal = 0x200;
+
+        /// Hard mode.
+        const Hard = 0x400;
+
+        /// Lunatic mode.
+        const Lunatic = 0x800;
+
+        /// Any or all modes.
+        const All = 0xff00;
+    }
+}
 
 /// A single instruction, part of a `Script`.
 #[derive(Debug, Clone)]
@@ -13,8 +34,8 @@ pub struct CallSub {
     /// Time at which this instruction will be called.
     pub time: i32,
 
-    /// TODO
-    pub rank_mask: u16,
+    /// The difficulty level(s) this instruction will be called at.
+    pub rank_mask: Rank,
 
     /// TODO
     pub param_mask: u16,
@@ -209,7 +230,7 @@ declare_sub_instructions!{
     81 => fn SetBulletLaunchOffset(x: f32, y: f32, z: f32),
     82 => fn SetExtendedBulletAttributes(a: i32, b: i32, c: i32, d: i32, e: f32, f: f32, g: f32, h: f32),
     83 => fn ChangeBulletsInStarBonus(),
-    // 84: ('i', None),
+    84 => fn UNK0(UNK: i32),
     85 => fn NewLaser(laser_type: i16, sprite_idx_offset: i16, angle: f32, speed: f32, start_offset: f32, end_offset: f32, max_length: f32, width: f32, start_duration: i32, duration: i32, end_duration: i32, grazing_delay: i32, grazing_extra_duration: i32, UNK1: i32),
     86 => fn NewLaserTowardsPlayer(laser_type: i16, sprite_idx_offset: i16, angle: f32, speed: f32, start_offset: f32, end_offset: f32, max_length: f32, width: f32, start_duration: i32, duration: i32, end_duration: i32, grazing_delay: i32, grazing_extra_duration: i32, UNK1: i32),
     87 => fn SetUpcomingLaserId(id: i32),
@@ -295,6 +316,7 @@ fn parse_ecl(input: &[u8]) -> IResult<&[u8], Ecl> {
 
             let (i2, size) = le_u16(i2)?;
             let (i2, rank_mask) = le_u16(i2)?;
+            let rank_mask = Rank::from_bits(rank_mask).unwrap();
             let (i2, param_mask) = le_u16(i2)?;
             // FIXME: this - 12 can trigger a panic, fuzz it!
             let data = &i2[..size as usize - 12];

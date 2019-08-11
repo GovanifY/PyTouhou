@@ -12,7 +12,7 @@ use luminance_glfw::event::{Action, Key, WindowEvent};
 use luminance_glfw::surface::{GlfwSurface, Surface, WindowDim, WindowOpt};
 use touhou::th06::anm0::Anm0;
 use touhou::th06::anm0_vm::{Sprite, Vertex as FakeVertex};
-use touhou::th06::ecl::Ecl;
+use touhou::th06::ecl::{Ecl, Rank};
 use touhou::th06::ecl_vm::EclRunner;
 use touhou::th06::enemy::{Enemy, Game, Position};
 use touhou::util::math::{perspective, setup_camera};
@@ -124,7 +124,7 @@ fn main() {
     let prng = Rc::new(RefCell::new(Prng::new(0)));
 
     // Create the Game god object.
-    let game = Game::new(prng);
+    let game = Game::new(prng, Rank::Normal);
     let game = Rc::new(RefCell::new(game));
 
     // And the enemy object.
