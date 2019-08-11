@@ -132,11 +132,67 @@ impl EclRunner {
     }
 
     fn set_i32(&mut self, var: i32, value: i32) {
-        unimplemented!()
+        let mut enemy = self.enemy.borrow_mut();
+        match var {
+            -10001 => self.variables.0[0] = value,
+            -10002 => self.variables.0[1] = value,
+            -10003 => self.variables.0[2] = value,
+            -10004 => self.variables.0[3] = value,
+            -10005 => unimplemented!(),
+            -10006 => unimplemented!(),
+            -10007 => unimplemented!(),
+            -10008 => unimplemented!(),
+            -10009 => self.variables.2[0] = value,
+            -10010 => self.variables.2[1] = value,
+            -10011 => self.variables.2[2] = value,
+            -10012 => self.variables.2[3] = value,
+            -10013 => unreachable!(),
+            -10014 => unreachable!(),
+            -10015 => unimplemented!(),
+            -10016 => unimplemented!(),
+            -10017 => unimplemented!(),
+            -10018 => unreachable!(),
+            -10019 => unreachable!(),
+            -10020 => unreachable!(),
+            -10021 => unreachable!(),
+            -10022 => enemy.frame = value as u32,
+            -10023 => unreachable!(),
+            -10024 => enemy.life = value as u32,
+            -10025 => unreachable!(),
+            _ => panic!("Unknown variable {}", var)
+        }
     }
 
     fn set_f32(&mut self, var: f32, value: f32) {
-        unimplemented!()
+        let mut enemy = self.enemy.borrow_mut();
+        match var {
+            -10001.0 => unimplemented!(),
+            -10002.0 => unimplemented!(),
+            -10003.0 => unimplemented!(),
+            -10004.0 => unimplemented!(),
+            -10005.0 => self.variables.1[0] = value,
+            -10006.0 => self.variables.1[1] = value,
+            -10007.0 => self.variables.1[2] = value,
+            -10008.0 => self.variables.1[3] = value,
+            -10009.0 => unimplemented!(),
+            -10010.0 => unimplemented!(),
+            -10011.0 => unimplemented!(),
+            -10012.0 => unimplemented!(),
+            -10013.0 => unreachable!(),
+            -10014.0 => unreachable!(),
+            -10015.0 => enemy.pos.x = value,
+            -10016.0 => enemy.pos.y = value,
+            -10017.0 => enemy.z = value,
+            -10018.0 => unreachable!(),
+            -10019.0 => unreachable!(),
+            -10020.0 => unreachable!(),
+            -10021.0 => unreachable!(),
+            -10022.0 => unimplemented!(),
+            -10023.0 => unreachable!(),
+            -10024.0 => unimplemented!(),
+            -10025.0 => unreachable!(),
+            _ => panic!("Unknown variable {}", var)
+        }
     }
 
     fn get_prng(&mut self) -> Rc<RefCell<Prng>> {
