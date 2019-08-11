@@ -96,7 +96,7 @@ fn main() {
         return;
     }
     let ecl_filename = &args[1];
-    let sub = args[2].parse().expect("number");
+    let sub: u8 = args[2].parse().expect("number");
     let anm_filename = &args[3];
     let png_filename = &args[4];
 
@@ -115,7 +115,7 @@ fn main() {
     let anm0 = Anm0::from_slice(&buf).unwrap();
     let anm0 = Rc::new(RefCell::new(anm0));
 
-    if ecl.subs.len() < sub {
+    if ecl.subs.len() < sub as usize {
         eprintln!("This ecl doesn’t contain a sub named {}.", sub);
         return;
     }
@@ -129,7 +129,7 @@ fn main() {
 
     // And the enemy object.
     let enemy = Enemy::new(Position::new(0., 0.), 500, 0, 640, Rc::downgrade(&anm0), Rc::downgrade(&game));
-    let mut ecl_runner = EclRunner::new(&ecl, enemy.clone(), 0);
+    let mut ecl_runner = EclRunner::new(&ecl, enemy.clone(), sub);
 
     assert_eq!(std::mem::size_of::<Vertex>(), std::mem::size_of::<FakeVertex>());
     let vertices: [Vertex; 4] = unsafe { std::mem::uninitialized() };
@@ -151,7 +151,6 @@ fn main() {
 
     let mut back_buffer = Framebuffer::back_buffer(surface.size());
 
-    let mut frame = 0;
     'app: loop {
         for event in surface.poll_events() {
             match event {
@@ -168,7 +167,6 @@ fn main() {
         if ecl_runner.running == false {
             break;
         }
-        frame += 1;
 
         {
             let mut slice = tess
@@ -176,6 +174,10 @@ fn main() {
                 .unwrap();
 
             ecl_runner.run_frame();
+            {
+                let mut enemy = enemy.borrow_mut();
+                enemy.update();
+            }
             let mut game = game.borrow_mut();
             game.run_frame();
             let sprites = game.get_sprites();

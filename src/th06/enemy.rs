@@ -234,6 +234,34 @@ impl Enemy {
         self.hitbox_half_size = [width, height];
     }
 
+    /// Run all interpolators and such, and update internal variables once per
+    /// frame.
+    pub fn update(&mut self) {
+        let Position { mut x, mut y } = self.pos;
+
+        let speed = if self.update_mode == 1 {
+            0.
+        } else {
+            let speed = self.speed;
+            self.speed += self.acceleration;
+            self.angle += self.rotation_speed;
+            speed
+        };
+
+        let dx = self.angle.cos() * speed;
+        let dy = self.angle.sin() * speed;
+        if self.type_ & 2 != 0 {
+            x -= dx;
+        } else {
+            x += dx;
+        }
+        y += dy;
+
+        self.pos = Position { x, y };
+
+        self.frame += 1;
+    }
+
     pub(crate) fn get_rank(&self) -> i32 {
         let game = self.game.upgrade().unwrap();
         let game = game.borrow();
