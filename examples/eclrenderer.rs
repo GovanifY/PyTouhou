@@ -91,14 +91,15 @@ struct ShaderInterface {
 fn main() {
     // Parse arguments.
     let args: Vec<_> = env::args().collect();
-    if args.len() != 5 {
-        eprintln!("Usage: {} <ECL file> <sub number> <ANM file> <PNG file>", args[0]);
+    if args.len() != 6 {
+        eprintln!("Usage: {} <ECL file> <ANM file> <PNG file> <easy|normal|hard|lunatic> <sub number>", args[0]);
         return;
     }
     let ecl_filename = &args[1];
-    let sub: u8 = args[2].parse().expect("number");
-    let anm_filename = &args[3];
-    let png_filename = &args[4];
+    let anm_filename = &args[2];
+    let png_filename = &args[3];
+    let rank: Rank = args[4].parse().expect("rank");
+    let sub: u8 = args[5].parse().expect("number");
 
     // Open the ECL file.
     let file = File::open(ecl_filename).unwrap();

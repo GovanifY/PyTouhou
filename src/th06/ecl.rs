@@ -28,6 +28,20 @@ bitflags! {
     }
 }
 
+impl std::str::FromStr for Rank {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Rank, Self::Err> {
+        Ok(match s {
+            "easy" => Rank::Easy,
+            "normal" => Rank::Normal,
+            "hard" => Rank::Hard,
+            "lunatic" => Rank::Lunatic,
+            _ => return Err(format!("unknown rank {}", s))
+        })
+    }
+}
+
 /// A single instruction, part of a `Script`.
 #[derive(Debug, Clone)]
 pub struct CallSub {

@@ -303,9 +303,10 @@ mod tests {
         let anm0 = Anm0::from_slice(&buf).unwrap();
         let anm0 = Rc::new(RefCell::new(anm0));
         let prng = Rc::new(RefCell::new(Prng::new(0)));
-        let game = Game::new(prng);
+        let game = Game::new(prng, Rank::Easy);
         let game = Rc::new(RefCell::new(game));
-        let mut enemy = Enemy::new(Position::new(0., 0.), 500, 0, 640, Rc::downgrade(&anm0), Rc::downgrade(&game));
+        let enemy = Enemy::new(Position::new(0., 0.), 500, 0, 640, Rc::downgrade(&anm0), Rc::downgrade(&game));
+        let mut enemy = enemy.borrow_mut();
         assert!(enemy.anmrunner.upgrade().is_none());
         enemy.set_anim(0);
         assert!(enemy.anmrunner.upgrade().is_some());

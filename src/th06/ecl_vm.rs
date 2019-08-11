@@ -1,6 +1,6 @@
 //! ECL runner.
 
-use crate::th06::ecl::{Ecl, SubInstruction, Rank};
+use crate::th06::ecl::{Ecl, SubInstruction};
 use crate::th06::enemy::Enemy;
 use crate::util::prng::Prng;
 use std::cell::RefCell;
