@@ -125,7 +125,7 @@ fn main() {
     let prng = Rc::new(RefCell::new(Prng::new(0)));
 
     // Create the Game god object.
-    let game = Game::new(prng, Rank::Normal);
+    let game = Game::new(prng, rank);
     let game = Rc::new(RefCell::new(game));
 
     // And the enemy object.
