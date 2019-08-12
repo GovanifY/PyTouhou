@@ -544,8 +544,8 @@ impl EclRunner {
 
             // 100
             SubInstruction::SetDeathAnim(index) => {
-                // TODO: takes 3 parameters in game, first one is death anim and 2 others are
-                // unknown. To reverse!
+                // TODO: takes 3 parameters in game as u8 unlike our single u32.
+                // To reverse!
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.death_anim = index;
             }
