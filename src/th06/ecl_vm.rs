@@ -478,11 +478,10 @@ impl EclRunner {
             }
             // 44
             /*
-            SubInstruction::SetPositionInterlacing(x, y, z) => {
-                //TODO: almost the same as setpos, except with 3 different values and sets the
-                //interlacing, should double check
+            SubInstruction::SetAngularSpeed(x, y, z) => {
+                // same as above, except for angular speed
                 let mut enemy = self.enemy.borrow_mut();
-                enemy.set_pos(self.get_f32(x), self.get_f32(y), self.get_f32(z));
+                enemy.set_angular_speed(self.get_f32(x), self.get_f32(y), self.get_f32(z));
             }
             */
             // 45
@@ -524,13 +523,16 @@ impl EclRunner {
 
             // 97
             SubInstruction::SetAnim(index) => {
-                // TODO: check in ghidra!
+                // seems correct, game internally gets base_addr =(iVar13 + 0x1c934), pointer_addr = iVar14 * 4
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.set_anim(index as u8);
             }
             // 98
             SubInstruction::SetMultipleAnims(default, end_left, end_right, left, right, _unused) => {
-                // TODO: check in ghidra!
+                // _unused was supposed to set movement_dependant_sprites, but internally the game
+                // assigns it 0xff
+                // TODO: THIS DOES NOT CALL set_anim. this only assigns all parameters to their
+                // internal struct. To check if the anims are set somewhere else
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.movement_dependant_sprites = if left == -1 {
                     None
@@ -542,14 +544,14 @@ impl EclRunner {
 
             // 100
             SubInstruction::SetDeathAnim(index) => {
-                // TODO: check in ghidra!
+                // TODO: takes 3 parameters in game, first one is death anim and 2 others are
+                // unknown. To reverse!
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.death_anim = index;
             }
 
             // 103
             SubInstruction::SetHitbox(width, height, depth) => {
-                // TODO: check in ghidra!
                 assert_eq!(depth, 32.);
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.set_hitbox(width, height);
