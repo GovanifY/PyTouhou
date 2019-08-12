@@ -254,7 +254,17 @@ impl Enemy {
         let Position { mut x, mut y } = self.pos;
 
         let speed = if self.update_mode == 1 {
-            0.
+            let mut speed = 0.;
+            if let Some(interpolator) = &self.interpolator {
+                let values = interpolator.values(self.frame as u16);
+                x = values[0];
+                y = values[1];
+            }
+            if let Some(interpolator) = &self.speed_interpolator {
+                let values = interpolator.values(self.frame as u16);
+                speed = values[0];
+            }
+            speed
         } else {
             let speed = self.speed;
             self.speed += self.acceleration;
