@@ -569,9 +569,11 @@ impl EclRunner {
 
             // 104
             SubInstruction::SetCollidable(collidable) => {
-                // TODO: me and my siblings(105, 107) are implemented as a single variable in the touhou 6
+                // TODO: me and my siblings(105, 107, 117) are implemented as a single variable in the touhou 6
                 // original engine. While our behaviour seems correct we might want to implement
                 // that as a single variable
+                // TODO[2]: THE BITFLAG MIGHT BE INCORRECT FOR OTHER SIBLING INSTRUCTIONS, the
+                // behavior was DEFINITELY incorrect in pytouhou for SetTouchable at the very least
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.collidable = (collidable&1) != 0;
             }
@@ -594,6 +596,12 @@ impl EclRunner {
             SubInstruction::SetDeathFlags(death_flags) => {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.death_flags = death_flags;
+            }
+
+            // 117
+            SubInstruction::SetTouchable(touchable) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.touchable = touchable != 0;
             }
 
             _ => unimplemented!("{:?}", instruction)
