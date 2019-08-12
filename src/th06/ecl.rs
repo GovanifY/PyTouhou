@@ -265,7 +265,7 @@ declare_sub_instructions!{
     104 => fn SetCollidable(collidable: i32),
     105 => fn SetDamageable(damageable: i32),
     106 => fn PlaySound(index: i32),
-    107 => fn SetDeathFlags(death_flags: i32),
+    107 => fn SetDeathFlags(death_flags: u32),
     108 => fn SetDeathCallback(sub: i32),
     109 => fn MemoryWriteInt(value: i32, index: i32),
     111 => fn SetLife(life: i32),

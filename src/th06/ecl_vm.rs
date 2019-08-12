@@ -552,9 +552,37 @@ impl EclRunner {
 
             // 103
             SubInstruction::SetHitbox(width, height, depth) => {
-                assert_eq!(depth, 32.);
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.set_hitbox(width, height);
+            }
+
+            // 104
+            SubInstruction::SetCollidable(collidable) => {
+                // TODO: me and my siblings(105, 107) are implemented as a single variable in the touhou 6
+                // original engine. While our behaviour seems correct we might want to implement
+                // that as a single variable
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.collidable = (collidable&1) != 0;
+            }
+
+            // 105
+            SubInstruction::SetDamageable(damageable) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.damageable = (damageable&1) != 0;
+            }
+
+            // 106
+            /*
+            SubInstruction::PlaySound(index) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.play_sound(index);
+            }
+            */
+
+            // 107
+            SubInstruction::SetDeathFlags(death_flags) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.death_flags = death_flags;
             }
 
             _ => unimplemented!()
