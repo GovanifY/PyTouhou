@@ -135,7 +135,7 @@ macro_rules! declare_main_instructions {
 /// Parse a SHIFT_JIS byte string of length 34 into a String.
 pub fn le_String(i: &[u8]) -> IResult<&[u8], String> {
     assert_eq!(i.len(), 34);
-    let data = i.splitn(2, |c| *c == b'\0').collect::<Vec<_>>()[0];
+    let data = i.splitn(2, |c| *c == b'\0').nth(0).unwrap();
     let (string, encoding, replaced) = SHIFT_JIS.decode(data);
     Ok((&i[34..], string.into_owned()))
 }
