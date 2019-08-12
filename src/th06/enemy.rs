@@ -245,7 +245,7 @@ impl Enemy {
 
     /// Sets the hitbox around the enemy.
     pub fn set_hitbox(&mut self, width: f32, height: f32) {
-        self.hitbox_half_size = [width, height];
+        self.hitbox_half_size = [width / 2., height / 2.];
     }
 
     /// Run all interpolators and such, and update internal variables once per
