@@ -1,4 +1,5 @@
 use image::GenericImageView;
+use luminance::blending::{Equation, Factor};
 use luminance::context::GraphicsContext;
 use luminance::framebuffer::Framebuffer;
 use luminance::pipeline::BoundTexture;
@@ -24,7 +25,7 @@ use std::path::Path;
 const VS: &str = r#"
 in ivec3 in_position;
 in vec2 in_texcoord;
-in uvec4 in_color;
+in vec4 in_color;
 
 uniform mat4 mvp;
 
@@ -36,8 +37,8 @@ void main()
     gl_Position = mvp * vec4(vec3(in_position), 1.0);
     texcoord = vec2(in_texcoord);
 
-    // Normalized from the u8 being passed.
-    color = vec4(in_color) / 255.;
+    // It’s already normalized from the u8 being passed.
+    color = in_color;
 }
 "#;
 
@@ -73,6 +74,7 @@ pub enum Semantics {
 struct Vertex {
     pos: VertexPosition,
     uv: VertexTexcoord,
+    #[vertex(normalized = "true")]
     rgba: VertexColor,
 }
 
@@ -181,7 +183,10 @@ fn main() {
                     // TODO: check how to pass by reference.
                     iface.mvp.update(*mvp.borrow_inner());
 
-                    rdr_gate.render(RenderState::default(), |tess_gate| {
+                    let render_state = RenderState::default()
+                        .set_blending((Equation::Additive, Factor::SrcAlpha, Factor::SrcAlphaComplement));
+
+                    rdr_gate.render(render_state, |tess_gate| {
                         // render the tessellation to the surface the regular way and let the vertex shader’s
                         // magic do the rest!
                         tess_gate.render(&mut surface, (&tess).into());
@@ -195,12 +200,12 @@ fn main() {
 
 fn fill_vertices_ptr(sprite: Rc<RefCell<Sprite>>, vertices: *mut Vertex) {
     let mut fake_vertices = unsafe { std::mem::transmute::<*mut Vertex, &mut [FakeVertex; 4]>(vertices) };
-    sprite.borrow().fill_vertices(&mut fake_vertices);
+    sprite.borrow().fill_vertices(&mut fake_vertices, 0., 0., 0.);
 }
 
 fn fill_vertices(sprite: Rc<RefCell<Sprite>>, vertices: &mut [Vertex; 4]) {
     let mut fake_vertices = unsafe { std::mem::transmute::<&mut [Vertex; 4], &mut [FakeVertex; 4]>(vertices) };
-    sprite.borrow().fill_vertices(&mut fake_vertices);
+    sprite.borrow().fill_vertices(&mut fake_vertices, 0., 0., 0.);
 }
 
 fn load_from_disk(surface: &mut GlfwSurface, path: &Path) -> Option<Texture<Flat, Dim2, NormRGB8UI>> {
