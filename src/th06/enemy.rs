@@ -113,6 +113,29 @@ struct Element {
 }
 
 #[derive(PartialEq)]
+pub(crate) struct DifficultyCoeffs {
+    pub(crate) speed_a: f32,
+    pub(crate) speed_b: f32,
+    pub(crate) nb_a: u16,
+    pub(crate) nb_b: u16,
+    pub(crate) shots_a: u16,
+    pub(crate) shots_b: u16,
+}
+
+impl Default for DifficultyCoeffs {
+    fn default() -> DifficultyCoeffs {
+        DifficultyCoeffs {
+            speed_a: -0.5,
+            speed_b: 0.5,
+            nb_a: 0,
+            nb_b: 0,
+            shots_a: 0,
+            shots_b: 0,
+        }
+    }
+}
+
+#[derive(PartialEq)]
 pub(crate) enum Direction {
     Left,
     Center,
@@ -170,7 +193,7 @@ pub struct Enemy {
     pub(crate) delay_attack: bool,
 
     // Tuples.
-    pub(crate) difficulty_coeffs: (f32, f32, u32, u32, u32, u32),
+    pub(crate) difficulty_coeffs: DifficultyCoeffs,
     pub(crate) extended_bullet_attributes: Option<(u32, u32, u32, u32, f32, f32, f32, f32)>,
     pub(crate) bullet_attributes: Option<(i16, i16, u32, u32, u32, f32, f32, f32, f32, u32)>,
     pub(crate) bullet_launch_offset: Offset,
@@ -217,7 +240,6 @@ impl Enemy {
             touchable: true,
             collidable: true,
             damageable: true,
-            difficulty_coeffs: (-0.5, 0.5, 0, 0, 0, 0),
             ..Default::default()
         };
         let enemy = Rc::new(RefCell::new(enemy));
