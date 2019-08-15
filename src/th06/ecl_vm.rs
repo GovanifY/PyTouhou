@@ -519,6 +519,17 @@ impl EclRunner {
                 enemy.angle = angle;
             }
 
+            // 78
+            SubInstruction::DelayAttack() => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.delay_attack = true;
+            }
+            // 79
+            SubInstruction::NoDelayAttack() => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.delay_attack = false;
+            }
+
             // 83 -> star items >>> life items
 
             // 97
@@ -585,7 +596,7 @@ impl EclRunner {
                 enemy.death_flags = death_flags;
             }
 
-            _ => unimplemented!()
+            _ => unimplemented!("{:?}", instruction)
         }
     }
 }
