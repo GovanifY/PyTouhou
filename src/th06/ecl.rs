@@ -244,7 +244,8 @@ declare_sub_instructions!{
     81 => fn SetBulletLaunchOffset(x: f32, y: f32, z: f32),
     82 => fn SetExtendedBulletAttributes(a: i32, b: i32, c: i32, d: i32, e: f32, f: f32, g: f32, h: f32),
     83 => fn ChangeBulletsInStarBonus(),
-    84 => fn UNK0(UNK: i32),
+    // TODO: Found in stage 4 onward.
+    84 => fn UNK_ins84(param: i32),
     85 => fn NewLaser(laser_type: i16, sprite_idx_offset: i16, angle: f32, speed: f32, start_offset: f32, end_offset: f32, max_length: f32, width: f32, start_duration: i32, duration: i32, end_duration: i32, grazing_delay: i32, grazing_extra_duration: i32, UNK1: i32),
     86 => fn NewLaserTowardsPlayer(laser_type: i16, sprite_idx_offset: i16, angle: f32, speed: f32, start_offset: f32, end_offset: f32, max_length: f32, width: f32, start_duration: i32, duration: i32, end_duration: i32, grazing_delay: i32, grazing_extra_duration: i32, UNK1: i32),
     87 => fn SetUpcomingLaserId(id: i32),
@@ -279,19 +280,24 @@ declare_sub_instructions!{
     119 => fn DropBonus(number: i32),
     120 => fn SetAutomaticOrientation(automatic: i32),
     121 => fn CallSpecialFunction(function: i32, argument: i32),
-    122 => fn UNK1(TODO: i32),
+    // TODO: Found in stage 3 then 5 onward.
+    122 => fn UNK_ins122(TODO: i32),
     123 => fn SkipFrames(frames: i32),
     124 => fn DropSpecificBonus(type_: i32),
-    125 => fn UNK2(),
+    // TODO: Found in stage 3.
+    125 => fn UNK_ins125(),
     126 => fn SetRemainingLives(lives: i32),
-    127 => fn UNK3(TODO: i32),
+    // TODO: Found in stage 4.
+    127 => fn UNK_ins127(TODO: i32),
     128 => fn Interrupt(event: i32),
     129 => fn InterruptAux(number: i32, event: i32),
-    130 => fn UNK5(TODO: i32),
+    // TODO: Found in stage 4.
+    130 => fn UNK_ins130(TODO: i32),
     131 => fn SetDifficultyCoeffs(speed_a: f32, speed_b: f32, nb_a: i32, nb_b: i32, shots_a: i32, shots_b: i32),
     132 => fn SetInvisible(invisible: i32),
     133 => fn CopyCallbacks(),
-    134 => fn UNK6(),
+    // TODO: Found in stage 4.
+    134 => fn UNK_ins134(),
     135 => fn EnableSpellcardBonus(UNKNOW: i32),
 }
 
