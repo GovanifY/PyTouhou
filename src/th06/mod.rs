@@ -6,5 +6,6 @@ pub mod anm0_vm;
 pub mod ecl;
 pub mod ecl_vm;
 pub mod std;
+pub mod std_vm;
 pub mod enemy;
 pub mod interpolator;

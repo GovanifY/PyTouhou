@@ -235,7 +235,7 @@ fn parse_stage(input: &[u8]) -> IResult<&[u8], Stage> {
         let data = &i2[..12];
         let (data, instr) = parse_instruction_args(data, opcode)?;
         assert_eq!(data.len(), 0);
-        println!("{:?}", instr);
+        println!("{} {:?}", time, instr);
         script.push(Call { time, instr });
         i = &i2[12..];
     }

@@ -75,3 +75,4 @@ macro_rules! generate_interpolator {
 generate_interpolator!(Interpolator1, 1);
 generate_interpolator!(Interpolator2, 2);
 generate_interpolator!(Interpolator3, 3);
+generate_interpolator!(Interpolator4, 4);
