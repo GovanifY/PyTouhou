@@ -207,7 +207,7 @@ pub struct Enemy {
     timeout_callback: Option<Callback>,
 
     // Laser.
-    laser_by_id: HashMap<u32, Laser>,
+    pub(crate) laser_by_id: HashMap<u32, Laser>,
 
     // Options.
     // TODO: actually a 8 element array.

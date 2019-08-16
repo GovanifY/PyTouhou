@@ -593,6 +593,83 @@ impl EclRunner {
                 game.change_bullets_into_star_items();
             }
             */
+            // 84
+            // WARNING: dead code. If the parameter is < 0 it unsets a bullet_flag, otherwise it
+            // sets it, never using the parameter ever
+            /*
+            SubInstruction::UNK_ins84() => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.bullet_flag_something
+            }
+            */
+
+            // 85-86 ire newlaser functions
+
+            // 87
+            SubInstruction::SetUpcomingLaserId(laser_id) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.current_laser_id = laser_id;
+            }
+
+            // 88
+            
+            SubInstruction::AlterLaserAngle(laser_id, delta) => {
+                let mut enemy = self.enemy.borrow_mut();
+                if enemy.laser_by_id.contains_key(&laser_id) {
+                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    laser.angle += self.get_f32(delta);
+                }
+            }
+            
+            // 89
+            /*
+            SubInstruction::AlterLaserAnglePlayer(laser_id, delta) => {
+                let mut enemy = self.enemy.borrow_mut();
+                if enemy.laser_by_id.contains_key(&laser_id) {
+                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    let player = enemy.select_player();
+                    laser.angle = enemy.get_angle(player) + angle;
+                }
+            }
+            */
+
+            // 90
+            SubInstruction::RepositionLaser(laser_id, ox, oy, oz) => {
+                let mut enemy = self.enemy.borrow_mut();
+                if enemy.laser_by_id.contains_key(&laser_id) {
+                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    laser.set_base_pos(enemy.pos.x + ox, enemy.pos.y + oy, enemy.z + oz)
+                }
+            }
+            // 91
+            // wat
+            SubInstruction::LaserSetCompare(laser_id) => {
+                let mut enemy = self.enemy.borrow_mut();
+                // in game it checks if either the laser exists OR if one of its member is set to 0
+                // which, uhhhh, we are not going to reimplement for obvious reasons
+                // the correct implementation would be: if this laser does not exist have a
+                // 1/100000 chance to continue, otherwise crash
+                if enemy.laser_by_id.contains_key(&laser_id) {
+                    // let's assume we gud 
+                    self.comparison_reg = 1;
+                } 
+                else{
+                    self.comparison_reg = 0;
+                }
+            }
+
+            // 92
+            /*
+            SubInstruction::RepositionLaser(laser_id, ox, oy, oz) => {
+                let mut enemy = self.enemy.borrow_mut();
+                if enemy.laser_by_id.contains_key(&laser_id) {
+                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    laser.cancel();
+                }
+            }
+            */
+
+
 
 
 
@@ -663,10 +740,22 @@ impl EclRunner {
                 enemy.death_flags = death_flags;
             }
 
+            // 109
+            SubInstruction::MemoryWriteInt(value, index) => {
+                unimplemented!("not again that damn foe corrupted my ret\\x41\\x41\\x41\\x41");
+            }
+
+
             // 117
             SubInstruction::SetTouchable(touchable) => {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.touchable = touchable != 0;
+            }
+
+            // 121
+            // Here lies the Di Sword of sadness
+            SubInstruction::CallSpecialFunction(function, arg) => {
+                unimplemented!("spellcards are a bitch and a half");
             }
 
             _ => unimplemented!("{:?}", instruction)
