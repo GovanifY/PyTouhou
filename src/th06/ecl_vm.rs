@@ -248,11 +248,10 @@ impl EclRunner {
                 self.set_i32(var_id, random % self.get_i32(maxval));
             }
             // 7
-            /*
             SubInstruction::SetRandomIntMin(var_id, maxval, minval) => {
-                self.set_i32(var_id, (self.get_prng().borrow_mut().get_u32() % self.get_i32(maxval)) + self.get_i32(minval));
+                let random = self.get_prng().borrow_mut().get_u32() as i32;
+                self.set_i32(var_id, (random % self.get_i32(maxval)) + self.get_i32(minval));
             }
-            */
             // 8
             SubInstruction::SetRandomFloat(var_id, maxval) => {
                 let random = self.get_prng().borrow_mut().get_f64() as f32;
@@ -273,19 +272,21 @@ impl EclRunner {
                 self.set_i32(var_id, x as i32);
             }
             // 11
-            /*
             SubInstruction::StoreY(var_id) => {
-                let enemy = self.enemy.borrow();
-                self.set_i32(var_id, enemy.pos.y);
+                let y = {
+                    let enemy = self.enemy.borrow();
+                    enemy.pos.y
+                };
+                self.set_i32(var_id, y as i32);
             }
-            */
             // 12
-            /*
             SubInstruction::StoreZ(var_id) => {
-                let enemy = self.enemy.borrow();
-                self.set_i32(var_id, enemy.z);
+                let z = {
+                    let enemy = self.enemy.borrow();
+                    enemy.z
+                };
+                self.set_i32(var_id, z as i32);
             }
-            */
             // 13(int), 20(float), same impl in th06
             SubInstruction::AddInt(var_id, a, b) => {
                 self.set_i32(var_id, self.get_i32(a) + self.get_i32(b));
@@ -313,31 +314,31 @@ impl EclRunner {
             SubInstruction::DivideInt(var_id, a, b) => {
                 self.set_i32(var_id, self.get_i32(a) / self.get_i32(b));
             }
-            /*
-            SubInstruction::Divide(var_id, a, b) => {
+
+            SubInstruction::DivideFloat(var_id, a, b) => {
                 self.set_f32(var_id as f32, self.get_f32(a) / self.get_f32(b));
             }
-            */
+
             // 17(int) 24(unused)
             SubInstruction::ModuloInt(var_id, a, b) => {
                 self.set_i32(var_id, self.get_i32(a) % self.get_i32(b));
             }
-            /*
+
             SubInstruction::ModuloFloat(var_id, a, b) => {
                 self.set_f32(var_id as f32, self.get_f32(a) % self.get_f32(b));
             }
-            */
+
             // 18
             // setval used by pytouhou, but not in game(???)
             SubInstruction::Increment(var_id) => {
                 self.set_i32(var_id, self.get_i32(var_id) + 1);
             }
+
             // 19
-            /*
             SubInstruction::Decrement(var_id) => {
                 self.set_i32(var_id, self.get_i32(var_id) - 1);
             }
-            */
+
             //25
             SubInstruction::GetDirection(var_id, x1, y1, x2, y2) => {
                 //__ctrandisp2 in ghidra, let's assume from pytouhou it's atan2
@@ -426,51 +427,43 @@ impl EclRunner {
                 unimplemented!()
             }
             // 37
-            /*
             SubInstruction::CallIfSuperior(sub, param1, param2, a, b) => {
-                if self.get_i32(b) <= self.get_i32(a) {
-                    SubInstruction::Call(sub, param1, param2);
-                }
-            }
-            */
-            // 38
-            /*
-            SubInstruction::CallIfSuperiorOrEqual(sub, param1, param2, a, b) => {
-                if self.get_i32(b) <= self.get_i32(a) {
-                    SubInstruction::Call(sub, param1, param2);
-                }
-            }
-            */
-            // 39
-            SubInstruction::CallIfEqual(sub, param1, param2, a, b) => {
-                if self.get_i32(b) == self.get_i32(a) {
-                    SubInstruction::Call(sub, param1, param2);
-                }
-            }
-            // 40
-            /*
-            SubInstruction::CallIfEqual(sub, param1, param2, a, b) => {
-                if self.get_i32(b) == self.get_i32(a) {
-                    SubInstruction::Call(sub, param1, param2);
-                }
-            }
-            */
-            //41
-            /*
-            SubInstruction::CallIfInferior(sub, param1, param2, a, b) => {
                 if self.get_i32(a) < self.get_i32(b) {
                     SubInstruction::Call(sub, param1, param2);
                 }
             }
-            */
-            //42
-            /*
-            SubInstruction::CallIfInferiorOrEqual(sub, param1, param2, a, b) => {
+            // 38
+            SubInstruction::CallIfSuperiorOrEqual(sub, param1, param2, a, b) => {
                 if self.get_i32(a) <= self.get_i32(b) {
                     SubInstruction::Call(sub, param1, param2);
                 }
             }
-            */
+            // 39
+            SubInstruction::CallIfEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(a) == self.get_i32(b) {
+                    SubInstruction::Call(sub, param1, param2);
+                }
+            }
+            // 40
+            SubInstruction::CallIfInferior(sub, param1, param2, a, b) => {
+                if self.get_i32(b) < self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
+                }
+            }
+
+            // 41
+            SubInstruction::CallIfInferiorOrEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(b) <= self.get_i32(a) {
+                    SubInstruction::Call(sub, param1, param2);
+                }
+            }
+            //42
+            SubInstruction::CallIfNotEqual(sub, param1, param2, a, b) => {
+                if self.get_i32(a) != self.get_i32(b) {
+                    SubInstruction::Call(sub, param1, param2);
+                }
+            }
+
             // 43
             SubInstruction::SetPosition(x, y, z) => {
                 let mut enemy = self.enemy.borrow_mut();
@@ -671,9 +664,37 @@ impl EclRunner {
                 }
             }
             */
+            // 93
+            // TODO: actually implement that hell
+            SubInstruction::SetSpellcard(face, number, name) => {
+                unimplemented!("spellcard start");
+
+            }
+            // 94
+            SubInstruction::EndSpellcard() => {
+                unimplemented!("spellcard end");
+
+            }
+
+            // 95
+            /*
+            SubInstruction::PopEnemy(sub, x, y, z, life, bonus_dropped, die_score) => {
+                self._pop_enemy(sub, 0, self.get_f32(x),
+                                self.get_f32(y),
+                                self.get_f32(z),
+                                life, bonus_dropped, die_score)
+
+            }
+            */
 
 
-
+            // 96 
+            /* 
+            SubInstruction::KillEnemies() => {
+                let mut game = self.game.borrow_mut();
+                game.kill_enemies();
+            }
+            */
 
 
 
@@ -697,6 +718,14 @@ impl EclRunner {
                     Some((end_left as u8, end_right as u8, left as u8, right as u8))
                 };
             }
+            /*
+            // 99
+            SubInstruction::SetAuxAnims(number, script) => {
+                assert!(7 < number);
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.set_aux_anm(number, script)
+            }
+            */
 
             // 100
             SubInstruction::SetDeathAnim(index) => {
@@ -705,6 +734,27 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.death_anim = index;
             }
+            // 101
+            /*
+            SubInstruction::SetBossMode(value) => {
+                let mut enemy = self.enemy.borrow_mut();
+                if value < 0 {
+                    enemy.set_boss(false);
+                }
+                else {
+                    // the boss pointer is written somewhere in memory and overwrote by a 0 when
+                    // the boss mode is false, might want to look into that 
+                    enemy.set_boss(true);
+                }
+            }
+            */
+
+            // 102
+            // TODO: title says it all
+            /*
+            SubInstruction::ParticlesVoodooMagic(unk1, unk2, unk3, unk4, unk5) => {
+            }
+            */
 
             // 103
             SubInstruction::SetHitbox(width, height, depth) => {
@@ -742,11 +792,72 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.death_flags = death_flags;
             }
+            // 108
+            /*
+            SubInstruction::SetDeathCallback(sub) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.death_callback.enable(self.switch_to_sub, (sub,));
+            }
+            */
 
             // 109
             SubInstruction::MemoryWriteInt(value, index) => {
                 unimplemented!("not again that damn foe corrupted my ret\\x41\\x41\\x41\\x41");
             }
+
+            // 110 
+            /*
+            SubInstruction::KillEnemy(enemy) => {
+                let mut game = self.game.borrow_mut();
+                game.kill_enemy(enemy);
+            }
+            */
+
+            // 111
+            /*
+            SubInstruction::SetLife(value) => {
+                let mut enemy = self.enemy.borrow_mut();
+                let mut game = self.game.borrow_mut();
+                enemy.life = value;
+                game.interface.set_boss_life();
+            }
+            */
+            // 112
+            SubInstruction::SetElapsedTime(value) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.frame = value as u32;
+            }
+            // 113
+            /*
+            SubInstruction::SetLowLifeTrigger(value) => {
+                let mut enemy = self.enemy.borrow_mut();
+                let mut game = self.game.borrow_mut();
+                enemy.low_life_trigger = value;
+                game.interface.set_spell_life();
+            }
+            */
+            // 114
+            /*
+             SubInstruction::SetLowLifeCallback(sub) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.low_life_callback.enable(self.switch_to_sub, (sub,));
+            }
+            */
+            // 115
+            /*
+            SubInstruction::SetTimeout(timeout) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.frame = value;
+                enemy.timeout = timeout;
+            }
+            */
+            // 116
+            /*
+             SubInstruction::SetTimeoutCallback(sub) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.timeout_callback.enable(self.switch_to_sub, (sub,));
+            }
+            */
 
 
             // 117
