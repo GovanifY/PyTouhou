@@ -34,8 +34,11 @@ struct Box3D {
 /// A 2D box around something.
 #[derive(Debug, Clone)]
 pub struct Box2D {
-    width: f32,
-    height: f32,
+    /// Width.
+    pub width: f32,
+
+    /// Height.
+    pub height: f32,
 }
 
 /// A quad in the 3D space.

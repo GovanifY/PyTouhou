@@ -12,7 +12,7 @@ use luminance_glfw::event::{Action, Key, WindowEvent};
 use luminance_glfw::surface::{GlfwSurface, Surface, WindowDim, WindowOpt};
 use touhou::th06::anm0::Anm0;
 use touhou::th06::anm0_vm::{AnmRunner, Sprite, Vertex as FakeVertex};
-use touhou::th06::std::{Stage, Position};
+use touhou::th06::std::{Stage, Position, Box2D};
 use touhou::th06::std_vm::StageRunner;
 use touhou::util::prng::Prng;
 use touhou::util::math::perspective;
@@ -144,9 +144,10 @@ fn main() {
             let begin = vertices.len();
             for quad in model.quads.iter() {
                 let Position { x, y, z } = quad.pos;
+                let Box2D { width, height } = quad.size_override;
 
                 // Create the AnmRunner from the ANM and the sprite.
-                let sprite = Rc::new(RefCell::new(Sprite::new()));
+                let sprite = Rc::new(RefCell::new(Sprite::with_size(width, height)));
                 let _anm_runner = AnmRunner::new(&anm0, quad.anm_script as u8, sprite.clone(), Rc::downgrade(&prng), 0);
                 let mut new_vertices: [Vertex; 6] = unsafe { std::mem::uninitialized() };
                 fill_vertices(sprite.clone(), &mut new_vertices, x, y, z);
