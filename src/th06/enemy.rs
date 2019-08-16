@@ -51,7 +51,11 @@ impl std::ops::Add<Offset> for Position {
 struct Callback;
 
 #[derive(Debug, Clone)]
-struct Laser;
+/// XXX
+pub struct Laser {
+    /// XXX
+    pub placeholder: u32
+}
 
 #[derive(Debug, Clone, Default)]
 struct Process;

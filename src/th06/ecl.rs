@@ -251,7 +251,7 @@ declare_sub_instructions!{
     87 => fn SetUpcomingLaserId(id: u32),
     88 => fn AlterLaserAngle(id: u32, delta: f32),
     90 => fn RepositionLaser(id: u32, ox: f32, oy: f32, oz: f32),
-    91 => fn LaserSetCompare(u32: id),
+    91 => fn LaserSetCompare(id: u32),
     92 => fn CancelLaser(id: u32),
     93 => fn SetSpellcard(face: i16, number: i16, name: String),
     94 => fn Endspellcard(),

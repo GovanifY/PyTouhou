@@ -612,14 +612,15 @@ impl EclRunner {
             }
 
             // 88
-            
+            /* 
             SubInstruction::AlterLaserAngle(laser_id, delta) => {
                 let mut enemy = self.enemy.borrow_mut();
                 if enemy.laser_by_id.contains_key(&laser_id) {
-                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    let mut laser = enemy.laser_by_id.get(&laser_id);
                     laser.angle += self.get_f32(delta);
                 }
             }
+            */
             
             // 89
             /*
@@ -634,13 +635,15 @@ impl EclRunner {
             */
 
             // 90
+            /*
             SubInstruction::RepositionLaser(laser_id, ox, oy, oz) => {
                 let mut enemy = self.enemy.borrow_mut();
                 if enemy.laser_by_id.contains_key(&laser_id) {
-                    let mut laser = enemy.laser_by_id.get(laser_id);
+                    let mut laser = enemy.laser_by_id.get(&laser_id);
                     laser.set_base_pos(enemy.pos.x + ox, enemy.pos.y + oy, enemy.z + oz)
                 }
             }
+            */
             // 91
             // wat
             SubInstruction::LaserSetCompare(laser_id) => {
