@@ -221,7 +221,7 @@ declare_sub_instructions!{
     48 => fn SetAcceleration(acceleration: f32),
     49 => fn SetRandomAngle(min: f32, max: f32),
     50 => fn SetRandomAngleEx(min: f32, max: f32),
-    51 => fn TargetPlayer(TODO: f32, speed: f32),
+    51 => fn TargetPlayer(angle: f32, speed: f32),
     52 => fn MoveInDecel(duration: i32, angle: f32, speed: f32),
     56 => fn MoveToLinear(duration: i32, x: f32, y: f32, z: f32),
     57 => fn MoveToDecel(duration: i32, x: f32, y: f32, z: f32),

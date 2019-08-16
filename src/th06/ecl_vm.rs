@@ -518,7 +518,37 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.angle = angle;
             }
+            // 51
+             /*
+            SubInstruction::TargetPlayer(angle, speed) => {
+                let mut enemy = self.enemy.borrow_mut();
+                let player = enemy.select_player();
+                enemy.update_mode = 0;
+                enemy.speed = speed;
+                enemy.angle = enemy.get_angle(player) + angle;
 
+            }
+            */
+            // 52 to 64 are different interlacing fields
+
+            // 65
+            // to note: in game a flag is set to enable the screenbox and is set by 66 to disable
+            // it on top of setting our values. But we have a good engine and can detect if that's
+            // changed without setting a flag :)
+            SubInstruction::SetScreenBox(xmin, ymin, xmax, ymax) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.screen_box = Some((xmin, ymin, xmax, ymax));
+            }
+             // 66
+            SubInstruction::ClearScreenBox() => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.screen_box = None;
+            }
+            // 67 to 75 are set bullet attributes and it seems a pain to reverse rn
+
+
+
+            // 78-79 are more interpolation flags 
             // 78
             SubInstruction::DelayAttack() => {
                 let mut enemy = self.enemy.borrow_mut();
@@ -529,8 +559,43 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.delay_attack = false;
             }
+            // 80
+            /*
+            SubInstruction::NoClue() => {
+                let mut enemy = self.enemy.borrow_mut();
+                //bullet_pos = launch offset
+                (enemy->bullet_attributes).bullets_per_shot = enemy.pos.x + enemy->bullet_pos.pos.x;
+                (enemy->bullet_attributes).number_of_shots = enemy.pos.pos.y + enemy.bullet_pos.pos.y;
+                (enemy->bullet_attributes).speed = enemy.z + bullet_pos.z;
+                enemy.fire(bullet_attributes=bullet_attributes)
+            }
+            */
+            // 81
+            /*
+            SubInstruction::SetBulletLaunchOffset(x, y, z) => {
+                let mut enemy = self.enemy.borrow_mut();
+                enemy.bullet_launch_offset = (self._getval(x), self._getval(y), self._getval(z));
+            }
+            */
+            // 82
+            // TODO: correct but how to implement that in a rusty way?
+            /*
+            SubInstruction::SetExtendedBulletAttributes(x, y, z) => {
+                let mut enemy = self.enemy.borrow_mut();
 
-            // 83 -> star items >>> life items
+                // self._enemy.extended_bullet_attributes = tuple(self._getval(attr) for attr in attributes)
+            }
+            */
+            // 83
+            /*
+            SubInstruction::ChangeBulletsIntoStarBonus() => {
+                let mut game = self.game.borrow_mut();
+                game.change_bullets_into_star_items();
+            }
+            */
+
+
+
 
             // 97
             SubInstruction::SetAnim(index) => {
