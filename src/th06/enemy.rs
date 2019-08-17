@@ -10,14 +10,14 @@ use std::collections::HashMap;
 use std::rc::{Rc, Weak};
 
 /// The 2D position of an object in the game.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Position {
     pub(crate) x: f32,
     pub(crate) y: f32,
 }
 
 /// An offset which can be added to a Position.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Offset {
     dx: f32,
     dy: f32,
@@ -120,10 +120,10 @@ struct Element {
 pub(crate) struct DifficultyCoeffs {
     pub(crate) speed_a: f32,
     pub(crate) speed_b: f32,
-    pub(crate) nb_a: u16,
-    pub(crate) nb_b: u16,
-    pub(crate) shots_a: u16,
-    pub(crate) shots_b: u16,
+    pub(crate) nb_a: i16,
+    pub(crate) nb_b: i16,
+    pub(crate) shots_a: i16,
+    pub(crate) shots_b: i16,
 }
 
 impl Default for DifficultyCoeffs {
@@ -136,6 +136,32 @@ impl Default for DifficultyCoeffs {
             shots_a: 0,
             shots_b: 0,
         }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub(crate) struct BulletAttributes {
+    pub(crate) anim: i16,
+    pub(crate) sprite_index_offset: i16,
+    pub(crate) pos: Position, // Doesn’t have a z field.
+    pub(crate) launch_angle: f32,
+    pub(crate) angle: f32,
+    pub(crate) speed: f32,
+    pub(crate) speed2: f32,
+    pub(crate) extended_attributes: (i32, i32, i32, i32, f32, f32, f32, f32),
+    // unknown: x32,
+    pub(crate) bullets_per_shot: i16,
+    pub(crate) number_of_shots: i16,
+    pub(crate) bullet_type: i16,
+    // zero: x32,
+    pub(crate) flags: u32,
+    pub(crate) ins84_param: i32,
+}
+
+impl BulletAttributes {
+    /// Fire!
+    pub fn fire(&mut self) {
+        println!("PAN!");
     }
 }
 
@@ -198,9 +224,8 @@ pub struct Enemy {
 
     // Tuples.
     pub(crate) difficulty_coeffs: DifficultyCoeffs,
-    pub(crate) extended_bullet_attributes: Option<(u32, u32, u32, u32, f32, f32, f32, f32)>,
-    pub(crate) bullet_attributes: Option<(i16, i16, u32, u32, u32, f32, f32, f32, f32, u32)>,
-    pub(crate) bullet_launch_offset: Offset,
+    pub(crate) bullet_attributes: BulletAttributes,
+    pub(crate) bullet_offset: Offset,
     pub(crate) movement_dependant_sprites: Option<(u8, u8, u8, u8)>,
     pub(crate) screen_box: Option<(f32, f32, f32, f32)>,
 
@@ -272,6 +297,54 @@ impl Enemy {
     /// Sets the hitbox around the enemy.
     pub fn set_hitbox(&mut self, width: f32, height: f32) {
         self.hitbox_half_size = [width / 2., height / 2.];
+    }
+
+    /// Defines the attributes for the next bullet fired, and fire it if delay_attack isn’t set!
+    pub fn set_bullet_attributes(&mut self, opcode: u16, anim: i16, sprite_index_offset: i16,
+                                 bullets_per_shot: i16, number_of_shots: i16, speed: f32,
+                                 speed2: f32, launch_angle: f32, angle: f32, flags: u32) {
+        // Get the coeffs for the current difficulty.
+        let difficulty = self.get_difficulty() as i16;
+        let coeff_nb = self.difficulty_coeffs.nb_a + (self.difficulty_coeffs.nb_b - self.difficulty_coeffs.nb_a) * difficulty / 32;
+        let coeff_shots = self.difficulty_coeffs.shots_a + (self.difficulty_coeffs.shots_b - self.difficulty_coeffs.shots_a) * difficulty / 32;
+        let coeff_speed = self.difficulty_coeffs.speed_a + (self.difficulty_coeffs.speed_b - self.difficulty_coeffs.speed_a) * difficulty as f32 / 32.;
+
+        let opcode = 67;
+        let mut bullet = &mut self.bullet_attributes;
+
+        bullet.anim = anim;
+        bullet.bullet_type = opcode - 67;
+        bullet.sprite_index_offset = sprite_index_offset;
+
+        bullet.bullets_per_shot = bullets_per_shot + coeff_nb;
+        if bullet.bullets_per_shot < 1 {
+            bullet.bullets_per_shot = 1;
+        }
+
+        bullet.number_of_shots = number_of_shots + coeff_shots;
+        if bullet.number_of_shots < 1 {
+            bullet.number_of_shots = 1;
+        }
+
+        bullet.pos = self.pos + self.bullet_offset;
+
+        bullet.speed = speed + coeff_speed;
+        if bullet.speed < 0.3 {
+            bullet.speed = 0.3;
+        }
+
+        bullet.speed2 = speed2 + coeff_speed / 2.;
+        if bullet.speed2 < 0.3 {
+            bullet.speed2 = 0.3;
+        }
+
+        bullet.launch_angle = launch_angle.atan2(0.);
+        bullet.angle = angle;
+        bullet.flags = flags;
+
+        if !self.delay_attack {
+            bullet.fire();
+        }
     }
 
     /// Run all interpolators and such, and update internal variables once per

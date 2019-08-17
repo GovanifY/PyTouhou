@@ -1,10 +1,28 @@
 //! ECL runner.
 
 use crate::th06::ecl::{Ecl, SubInstruction};
-use crate::th06::enemy::Enemy;
+use crate::th06::enemy::{Enemy, BulletAttributes};
 use crate::util::prng::Prng;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+macro_rules! gen_SetBulletAttributes {
+    ($self:ident, $opcode:tt, $anim:ident, $sprite_index_offset:ident, $bullets_per_shot:ident,
+     $number_of_shots:ident, $speed:ident, $speed2:ident, $launch_angle:ident, $angle:ident,
+     $flags:ident) => {{
+        let sprite_index_offset = $self.get_i32($sprite_index_offset as i32) as i16;
+        let bullets_per_shot = $self.get_i32($bullets_per_shot) as i16;
+        let number_of_shots = $self.get_i32($number_of_shots) as i16;
+        let speed = $self.get_f32($speed);
+        let speed2 = $self.get_f32($speed2);
+        let launch_angle = $self.get_f32($launch_angle);
+        let angle = $self.get_f32($angle);
+
+        let mut enemy = $self.enemy.borrow_mut();
+        enemy.set_bullet_attributes($opcode, $anim, sprite_index_offset, bullets_per_shot,
+                                    number_of_shots, speed, speed2, launch_angle, angle, $flags);
+    }};
+}
 
 type Variables = ([i32; 4], [f32; 4], [i32; 4]);
 
@@ -537,7 +555,57 @@ impl EclRunner {
                 let mut enemy = self.enemy.borrow_mut();
                 enemy.screen_box = None;
             }
+
             // 67 to 75 are set bullet attributes and it seems a pain to reverse rn
+            SubInstruction::SetBulletAttributes1(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 67, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes2(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 68, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes3(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 69, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes4(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 70, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes5(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 71, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes6(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 74, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
+            SubInstruction::SetBulletAttributes7(anim, sprite_index_offset, bullets_per_shot,
+                                                 number_of_shots, speed, speed2, launch_angle,
+                                                 angle, flags) => {
+                gen_SetBulletAttributes!(self, 75, anim, sprite_index_offset, bullets_per_shot,
+                                         number_of_shots, speed, speed2, launch_angle, angle,
+                                         flags);
+            }
 
 
 
