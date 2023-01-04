@@ -15,6 +15,8 @@
 from pytouhou.utils.helpers import get_logger
 logger = get_logger(__name__)
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 
 import sys
